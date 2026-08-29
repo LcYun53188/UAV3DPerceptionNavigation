@@ -22,7 +22,7 @@ from ament_index_python.packages import (
     get_package_share_directory,
 )
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, LogInfo
 from launch.actions import OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -39,6 +39,13 @@ LAUNCH_DEFAULTS = {
     'enable_imu_fusion': 'true',
     'enable_vins': 'true',
     'odometry_source': 'vio',
+
+    # PX4 Micro XRCE-DDS / bridge configuration
+    # Default to the recommended serial TELEM2 connection so no runtime args are needed.
+    'enable_px4_comm': 'true',
+    'px4_serial_port': '/dev/ttyUSB0',
+    'px4_serial_baud': '921600',
+    'px4_microxrce_agent_bin': 'MicroXRCEAgent',
 
     # Optional MID360 / LIO switches
     'enable_mid360': 'false',
@@ -210,6 +217,24 @@ def launch_setup(context, *args, **kwargs):
     launch_dwb = LaunchConfiguration('launch_dwb')
 
     nodes = []
+
+    px4_comm_enabled = _as_bool(LaunchConfiguration('enable_px4_comm').perform(context))
+    if px4_comm_enabled:
+        nodes.append(
+            ExecuteProcess(
+                cmd=[
+                    LaunchConfiguration('px4_microxrce_agent_bin'),
+                    'serial',
+                    '--dev',
+                    LaunchConfiguration('px4_serial_port'),
+                    '-b',
+                    LaunchConfiguration('px4_serial_baud'),
+                ],
+                output='screen',
+                name='microxrce_agent',
+            )
+        )
+
     nodes.extend(
         _optional_launch(
             context,
@@ -502,6 +527,26 @@ def generate_launch_description():
             'enable_vins',
             default_value=LAUNCH_DEFAULTS['enable_vins'],
             description='Launch OAK-D stereo VINS-Fusion VIO pipeline.',
+        ),
+        DeclareLaunchArgument(
+            'enable_px4_comm',
+            default_value=LAUNCH_DEFAULTS['enable_px4_comm'],
+            description='Launch the Micro XRCE-DDS serial agent before the PX4 bridge.',
+        ),
+        DeclareLaunchArgument(
+            'px4_serial_port',
+            default_value=LAUNCH_DEFAULTS['px4_serial_port'],
+            description='Serial device path used by Micro XRCE-DDS for PX4 TELEM2.',
+        ),
+        DeclareLaunchArgument(
+            'px4_serial_baud',
+            default_value=LAUNCH_DEFAULTS['px4_serial_baud'],
+            description='Serial baud rate for the PX4 DDS link; use 921600 for TELEM2.',
+        ),
+        DeclareLaunchArgument(
+            'px4_microxrce_agent_bin',
+            default_value=LAUNCH_DEFAULTS['px4_microxrce_agent_bin'],
+            description='MicroXRCEAgent executable path or command name.',
         ),
         DeclareLaunchArgument(
             'odometry_source',
