@@ -1,6 +1,6 @@
 # 文档目录
 
-本目录保存地面全向轮导航栈的项目文档。文档内容应围绕地面机器人、
+本目录保存无人机导航栈的项目文档。文档内容应围绕无人机、PX4、OAK-D、Isaac ROS Visual SLAM、nvblox 和 Nav2 展开。
 OAK-D、Isaac ROS Visual SLAM、nvblox、Nav2 和底盘串口桥展开。
 
 建议阅读顺序：
@@ -17,4 +17,4 @@ OAK-D、Isaac ROS Visual SLAM、nvblox、Nav2 和底盘串口桥展开。
 - [OAK-D 真实环境建图指南](./OAKD_REAL_MAPPING_GUIDE.md)：真实相机在线建图、保存、重定位和验收流程。
 - [Isaac Sim 最小仿真验证](./ISAAC_SIM_SIMULATION.md)：无真实硬件时验证 ROS 2 侧 Nav2 / nvblox 闭环。
 
-新增文档应只描述当前地面机器人项目，不再扩展无人机主线。
+新增文档应描述当前无人机导航项目，覆盖 PX4 桥接与 UAV bringup。

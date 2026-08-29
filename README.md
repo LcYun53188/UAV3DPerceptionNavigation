@@ -1,9 +1,8 @@
-# 地面全向轮机器人导航工作区
+# 无人机导航工作区（ground_robot_nav_ws 的 UAV 变体）
 
-本工作区面向地面全向轮机器人，不再按无人机导航栈设计。当前主线是以
-OAK-D 为第一版核心传感器，使用 Isaac ROS Visual SLAM / cuVSLAM 提供视觉
-里程计，使用 nvblox 构建 3D 障碍地图，使用 Nav2 和 `ground_serial_bridge`
-完成规划、控制与底盘串口输出。
+本工作区面向无人机导航开发，硬件与地面项目保持一致，并集成 PX4 固件/桥接。
+当前主线复用 OAK-D、Isaac ROS Visual SLAM / cuVSLAM、nvblox 和 Nav2，
+新增 px4_comm_bridge、px4_msgs、uav_bringup 等无人机导航组件。
 
 第一版约束：
 
@@ -305,7 +304,7 @@ odom
 已完成或正在使用：
 
 - 地面机器人项目范围已明确，不再按无人机主线推进。
-- `oakd_perception` 已提供 OAK-D IMU、左右目矫正图、CameraInfo、深度图和可选点云。
+- 无人机导航项目范围已明确，集成 PX4 桥接、px4_msgs 与 UAV bringup。
 - OAK-D VIO-only 验证入口已建立：`oakd_visual_slam_rviz.launch.py`。
 - VIO-only 入口已加入低延迟双目模式，减少不必要的深度质量计算。
 - `nvidia_3d_nav.launch.py` 已作为 OAK-D + Visual SLAM + nvblox + Nav2 的主入口。
