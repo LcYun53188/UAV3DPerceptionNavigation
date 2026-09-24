@@ -8,22 +8,22 @@
 
 ```bash
 env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch src/omni_bringup/launch/oakd_visual_slam_rviz.launch.py
+./scripts/with_venv.sh ros2 launch src/uav_bringup/launch/oakd_visual_slam_rviz.launch.py
 ```
 
 如果已经重新 build/install，也可以用包名启动：
 
 ```bash
 env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch omni_bringup oakd_visual_slam_rviz.launch.py
+./scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
 
 如果 RViz 没有加载预设，强制指定源码 RViz 配置：
 
 ```bash
 env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch src/omni_bringup/launch/oakd_visual_slam_rviz.launch.py \
-  rviz_config:=/home/nuc/Program/ground_robot_nav_ws/src/omni_bringup/rviz/visual_slam_check.rviz
+./scripts/with_venv.sh ros2 launch src/uav_bringup/launch/oakd_visual_slam_rviz.launch.py \
+  rviz_config:=/home/nuc/Program/uav_nav_ws/src/uav_bringup/rviz/visual_slam_check.rviz
 ```
 
 ## 启动内容
@@ -41,7 +41,6 @@ env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
 - nvblox
 - Nav2
 - ESS
-- `ground_serial_bridge`
 - OAK-D depth image
 - OAK-D PointCloud2
 
@@ -107,7 +106,7 @@ RViz 中颜色含义：
 默认 RViz 配置：
 
 ```text
-src/omni_bringup/rviz/visual_slam_check.rviz
+src/uav_bringup/rviz/visual_slam_check.rviz
 ```
 
 默认显示：
@@ -180,7 +179,7 @@ timeout 5s ./scripts/with_venv.sh ros2 topic hz /oakd/left/image_raw
 
 ```bash
 env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch src/omni_bringup/launch/oakd_visual_slam_rviz.launch.py \
+./scripts/with_venv.sh ros2 launch src/uav_bringup/launch/oakd_visual_slam_rviz.launch.py \
   oakd_image_pair_max_dt_ms:=12.0
 ```
 
@@ -254,25 +253,23 @@ RViz 验证入口默认启动 `nav_guard/visual_odom_guard` 和
 
 RViz 验证入口默认使用 `ekf_visual_slam_3d.yaml`，关闭 `two_d_mode`，完整保留
 cuVSLAM 的 `odom -> base_link` 姿态。这样验证 roll、pitch、yaw 时不会被二维
-导航约束压平。完整导航入口 `nvidia_3d_nav.launch.py` 默认仍使用
-`ekf_visual_slam.yaml`，该配置启用二维约束，适合 Nav2 使用。
+导航约束压平。共享定位入口为 `oakd_vio.launch.py`。
 
 ```bash
 env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch src/omni_bringup/launch/oakd_visual_slam_rviz.launch.py \
+./scripts/with_venv.sh ros2 launch src/uav_bringup/launch/oakd_visual_slam_rviz.launch.py \
   launch_robot_localization:=false \
   odom_guard_publish_tf:=false
 ```
 
-独立 IMU 不在 RViz 验证入口默认启用。需要验证独立 IMU 时，使用
-`ekf_visual_slam_with_independent_imu.yaml`，并先确认 IMU 静态 TF 和轴向。
+独立 IMU 不在 RViz 验证入口默认启用；接入前需配置三维融合参数并确认静态 TF 和轴向。
 
 ## 停止命令
 
 ```bash
 pkill -f rviz2
 pkill -f "ros2 launch.*oakd_visual_slam_rviz"
-pkill -f "ros2 launch.*nvidia_3d_nav"
+pkill -f "ros2 launch.*oakd_vio"
 pkill -f "oakd_unified|visual_slam|static_transform_publisher"
 ```
 
@@ -283,7 +280,7 @@ pkill -f "oakd_unified|visual_slam|static_transform_publisher"
 优先用源码路径启动，或显式传入 `rviz_config`：
 
 ```bash
-rviz_config:=/home/nuc/Program/ground_robot_nav_ws/src/omni_bringup/rviz/visual_slam_check.rviz
+rviz_config:=/home/nuc/Program/uav_nav_ws/src/uav_bringup/rviz/visual_slam_check.rviz
 ```
 
 ### 位置乱跳或跳到百米级

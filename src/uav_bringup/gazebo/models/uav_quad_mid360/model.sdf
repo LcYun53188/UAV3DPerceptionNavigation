@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="uav_quad_mid360" xmlns:gz="http://gazebosim.org/schema">
+    <!-- Simplified UAV body. The velocity-control plugin below intentionally
+         avoids a detailed aerodynamic/rotor force model; only base_link mass,
+         inertia, and collision geometry are used by the physics engine. -->
+    <link name="base_link">
+      <inertial>
+        <mass>1.5</mass>
+        <inertia>
+          <ixx>0.035</ixx>
+          <iyy>0.035</iyy>
+          <izz>0.06</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry><box><size>0.55 0.55 0.10</size></box></geometry>
+      </collision>
+      <visual name="body_fuselage">
+        <geometry><box><size>0.24 0.20 0.08</size></box></geometry>
+        <material>
+          <ambient>0.04 0.18 0.55 1</ambient>
+          <diffuse>0.05 0.25 0.85 1</diffuse>
+        </material>
+      </visual>
+      <visual name="arm_x">
+        <pose>0 0 0.02 0 0 0</pose>
+        <geometry><box><size>0.55 0.04 0.02</size></box></geometry>
+        <material>
+          <ambient>0.10 0.10 0.12 1</ambient>
+          <diffuse>0.16 0.16 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="arm_y">
+        <pose>0 0 0.02 0 0 1.57079632679</pose>
+        <geometry><box><size>0.55 0.04 0.02</size></box></geometry>
+        <material>
+          <ambient>0.10 0.10 0.12 1</ambient>
+          <diffuse>0.16 0.16 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="rotor_front_left">
+        <pose>0.19 0.19 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.05 0.05 0.06 1</ambient><diffuse>0.10 0.10 0.12 1</diffuse></material>
+      </visual>
+      <visual name="rotor_front_right">
+        <pose>0.19 -0.19 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.05 0.05 0.06 1</ambient><diffuse>0.10 0.10 0.12 1</diffuse></material>
+      </visual>
+      <visual name="rotor_rear_left">
+        <pose>-0.19 0.19 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.05 0.05 0.06 1</ambient><diffuse>0.10 0.10 0.12 1</diffuse></material>
+      </visual>
+      <visual name="rotor_rear_right">
+        <pose>-0.19 -0.19 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.02</length></cylinder></geometry>
+        <material><ambient>0.05 0.05 0.06 1</ambient><diffuse>0.10 0.10 0.12 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- Gazebo cameras look along local +X. Positive pitch rotates +X toward
+         the ground, so this forward-looking OAK-D mount has an 18-degree
+         downward tilt relative to the UAV body. -->
+    <link name="oakd_camera_link">
+      <pose relative_to="base_link">0.18 0 0.16 0 0.31415926536 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia>
+          <ixx>0.0002</ixx>
+          <iyy>0.0002</iyy>
+          <izz>0.0002</izz>
+        </inertia>
+      </inertial>
+      <visual name="camera_body">
+        <geometry><box><size>0.07 0.10 0.035</size></box></geometry>
+        <material>
+          <ambient>0.55 0.15 0.01 1</ambient>
+          <diffuse>0.95 0.32 0.03 1</diffuse>
+        </material>
+      </visual>
+      <visual name="left_lens">
+        <pose>0.038 0.028 0 0 0 0</pose>
+        <geometry><box><size>0.008 0.022 0.022</size></box></geometry>
+        <material>
+          <ambient>0.01 0.01 0.015 1</ambient>
+          <diffuse>0.01 0.01 0.015 1</diffuse>
+        </material>
+      </visual>
+      <visual name="right_lens">
+        <pose>0.038 -0.028 0 0 0 0</pose>
+        <geometry><box><size>0.008 0.022 0.022</size></box></geometry>
+        <material>
+          <ambient>0.01 0.01 0.015 1</ambient>
+          <diffuse>0.01 0.01 0.015 1</diffuse>
+        </material>
+      </visual>
+      <sensor name="oakd_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>200</update_rate>
+        <topic>/oakd/imu/raw</topic>
+        <gz_frame_id>oakd_imu_link</gz_frame_id>
+      </sensor>
+      <sensor name="oakd_rgbd" type="rgbd_camera">
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <topic>rgbd_camera</topic>
+        <camera>
+          <horizontal_fov>1.21</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>400</height>
+          </image>
+          <clip>
+            <near>0.15</near>
+            <far>8.0</far>
+          </clip>
+          <optical_frame_id>oakd_camera_optical_frame</optical_frame_id>
+        </camera>
+      </sensor>
+    </link>
+    <joint name="oakd_fixed_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>oakd_camera_link</child>
+    </joint>
+
+    <!-- MID360 sensor mount. Keep this pose in sync with the
+         base_link -> mid360_link static transform published by
+         gazebo_harmonic_nav.launch.py. -->
+    <link name="mid360_link">
+      <pose relative_to="base_link">0.113137085 -0.113137085 0.18 0.7853981634 0 0.5235987756</pose>
+      <inertial>
+        <mass>0.03</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <iyy>0.00001</iyy>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="mid360_body">
+        <geometry><cylinder><radius>0.035</radius><length>0.06</length></cylinder></geometry>
+        <material>
+          <ambient>0.10 0.35 0.10 1</ambient>
+          <diffuse>0.15 0.55 0.20 1</diffuse>
+        </material>
+      </visual>
+      <sensor name="mid360_lidar" type="gpu_lidar">
+        <always_on>true</always_on>
+        <update_rate>20</update_rate>
+        <topic>/mid360</topic>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>1875</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265359</min_angle>
+              <max_angle>3.14159265359</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>32</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.12217304764</min_angle>
+              <max_angle>0.90757121104</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>40.0</max>
+            <resolution>0.02</resolution>
+          </range>
+        </lidar>
+        <visualize>true</visualize>
+      </sensor>
+      <sensor name="mid360_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>200</update_rate>
+        <topic>/mid360/imu</topic>
+        <gz_frame_id>mid360_link</gz_frame_id>
+      </sensor>
+    </link>
+    <joint name="mid360_fixed_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>mid360_link</child>
+    </joint>
+
+    <plugin filename="gz-sim-velocity-control-system" name="gz::sim::systems::VelocityControl">
+      <topic>/cmd_vel</topic>
+      <link_name>base_link</link_name>
+      <initial_linear>0 0 0</initial_linear>
+      <initial_angular>0 0 0</initial_angular>
+    </plugin>
+    <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <!-- 3D pose is required so nvblox receives the full UAV/camera pose. -->
+      <dimensions>3</dimensions>
+      <odom_topic>/visual_slam/tracking/odometry</odom_topic>
+      <tf_topic>/tf</tf_topic>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+  </model>
+</sdf>

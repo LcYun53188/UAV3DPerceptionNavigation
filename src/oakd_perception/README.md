@@ -163,32 +163,6 @@
 
 ---
 
-### cliff_detector（导航负障碍层）
-
-**输入：** `/oakd/depth/image`、`/oakd/depth/camera_info` 和 TF
-
-**输出：** `/perception/cliff_points`（断崖标记）和
-`/perception/cliff_clear_points`（已观察地形的清障射线），均为
-`sensor_msgs/PointCloud2`
-
-节点把抽样深度变换到 `base_link`，构造局部高程栅格，并将超过可通行坡度模型的
-上升台阶及下降边缘发布为障碍点。完整 NVIDIA 导航入口默认自动启动该节点；单独调试可运行：
-
-```bash
-./scripts/with_venv.sh ros2 run oakd_perception cliff_detector \
-  --ros-args --params-file \
-  src/oakd_perception/config/cliff_detector.yaml
-```
-
-主要参数为 `min_drop_height_m`（默认 0.05 m）、`grid_resolution_m`（默认 0.05 m）、
-`max_traversable_slope_deg`（默认 30°）、`expected_ground_z_m` 和
-`max_detectable_drop_m`。`max_terrain_height_change_m` 允许上坡面进入高程判断，避免
-其侧缘被固定地面高度带提前过滤。图像空间检测还会标记超过
-`min_depth_jump_m` 的近侧边缘和受支持的无回波边界。完全位于相机视场外的区域仍然
-无法识别。
-
----
-
 ### fov_boundary_filter（工具模块）
 
 **文件位置：** `oakd_perception/fov_boundary_filter.py`
@@ -261,12 +235,12 @@ filtered, stats = filter.filter_adaptive(points)
 ../../scripts/with_venv.sh rviz2
 ```
 
-> 说明：本包 `scripts/run_oakd_*.sh` 负责 OAK-D 场景预设；完整导航栈使用根目录 `./scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py` 启动。
+> 说明：本包 `scripts/run_oakd_*.sh` 负责 OAK-D 场景预设；定位验证使用根目录 `./scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py` 启动。
 
 ### 方式2：一键启动完整系统
 
 ```bash
-../../scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
+../../scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
 
 ### 方式3：独立测试单节点

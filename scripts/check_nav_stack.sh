@@ -74,8 +74,7 @@ print_header "Core Topics"
 require_topic /tf
 require_topic /tf_static
 require_topic /odometry/local
-require_topic /local_map/occupancy
-require_topic /nav/cmd_vel
+optional_topic /nav/cmd_vel
 require_topic /nav/emergency
 require_topic /nav/safety_status
 optional_topic /vio/odometry
@@ -83,11 +82,8 @@ optional_topic /lio/odometry
 
 print_header "Rates"
 check_topic_hz /odometry/local odometry
-check_topic_hz /local_map/occupancy local_map
-check_topic_hz /nav/cmd_vel cmd_vel
 
 print_header "Frames"
-check_frame_id /local_map/occupancy map
 check_tf map base_link
 optional_topic /oakd/points_filtered
 if topic_exists /oakd/points_filtered; then

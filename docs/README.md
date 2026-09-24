@@ -1,20 +1,3 @@
-# 文档目录
+# 项目文档
 
-本目录保存无人机导航栈的项目文档。文档内容应围绕无人机、PX4、OAK-D、Isaac ROS Visual SLAM、nvblox 和 Nav2 展开。
-OAK-D、Isaac ROS Visual SLAM、nvblox、Nav2 和底盘串口桥展开。
-
-建议阅读顺序：
-
-- [项目 README](../README.md)：项目目标、环境配置、构建、硬件验证和当前进度。
-- [文档索引](./INDEX.md)：完整文档入口。
-- [安装与构建指南](./INSTALLATION.md)：虚拟环境、依赖安装与构建步骤。
-- [CUDA Toolkit 13.2 安装指南](./CUDA_TOOLKIT_13_2_INSTALLATION.md)：Isaac ROS / nvblox 构建所需 CUDA 环境。
-- [OAK-D Visual SLAM 与 RViz 验证](./OAKD_VISUAL_SLAM_RVIZ.md)：OAK-D 双目 + IMU + Visual SLAM 硬件验证。
-- [NVIDIA 3D 导航架构](./NVIDIA_3D_NAV_ARCHITECTURE.md)：当前 OAK-D + cuVSLAM + nvblox + Nav2 架构。
-- [NVIDIA 3D 导航项目计划](./NVIDIA_3D_NAV_PROJECT_PLAN.md)：分阶段迁移计划。
-- [Gazebo Harmonic 仿真](./GAZEBO_HARMONIC_SIMULATION.md)：当前推荐的无硬件仿真路径。
-- [Gazebo 建图测试指南](./GAZEBO_MAPPING_GUIDE.md)：RMUC 2025 仿真建图、移动验证和地图保存。
-- [OAK-D 真实环境建图指南](./OAKD_REAL_MAPPING_GUIDE.md)：真实相机在线建图、保存、重定位和验收流程。
-- [Isaac Sim 最小仿真验证](./ISAAC_SIM_SIMULATION.md)：无真实硬件时验证 ROS 2 侧 Nav2 / nvblox 闭环。
-
-新增文档应描述当前无人机导航项目，覆盖 PX4 桥接与 UAV bringup。
+见 [文档索引](INDEX.md) 和 [项目评估](UAV_PROJECT_ASSESSMENT.md)。

@@ -8,8 +8,15 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config rviz gazebo
   DESTINATION share/${PROJECT_NAME}
+  PATTERN "__pycache__" EXCLUDE
+  PATTERN "*.pyc" EXCLUDE
+)
+
+install(PROGRAMS
+  scripts/gazebo_odometry_velocity.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

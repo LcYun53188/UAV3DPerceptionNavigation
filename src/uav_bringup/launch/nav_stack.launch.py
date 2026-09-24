@@ -1,10 +1,10 @@
 """
 Unified navigation stack launch file (W1-D1-D3: 自包含化)
 
-启动完整的无人机导航栈：
+启动无人机感知、可选定位、安全监测与 PX4 接口：
   1. 感知层: OAK-D RGB-D 相机 + IMU (400Hz) 
   2. 定位层: VINS-Fusion VIO + dual EKF (robot_localization)
-  3. 规划层: 局部规划器 (当前APF，后续替换为DWB)
+  3. 三维地图/规划: EGO + nvblox 待接入，本入口不产生规划速度
   4. 安全层: 多源健康监视
   5. 控制层: PX4 offboard 桥接
 
@@ -34,7 +34,6 @@ from launch_ros.substitutions import FindPackageShare
 LAUNCH_DEFAULTS = {
     # Core stack switches
     'enable_gps': 'false',
-    'launch_dwb': 'false',
     'enable_oakd_perception': 'true',
     'enable_imu_fusion': 'true',
     'enable_vins': 'true',
@@ -214,7 +213,6 @@ def launch_setup(context, *args, **kwargs):
         _as_bool(LaunchConfiguration('enable_lio').perform(context))
         or odometry_source in ('lio', 'both')
     )
-    launch_dwb = LaunchConfiguration('launch_dwb')
 
     nodes = []
 
@@ -321,50 +319,8 @@ def launch_setup(context, *args, **kwargs):
             )
         )
 
-    nodes.append(
-        Node(
-            package='nav_mapping',
-            executable='local_map_builder',
-            name='local_map_builder',
-            output='screen',
-            parameters=[config_file, {'pointcloud_topic': selected_topic}],
-        )
-    )
 
-    nodes.append(
-        Node(
-            package='nav_planning',
-            executable='se2_dwa_local_planner',
-            name='se2_dwa_local_planner',
-            output='screen',
-            parameters=[config_file],
-        )
-    )
 
-    nodes.append(
-        Node(
-            package='nav_planning',
-            executable='dwb_bridge',
-            name='dwb_bridge',
-            output='screen',
-            condition=IfCondition(launch_dwb),
-            parameters=[
-                PathJoinSubstitution([
-                    FindPackageShare('nav_planning'),
-                    'config',
-                    'dwb_local_planner.yaml',
-                ]),
-            ],
-            remappings=[
-                ('/oakd/points', selected_topic),
-                ('/tf', '/tf'),
-                ('/tf_static', '/tf_static'),
-                ('/odometry/filtered', '/odometry/filtered'),
-                ('/nav/goal_pose', '/nav/goal_pose'),
-                ('/nav/cmd_vel', '/nav/cmd_vel'),
-            ],
-        )
-    )
 
     nodes.append(
         Node(
@@ -499,7 +455,7 @@ def generate_launch_description():
     )
 
     # ─────────────────────────────────────────────────────
-    # ⑤ 规划+安全+控制层
+    # ⑤ 安全监测与 PX4 接口
     # ─────────────────────────────────────────────────────
     return LaunchDescription([
         # ─ 参数声明 ─
@@ -507,11 +463,6 @@ def generate_launch_description():
             'enable_gps',
             default_value=LAUNCH_DEFAULTS['enable_gps'],
             description='Enable GPS fusion (dual EKF + NavSat). Set false for GPS-denied.',
-        ),
-        DeclareLaunchArgument(
-            'launch_dwb',
-            default_value=LAUNCH_DEFAULTS['launch_dwb'],
-            description='Launch DWB adapter. Requires Nav2 Python modules.',
         ),
         DeclareLaunchArgument(
             'enable_oakd_perception',

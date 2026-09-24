@@ -14,12 +14,10 @@ setup(
     zip_safe=True,
     maintainer='root',
     maintainer_email='root@todo.todo',
-    description='Point cloud processing and local occupancy grid generation',
+    description='Point cloud conversion and combination',
     license='Apache-2.0',
     entry_points={'console_scripts': [
-        'local_map_builder = nav_mapping.local_map_builder:main',
         'livox_custom_to_pointcloud2 = nav_mapping.livox_custom_to_pointcloud2:main',
         'pointcloud_combiner = nav_mapping.pointcloud_combiner:main',
-        'occupancy_grid_fusion = nav_mapping.occupancy_grid_fusion:main',
     ]},
 )

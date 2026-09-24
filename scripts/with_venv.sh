@@ -37,8 +37,8 @@ else
   exit 1
 fi
 
-if [ "${SKIP_WS_SETUP:-false}" != "true" ] && [ -f install/setup.bash ]; then
-  source install/setup.bash
+if [ "${SKIP_WS_SETUP:-false}" != "true" ] && [ -f install_uav/setup.bash ]; then
+  source install_uav/setup.bash
 fi
 
 if [ "$#" -eq 0 ]; then

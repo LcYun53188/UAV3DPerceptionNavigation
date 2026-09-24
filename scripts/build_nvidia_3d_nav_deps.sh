@@ -36,7 +36,7 @@ fi
 # --symlink-install needs the same path to be a symlink. Remove only this
 # generated path when switching modes so an otherwise valid incremental build
 # is not aborted near the end of the dependency graph.
-oakd_python_build_path="$WS_DIR/build/oakd_perception/ament_cmake_python/oakd_perception/oakd_perception"
+oakd_python_build_path="$WS_DIR/build_uav/oakd_perception/ament_cmake_python/oakd_perception/oakd_perception"
 if [ -d "$oakd_python_build_path" ] && [ ! -L "$oakd_python_build_path" ]; then
   cmake -E remove_directory "$oakd_python_build_path"
 fi
@@ -51,22 +51,17 @@ exec env \
   CUDACXX="$CUDA_HOME/bin/nvcc" \
   PATH="$CUDA_HOME/bin:$PATH" \
   LD_LIBRARY_PATH="$CUDA_HOME/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
-  "$WS_DIR/scripts/with_venv.sh" colcon build --symlink-install \
+  "$WS_DIR/scripts/with_venv.sh" colcon build --build-base build_uav --install-base install_uav --symlink-install \
   --parallel-workers "${COLCON_PARALLEL_WORKERS:-2}" \
   --cmake-clean-cache \
   --packages-up-to \
     isaac_ros_visual_slam \
     nvblox_ros \
-    nvblox_nav2 \
-    nav2_mppi_controller \
-    omni_bringup \
+    uav_bringup \
   --packages-skip \
     fast_lio \
     livox_ros_driver2 \
     livox_sdk2 \
-    opennav_docking \
-    opennav_docking_bt \
-    opennav_docking_core \
   --cmake-args \
     -DBUILD_TESTING=OFF \
     -DCMAKE_CUDA_COMPILER="$CUDA_HOME/bin/nvcc" \

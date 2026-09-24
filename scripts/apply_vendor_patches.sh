@@ -78,10 +78,6 @@ apply_patch_if_needed \
   "patches/vendor/isaac_ros_nvblox.patch" \
   "6362295e581ef243773c8a348ac46711e4a1fca4"
 apply_patch_if_needed \
-  "src/navigation2" \
-  "patches/vendor/navigation2.patch" \
-  "f3f5d1f64b4905e31ddab3dc5b861f701aa3771c"
-apply_patch_if_needed \
   "src/magic_enum" \
   "patches/vendor/magic_enum.patch" \
   "9f19f78a7d726af84761ecd6d8414613507a95e6"
@@ -93,10 +89,6 @@ apply_patch_if_needed \
   "src/negotiated" \
   "patches/vendor/negotiated.patch" \
   "eac198b55dcd052af5988f0f174902913c5f20e7"
-apply_patch_if_needed \
-  "src/isaac_ros_image_pipeline" \
-  "patches/vendor/isaac_ros_image_pipeline.patch" \
-  "ab21ed0818e50bd4524a442bc186acbde8de8a56"
 apply_patch_if_needed \
   "src/isaac_ros_nvblox/nvblox_ros/nvblox_core" \
   "patches/vendor/nvblox_core.patch" \

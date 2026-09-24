@@ -2,10 +2,10 @@
 
 本目录下保留的是 OAK-D 深度模式的兼容脚本入口。
 
-如果你只是想启动系统，优先使用当前地面导航主入口：
+如果你只是想启动系统，优先使用当前OAK-D 定位验证入口：
 
 ```bash
-../../../scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
+../../../scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
 
 如果你想调整深度模式参数，请参考：

@@ -87,7 +87,7 @@ PX4_SERIAL_PORT=/dev/ttyTHS1 ./scripts/run_px4_microxrce.sh
 ```bash
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select px4_comm_bridge --symlink-install
-source install/setup.bash
+source install_uav/setup.bash
 PARAM_FILE=$(ros2 pkg prefix px4_comm_bridge)/share/px4_comm_bridge/config/px4_comm_bridge.yaml
 ros2 run px4_comm_bridge px4_bridge_node --ros-args --params-file "$PARAM_FILE"
 ```

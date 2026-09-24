@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="uav_harmonic_demo">
+    <physics name="fast_step" type="ignored">
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+
+    <!-- Keep terrain readable on faces that are not reached by the sun. -->
+    <scene>
+      <ambient>0.45 0.45 0.45 1</ambient>
+      <background>0.70 0.75 0.80 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light type="directional" name="sun">
+      <pose>0 0 8 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.9 0.9 0.85 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.4 0.3 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>18 18</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>20</mu>
+                <mu2>20</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>18 18</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.55 0.57 0.58 1</ambient>
+            <diffuse>0.55 0.57 0.58 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="frame_front">
+      <static>true</static>
+      <pose>0 4.3 0.95 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>9.2 0.18 1.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>9.2 0.18 1.9</size></box></geometry><material><ambient>0.58 0.24 0.18 1</ambient><diffuse>0.78 0.35 0.20 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="frame_back">
+      <static>true</static>
+      <pose>0 -4.3 0.95 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>9.2 0.18 1.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>9.2 0.18 1.9</size></box></geometry><material><ambient>0.22 0.42 0.55 1</ambient><diffuse>0.22 0.56 0.72 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="frame_left">
+      <static>true</static>
+      <pose>-4.6 0 0.95 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.18 8.6 1.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.18 8.6 1.9</size></box></geometry><material><ambient>0.45 0.36 0.16 1</ambient><diffuse>0.60 0.47 0.20 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="frame_right">
+      <static>true</static>
+      <pose>4.6 0 0.95 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.18 8.6 1.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.18 8.6 1.9</size></box></geometry><material><ambient>0.48 0.28 0.52 1</ambient><diffuse>0.66 0.34 0.74 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="column_00">
+      <static>true</static>
+      <pose>-2.8 -2.1 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.26 0.44 0.52 1</ambient><diffuse>0.30 0.60 0.72 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_01">
+      <static>true</static>
+      <pose>-0.9 -2.1 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.44 0.34 0.20 1</ambient><diffuse>0.68 0.52 0.28 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_02">
+      <static>true</static>
+      <pose>0.9 -2.1 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.50 0.24 0.46 1</ambient><diffuse>0.74 0.34 0.66 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_03">
+      <static>true</static>
+      <pose>2.8 -2.1 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.28 0.30 0.62 1</ambient><diffuse>0.42 0.44 0.82 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_10">
+      <static>true</static>
+      <pose>-2.8 1.0 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.36 0.52 0.20 1</ambient><diffuse>0.54 0.72 0.34 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_11">
+      <static>true</static>
+      <pose>-0.9 1.0 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.22 0.48 0.56 1</ambient><diffuse>0.30 0.66 0.78 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_12">
+      <static>true</static>
+      <pose>0.9 1.0 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.50 0.40 0.16 1</ambient><diffuse>0.70 0.58 0.24 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="column_13">
+      <static>true</static>
+      <pose>2.8 1.0 1.0 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2.0</length></cylinder></geometry><material><ambient>0.42 0.22 0.56 1</ambient><diffuse>0.62 0.30 0.76 1</diffuse></material></visual></link>
+    </model>
+
+    <include>
+      <uri>model://uav_quad_mid360</uri>
+      <name>uav_quad</name>
+      <!-- Initial model placement for sensor and scene validation. -->
+      <pose>0 0 0.11 0 0 0</pose>
+    </include>
+  </world>
+</sdf>

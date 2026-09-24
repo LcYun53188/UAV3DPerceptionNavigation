@@ -15,7 +15,7 @@
 ### 1. 编译项目
 
 ```bash
-cd /home/nuc/Program/ground_robot_nav_ws
+cd /home/nuc/Program/uav_nav_ws
 ./scripts/with_venv.sh colcon build --packages-select oakd_perception
 ```
 
@@ -30,8 +30,8 @@ cd /home/nuc/Program/ground_robot_nav_ws
   --ros-args \
   --params-file src/oakd_perception/config/imu_default.yaml
 
-# 方式3: 使用当前地面导航主入口启动 OAK-D + VIO + 建图导航
-./scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
+# 方式3: 使用当前OAK-D 定位验证入口启动 OAK-D + VIO + 建图导航
+./scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
 
 ### 2.1 运行 IMU 融合和 TF 广播器
@@ -116,7 +116,7 @@ imu.angular_velocity_covariance       # 陀螺仪协方差 (3x3)
 
 然后运行：
 ```bash
-./scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
+./scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
 
 ### 使用两个终端

@@ -11,3 +11,6 @@ scripts/nav_launch.local.env
 **/__pycache__/
 **/*.py[cod]
 **/*.egg-info/
+
+/build_uav/
+/install_uav/

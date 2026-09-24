@@ -155,27 +155,27 @@ VS Code 新开终端时会自动使用 `.venv` 中的 Python。如不自动激�
 如需构建 NVIDIA Isaac ROS / nvblox 相关包，先按
 [CUDA Toolkit 13.2 安装指南](./CUDA_TOOLKIT_13_2_INSTALLATION.md) 安装 `nvcc`。
 
-### 6.1 构建当前地面栈
+### 6.1 构建当前无人机栈
 
-优先使用仓库脚本构建当前地面导航栈：
+优先使用仓库脚本构建当前无人机导航栈：
 
 ```bash
-./scripts/build_ground_stack.sh
-source install/setup.bash
+./scripts/build_uav_stack.sh
+source install_uav/setup.bash
 ```
 
 调试 OAK-D / Visual SLAM 入口时，可只构建相关包：
 
 ```bash
-./scripts/with_venv.sh colcon build --symlink-install \
-  --packages-select oakd_perception omni_bringup
-source install/setup.bash
+./scripts/with_venv.sh colcon build --build-base build_uav --install-base install_uav --symlink-install \
+  --packages-select oakd_perception uav_bringup
+source install_uav/setup.bash
 ```
 
 ### 6.2 构建选项
 
-- `--packages-select oakd_perception omni_bringup` — 仅构建 OAK-D 和 bringup 相关包
-- `--parallel <N>` — 并行构建（加速）
+- `--packages-select oakd_perception uav_bringup` — 仅构建 OAK-D 和 bringup 相关包
+- `--parallel-workers <N>` — 并行构建（加速）
 - `--symlink-install` — 符号链接安装（开发模式，加速重建）
 
 完整 NVIDIA 3D 导航依赖构建见：
@@ -188,8 +188,8 @@ source install/setup.bash
 
 构建成功后，编译输出位于：
 
-- `build/` — 中间文件（可删除以清空缓存）
-- `install/` — 最终安装包
+- `build_uav/` — 中间文件（可删除以清空缓存）
+- `install_uav/` — 最终安装包
 - `log/` — 构建日志
 
 ---

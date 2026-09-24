@@ -234,7 +234,7 @@ def launch_setup(context, *args, **kwargs):
     #
     # 这组参数描述 OAK-D 设备内部 IMU/机身坐标系到相机光学坐标系的固定关系。
     # 它不是 OAK-D 相对机器人底盘的安装位置；整台 OAK-D 的底盘安装外参在
-    # omni_bringup/launch/ground_nav.launch.py 中通过 base_link -> oakd_imu_link 配置。
+    # uav_bringup/launch/ekf_launch.py 中通过 base_link -> oakd_imu_link 配置。
     #
     # TF 链路整体应为：
     #   base_link -> oakd_imu_link -> oakd_camera_optical_frame

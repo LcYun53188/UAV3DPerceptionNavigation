@@ -382,7 +382,7 @@ src/oakd_perception/scripts/run_oakd_balance.sh
   parent_frame:=map
 
 # 当前地面导航主入口
-./scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
+./scripts/with_venv.sh ros2 launch uav_bringup nvidia_3d_nav.launch.py
 ```
 
 ## 总结

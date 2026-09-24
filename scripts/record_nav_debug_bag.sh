@@ -10,8 +10,6 @@ if [[ -f "$WS_DIR/scripts/nav_launch.local.env" ]]; then
 fi
 
 OUTPUT="${BAG_OUTPUT:-}"
-INCLUDE_OFFLINE_MAP="${BAG_INCLUDE_OFFLINE_MAP:-false}"
-INCLUDE_OMNI="${BAG_INCLUDE_OMNI:-false}"
 EXTRA_TOPICS=()
 if declare -p BAG_EXTRA_TOPICS >/dev/null 2>&1; then
   EXTRA_TOPICS=("${BAG_EXTRA_TOPICS[@]}")
@@ -29,19 +27,12 @@ Options:
   -o, --output <bag_dir>
       Output bag directory. Default: nav_debug_<timestamp>.
 
-  --offline-map
-      Include offline map fusion topics.
-
-  --omni
-      Include ground omni-wheel bridge topics.
-
   -h, --help
       Show this help.
 
 Examples:
   scripts/record_nav_debug_bag.sh
-  scripts/record_nav_debug_bag.sh --offline-map --omni
-  scripts/record_nav_debug_bag.sh -o test_run /base/state
+  scripts/record_nav_debug_bag.sh -o test_run /fmu/out/vehicle_status
 EOF
 }
 
@@ -63,14 +54,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --output=*)
       OUTPUT="${1#*=}"
-      shift
-      ;;
-    --offline-map)
-      INCLUDE_OFFLINE_MAP="true"
-      shift
-      ;;
-    --omni)
-      INCLUDE_OMNI="true"
       shift
       ;;
     -h|--help|help)
@@ -105,26 +88,14 @@ TOPICS=(
   /livox/imu
   /mid360/points
   /perception/obstacle_points
-  /local_map/occupancy
   /nav/cmd_vel
+  /fmu/in/trajectory_setpoint
+  /fmu/out/vehicle_status
   /nav/emergency
   /nav/safety_status
 )
 
-if [[ "$INCLUDE_OFFLINE_MAP" == "true" ]]; then
-  TOPICS+=(
-    /static_map/occupancy
-    /local_map/sensor_occupancy
-  )
-fi
 
-if [[ "$INCLUDE_OMNI" == "true" ]]; then
-  TOPICS+=(
-    /base/state
-    /base/status
-    /base/diagnostics
-  )
-fi
 
 TOPICS+=("${EXTRA_TOPICS[@]}")
 

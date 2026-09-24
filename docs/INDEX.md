@@ -1,60 +1,18 @@
-# 文档索引
+# 无人机导航文档索引
 
-本文档集只服务当前地面全向轮机器人导航项目。当前主线是：
+- [项目说明](../README.md)
+- [项目评估与待办](UAV_PROJECT_ASSESSMENT.md)
+- [EGO + nvblox 开发手册](EGO_NVBLOX_DEVELOPMENT_GUIDE.md)
+- [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)
+- [安装与构建](INSTALLATION.md)
+- [CUDA 构建环境](CUDA_TOOLKIT_13_2_INSTALLATION.md)
+- [OAK-D / cuVSLAM 定位验证](OAKD_VISUAL_SLAM_RVIZ.md)
+- [Gazebo 无人机场景](GAZEBO_HARMONIC_SIMULATION.md)
+- [无人机障碍场地](UAV_OBSTACLE_COURSE.md)
+- [PX4 串口通信](PX4_MICRO_XRCE_DDS_SERIAL_SETUP.md)
+- [PX4 导航策略](PX4_NAVIGATION_STRATEGY.md)
+- [PX4 状态机设计](PX4_STATE_MACHINE_DESIGN.md)
 
-```text
-OAK-D + Isaac ROS Visual SLAM / cuVSLAM + nvblox + Nav2 + ground_serial_bridge
-```
+策略与状态机设计文档记录设计意图；当前实现的限制以项目评估为准。
 
-第一版不使用可靠轮速里程计，不把 MID360 放入主定位链路，也不处理 OAK-D 与
-MID360 的复杂跨设备时间戳对齐。
-
-## 核心文档
-
-- [项目 README](../README.md)：项目目标、环境配置、构建、硬件验证和当前进度。
-- [docs README](./README.md)：本目录文档阅读顺序。
-- [安装与构建指南](./INSTALLATION.md)：`.venv`、`uv`、Python 依赖和 colcon 构建。
-- [CUDA Toolkit 13.2 安装指南](./CUDA_TOOLKIT_13_2_INSTALLATION.md)：Isaac ROS / nvblox 构建所需 CUDA 环境。
-- [OAK-D Visual SLAM 与 RViz 验证](./OAKD_VISUAL_SLAM_RVIZ.md)：OAK-D 双目、IMU、TF、Visual SLAM 和 RViz 验证。
-- [NVIDIA 3D 导航架构](./NVIDIA_3D_NAV_ARCHITECTURE.md)：当前 OAK-D + cuVSLAM + nvblox + Nav2 架构，以及 VINS 残留状态说明。
-- [NVIDIA 3D 导航项目计划](./NVIDIA_3D_NAV_PROJECT_PLAN.md)：阶段计划、最小可行版本边界和后续 ESS / MID360 安排。
-- [Gazebo Harmonic 仿真](./GAZEBO_HARMONIC_SIMULATION.md)：当前推荐的无硬件仿真路径，使用 Gazebo Harmonic + `ros_gz`。
-- [Gazebo 建图测试指南](./GAZEBO_MAPPING_GUIDE.md)：使用 RMUC 2025 场地验证仿真 OAK-D、nvblox、Nav2、地图保存和加载。
-- [OAK-D 真实环境建图指南](./OAKD_REAL_MAPPING_GUIDE.md)：真实 OAK-D 建图、数据检查、地图保存、视觉重定位和持久化限制。
-- [Isaac Sim 4.5 / 轻量仿真验证](./ISAAC_SIM_SIMULATION.md)：无真实硬件时验证 ROS 2 侧 Nav2 / nvblox 闭环。
-
-## 当前运行入口
-
-OAK-D + Visual SLAM 硬件验证：
-
-```bash
-env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch src/omni_bringup/launch/oakd_visual_slam_rviz.launch.py
-```
-
-完整 NVIDIA 3D 导航入口：
-
-```bash
-env FASTDDS_BUILTIN_TRANSPORTS=UDPv4 ROS_LOG_DIR=/tmp/ros_log \
-./scripts/with_venv.sh ros2 launch omni_bringup nvidia_3d_nav.launch.py
-```
-
-Gazebo Harmonic 仿真入口：
-
-```bash
-./simulation/scripts/run_rmuc_2025_sim.sh
-./simulation/scripts/run_rmuc_2025_sim.sh launch_auto_goals:=true
-```
-
-Isaac Sim 最小仿真入口：
-
-```bash
-./simulation/scripts/run_isaac_sim_nav.sh
-./scripts/with_venv.sh ros2 launch omni_bringup isaac_sim_nav.launch.py
-```
-
-Isaac Sim 4.5 UI 入口：
-
-```bash
-./simulation/scripts/run_isaac_sim_45_ui.sh
-```
+- [达妙 USB IMU 与视觉里程计融合](DAMIAO_IMU_USB.md)：可选 USB 驱动、三维 EKF、单位与外参验证。

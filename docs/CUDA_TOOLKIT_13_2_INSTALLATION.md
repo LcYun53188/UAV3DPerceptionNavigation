@@ -267,8 +267,8 @@ command -v nvcc
 
 ```bash
 rm -rf build/isaac_ros_common build/isaac_ros_nitros build/isaac_ros_visual_slam build/isaac_ros_nvblox
-SKIP_WS_SETUP=true ./scripts/with_venv.sh colcon build --symlink-install \
-  --packages-up-to isaac_ros_visual_slam nvblox_ros nvblox_nav2 nav2_mppi_controller omni_bringup
+SKIP_WS_SETUP=true ./scripts/with_venv.sh colcon build --build-base build_uav --install-base install_uav --symlink-install \
+  --packages-up-to isaac_ros_visual_slam nvblox_ros uav_bringup
 ```
 
 ## 9. 参考

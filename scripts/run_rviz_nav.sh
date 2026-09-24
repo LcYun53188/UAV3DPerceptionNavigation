@@ -70,14 +70,12 @@ RViz navigation view:
   recommended Fixed Frame: $FIXED_FRAME
   add displays:
     TF
-    /local_map/occupancy
     /nav/cmd_vel
     /nav/emergency
     /nav/safety_status
     /oakd/points_filtered
     /mid360/points
     /perception/obstacle_points
-    /static_map/occupancy
 EOF
 
 exec "$WS_DIR/scripts/with_venv.sh" rviz2 "${RVIZ_ARGS[@]}"

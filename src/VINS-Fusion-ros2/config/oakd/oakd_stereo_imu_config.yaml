@@ -30,7 +30,7 @@ use_gpu_ceres   : 0
 # Important distinction:
 #   - base_link -> oakd_imu_link:
 #       Whole OAK-D mounting pose on the ground robot body. Configure this in
-#       the active omni_bringup ground launch entry.
+#       the active uav_bringup ground launch entry.
 #   - oakd_imu_link -> oakd_camera_optical_frame:
 #       ROS TF for the OAK-D internal IMU/body frame to optical camera frame.
 #       Configure this in oakd_perception/launch/oakd_unified.launch.py.
