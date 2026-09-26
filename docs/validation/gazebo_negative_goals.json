@@ -1,0 +1,28 @@
+{
+  "obstacle": {
+    "planner": [
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL"
+    ],
+    "trajectories": 0,
+    "motion": false,
+    "passed": true
+  },
+  "outside": {
+    "planner": [
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL",
+      "BLOCKED_START_OR_GOAL"
+    ],
+    "trajectories": 0,
+    "motion": false,
+    "passed": true
+  }
+}

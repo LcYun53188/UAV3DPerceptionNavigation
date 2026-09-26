@@ -1,0 +1,12 @@
+{
+  "load_during_execution_rejected": true,
+  "map_loss_stops": true,
+  "zero_command_after_loss": true,
+  "state_after_loss": "HOLD",
+  "events": [
+    "ACCEPTED:3",
+    "STALE_MAP_OR_ODOMETRY",
+    "CANCELLED"
+  ],
+  "passed": true
+}

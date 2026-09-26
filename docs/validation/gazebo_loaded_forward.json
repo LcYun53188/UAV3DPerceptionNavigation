@@ -1,0 +1,33 @@
+{
+  "odometry": [
+    3.001428345515484,
+    0.00016670879624917757,
+    1.200000006828367
+  ],
+  "events": [
+    "ACCEPTED:1",
+    "GOAL_REACHED"
+  ],
+  "planner": "TRAJECTORY_PUBLISHED",
+  "trajectory": {
+    "id": 1,
+    "map_id": "467ee5e5-2849-4616-921e-b70b291642d0",
+    "epoch": 1790395027358041676,
+    "map_version": 23,
+    "duration": 19.392,
+    "bounds": [
+      0.47588861425298984,
+      0.2285975276357856,
+      0.3193075649527429
+    ]
+  },
+  "goal": [
+    3.0,
+    0.0,
+    1.2
+  ],
+  "samples": 995,
+  "min_truth_clearance": 0.22522439562053026,
+  "final_error": 0.0014380412839681241,
+  "passed": true
+}
