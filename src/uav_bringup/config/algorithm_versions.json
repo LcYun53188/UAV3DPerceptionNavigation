@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "dependencies": [
+    {
+      "path": ".deps/ego_planner_src",
+      "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
+      "patch": "patches/vendor/ego_planner.patch",
+      "patch_sha256": "dda30ad3d4ca725da0cf108937d1b11b6daf0c5f3be0be44c47922a3c876712f"
+    },
+    {
+      "path": "src/isaac_ros_nvblox",
+      "commit": "6362295e581ef243773c8a348ac46711e4a1fca4",
+      "patch": "patches/vendor/isaac_ros_nvblox.patch",
+      "patch_sha256": "67b8a1655c134a5706eedab58e65186aba97343d1c1d5afa4022395fb9b00dca"
+    },
+    {
+      "path": "src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
+      "commit": "3f42b210df9ad7a2099f00fcf324049d97342cb0",
+      "patch": "patches/vendor/nvblox_core.patch",
+      "patch_sha256": "a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d"
+    },
+    {
+      "path": "src/isaac_ros_nitros",
+      "commit": "a22f10d4918662c485b0a1323e2fe1d8c21407a9",
+      "patch": "patches/vendor/isaac_ros_nitros.patch",
+      "patch_sha256": "aa6db40c1490d12c6746cf9b05f36450f4538f8b9db1f3a6206818e70007e983"
+    },
+    {
+      "path": "src/negotiated",
+      "commit": "eac198b55dcd052af5988f0f174902913c5f20e7",
+      "patch": "patches/vendor/negotiated.patch",
+      "patch_sha256": "a1c11f87a5e5f4f1cb45f71ad58a47be0e2e6ab54c4af71985158666f92f7816"
+    },
+    {
+      "path": "src/magic_enum",
+      "commit": "9f19f78a7d726af84761ecd6d8414613507a95e6",
+      "patch": "patches/vendor/magic_enum.patch",
+      "patch_sha256": "cc674f3c6df6b5303504f858d17c7eaa95fa895c43aeb2c39b14db3a0a52d80a"
+    }
+  ],
+  "python_requirements": "requirements/algorithm-sim.txt"
+}

@@ -52,3 +52,22 @@ source changes in a separate patch instead.
 
 
 Isaac ROS image pipeline 不再附加排除包的本地补丁；完整保留其上游源码。nvblox 补丁仅保留源码修改，不再创建构建忽略标记。
+
+## EGO algorithm simulation dependency
+
+EGO is kept in ignored `.deps/ego_planner_src`, not copied into the source tree or
+added as a floating submodule. Run `scripts/prepare_ego_vendor.sh` to fetch official
+`ego-planner-swarm` commit `23a8d5a191711dd65633df689bd00f55d4dea8f9` and apply
+`ego_planner.patch`. Repeated preparation verifies both the base and exact diff.
+
+The patch replaces the original sensor-integrating `GridMap` with frozen-query
+callbacks, adds conservative A* edge checks, fixes A* index rounding/initialization
+and allocation cleanup, and fixes the last three spline controls for a stopped
+terminal state. The original EGO A* and rebound B-spline objective/optimizer remain.
+Only required libraries are compiled by `src/ego_planner_vendor`; upstream FSM,
+trajectory server, simulator and control publishers are not built into this route.
+The source carries GPL-3.0; upstream notices and LICENSE are retained/installed.
+
+`src/uav_bringup/config/algorithm_versions.json` records dependency commits and
+patch SHA-256 values for map compatibility. Python wheels are pinned separately in
+`requirements/algorithm-sim.txt`; generated maps and dependency sources stay ignored.
