@@ -1,0 +1,45 @@
+nvblox_node:
+  ros__parameters:
+    global_frame: map
+    voxel_size: 0.1
+    esdf_mode: 3d
+    mapping_type: static_tsdf
+    use_tf_transforms: true
+    use_topic_transforms: false
+    use_depth: true
+    use_color: false
+    use_lidar: false
+    input_qos: SENSOR_DATA
+    num_cameras: 1
+    map_clearing_radius_m: -1.0
+    integrate_depth_rate_hz: 10.0
+    update_esdf_rate_hz: 2.0
+    update_mesh_rate_hz: 1.0
+    publish_layer_rate_hz: 1.0
+    decay_tsdf_rate_hz: 0.0
+    publish_esdf_distance_slice: false
+    maximum_input_queue_length: 5
+    static_mapper:
+      projective_integrator_max_integration_distance_m: 10.0
+      esdf_integrator_max_distance_m: 3.0
+      esdf_integrator_min_weight: 0.1
+      projective_integrator_weighting_mode: constant
+      projective_integrator_max_weight: 5.0
+      raycast_subsampling_factor: 2
+
+ego_nvblox_planner:
+  ros__parameters:
+    body_radius: 0.3
+    max_velocity: 0.5
+    max_acceleration: 1.0
+    max_jerk: 2.0
+    map_timeout: 2.0
+    optimization/lambda_smooth: 1.0
+    optimization/lambda_collision: 1.0
+    optimization/lambda_feasibility: 0.1
+    optimization/lambda_fitness: 1.0
+    optimization/dist0: 0.2
+    optimization/swarm_clearance: 0.5
+    optimization/max_vel: 0.5
+    optimization/max_acc: 1.0
+    optimization/order: 3

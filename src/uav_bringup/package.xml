@@ -30,6 +30,10 @@
   <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>ros_gz_image</exec_depend>
   <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_interfaces</exec_depend>
+  <exec_depend>uav_nav_sim</exec_depend>
+  <exec_depend>uav_ego_adapter</exec_depend>
+  <exec_depend>nvblox_ros</exec_depend>
   <exec_depend>isaac_ros_visual_slam</exec_depend>
   <exec_depend>rviz2</exec_depend>
   <test_depend>ament_lint_auto</test_depend>
