@@ -1,7 +1,8 @@
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from std_msgs.msg import Bool, Int8
 
-from px4_msgs.msg import VehicleStatus
+from px4_msgs.msg import VehicleStatus, VehicleCommandAck
+from rclpy.qos import qos_profile_sensor_data
 
 from .converters import (
     fill_offboard_control_mode,
@@ -30,9 +31,6 @@ class Px4ControlBridge:
         self.last_cmd_time = self.node.get_clock().now()
         self.emergency_active = False
         self.safety_level = 0
-        self.offboard_engaged = False
-        self.armed = False
-        self.emergency_sent = False
 
         self.offboard_mode_pub = None
         self.setpoint_pub = None
@@ -99,7 +97,13 @@ class Px4ControlBridge:
             VehicleStatus,
             self.node.get_parameter('px4_vehicle_status_topic').value,
             self.vehicle_status_cb,
-            10,
+            qos_profile_sensor_data,
+        )
+
+        self.command_ack_sub = self.node.create_subscription(
+            VehicleCommandAck,
+            self.node.get_parameter('px4_command_ack_topic').value,
+            self.command_ack_cb, qos_profile_sensor_data,
         )
 
         rate = float(self.node.get_parameter('control_rate_hz').value)
@@ -120,14 +124,6 @@ class Px4ControlBridge:
         # W2-D8: 通知状态机接收到导航命令
         self.state_machine.on_navigation_command_received()
         
-        if not self.offboard_engaged:
-            self.node.get_logger().info('Received first nav command, enabling offboard streaming')
-            self.offboard_engaged = True
-
-        if bool(self.node.get_parameter('auto_arm').value) and not self.armed:
-            self.send_vehicle_command(self.vehicle_command_type.VEHICLE_CMD_COMPONENT_ARM_DISARM, param1=1.0)
-            self.armed = True
-
     def pose_cb(self, _msg: PoseStamped):
         # Reserved for future pose-based command mapping.
         return
@@ -140,7 +136,6 @@ class Px4ControlBridge:
         # W2-D8: 通知状态机应急信号
         self.state_machine.on_emergency_signal(self.emergency_active)
         
-        self._check_and_trigger_emergency()
 
     def safety_cb(self, msg: Int8):
         self.safety_level = int(msg.data)
@@ -150,7 +145,6 @@ class Px4ControlBridge:
         
         if self.safety_level >= 2:
             self.emergency_active = True
-        self._check_and_trigger_emergency()
 
     def vehicle_status_cb(self, msg: VehicleStatus):
         self.last_px4_nav_state = int(msg.nav_state)
@@ -165,56 +159,23 @@ class Px4ControlBridge:
             nav_state=self.last_px4_nav_state,
         )
 
-    def _check_and_trigger_emergency(self):
-        if self.emergency_active and not self.emergency_sent:
-            self.node.get_logger().error('Safety action triggered!')
-            self._send_emergency_action()
-            self.emergency_sent = True
-        elif not self.emergency_active:
-            self.emergency_sent = False
+    def command_ack_cb(self, msg: VehicleCommandAck):
+        # Vehicle commands from this bridge use source system/component 1/1.
+        if int(msg.target_system) != 1 or int(msg.target_component) != 1:
+            return
+        self.state_machine.on_command_ack(int(msg.command), int(msg.result))
 
     def publish_control(self):
-        """
-        W2-D8: 根据状态机驱动的流程发送控制信号
-        
-        旧流程 (简单): IDLE → 收到 cmd → 发送 offboard_control + setpoint
-        新流程 (状态机): IDLE → ARM → OFFBOARD → FLYING → [EMERGENCY/LANDED]
-        """
-        
-        # ─────────────────────────────────────────────────────
-        # 1. 执行状态机 (状态转移 + 动作处理)
-        # ─────────────────────────────────────────────────────
         self.state_machine.update()
-        
-        # ─────────────────────────────────────────────────────
-        # 2. 根据状态机状态发送响应的控制信号
-        # ─────────────────────────────────────────────────────
-        sm_state = self.state_machine.current_state
-        
-        if sm_state == PX4State.IDLE or sm_state == PX4State.ARM or sm_state == PX4State.OFFBOARD:
-            # 这些状态不发送控制信号（状态机自己发送 VEHICLE_COMMAND）
-            return
-        
-        elif sm_state == PX4State.FLYING:
-            # 飞行状态：发送心跳和设置点
-            if self.latest_cmd is None:
-                return
-            
-            # 心跳流送：持续发送 offboard_control_mode（50Hz）
-            self.publish_offboard_mode()
-            
-            # 发送速度设置点
-            self.publish_setpoint(self.latest_cmd)
-        
-        elif sm_state == PX4State.EMERGENCY:
-            # 应急状态：心跳 + 停止速度
+        state = self.state_machine.current_state
+        if state in (PX4State.PRESTREAM, PX4State.ARM, PX4State.OFFBOARD):
             self.publish_offboard_mode()
             self.publish_halt_setpoint()
-        
-        elif sm_state == PX4State.LANDED:
-            # 已着陆：逐步退出 offboard 和解除武装
-            # 这些由状态机通过 send_vehicle_command 处理
-            pass
+        elif state == PX4State.FLYING and self.latest_cmd is not None:
+            self.publish_offboard_mode()
+            self.publish_setpoint(self.latest_cmd)
+        # Emergency delegates to the configured PX4 action. Terminal states
+        # stop streaming so this bridge cannot reclaim manual control.
 
     def publish_offboard_mode(self):
         msg = self.offboard_control_mode_type()
@@ -234,18 +195,6 @@ class Px4ControlBridge:
         msg = self.trajectory_setpoint_type()
         fill_trajectory_setpoint(msg, self.now_us(), 0.0, 0.0, 0.0, 0.0)
         self.setpoint_pub.publish(msg)
-
-    def _send_emergency_action(self):
-        action = str(self.node.get_parameter('emergency_action').value).lower()
-        if action == 'rtl':
-            self.node.get_logger().info('Sending RTL command')
-            self.send_vehicle_command(self.vehicle_command_type.VEHICLE_CMD_NAV_RETURN_TO_LAUNCH)
-        elif action == 'disarm':
-            self.node.get_logger().info('Sending DISARM command')
-            self.send_vehicle_command(self.vehicle_command_type.VEHICLE_CMD_COMPONENT_ARM_DISARM, param1=0.0)
-        else:
-            self.node.get_logger().info('Sending LAND command')
-            self.send_vehicle_command(self.vehicle_command_type.VEHICLE_CMD_NAV_LAND)
 
     def send_vehicle_command(
         self,

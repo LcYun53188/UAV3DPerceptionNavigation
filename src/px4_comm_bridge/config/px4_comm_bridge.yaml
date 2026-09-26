@@ -23,7 +23,13 @@ px4_comm_bridge:
 
     control_rate_hz: 20.0
     input_velocity_frame: enu
+    # Single authorization for automatic arm/mode entry; disabled by default.
     auto_arm: false
+    px4_vehicle_status_topic: /fmu/out/vehicle_status
+    px4_command_ack_topic: /fmu/out/vehicle_command_ack
+    sm_prestream_sec: 1.5
+    sm_transition_timeout_sec: 5.0
+    sm_status_timeout_sec: 1.0
     emergency_action: land
     cmd_timeout_sec: 0.5
     target_system: 1

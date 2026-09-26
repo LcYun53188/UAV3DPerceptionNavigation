@@ -57,6 +57,7 @@ class Px4CommBridge(Node):
         self.declare_parameter('fmu_trajectory_topic', '/fmu/in/trajectory_setpoint')
         self.declare_parameter('fmu_command_topic', '/fmu/in/vehicle_command')
         self.declare_parameter('px4_vehicle_status_topic', '/fmu/out/vehicle_status')
+        self.declare_parameter('px4_command_ack_topic', '/fmu/out/vehicle_command_ack')
 
         self.declare_parameter('control_rate_hz', 20.0)
         self.declare_parameter('input_velocity_frame', 'enu')
