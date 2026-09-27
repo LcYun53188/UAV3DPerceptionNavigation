@@ -2,6 +2,7 @@
 
 - [项目说明](../README.md)
 - [项目评估与待办](UAV_PROJECT_ASSESSMENT.md)
+- [EGO + nvblox 仿真运行指引](EGO_NVBLOX_GAZEBO.md)：建图、地图加载、RViz 着色与选点导航、停止及排错。
 - [EGO + nvblox 开发手册](EGO_NVBLOX_DEVELOPMENT_GUIDE.md)
 - [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)
 - [安装与构建](INSTALLATION.md)

@@ -1,5 +1,7 @@
 # Gazebo Harmonic 无人机场景
 
+本文入口用于场景与传感器检查。三维建图、地图复用和 RViz 选点避障使用独立入口，见 [EGO + nvblox 仿真运行指引](EGO_NVBLOX_GAZEBO.md)。
+
 ```bash
 ./scripts/build_uav_stack.sh
 ./simulation/scripts/run_gazebo_harmonic_nav.sh
