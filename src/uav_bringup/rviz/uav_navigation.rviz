@@ -15,7 +15,9 @@ Visualization Manager:
   - Class: nvblox_rviz_plugin/NvbloxMesh
     Enabled: true
     Name: 3D nvblox Map
-    Mesh Color: Normals
+    Mesh Color: Height
+    Min Height: 0
+    Max Height: 4
     Cut Ceiling: true
     Ceiling Height: 3.8
     Topic:

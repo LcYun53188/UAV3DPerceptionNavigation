@@ -149,3 +149,337 @@ index 69a047299d1c6bde6d86bc0afc223060e078a56c..ac5d90816f861ffa994b470a8e2112b6
  }
  
  TEST(FuserNodeParams, initialize) {
+diff --git a/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_display.h b/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_display.h
+index 9c8d5725b8726e33faccf435173522eb4ba7c32d..be1119348a70ae4695bc48b0baac793ccbf2dcff 100644
+--- a/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_display.h
++++ b/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_display.h
+@@ -37,17 +37,19 @@ class __attribute__((visibility("default"))) NvbloxBaseDisplay : public rviz_com
+   MessageFilterDisplay<MessageType>
+ {
+ public:
+-  NvbloxBaseDisplay() = default;
++  NvbloxBaseDisplay();
+   virtual ~NvbloxBaseDisplay();
+ 
+ protected:
+   virtual void onInitialize();
+   virtual void reset();
++  void update(float wall_dt, float ros_dt) override;
+   void updatePose(const typename MessageType::ConstSharedPtr msg);
+ 
+ private:
+   void processMessage(const typename MessageType::ConstSharedPtr msg) override;
+   void maybeInitialize();
++  std::unique_ptr<NvbloxVisualParams> params_;
+   std::unique_ptr<NvbloxBaseVisual<MessageType>> visual_;
+ };
+ 
+diff --git a/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_visual.h b/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_visual.h
+index 857290dcc1d6d8cd812bfb97709ac9bead228e56..81d60f0e9b1c2d2d9620cb976848471fe01516b0 100644
+--- a/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_visual.h
++++ b/nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_visual.h
+@@ -39,12 +39,15 @@ class NvbloxVisualParams : public QObject
+   Q_OBJECT
+ 
+ public:
+-  explicit NvbloxVisualParams(rviz_common::_RosTopicDisplay * parent);
++  explicit NvbloxVisualParams(rviz_common::_RosTopicDisplay * parent, bool mesh);
+ 
+   float getCeilingHeight();
+   bool getCutCeiling();
+ 
+   bool paramsChanged();
++  int getMeshColor();
++  float getMinHeight();
++  float getMaxHeight();
+ 
+ public Q_SLOTS:
+   virtual void updateCeilingOptions();
+@@ -53,6 +56,9 @@ private:
+   rviz_common::properties::BoolProperty * cut_ceiling_property_ = nullptr;
+   rviz_common::properties::FloatProperty * ceiling_height_property_ = nullptr;
+ 
++  rviz_common::properties::EnumProperty * mesh_color_property_ = nullptr;
++  rviz_common::properties::FloatProperty * min_height_property_ = nullptr;
++  rviz_common::properties::FloatProperty * max_height_property_ = nullptr;
+   bool params_changed_ = false;
+ };
+ 
+@@ -63,12 +69,14 @@ class NvbloxBaseVisual
+ {
+ public:
+   NvbloxBaseVisual(
+-    rviz_common::_RosTopicDisplay * parent, Ogre::SceneManager * scene_manager,
++    NvbloxVisualParams * params, Ogre::SceneManager * scene_manager,
+     Ogre::SceneNode * parent_node);
+   virtual ~NvbloxBaseVisual();
+ 
+   void setMessage(const typename MessageType::ConstSharedPtr & msg);
+ 
++  void update();
++
+   /// Set the coordinate frame pose.
+   void setFramePosition(const Ogre::Vector3 & position);
+   void setFrameOrientation(const Ogre::Quaternion & orientation);
+@@ -76,7 +84,8 @@ public:
+ private:
+   void initializeFallbackMaterial();
+   void initializeBoxMaterial();
+-  std::unique_ptr<NvbloxVisualParams> params_;
++  NvbloxVisualParams * params_;
++  nvblox_rviz_plugin::Index3DHashMapType<nvblox_msgs::msg::MeshBlock>::type mesh_blocks_;
+ 
+   void maybeCutCeiling(const bool cut_ceiling, const float ceiling_height);
+ 
+diff --git a/nvblox_rviz_plugin/src/nvblox_plugin_display.cpp b/nvblox_rviz_plugin/src/nvblox_plugin_display.cpp
+index a39673b22de2291890af04490453655d3ecf86f2..1f1639aa8958faba65875dd437d6e1b541c61c70 100644
+--- a/nvblox_rviz_plugin/src/nvblox_plugin_display.cpp
++++ b/nvblox_rviz_plugin/src/nvblox_plugin_display.cpp
+@@ -15,6 +15,7 @@
+ //
+ // SPDX-License-Identifier: Apache-2.0
+ 
++#include <type_traits>
+ #include <rviz_common/frame_manager_iface.hpp>
+ #include <rviz_common/visualization_manager.hpp>
+ 
+@@ -24,6 +25,20 @@ namespace nvblox_rviz_plugin
+ {
+ 
+ 
++template<typename MessageType>
++NvbloxBaseDisplay<MessageType>::NvbloxBaseDisplay()
++: params_(std::make_unique<NvbloxVisualParams>(
++    this, std::is_same_v<MessageType, nvblox_msgs::msg::Mesh>))
++{}
++
++template<typename MessageType>
++void NvbloxBaseDisplay<MessageType>::update(float, float)
++{
++  if (visual_) {
++    visual_->update();
++  }
++}
++
+ template<typename MessageType>
+ void NvbloxBaseDisplay<MessageType>::onInitialize()
+ {
+@@ -67,7 +82,7 @@ void NvbloxBaseDisplay<MessageType>::maybeInitialize()
+   if (visual_ == nullptr) {
+     visual_.reset(
+       new NvbloxBaseVisual<MessageType>(
+-        this,
++        params_.get(),
+         this->context_->getSceneManager(),
+         this->scene_node_));
+   }
+diff --git a/nvblox_rviz_plugin/src/nvblox_plugin_visual.cpp b/nvblox_rviz_plugin/src/nvblox_plugin_visual.cpp
+index 4bdf82f1234a69a19c446d4be88b7950fd30805f..8b7fb5f53a5a40f123202374165cd9dda9f77e49 100644
+--- a/nvblox_rviz_plugin/src/nvblox_plugin_visual.cpp
++++ b/nvblox_rviz_plugin/src/nvblox_plugin_visual.cpp
+@@ -15,6 +15,10 @@
+ //
+ // SPDX-License-Identifier: Apache-2.0
+ 
++#include <algorithm>
++#include <cmath>
++#include <type_traits>
++#include <vector>
+ #include <iostream>
+ #include <limits>
+ 
+@@ -39,7 +43,7 @@ namespace nvblox_rviz_plugin
+ {
+ 
+ 
+-NvbloxVisualParams::NvbloxVisualParams(rviz_common::_RosTopicDisplay * parent)
++NvbloxVisualParams::NvbloxVisualParams(rviz_common::_RosTopicDisplay * parent, bool mesh)
+ {
+   cut_ceiling_property_ = new rviz_common::properties::BoolProperty(
+     "Cut Ceiling", false, "If set to true, will not visualize anything above a certain z value.",
+@@ -52,15 +56,31 @@ NvbloxVisualParams::NvbloxVisualParams(rviz_common::_RosTopicDisplay * parent)
+ 
+   parent->addChild(cut_ceiling_property_);
+   parent->addChild(ceiling_height_property_);
++  if (mesh) {
++    mesh_color_property_ = new rviz_common::properties::EnumProperty(
++      "Mesh Color", "RGB", "RGB from the map, surface normals, or height in the mesh frame.",
++      parent, SLOT(updateCeilingOptions()), this);
++    mesh_color_property_->addOption("RGB", 0);
++    mesh_color_property_->addOption("Normals", 1);
++    mesh_color_property_->addOption("Height", 2);
++    min_height_property_ = new rviz_common::properties::FloatProperty(
++      "Min Height", 0.0, "Height colored blue (meters in the mesh frame).", parent,
++      SLOT(updateCeilingOptions()), this);
++    max_height_property_ = new rviz_common::properties::FloatProperty(
++      "Max Height", 4.0, "Height colored red; must exceed Min Height.", parent,
++      SLOT(updateCeilingOptions()), this);
++  }
+ }
+ 
+ void NvbloxVisualParams::updateCeilingOptions()
+ {
+-  std::cout << "Ceiling options changed: height: " << getCeilingHeight() << " cutCeiling: " <<
+-    getCutCeiling() << std::endl;
+   params_changed_ = true;
+ }
+ 
++int NvbloxVisualParams::getMeshColor() {return mesh_color_property_->getOptionInt();}
++float NvbloxVisualParams::getMinHeight() {return min_height_property_->getFloat();}
++float NvbloxVisualParams::getMaxHeight() {return max_height_property_->getFloat();}
++
+ bool NvbloxVisualParams::paramsChanged()
+ {
+   if (params_changed_) {
+@@ -141,7 +161,7 @@ void NvbloxBaseVisual<MessageType>::initializeFallbackMaterial()
+ 
+ template<typename MessageType>
+ NvbloxBaseVisual<MessageType>::NvbloxBaseVisual(
+-  rviz_common::_RosTopicDisplay * parent,
++  NvbloxVisualParams * params,
+   Ogre::SceneManager * scene_manager,
+   Ogre::SceneNode * parent_node)
+ {
+@@ -150,7 +170,7 @@ NvbloxBaseVisual<MessageType>::NvbloxBaseVisual(
+   frame_node_ = parent_node->createChildSceneNode();
+   instance_number_ = instance_counter_++;
+ 
+-  params_ = std::make_unique<NvbloxVisualParams>(parent);
++  params_ = params;
+ 
+   if (rviz_rendering::RenderSystem::get()->getGlslVersion() < 150) {
+     std::cerr << "ERROR: Nvblox rviz plugin require support for glsl 150 or higher" << std::endl;
+@@ -182,6 +202,7 @@ NvbloxBaseVisual<MessageType>::~NvbloxBaseVisual()
+   for (const auto ogre_object : object_map_) {
+     scene_manager_->destroyManualObject(ogre_object.second);
+   }
++  scene_manager_->destroySceneNode(frame_node_);
+ }
+ template<typename MessageType>
+ void NvbloxBaseVisual<MessageType>::maybeCutCeiling(
+@@ -209,10 +230,6 @@ NvbloxBaseVisual<nvblox_msgs::msg::Mesh>::setMessage(
+ {
+   block_size_m_ = msg->block_size_m;
+ 
+-  if (params_->paramsChanged()) {
+-    maybeCutCeiling(params_->getCutCeiling(), params_->getCeilingHeight());
+-  }
+-
+   // First, check if we need to clear the existing map.
+   if (msg->clear) {
+     for (const auto ogre_object : object_map_) {
+@@ -221,10 +238,17 @@ NvbloxBaseVisual<nvblox_msgs::msg::Mesh>::setMessage(
+     object_map_.clear();
+   }
+ 
++  if (msg->clear) {mesh_blocks_.clear();}
++
+   // Iterate over all the blocks in the message and make sure to add them.
+   for (size_t i = 0; i < msg->block_indices.size(); i++) {
+     const nvblox_msgs::msg::Index3D & block_index = msg->block_indices[i];
+     const nvblox_msgs::msg::MeshBlock & mesh_block = msg->blocks[i];
++    if (mesh_block.vertices.empty()) {
++      mesh_blocks_.erase(block_index);
++    } else {
++      mesh_blocks_[block_index] = mesh_block;
++    }
+ 
+     // create ogre object
+     Ogre::ManualObject * ogre_object;
+@@ -262,6 +286,37 @@ NvbloxBaseVisual<nvblox_msgs::msg::Mesh>::setMessage(
+       ogre_object->beginUpdate(0);
+     }
+ 
++    // Some publishers omit normals. Recover area-weighted vertex normals from triangles.
++    const int color_mode = params_->getMeshColor();
++    const float low = params_->getMinHeight();
++    const float high = params_->getMaxHeight();
++    std::vector<Ogre::Vector3> normals;
++    if (color_mode == 1) {
++      normals.resize(mesh_block.vertices.size(), Ogre::Vector3::ZERO);
++      if (mesh_block.normals.size() == mesh_block.vertices.size()) {
++        for (size_t j = 0; j < normals.size(); ++j) {
++          const auto & n = mesh_block.normals[j];
++          normals[j] = Ogre::Vector3(n.x, n.y, n.z);
++        }
++      } else {
++        for (size_t j = 0; j + 2 < mesh_block.triangles.size(); j += 3) {
++          const auto a = mesh_block.triangles[j];
++          const auto b = mesh_block.triangles[j + 1];
++          const auto c = mesh_block.triangles[j + 2];
++          if (a < 0 || b < 0 || c < 0 || static_cast<size_t>(a) >= normals.size() ||
++            static_cast<size_t>(b) >= normals.size() || static_cast<size_t>(c) >= normals.size())
++          {continue;}
++          const auto & p = mesh_block.vertices[a];
++          const auto & q = mesh_block.vertices[b];
++          const auto & r = mesh_block.vertices[c];
++          const auto n = Ogre::Vector3(q.x-p.x, q.y-p.y, q.z-p.z).crossProduct(
++            Ogre::Vector3(r.x-p.x, r.y-p.y, r.z-p.z));
++          normals[a] += n;
++          normals[b] += n;
++          normals[c] += n;
++        }
++      }
++    }
+     for (size_t i = 0; i < mesh_block.vertices.size(); ++i) {
+       // note calling position changes what vertex the color and normal calls
+       // point to
+@@ -270,7 +325,22 @@ NvbloxBaseVisual<nvblox_msgs::msg::Mesh>::setMessage(
+         mesh_block.vertices[i].z);
+ 
+       std_msgs::msg::ColorRGBA color;
+-      if (!mesh_block.colors.empty()) {
++      color.r = color.g = color.b = 0.5f;
++      if (color_mode == 2) {
++        const float z = mesh_block.vertices[i].z;
++        const float t = std::isfinite(z) && std::isfinite(low) && std::isfinite(high) && high > low ?
++          std::clamp((z - low) / (high - low), 0.0f, 1.0f) : 0.0f;
++        Ogre::ColourValue height_color;
++        height_color.setHSB((1.0f - t) * 0.667f, 0.8f, 0.95f);
++        color.r = height_color.r;
++        color.g = height_color.g;
++        color.b = height_color.b;
++      } else if (color_mode == 1) {
++        normals[i].normalise();
++        color.r = 0.5f * (normals[i].x + 1.0f);
++        color.g = 0.5f * (normals[i].y + 1.0f);
++        color.b = 0.5f * (normals[i].z + 1.0f);
++      } else if (i < mesh_block.colors.size()) {
+         color = mesh_block.colors[i];
+       }
+       ogre_object->colour(color.r, color.g, color.b);
+@@ -305,10 +375,6 @@ NvbloxBaseVisual<nvblox_msgs::msg::VoxelBlockLayer>::setMessage(
+ {
+   block_size_m_ = msg->block_size_m;
+ 
+-  if (params_->paramsChanged()) {
+-    maybeCutCeiling(params_->getCutCeiling(), params_->getCeilingHeight());
+-  }
+-
+   // Set size. How this is done depends on which material we are rendering
+   if (using_fallback_voxel_material_) {
+     // Set size for a point
+@@ -413,6 +479,23 @@ NvbloxBaseVisual<MessageType>::setFrameOrientation(const Ogre::Quaternion & orie
+   frame_node_->setOrientation(orientation);
+ }
+ 
++template<typename MessageType>
++void NvbloxBaseVisual<MessageType>::update()
++{
++  if (!params_->paramsChanged()) {return;}
++  if constexpr (std::is_same_v<MessageType, nvblox_msgs::msg::Mesh>) {
++    // Recolor the whole retained map, even when the publisher is idle or sends only deltas.
++    auto msg = std::make_shared<nvblox_msgs::msg::Mesh>();
++    msg->block_size_m = block_size_m_;
++    for (const auto & entry : mesh_blocks_) {
++      msg->block_indices.push_back(entry.first);
++      msg->blocks.push_back(entry.second);
++    }
++    setMessage(msg);
++  }
++  maybeCutCeiling(params_->getCutCeiling(), params_->getCeilingHeight());
++}
++
+ template class NvbloxBaseVisual<nvblox_msgs::msg::Mesh>;
+ template class NvbloxBaseVisual<nvblox_msgs::msg::VoxelBlockLayer>;
+ 

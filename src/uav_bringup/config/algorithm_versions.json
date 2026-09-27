@@ -11,7 +11,7 @@
       "path": "src/isaac_ros_nvblox",
       "commit": "6362295e581ef243773c8a348ac46711e4a1fca4",
       "patch": "patches/vendor/isaac_ros_nvblox.patch",
-      "patch_sha256": "67b8a1655c134a5706eedab58e65186aba97343d1c1d5afa4022395fb9b00dca"
+      "patch_sha256": "765839c6d48e13a822f5ed0994017cbe308e4d578a0b50263d1a70ce637cc380"
     },
     {
       "path": "src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
