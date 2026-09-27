@@ -7,6 +7,14 @@ three repeated controls at each end. Retiming uses full derivative control-hull
 bounds, then the entire curve is checked against the map. The separate Python
 Gazebo executor independently checks the same timed representation.
 
+The A* seed reserves half a voxel of extra clearance for swept-curve sampling.
+If rebound optimization fails or its smoothed curve fails validation, the adapter
+shortcuts the original seed using conservative segment checks and builds a cubic
+B-spline with three repeated controls at each waypoint. This fallback stops at
+waypoints and can be slower, but does not cut corners. It passes the same dynamic,
+collision, duration, and map-age checks before publication. Planner status
+`SAFE_SEED_FALLBACK` identifies this case; state changes are also logged.
+
 Current scope: stopped start/goal tasks in a static Gazebo world, identity
 map/odom alignment, conservative unknown-space policy. A failure never emits an
 unchecked alternative path. Moving handover and real vehicle braking remain
