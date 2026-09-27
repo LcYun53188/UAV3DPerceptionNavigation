@@ -1,0 +1,87 @@
+{
+  "original_goal": {
+    "events": [
+      "ACCEPTED:1",
+      "GOAL_REACHED"
+    ],
+    "planner": [
+      "SAFE_SEED_FALLBACK",
+      "TRAJECTORY_PUBLISHED"
+    ],
+    "trajectories": [
+      {
+        "id": 1,
+        "duration": 132.9862843118209,
+        "interval": 2.014943701694256,
+        "bounds": [
+          0.49504950495049654,
+          0.24568900090570173,
+          0.2438668640708081
+        ],
+        "valid": true,
+        "truth_clearance": 0.2606795422909544,
+        "control_count": 69
+      }
+    ],
+    "position": [
+      7.990592077394115,
+      4.25043923714975,
+      1.1999999999999769
+    ],
+    "start": [
+      -7.5,
+      -7.5,
+      1.2
+    ],
+    "final_error": 0.0007372142933648978,
+    "samples": 6638,
+    "min_truth_clearance": 0.2606712685224762,
+    "passed": true
+  },
+  "short_goal": {
+    "events": [
+      "ACCEPTED:2",
+      "GOAL_REACHED"
+    ],
+    "planner": [
+      "TRAJECTORY_PUBLISHED"
+    ],
+    "trajectories": [
+      {
+        "id": 2,
+        "duration": 4.242,
+        "interval": 0.606,
+        "bounds": [
+          0.4726077579022172,
+          0.32478606888365275,
+          0.535950608718899
+        ],
+        "valid": true,
+        "truth_clearance": 0.8999999999999764,
+        "control_count": 10
+      }
+    ],
+    "position": [
+      7.9895836979773085,
+      3.248239884300266,
+      1.2000001668408187
+    ],
+    "start": [
+      7.9905869450792375,
+      4.250435429702647,
+      1.1999999999999769
+    ],
+    "final_error": 0.0018086776048770997,
+    "samples": 238,
+    "min_truth_clearance": 0.8999999999999768,
+    "passed": true
+  },
+  "blocked_goal": {
+    "statuses": [
+      "BLOCKED_START_OR_GOAL"
+    ],
+    "trajectories": 0,
+    "max_displacement": 0.0,
+    "passed": true
+  }
+}
