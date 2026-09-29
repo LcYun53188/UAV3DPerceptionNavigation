@@ -5,7 +5,7 @@
 ## 三维建图与导航
 
 需要创建/加载地图、查看彩色网格、在 RViz 点击目标并避障时，使用 `uav_ego_nvblox.launch.py`。
-按 [EGO + nvblox 仿真运行指引](../docs/EGO_NVBLOX_GAZEBO.md) 完成：
+按 [仿真使用手册](../docs/SIMULATION_MANUAL.md) 或 [EGO + nvblox 仿真运行指引](../docs/EGO_NVBLOX_GAZEBO.md) 完成：
 
 1. 运行 `./scripts/build_algorithm_sim.sh` 构建算法与显示插件。
 2. 首次使用时，以 `mode:=mapping` 启动扩展场景，运行 `survey_gazebo_map.py --layout expanded` 扫描并保存地图。

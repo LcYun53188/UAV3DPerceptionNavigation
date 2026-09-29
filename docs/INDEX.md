@@ -2,6 +2,7 @@
 
 - [项目说明](../README.md)
 - [项目评估与待办](UAV_PROJECT_ASSESSMENT.md)
+- [无人机仿真使用手册](SIMULATION_MANUAL.md)：系统架构、环境准备、建图与地图包、RViz 交互导航、自动化回归及接口排错全流程。
 - [EGO + nvblox 仿真运行指引](EGO_NVBLOX_GAZEBO.md)：建图、地图加载、RViz 着色与选点导航、停止及排错。
 - [EGO + nvblox 开发手册](EGO_NVBLOX_DEVELOPMENT_GUIDE.md)
 - [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)

@@ -14,7 +14,7 @@ ROS 2 无人机导航实验项目，包含 OAK-D / MID360 感知、VIO / LIO、�
 | 建图、地图复用、RViz 点击目标避障 | `uav_ego_nvblox.launch.py`，见下方命令 | Gazebo、nvblox、EGO、仿真执行器，可同时启动 RViz |
 
 `uav_obstacle_course.sdf` 与导航示例的 `uav_ego_expanded.sdf` 是不同场景，不能混用地图或扫描布局。
-完整操作步骤见 [EGO + nvblox 仿真运行指引](docs/EGO_NVBLOX_GAZEBO.md)。
+完整操作步骤见 [无人机仿真使用手册](docs/SIMULATION_MANUAL.md) 与 [EGO + nvblox 仿真运行指引](docs/EGO_NVBLOX_GAZEBO.md)。
 
 ## 快速运行导航仿真
 
