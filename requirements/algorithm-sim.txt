@@ -1,3 +1,5 @@
 # Keep NumPy 1.x ABI compatible with ROS Jazzy binary extensions.
 numpy==1.26.4
 scipy==1.14.1
+# ROS message generation dependency, formerly copied into .deps/.
+lark==1.3.1

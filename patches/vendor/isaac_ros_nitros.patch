@@ -1,29 +1,8 @@
-diff --git a/isaac_ros_gxf/CMakeLists.txt b/isaac_ros_gxf/CMakeLists.txt
-index 3197738..eaaa585 100644
---- a/isaac_ros_gxf/CMakeLists.txt
-+++ b/isaac_ros_gxf/CMakeLists.txt
-@@ -26,6 +26,7 @@ message( STATUS "Architecture: ${ARCHITECTURE}" )
- 
- find_package(ament_cmake_auto REQUIRED)
- ament_auto_find_build_dependencies()
-+find_path(MAGIC_ENUM_FLAT_INCLUDE_DIR magic_enum.hpp PATH_SUFFIXES magic_enum REQUIRED)
- 
- add_library(${PROJECT_NAME} STATIC src/isaac_ros_gxf.cpp)
- 
-@@ -66,7 +67,7 @@ list(APPEND ${PROJECT_NAME}_CONFIG_EXTRAS cmake/isaac_ros_gxf-extras.cmake)
- add_library(Core INTERFACE)
- set_target_properties(Core PROPERTIES
-   INTERFACE_INCLUDE_DIRECTORIES
--    "$<INSTALL_PREFIX>/share/${PROJECT_NAME}/gxf/include"
-+    "$<INSTALL_PREFIX>/share/${PROJECT_NAME}/gxf/include;${MAGIC_ENUM_FLAT_INCLUDE_DIR}"
- )
- set_property(TARGET Core PROPERTY
-   INTERFACE_LINK_LIBRARIES
 diff --git a/isaac_ros_gxf/cmake/isaac_ros_gxf-extras.cmake b/isaac_ros_gxf/cmake/isaac_ros_gxf-extras.cmake
-index 75f9f10..01d364f 100644
+index 75f9f1082532b7b7bb89138f0c1443c7a81b1f8e..1077f8549cbb57966e4415c60c69ce5eaae5164a 100644
 --- a/isaac_ros_gxf/cmake/isaac_ros_gxf-extras.cmake
 +++ b/isaac_ros_gxf/cmake/isaac_ros_gxf-extras.cmake
-@@ -19,6 +19,9 @@
+@@ -19,9 +19,11 @@
  
  message(STATUS "Loading isaac_ros_gxf extras")
  
@@ -31,23 +10,65 @@ index 75f9f10..01d364f 100644
 +find_dependency(magic_enum)
 +
  # Append local cmake module path for CMAKE_MODULE_PATH
- ament_index_get_resource(ISAAC_ROS_GXF_CMAKE_PATH isaac_ros_gxf_cmake_path isaac_ros_gxf)
- list(APPEND CMAKE_MODULE_PATH "${ISAAC_ROS_GXF_CMAKE_PATH}/modules")
+-ament_index_get_resource(ISAAC_ROS_GXF_CMAKE_PATH isaac_ros_gxf_cmake_path isaac_ros_gxf)
+-list(APPEND CMAKE_MODULE_PATH "${ISAAC_ROS_GXF_CMAKE_PATH}/modules")
++list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/modules")
+ 
+ # Versions
+ set(ISAAC_ROS_GXF_VERSION 2.5.0)
+\ No newline at end of file
+diff --git a/isaac_ros_gxf/gxf/core/include/gxf/core/expected_macro.hpp b/isaac_ros_gxf/gxf/core/include/gxf/core/expected_macro.hpp
+index c21cb98e54eb59c43b970936fd6e047f4bdfb882..118010ab7f1d5565b36680c51eb5ffad531f20f8 100644
+--- a/isaac_ros_gxf/gxf/core/include/gxf/core/expected_macro.hpp
++++ b/isaac_ros_gxf/gxf/core/include/gxf/core/expected_macro.hpp
+@@ -21,7 +21,7 @@
+ 
+ #include "gxf/core/common_expected_macro.hpp"
+ #include "gxf/core/expected.hpp"
+-#include "magic_enum.hpp"  // NOLINT(build/include)
++#include <magic_enum/magic_enum.hpp>  // NOLINT(build/include)
+ 
+ //////////////////////////////////////////
+ // Configuration for using bool as status:
+diff --git a/isaac_ros_gxf_extensions/gxf_isaac_gems/CMakeLists.txt b/isaac_ros_gxf_extensions/gxf_isaac_gems/CMakeLists.txt
+index f3038b31c8c339b8237d6b0ea8942e406928a86c..d36ce512db14470d32c920e5875638c86ff1e3cc 100644
+--- a/isaac_ros_gxf_extensions/gxf_isaac_gems/CMakeLists.txt
++++ b/isaac_ros_gxf_extensions/gxf_isaac_gems/CMakeLists.txt
+@@ -38,6 +38,7 @@ endif()
+ 
+ # Add an interface target to export dependencies
+ add_library(${PROJECT_NAME} INTERFACE)
++target_link_libraries(${PROJECT_NAME} INTERFACE isaac_ros_gxf::Core)
+ 
+ # Install headers
+ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/gxf")
+diff --git a/isaac_ros_gxf_extensions/gxf_isaac_gems/gxf/gems/gxf_helpers/expected_macro_common.hpp b/isaac_ros_gxf_extensions/gxf_isaac_gems/gxf/gems/gxf_helpers/expected_macro_common.hpp
+index 99f27f81cac813ee893e2f230240ed619f275e40..b72481650424e15af27a5f272da5410df7a6aceb 100644
+--- a/isaac_ros_gxf_extensions/gxf_isaac_gems/gxf/gems/gxf_helpers/expected_macro_common.hpp
++++ b/isaac_ros_gxf_extensions/gxf_isaac_gems/gxf/gems/gxf_helpers/expected_macro_common.hpp
+@@ -20,7 +20,7 @@
+ #include <string>
+ 
+ #include "gems/gxf_helpers/expected_macro_abstract.hpp"
+-#include "magic_enum.hpp"  // NOLINT(build/include)
++#include <magic_enum/magic_enum.hpp>  // NOLINT(build/include)
+ 
+ // This file contains the configuration to use the expected macro with different return types like
+ // bool, int, std::optional (and in the future std::expected).
 diff --git a/isaac_ros_nitros/CMakeLists.txt b/isaac_ros_nitros/CMakeLists.txt
-index e3005f0..403dd5c 100644
+index e3005f05a246338a79853d26512492d395de77b1..2acd366ee9906e3095f8707c56866a21de8b44a7 100644
 --- a/isaac_ros_nitros/CMakeLists.txt
 +++ b/isaac_ros_nitros/CMakeLists.txt
-@@ -26,6 +26,9 @@ install(PROGRAMS scripts/diagnostic_viewer.py DESTINATION lib/${PROJECT_NAME})
+@@ -26,6 +26,8 @@ install(PROGRAMS scripts/diagnostic_viewer.py DESTINATION lib/${PROJECT_NAME})
  
  find_package(ament_cmake_auto REQUIRED)
  ament_auto_find_build_dependencies()
 +find_package(magic_enum REQUIRED)
-+find_path(MAGIC_ENUM_FLAT_INCLUDE_DIR magic_enum.hpp PATH_SUFFIXES magic_enum REQUIRED)
 +find_package(negotiated REQUIRED)
  
  # Ensure CUDA imported targets (e.g., CUDA::nvtx3 / CUDA::nvToolsExt) are available
  find_package(CUDAToolkit REQUIRED)
-@@ -103,9 +106,15 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
+@@ -103,6 +105,8 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
  )
  target_link_libraries(${PROJECT_NAME}
    Eigen3::Eigen
@@ -56,15 +77,8 @@ index e3005f0..403dd5c 100644
    vpi
    yaml-cpp
  )
-+target_include_directories(${PROJECT_NAME}
-+  PUBLIC
-+    ${MAGIC_ENUM_FLAT_INCLUDE_DIR}
-+)
- set_target_properties(${PROJECT_NAME} PROPERTIES
-   BUILD_WITH_INSTALL_RPATH TRUE
-   BUILD_RPATH_USE_ORIGIN TRUE
 diff --git a/isaac_ros_nitros/package.xml b/isaac_ros_nitros/package.xml
-index 4dc82a2..6be9319 100644
+index 4dc82a2f1c7f93dd8cfc0dab6d5479eb2153418d..6be93196acb4a88aa3a9a2ad8272facba6c0e80e 100644
 --- a/isaac_ros_nitros/package.xml
 +++ b/isaac_ros_nitros/package.xml
 @@ -32,6 +32,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
@@ -76,7 +90,7 @@ index 4dc82a2..6be9319 100644
    <depend>libnvvpi4</depend>
  
 diff --git a/isaac_ros_nitros_type/isaac_ros_nitros_image_type/CMakeLists.txt b/isaac_ros_nitros_type/isaac_ros_nitros_image_type/CMakeLists.txt
-index d691f1e..18db47c 100644
+index d691f1e2514bfcbd1cc370c48fdebf9933216bde..18db47c551133a2402f1512b7d7b99cc69358509 100644
 --- a/isaac_ros_nitros_type/isaac_ros_nitros_image_type/CMakeLists.txt
 +++ b/isaac_ros_nitros_type/isaac_ros_nitros_image_type/CMakeLists.txt
 @@ -37,6 +37,7 @@ if(USE_NVTX)

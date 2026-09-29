@@ -19,12 +19,7 @@ for package in \
   fi
 done
 
-gxf_core_lib="$WS_DIR/src/isaac_ros_nitros/isaac_ros_gxf/gxf/core/lib/gxf_x86_64_cuda_13_0/core/libgxf_core.so"
-if file "$gxf_core_lib" | grep -q "ASCII text"; then
-  echo "Missing Git LFS binary asset: $gxf_core_lib" >&2
-  echo "Run: ./scripts/install_vendor_lfs_assets.sh" >&2
-  exit 2
-fi
+"$WS_DIR/scripts/install_vendor_lfs_assets.sh" --check
 
 if [ ! -x "$CUDA_HOME/bin/nvcc" ]; then
   echo "Missing nvcc: $CUDA_HOME/bin/nvcc" >&2

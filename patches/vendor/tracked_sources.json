@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "dependencies": [
+    {
+      "path": "src/robot_localization",
+      "management": "tracked_snapshot",
+      "upstream_url": "https://github.com/cra-ros-pkg/robot_localization",
+      "upstream_commit": null,
+      "provenance_status": "exact upstream revision requires investigation",
+      "license": "src/robot_localization/LICENSE",
+      "workspace_reference_commit": "152222e416d7afdaff8e3b592cb1a4e62e255c54",
+      "workspace_reference_tree": "ffae100f0186a2aa93a301ec0469322c673990ea",
+      "local_changes": "Not yet separated from upstream; preserve current source."
+    },
+    {
+      "path": "src/px4_msgs",
+      "management": "tracked_snapshot",
+      "upstream_url": "https://github.com/PX4/px4_msgs",
+      "upstream_commit": null,
+      "provenance_status": "exact upstream revision requires investigation",
+      "license": "src/px4_msgs/LICENSE",
+      "workspace_reference_commit": "152222e416d7afdaff8e3b592cb1a4e62e255c54",
+      "workspace_reference_tree": "66a1eece028db3319c438349cc104f56290878ea",
+      "local_changes": "Not yet separated from upstream; preserve current source."
+    },
+    {
+      "path": "src/VINS-Fusion-ros2",
+      "management": "tracked_snapshot",
+      "upstream_url": null,
+      "upstream_commit": null,
+      "provenance_status": "exact upstream revision requires investigation",
+      "license": "src/VINS-Fusion-ros2/LICENCE",
+      "workspace_reference_commit": "152222e416d7afdaff8e3b592cb1a4e62e255c54",
+      "workspace_reference_tree": "425271c9defe6099818c3a14be53f601941bf088",
+      "local_changes": "Not yet separated from upstream; preserve current source."
+    }
+  ]
+}

@@ -4,9 +4,23 @@ The top-level repository pins every patched submodule to an upstream commit
 that is available from the URL in `.gitmodules`. Local changes are stored only
 in this directory and are applied by `scripts/apply_vendor_patches.sh`.
 
-The apply script verifies each exact base commit before changing files. This
-prevents a patch from being silently applied to a newer, incompatible upstream
-checkout.
+`sources.json` is the machine-readable source of pinned vendor commits and
+patch paths. The preparation scripts verify repository identity, HEAD, an empty
+staging area, nested gitlinks, exact patched content (including generated files),
+and unexpected non-ignored files. All selected repositories are checked before
+any patch is applied. Ignored build products are not treated as source changes.
+Algorithm dependency hashes are checked against `algorithm_versions.json`.
+
+```bash
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --ego --check
+python3 scripts/test_vendor_git.py
+```
+
+`--check` is read-only and requires all patches to be applied. Normal application
+can restore missing patch-added regular files only when every remaining source
+file matches the patch. Existing differing files are never overwritten. Staged
+changes must be reviewed and unstaged before preparation.
 
 | Repository | Upstream base | Patch |
 | --- | --- | --- |
@@ -27,8 +41,10 @@ currently have no local source changes and therefore need no vendor patch.
 From a clean top-level checkout:
 
 ```bash
+git submodule sync --recursive
 git submodule update --init --recursive
 ./scripts/apply_vendor_patches.sh
+./scripts/install_vendor_lfs_assets.sh
 ```
 
 Running the apply script again is safe: it recognizes patches that are already
@@ -36,19 +52,43 @@ present. Return to the reproducible upstream bases with:
 
 ```bash
 ./scripts/apply_vendor_patches.sh --reverse
-git submodule update --init --recursive --force
+git submodule update --init --recursive
 ```
 
-Use the reverse mode before the forced submodule update because a vendor patch
-may add a deliberately ignored file that Git itself will not remove.
+Reverse mode removes patch-added files as well as tracked changes. Do not use
+recursive forced checkout as routine recovery: inspect and preserve local work
+first. A differing HEAD is rejected rather than automatically reset.
+
+LFS preparation covers the top-level repository and all initialized recursive
+submodules, with repository-local configuration only. `--check` verifies file
+presence, recorded size, pointer hydration, and the host GXF ELF architecture;
+it does not perform a full content hash audit. On Jetson, set
+`GXF_LFS_VARIANT=gxf_jetpack70`. Install `git-lfs` before running the script.
 
 ## Updating a patch
 
-Build and test a change in its submodule, commit it locally, and regenerate the
-patch as the complete difference from the recorded base. Use `--full-index` and
-`--binary` so file modes, empty files, and binary changes are retained. Do not
-include a nested submodule gitlink in its parent's patch; record the nested
-source changes in a separate patch instead.
+Develop and test patch changes in a separate worktree or temporary checkout
+based on the recorded upstream commit. Generate the complete difference from
+that base with `git diff <base> --full-index --binary`; include added files using
+a temporary index. Do not include nested gitlinks in their parent's patch.
+Keep the normal checkout at the upstream HEAD with the patch applied, not at a
+local vendor commit. Update the corresponding algorithm patch SHA-256 whenever
+an algorithm dependency patch changes, then run both vendor checks above.
+
+Use `tracked_sources.json` for third-party trees copied into the main repository.
+Unknown upstream revisions are explicitly marked for investigation; the recorded
+workspace commit/tree provides an immutable reference, not an upstream version.
+
+FAST-LIO runtime parameters belong to `src/uav_bringup/config/mid360.yaml`.
+`nav_stack.launch.py` defaults to that package; use `lio_config_package:=fast_lio`
+for upstream configs, or an absolute `lio_config_file`. The standalone MID360
+script defaults to the source bringup config directory and accepts
+`FASTLIO_CONFIG_PATH` or an absolute `--config-file`.
+
+Python dependencies are installed into `.venv` from
+`requirements/algorithm-sim.txt` (including `lark==1.3.1`). `.deps/` is reserved
+for generated SDK builds and prepared EGO sources, and is not prepended to
+`PYTHONPATH`. Existing ignored Lark copies may remain locally but are not used.
 
 
 Isaac ROS image pipeline 不再附加排除包的本地补丁；完整保留其上游源码。nvblox 补丁仅保留源码修改，不再创建构建忽略标记。

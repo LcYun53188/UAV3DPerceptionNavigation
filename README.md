@@ -146,3 +146,19 @@ EKF 模拟输入验证：
 | `nav_px4_bridge` | 已禁用构建的历史 PX4 兼容层 |
 
 完整资料见 [文档索引](docs/INDEX.md)。
+
+## Git 与第三方依赖维护
+
+依赖初始化、补丁校验、LFS 资源及配置归属见
+[Vendor 维护说明](patches/vendor/README.md)。构建前可执行：
+
+```bash
+./scripts/apply_vendor_patches.sh --check
+./scripts/install_vendor_lfs_assets.sh --check
+python3 scripts/vendor_patches.py --ego --check  # prepare_ego_vendor.sh 执行后
+```
+
+子模块应用补丁后显示 dirty 是预期状态，以精确校验结果为准。
+Python 依赖通过 `uv pip install --python .venv/bin/python -r requirements/algorithm-sim.txt`
+安装，不再从 `.deps/` 加载复制的 Python 包。
+大型地图、模型网格和测试 bag 使用 Git LFS；正常 push 需包含对应 LFS 对象。

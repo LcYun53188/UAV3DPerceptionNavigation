@@ -1,0 +1,92 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 3
+        max_iteration: 3
+        filter_size_surf: 0.5
+        filter_size_map: 0.5
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "./test.pcd"
+
+        common:
+            lid_topic:  "/livox/lidar"
+            imu_topic:  "/livox/imu"
+            time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
+            time_offset_lidar_to_imu: 0.0 # Time offset between lidar and IMU calibrated by other algorithms, e.g. LI-Init (can be found in README).
+                                        # This param will take effect no matter what time_sync_en is. So if the time offset is not known exactly, please set as 0.0
+
+        preprocess:
+            lidar_type: 1                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR, 4 for any other pointcloud input
+            scan_line:  4
+            blind: 0.5
+            timestamp_unit: 3
+            scan_rate: 10
+
+        mapping:
+            acc_cov: 0.1
+            gyr_cov: 0.1
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree:    360.0
+            det_range:     100.0
+            # FAST-LIO IMU-LiDAR extrinsic.
+            #
+            # This block is used only by FAST-LIO's lidar-inertial odometry
+            # front-end. It describes the rigid transform between the LiDAR
+            # measurement frame and the IMU frame used by FAST-LIO.
+            #
+            # Do not confuse this with the UAV mounting transform:
+            #
+            #   base_link -> mid360_link
+            #
+            # The UAV mounting transform is configured by launch arguments in
+            # uav_bringup:
+            #
+            #   mid360_x mid360_y mid360_z mid360_yaw mid360_pitch mid360_roll
+            #
+            # In short:
+            #   - mid360_x/y/z/yaw/pitch/roll:
+            #       where the whole MID360 is installed on the aircraft body.
+            #   - extrinsic_T/extrinsic_R below:
+            #       how FAST-LIO relates its LiDAR frame and IMU frame.
+            #
+            # extrinsic_est_en:
+            #   - true: FAST-LIO estimates/refines the IMU-LiDAR extrinsic online.
+            #     This is useful while bringing up a new sensor setup or when the
+            #     exact IMU-LiDAR calibration is not trusted yet.
+            #   - false: FAST-LIO trusts the fixed extrinsic_T/extrinsic_R below.
+            #     Use this only after the IMU-LiDAR extrinsic is calibrated and
+            #     verified.
+            #
+            # extrinsic_T:
+            #   Translation vector between FAST-LIO's LiDAR and IMU frames, in
+            #   meters. Keep the order exactly as expected by FAST-LIO.
+            #
+            # extrinsic_R:
+            #   3x3 row-major rotation matrix between FAST-LIO's LiDAR and IMU
+            #   frames. Identity means the two frames are assumed to have the same
+            #   orientation.
+            #
+            # If this block is wrong, FAST-LIO odometry can drift, tilt, oscillate,
+            # or fail during initialization. If the UAV mounting transform is wrong,
+            # the LIO may still run, but /mid360/points and obstacle positions will
+            # be placed incorrectly relative to base_link.
+            extrinsic_est_en:  true
+            extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
+            extrinsic_R: [ 1., 0., 0.,
+                            0., 1., 0.,
+                            0., 0., 1.]
+
+        publish:
+            path_en: true                # true: publish Path
+            effect_map_en: false         # true: publish Effects
+            map_en: true                 # true: publish Map cloud
+            scan_publish_en:  true       # false: close all the point cloud output
+            dense_publish_en: false      # false: low down the points number in a global-frame point clouds scan.
+            scan_bodyframe_pub_en: true  # true: output the point cloud scans in IMU-body-frame
+
+        pcd_save:
+            pcd_save_en: true
+            interval: -1                 # how many LiDAR frames saved in each pcd file;
+                                        # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.

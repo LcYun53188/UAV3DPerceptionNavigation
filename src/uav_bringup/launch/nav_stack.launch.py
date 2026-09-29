@@ -67,6 +67,7 @@ LAUNCH_DEFAULTS = {
     'lio_package': 'fast_lio',
     'lio_executable': 'fastlio_mapping',
     'lio_config_file': 'mid360.yaml',
+    'lio_config_package': 'uav_bringup',
     'lio_odom_topic': '/lio/odometry',
     'lio_path_topic': '/lio/path',
 
@@ -98,7 +99,7 @@ LAUNCH_DEFAULTS = {
     #       mid360_x:=0.08 mid360_y:=0.0 mid360_z:=0.05
     #
     # Do not confuse these values with FAST-LIO's extrinsic_T/extrinsic_R in
-    # src/FAST_LIO_ROS2/config/mid360.yaml. That file configures the LiDAR-to-IMU
+    # src/uav_bringup/config/mid360.yaml. That file configures the LiDAR-to-IMU
     # transform used internally by FAST-LIO. The values below configure the
     # whole MID360 sensor pose relative to the aircraft body.
     'mid360_x': '0.0',
@@ -282,7 +283,8 @@ def launch_setup(context, *args, **kwargs):
                     output='screen',
                     parameters=[
                         os.path.join(
-                            lio_share,
+                            get_package_share_directory(
+                                LaunchConfiguration('lio_config_package').perform(context)),
                             'config',
                             LaunchConfiguration('lio_config_file').perform(context),
                         ),
@@ -577,6 +579,11 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'lio_executable',
             default_value=LAUNCH_DEFAULTS['lio_executable'],
+        ),
+        DeclareLaunchArgument(
+            'lio_config_package',
+            default_value=LAUNCH_DEFAULTS['lio_config_package'],
+            description='Package providing config/ for relative LIO config paths.',
         ),
         DeclareLaunchArgument(
             'lio_config_file',

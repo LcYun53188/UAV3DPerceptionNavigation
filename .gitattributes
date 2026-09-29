@@ -1,3 +1,7 @@
 *.nvblx filter=lfs diff=lfs merge=lfs -text
 *.ply filter=lfs diff=lfs merge=lfs -text
 patches/vendor/*.patch -whitespace
+# Large source assets: preserve working files while storing LFS pointers in Git.
+src/robot_localization/test/*.bag filter=lfs diff=lfs merge=lfs -text
+src/uav_bringup/gazebo/models/**/meshes/*.stl filter=lfs diff=lfs merge=lfs -text
+src/uav_bringup/gazebo/models/**/meshes/*.dae filter=lfs diff=lfs merge=lfs -text

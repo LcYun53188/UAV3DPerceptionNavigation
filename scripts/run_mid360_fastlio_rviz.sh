@@ -6,6 +6,7 @@ WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_LOG_DIR="${ROS_LOG_DIR:-/tmp/ros_log}"
 LIVOX_LAUNCH="${MID360_LIVOX_LAUNCH:-msg_MID360_launch.py}"
 FASTLIO_CONFIG_FILE="${FASTLIO_CONFIG_FILE:-mid360.yaml}"
+FASTLIO_CONFIG_PATH="${FASTLIO_CONFIG_PATH:-$WS_DIR/src/uav_bringup/config}"
 FASTLIO_RVIZ="${FASTLIO_RVIZ:-true}"
 START_LIVOX_DRIVER="${START_LIVOX_DRIVER:-true}"
 PRELOAD_SYSTEM_LIBUSB="${PRELOAD_SYSTEM_LIBUSB:-true}"
@@ -29,7 +30,7 @@ Options:
       are already being published.
 
   --config-file <yaml>
-      FastLIO2 config file under fast_lio/config. Default: mid360.yaml.
+      FastLIO2 config file under uav_bringup/config (or an absolute path). Default: mid360.yaml.
 
   --livox-launch <launch.py>
       livox_ros_driver2 launch file. Default: msg_MID360_launch.py.
@@ -141,6 +142,7 @@ FASTLIO_CMD=(
   launch
   fast_lio
   mapping.launch.py
+  config_path:="$FASTLIO_CONFIG_PATH"
   config_file:="$FASTLIO_CONFIG_FILE"
   rviz:="$FASTLIO_RVIZ"
   "${FASTLIO_EXTRA_ARGS[@]}"

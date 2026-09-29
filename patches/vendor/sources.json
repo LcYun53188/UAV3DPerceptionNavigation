@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "dependencies": [
+    {
+      "path": "src/livox_ros_driver2",
+      "patch": "patches/vendor/livox_ros_driver2.patch",
+      "commit": "13eb05e4e6dd7a765b934d0c5fd6236676a57b49"
+    },
+    {
+      "path": "src/FAST_LIO_ROS2",
+      "patch": "patches/vendor/fast_lio_ros2.patch",
+      "commit": "2fffc570a25d0df172720bac034fbdb6a13d2162"
+    },
+    {
+      "path": "third_party/Livox-SDK2",
+      "patch": "patches/vendor/livox_sdk2.patch",
+      "commit": "f5d9375f84efe2b15bc0a052d3e18482ed13adf4"
+    },
+    {
+      "path": "src/isaac_ros_nvblox",
+      "patch": "patches/vendor/isaac_ros_nvblox.patch",
+      "commit": "6362295e581ef243773c8a348ac46711e4a1fca4"
+    },
+    {
+      "path": "src/magic_enum",
+      "patch": "patches/vendor/magic_enum.patch",
+      "commit": "9f19f78a7d726af84761ecd6d8414613507a95e6"
+    },
+    {
+      "path": "src/isaac_ros_nitros",
+      "patch": "patches/vendor/isaac_ros_nitros.patch",
+      "commit": "a22f10d4918662c485b0a1323e2fe1d8c21407a9"
+    },
+    {
+      "path": "src/negotiated",
+      "patch": "patches/vendor/negotiated.patch",
+      "commit": "eac198b55dcd052af5988f0f174902913c5f20e7"
+    },
+    {
+      "path": "src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
+      "patch": "patches/vendor/nvblox_core.patch",
+      "commit": "3f42b210df9ad7a2099f00fcf324049d97342cb0"
+    },
+    {
+      "path": ".deps/ego_planner_src",
+      "patch": "patches/vendor/ego_planner.patch",
+      "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
+      "url": "https://github.com/ZJU-FAST-Lab/ego-planner-swarm.git"
+    }
+  ]
+}

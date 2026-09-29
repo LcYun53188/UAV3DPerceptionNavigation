@@ -23,7 +23,7 @@
       "path": "src/isaac_ros_nitros",
       "commit": "a22f10d4918662c485b0a1323e2fe1d8c21407a9",
       "patch": "patches/vendor/isaac_ros_nitros.patch",
-      "patch_sha256": "aa6db40c1490d12c6746cf9b05f36450f4538f8b9db1f3a6206818e70007e983"
+      "patch_sha256": "4ab4613793ab8bb97d33a22828a7e72ece2b23a33c2490e4dd480ad93a17acb0"
     },
     {
       "path": "src/negotiated",

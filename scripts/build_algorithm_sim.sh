@@ -2,6 +2,8 @@
 set -euo pipefail
 workspace_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$workspace_dir"
+./scripts/apply_vendor_patches.sh --check
+./scripts/install_vendor_lfs_assets.sh --check
 ./scripts/prepare_ego_vendor.sh
 uv pip install --python .venv/bin/python -r requirements/algorithm-sim.txt
 cuda_dir="${CUDA_HOME:-/usr/local/cuda-13.2}"
