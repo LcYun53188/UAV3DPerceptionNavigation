@@ -19,3 +19,10 @@ Current scope: stopped start/goal tasks in a static Gazebo world, identity
 map/odom alignment, conservative unknown-space policy. A failure never emits an
 unchecked alternative path. Moving handover and real vehicle braking remain
 future flight-control work. See `docs/EGO_NVBLOX_GAZEBO.md` for commands.
+
+The standard launch enables `managed_goals` and remaps the planner input to
+`/uav/local_goal`. The executor-owned goal manager retains `/uav/goal`, selects
+safe observation positions in live mapping mode, and owns finite retries and
+terminal task states. `PlannerStatus` and `TimedTrajectory.goal_stamp` echo the
+local goal stamp so cancelled or replaced work cannot restart execution.
+Standalone unmanaged planner behavior remains available with the parameter off.

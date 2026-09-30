@@ -2,6 +2,7 @@
 #include <bspline_opt/bspline_optimizer.h>
 #include <uav_nav_interfaces/msg/map_snapshot.hpp>
 #include <uav_nav_interfaces/msg/timed_trajectory.hpp>
+#include <uav_nav_interfaces/msg/planner_status.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/path.hpp>
@@ -22,6 +23,7 @@ class Planner : public rclcpp::Node {
     amax_ = declare_parameter("max_acceleration", 1.0);
     jmax_ = declare_parameter("max_jerk", 2.0);
     map_timeout_ = declare_parameter("map_timeout", 2.0);
+    managed_ = declare_parameter("managed_goals", false);
     map_ = std::make_shared<GridMap>();
     optimizer_.setParam(shared_from_this());
     optimizer_.setEnvironment(map_);
@@ -40,12 +42,14 @@ class Planner : public rclcpp::Node {
       [this](geometry_msgs::msg::PoseStamped::ConstSharedPtr m) {
         if (m->header.frame_id != "map") { report("REJECT_GOAL_FRAME"); return; }
         goal_ = V(m->pose.position.x, m->pose.position.y, m->pose.position.z);
+        goal_stamp_ = m->header.stamp;
         pending_ = goal_.allFinite(); goal_active_=pending_;
       });
     state_sub_ = create_subscription<std_msgs::msg::String>("/uav/executor/state", 10,
       [this](std_msgs::msg::String::ConstSharedPtr m) { executing_ = m->data == "EXECUTING"; });
     event_sub_ = create_subscription<std_msgs::msg::String>("/uav/executor/event",10,
       [this](std_msgs::msg::String::ConstSharedPtr m) {
+        if(managed_) return; // The task manager owns retries and completion.
         if(m->data=="GOAL_REACHED" || m->data=="CANCELLED" || m->data=="MAP_SESSION_CHANGED") {
           goal_active_=false; pending_=false;
         } else if(goal_active_ && (m->data.rfind("REJECTED:",0)==0 || m->data=="STALE_MAP_OR_ODOMETRY" ||
@@ -56,12 +60,17 @@ class Planner : public rclcpp::Node {
     trajectory_pub_ = create_publisher<Trajectory>("/uav/trajectory", 10);
     path_pub_ = create_publisher<nav_msgs::msg::Path>("/uav/planned_path", 1);
     status_pub_ = create_publisher<std_msgs::msg::String>("/uav/planner/state", 10);
+    result_pub_ = create_publisher<uav_nav_interfaces::msg::PlannerStatus>("/uav/planner/result", 10);
     timer_ = create_wall_timer(std::chrono::milliseconds(500), [this] { plan(); });
   }
  private:
   void report(const std::string& state) {
     if(state != last_status_) {RCLCPP_INFO(get_logger(), "%s", state.c_str()); last_status_=state;}
     std_msgs::msg::String m; m.data=state; status_pub_->publish(m);
+    uav_nav_interfaces::msg::PlannerStatus result;
+    result.goal_stamp=goal_stamp_; result.state=state; result_pub_->publish(result);
+    if(managed_ && state!="WAIT_MAP_OR_ODOMETRY" && state!="WAIT_STOPPED" &&
+       state!="SAFE_SEED_FALLBACK") pending_=false;
   }
   bool collision(const Snapshot& s, const V& p, double r) {
     if (!p.allFinite()) return true;
@@ -196,6 +205,7 @@ class Planner : public rclcpp::Node {
        (now()-rclcpp::Time(s->header.stamp)).seconds()>map_timeout_) {report("PLAN_EXPIRED");return;}
     Trajectory out;
     out.header.stamp=now();out.header.frame_id="odom";
+    out.goal_stamp=goal_stamp_;
     out.map_id=s->map_id;out.epoch=s->epoch;out.map_version=s->version;out.trajectory_id=++id_;
     out.start_time=now()+rclcpp::Duration::from_seconds(0.5);out.knot_interval=dt;
     out.max_velocity=vmax_;out.max_acceleration=amax_;out.max_jerk=jmax_;
@@ -211,6 +221,8 @@ class Planner : public rclcpp::Node {
   std::vector<uint32_t> prefix_;
   std::string last_status_;
   double radius_,vmax_,amax_,jmax_,map_timeout_;
+  bool managed_=false;
+  builtin_interfaces::msg::Time goal_stamp_;
   uint64_t id_=0; bool pending_=false,executing_=false,goal_active_=false;V goal_;
   GridMap::Ptr map_; ego_planner::BsplineOptimizer optimizer_;ego_planner::SwarmTrajData swarm_;
   Snapshot::ConstSharedPtr snapshot_;nav_msgs::msg::Odometry::ConstSharedPtr odom_;
@@ -222,6 +234,7 @@ class Planner : public rclcpp::Node {
   rclcpp::Publisher<Trajectory>::SharedPtr trajectory_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr status_pub_;
+  rclcpp::Publisher<uav_nav_interfaces::msg::PlannerStatus>::SharedPtr result_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
 };
 int main(int argc,char**argv){rclcpp::init(argc,argv);auto node=std::make_shared<Planner>();node->init();rclcpp::spin(node);rclcpp::shutdown();}

@@ -1,0 +1,135 @@
+{
+  "date": "2026-09-29",
+  "world": "uav_ego_lab",
+  "mode": "mapping",
+  "scope": "Gazebo truth localization and zero-gravity velocity model; not hardware flight validation",
+  "initialization": "Fresh mapping session, local-only offline camera survey at launch area before autonomous flight",
+  "unknown_goal": {
+    "states": [
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "NAVIGATING",
+      "REACHED"
+    ],
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:2",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:3",
+      "GOAL_REACHED"
+    ],
+    "trajectories": [
+      {
+        "id": 1,
+        "duration": 26.013875177798305,
+        "map_version": 90,
+        "endpoint": [
+          -1.0499999411404133,
+          -0.04999992623925208,
+          1.2500000186264515
+        ],
+        "truth_clearance": 0.30118973978002767
+      },
+      {
+        "id": 2,
+        "duration": 22.370059617842404,
+        "map_version": 148,
+        "endpoint": [
+          0.7500000856816768,
+          -0.849999938160181,
+          0.9500000141561031
+        ],
+        "truth_clearance": 0.20663038682819074
+      },
+      {
+        "id": 3,
+        "duration": 9.836012398667973,
+        "map_version": 200,
+        "endpoint": [
+          3.0,
+          0.0,
+          1.2
+        ],
+        "truth_clearance": 0.38392645420640364
+      }
+    ],
+    "initial_observed": 98745,
+    "initial_goal_state": "UNKNOWN",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      -3.0,
+      0.0,
+      1.2
+    ],
+    "goal": [
+      3.0,
+      0.0,
+      1.2
+    ],
+    "terminal": "REACHED",
+    "final_position": [
+      3.0005588157384038,
+      0.00027539989529168894,
+      1.2001752292595365
+    ],
+    "final_error": 0.0006471672312564489,
+    "final_observed": 172260,
+    "samples": 3551,
+    "min_truth_clearance": 0.2062930556687415,
+    "accepted_segments": 3,
+    "hold_drift": 1.9113469077539152e-05,
+    "passed": true
+  },
+  "known_occupied_goal": {
+    "states": [
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "BLOCKED:KNOWN_GOAL_OCCUPIED"
+    ],
+    "events": [
+      "GOAL_REPLACED"
+    ],
+    "trajectories": [],
+    "initial_observed": 231347,
+    "initial_goal_state": "OCCUPIED",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      0.04696638344480109,
+      -0.8495884050784891,
+      1.2503188057237622
+    ],
+    "goal": [
+      0.0,
+      0.0,
+      1.2
+    ],
+    "terminal": "BLOCKED",
+    "final_position": [
+      0.04696638344480109,
+      -0.8495884050784891,
+      1.2503188057237622
+    ],
+    "final_error": 0.8523721496078814,
+    "final_observed": 231347,
+    "samples": 151,
+    "min_truth_clearance": 0.1008855970209479,
+    "accepted_segments": 0,
+    "hold_drift": 0.0,
+    "passed": true
+  },
+  "unit_and_ros_tests": {
+    "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=180 ./scripts/with_venv.sh python -m pytest -q src/uav_nav_sim/test",
+    "passed": 57
+  }
+}

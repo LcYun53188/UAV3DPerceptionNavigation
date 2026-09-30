@@ -21,3 +21,14 @@ planning snapshot, while the latest available snapshot independently rechecks it
 
 Simulation uses a fixed identity `map -> odom`; this contract does not authorize
 using map-frame curves as odom-frame curves when real localization can correct TF.
+
+`PlannerStatus`: per-attempt state plus the exact `goal_stamp` from the local
+`PoseStamped.header.stamp`. `TimedTrajectory.goal_stamp` carries the same token.
+In managed mode the executor accepts only the outstanding planning token; cancel,
+replacement, completion, timeout, or terminal failure retires it. Tokens are
+strictly increasing within an executor process, including simulated clock resets.
+Rebuild both interface consumers after changing these message definitions.
+
+`/uav/navigation/state` is the overall task result; planner status and
+`LOCAL_GOAL_REACHED` refer only to one segment. A new map does not automatically
+resume a terminal BLOCKED, STOPPED, or CANCELLED task.

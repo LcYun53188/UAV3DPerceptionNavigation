@@ -1,5 +1,7 @@
 # Uniform cubic B-spline, knot interval in seconds, XYZ controls in header.frame_id.
 std_msgs/Header header
+# Echo of the local goal stamp; rejects delayed work after cancel/replacement.
+builtin_interfaces/Time goal_stamp
 string map_id
 uint64 epoch
 uint64 map_version

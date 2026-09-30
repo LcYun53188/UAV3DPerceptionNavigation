@@ -17,11 +17,14 @@ from rclpy.qos import QoSProfile, DurabilityPolicy
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--output',required=True)
+    parser.add_argument('--output', help='Optional for --local-only; required for a full survey')
+    parser.add_argument('--local-only', action='store_true',
+                        help='Initialize only the launch area using offline camera placements')
     parser.add_argument('--dwell',type=float,default=1.5)
     parser.add_argument('--layout',choices=['lab','expanded'],default='lab')
     args=parser.parse_args()
-    if Path(args.output).expanduser().exists():raise ValueError('Output directory already exists')
+    if not args.local_only and not args.output:parser.error('--output is required for a full survey')
+    if args.output and Path(args.output).expanduser().exists():raise ValueError('Output directory already exists')
     rclpy.init();node=rclpy.create_node('offline_gazebo_survey')
     latest=[None]
     node.create_subscription(MapSnapshot,'/uav/map/snapshot',lambda m:latest.__setitem__(0,m),QoSProfile(depth=1,durability=DurabilityPolicy.TRANSIENT_LOCAL))
@@ -30,7 +33,19 @@ def main():
         while time.monotonic()<end:rclpy.spin_once(node,timeout_sec=.05)
     world_name = 'uav_ego_expanded' if args.layout == 'expanded' else 'uav_ego_lab'
     pose_client=node.create_client(SetEntityPose,f'/world/{world_name}/set_pose')
-    if not pose_client.wait_for_service(timeout_sec=20):raise RuntimeError('Gazebo pose bridge unavailable')
+    if not pose_client.wait_for_service(timeout_sec=20):
+        domain = node.context.get_domain_id()
+        services = sorted(name for name, _ in node.get_service_names_and_types()
+                          if name.startswith('/world/') and name.endswith('/set_pose'))
+        node.destroy_node()
+        rclpy.shutdown()
+        parser.exit(1,
+            f'Gazebo pose bridge unavailable: /world/{world_name}/set_pose\n'
+            f'Current ROS_DOMAIN_ID={domain}. Set the same ROS_DOMAIN_ID as the launch terminal '
+            '(README example: export ROS_DOMAIN_ID=68) in this terminal, then retry.\n'
+            f'Visible world pose services: {services or "none"}. '
+            'Also check --layout matches the running world and '
+            'uav_ego_nvblox.launch.py is running.\n')
     gate=node.create_client(SetBool,'/uav/map/input_enabled')
     if not gate.wait_for_service(timeout_sec=20):raise RuntimeError('Depth input gate unavailable')
     def set_gate(enabled):
@@ -60,14 +75,24 @@ def main():
     locations=[(-3,-3),(-3,0),(-3,3),(0,3),(3,3),(3,0),(3,-3),(0,-3)]
     if args.layout == 'expanded':
         locations=[(x,y) for x in [-7.5,-2.5,2.5,7.5] for y in [-7.5,-2.5,2.5,7.5]]
-    for z in [1.2,2.2]:
+    home = (-7.5,-7.5) if args.layout == 'expanded' else (-3,0)
+    if args.local_only:
+        locations=[(home[0]+dx, home[1]+dy) for dx,dy in [(-.8,0),(.8,0),(0,-.8),(0,.8)]]
+    for z in ([1.2,1.7] if args.local_only else [1.2,2.2]):
         for x,y in locations:
-            for yaw in [0,math.pi/2,math.pi,-math.pi/2]:
+            headings = [math.atan2(home[1]-y, home[0]-x)] if args.local_only else [0,math.pi/2,math.pi,-math.pi/2]
+            for yaw in headings:
                 pose(x,y,z,yaw);spin(args.dwell)
             print(f'Surveyed ({x},{y},{z}), observed={sum(latest[0].observed) if latest[0] else 0}',flush=True)
-    home = (-7.5,-7.5) if args.layout == 'expanded' else (-3,0)
     pose(*home,1.2,0);spin(3)
     if latest[0] is None or not latest[0].valid:raise RuntimeError('No valid ESDF after survey')
+    if args.local_only:
+        from uav_nav_sim.core import grid_from_message
+        if grid_from_message(latest[0]).collision([*home, 1.2], .3):
+            raise RuntimeError('Launch volume still unobserved or blocked; do not send a navigation goal')
+        print('Local launch area observed; online mapping remains enabled.',flush=True)
+        if not args.output:
+            node.destroy_node();rclpy.shutdown();return
     client=node.create_client(FilePath,'/uav/map/save')
     if not client.wait_for_service(timeout_sec=10):raise RuntimeError('Map manager absent')
     f=client.call_async(FilePath.Request(file_path=str(Path(args.output).expanduser().resolve())))

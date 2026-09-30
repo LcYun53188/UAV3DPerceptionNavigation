@@ -14,6 +14,8 @@ from std_msgs.msg import String
 from std_srvs.srv import Trigger
 from uav_nav_interfaces.msg import MapSnapshot, TimedTrajectory
 from .core import grid_from_message, spline, validate_trajectory
+from .navigation import GoalManager
+from .attitude import level_body_rates
 
 
 class Executor(Node):
@@ -22,6 +24,7 @@ class Executor(Node):
         for key, value in [('body_radius', 0.3), ('map_timeout', 2.0), ('max_velocity', 0.5),
                            ('max_acceleration', 1.0), ('max_jerk', 2.0), ('tracking_error', 0.15)]:
             self.declare_parameter(key, value)
+        self.declare_parameter('managed_goals', False)
         self.radius = self.get_parameter('body_radius').value
         self.limits = [self.get_parameter(k).value for k in ('max_velocity','max_acceleration','max_jerk')]
         self.timeout = self.get_parameter('map_timeout').value
@@ -34,6 +37,7 @@ class Executor(Node):
         self.command = self.create_publisher(Twist, '/cmd_vel', 1)
         self.status = self.create_publisher(String, '/uav/executor/state', 10)
         self.event = self.create_publisher(String, '/uav/executor/event', 10)
+        self.navigation = GoalManager(self) if self.get_parameter('managed_goals').value else None
         self.create_subscription(MapSnapshot, '/uav/map/snapshot', self.map_cb,
                                  QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.create_subscription(Odometry, '/uav/localization/odometry', self.odom_cb, qos_profile_sensor_data)
@@ -45,8 +49,12 @@ class Executor(Node):
         self.curve = self.trajectory = None
         self.state = 'HOLD'
         self.command.publish(Twist())
+        if self.navigation is not None:
+            if reason == 'GOAL_REACHED' and not self.navigation.local_final:
+                reason = 'LOCAL_GOAL_REACHED'
+            self.navigation.on_stop(reason)
         self.event.publish(String(data=reason))
-        if reason != 'GOAL_REACHED':
+        if reason not in ('GOAL_REACHED', 'LOCAL_GOAL_REACHED', 'GOAL_REPLACED'):
             self.get_logger().warning(reason)
 
     def odom_cb(self, msg):
@@ -67,7 +75,7 @@ class Executor(Node):
             self.session = session
         if not msg.valid:
             self.map = self.grid = None
-            if self.curve is not None:
+            if self.curve is not None or (getattr(self, 'navigation', None) is not None and self.navigation.goal is not None):
                 self.stop('MAP_INVALID')
             return
         if self.map is not None and session == (self.map.map_id, self.map.epoch) and msg.version <= self.map.version:
@@ -76,13 +84,19 @@ class Executor(Node):
             self.grid = grid_from_message(msg)
             self.map = msg
             self.map_wall = time.monotonic()
-            if self.curve is not None:
+        except ValueError as exc:
+            self.map = self.grid = None
+            self.stop(f'MAP_INVALID: {exc}')
+            return
+        if self.curve is not None:
+            try:
                 t = max(0.0, (self.get_clock().now()-Time.from_msg(self.trajectory.start_time)).nanoseconds/1e9)
                 validate_trajectory(self.curve, self.grid, self.radius, self.limits,
                                     start=min(t, float(self.curve.t[-4])))
-        except ValueError as exc:
-            self.map = self.grid = None
-            self.stop(f'MAP_RECHECK_FAILED: {exc}')
+            except ValueError as exc:
+                # The new map is valid; only the old remaining path is unsafe.
+                # Keep it available for a stopped, bounded replan.
+                self.stop(f'MAP_RECHECK_FAILED: {exc}')
 
     def ready(self):
         if self.map is None or self.grid is None or self.odom is None:
@@ -93,6 +107,9 @@ class Executor(Node):
                 time.monotonic()-self.map_wall <= self.timeout and time.monotonic()-self.odom_wall <= 0.5)
 
     def trajectory_cb(self, msg):
+        if self.navigation is not None and not self.navigation.accepts(msg):
+            self.event.publish(String(data='REJECTED:OBSOLETE_GOAL'))
+            return
         try:
             if not self.ready() or self.curve is not None:
                 now = self.get_clock().now()
@@ -121,32 +138,58 @@ class Executor(Node):
             self.curve,self.trajectory = curve,msg
             self.last_id = msg.trajectory_id
             self.state = 'EXECUTING'
+            if self.navigation is not None:
+                self.navigation.accepted()
             self.event.publish(String(data=f'ACCEPTED:{msg.trajectory_id}'))
         except ValueError as exc:
             self.event.publish(String(data=f'REJECTED:{exc}'))
             self.get_logger().warning(f'Trajectory rejected: {exc}')
+            if self.navigation is not None:
+                self.navigation.failed_segment(f'REJECTED:{exc}')
 
     def cancel(self, _, response):
         self.stop('CANCELLED')
         response.success = True
         return response
 
+    def publish_hold(self, command):
+        # Stopping translation must not freeze an old observation tilt. Level
+        # using fresh odometry even if the map is unavailable or the goal ended.
+        # With stale/invalid pose, publish zero rather than an open-loop turn.
+        now = self.get_clock().now()
+        if (self.odom is None or time.monotonic()-self.odom_wall > .5 or
+                not 0 <= (now-Time.from_msg(self.odom.header.stamp)).nanoseconds/1e9 <= .5):
+            self.command.publish(Twist())
+            return
+        q = self.odom.pose.pose.orientation
+        try:
+            quaternion = np.array([q.x, q.y, q.z, q.w])
+            if not np.all(np.isfinite(quaternion)) or np.linalg.norm(quaternion) < 1e-6:
+                raise ValueError('Invalid orientation')
+            rates = level_body_rates(Rotation.from_quat(quaternion), command.angular.z)
+        except ValueError:
+            self.command.publish(Twist())
+            return
+        command.angular.x, command.angular.y, command.angular.z = map(float, rates)
+        self.command.publish(command)
+
     def tick(self):
         now = self.get_clock().now()
         ns = now.nanoseconds
-        if self.last_ros is not None and ns < self.last_ros and self.curve is not None:
+        if self.last_ros is not None and ns < self.last_ros:
             self.stop('CLOCK_RESET')
         self.last_ros = ns
         self.status.publish(String(data=self.state))
         if self.curve is None:
-            self.command.publish(Twist())
+            command = self.navigation.tick() if self.navigation is not None else Twist()
+            self.publish_hold(command)
             return
         if not self.ready():
             self.stop('STALE_MAP_OR_ODOMETRY')
             return
         t = (now-Time.from_msg(self.trajectory.start_time)).nanoseconds/1e9
         if t < 0:
-            self.command.publish(Twist())
+            self.publish_hold(Twist())
             return
         duration = float(self.curve.t[-4])
         q = self.odom.pose.pose.orientation
@@ -176,10 +219,12 @@ class Executor(Node):
         body = rotation.inv().apply(velocity)
         command = Twist()
         command.linear.x,command.linear.y,command.linear.z = map(float,body)
-        yaw = rotation.as_euler('xyz')[2]
+        _, _, yaw = rotation.as_euler('xyz')
+        yaw_rate = 0.0
         if np.linalg.norm(velocity[:2])>0.05:
             desired = math.atan2(velocity[1],velocity[0])
-            command.angular.z = float(np.clip(2*math.atan2(math.sin(desired-yaw),math.cos(desired-yaw)), -0.6,0.6))
+            yaw_rate = float(np.clip(2*math.atan2(math.sin(desired-yaw),math.cos(desired-yaw)), -0.6,0.6))
+        command.angular.x, command.angular.y, command.angular.z = map(float, level_body_rates(rotation, yaw_rate))
         self.command.publish(command)
 
 
