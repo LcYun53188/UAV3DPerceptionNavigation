@@ -1,6 +1,8 @@
 # 无人机导航仿真使用手册 (UAV Simulation User Manual)
 
-本文档是 `uav_nav_ws` 工作区三维感知、建图、规划与执行仿真的完整操作手册。涵盖系统架构、运行准备、建图与地图包管理、定位与 RViz 交互导航、自动化验证、接口规范以及故障排除。
+本文档是 `uav_nav_ws` 工作区三维感知、建图、规划与执行仿真的完整操作手册。涵盖系统架构、运行准备、在线探索、建图与地图包管理、地图复用与 RViz 交互导航、自动化验证、接口规范以及故障排除。
+
+日常启动与操作先看 [仿真控制脚本手册](SIMULATION_CONTROL.md)：统一 `start/init/status/survey/save/load/cancel/stop`，自动复用环境并保留日志。需要手动操作时看 [README 的四种运行方式](../README.md#选择运行方式)；详细参数与在线探索限制见 [运行指引](EGO_NVBLOX_GAZEBO.md)。脚本流程与手动 launch 二选一，不能同时启动。
 
 ---
 
@@ -62,7 +64,9 @@ flowchart TD
     MapSession -->|/uav/map/snapshot| Executor
 
     RViz -->|/uav/rviz/goal_2d| RvizGoal
-    RvizGoal -->|/uav/goal| EgoPlanner
+    RvizGoal -->|/uav/goal 最终目标| Executor
+    Executor -->|/uav/local_goal 临时目标| EgoPlanner
+    EgoPlanner -->|/uav/planner/result| Executor
 
     EgoPlanner -->|/uav/trajectory| Executor
     EgoPlanner -->|/uav/planned_path| RViz
@@ -113,7 +117,7 @@ cd /home/nuc/Program/uav_nav_ws
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh python -m pytest -q src/uav_nav_sim/test
 ```
-> **注意**：必须添加 `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`，以防止 ROS 系统级插件与当前测试运行器发生冲突。正常结果应显示全部测试通过（27 passed）。
+> **注意**：必须添加 `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`，以防止 ROS 系统级插件与当前测试运行器发生冲突。正常结果应显示全部测试通过，具体数量随测试增加而变化。
 
 ---
 
@@ -139,7 +143,7 @@ export GZ_PARTITION=uav_ego_lab
 | 场景文件 | 物理尺寸 | 查询半宽 `map_extent` | 默认起点 | 适用任务 |
 | :--- | :--- | :--- | :--- | :--- |
 | **`uav_ego_expanded.sdf`** | 约 20m × 20m，高 4m | `10.5` | `(-7.5, -7.5, 1.2)` | **主推导航测试场**：中央柱、6根立柱、4个箱体、隔墙、门框 |
-| **`uav_ego_lab.sdf`** | 约 10m × 10m，高 4m | `5.0` | `(-3.0, 0.0, 1.2)` | **小型基准实验室**：双房间穿门与立柱避障验证 |
+| **`uav_ego_lab.sdf`** | 约 10m × 10m，高 4m | `5.0` | `(-3.0, 0.0, 1.2)` | **小型基准实验室**：中央柱与围墙，用于避障及探索验证 |
 | **`uav_obstacle_course.sdf`** | 约 20m × 20m，高 4m | N/A | `(0.0, -7.0, 0.11)` | **障碍穿越场地**：三组门框、平台、起终点标记（传感器检查专用） |
 | **`uav_harmonic_demo.sdf`** | 演示场地 | N/A | 原点 | 基础传感器与动力学演示 |
 | **`rmuc/rmul_2024/2025.sdf`** | 赛场规格 | N/A | 对应起飞区 | RoboMaster 对抗赛场静态布局 |
@@ -150,9 +154,22 @@ export GZ_PARTITION=uav_ego_lab
 
 ---
 
+### 4.1 运行方式选择与切换
+
+| 使用方式 | 入口或模式 | 操作顺序 |
+| --- | --- | --- |
+| 场景与传感器检查 | `run_uav_obstacle_course.sh` | 按第 9 节启动，不运行 EGO/nvblox |
+| 在线建图与探索 | `mode:=mapping` | 按第 5.1 节启动，再执行第 5.5 节的局部初始化与选点 |
+| 离线扫描与保存 | `mode:=mapping` | 按第 5.1–5.3 节启动、完整扫描并保存 |
+| 已有地图导航 | `mode:=localization` | 按第 6.1–6.3 节启动、加载兼容地图并选点 |
+
+`mode` 参数只有 `mapping` 和 `localization` 两个有效值。两种建图流程不需要同时执行；局部初始化用于在线探索的起点观测，完整扫描用于建立可复用的地图包。切换 `mode` 必须退出原 launch 后重启，取消目标不等于切换模式。加载模式不写入新深度；当前入口不支持加载旧地图后继续增量建图。
+
+上述导航入口均支持 `gui:=true`（Gazebo + RViz）、`gui:=false launch_rviz:=true`（仅 RViz）、`gui:=false launch_rviz:=false`（无界面）。无界面仍需要 GPU 深度渲染；独立 RViz 启动方法见 [运行指引](EGO_NVBLOX_GAZEBO.md#rviz-定高选点)。
+
 ## 5. 完整操作指南：建图模式与离线巡检扫描
 
-在仿真环境中，为了实现稳定无死角的先验三维导航，采用**深度门控巡检建图**机制。
+本节说明保存可复用地图的离线扫描流程；希望边建图边导航时，按第 5.1 节启动后直接执行第 5.5 节，无需先完成整场扫描。
 
 ### 5.1 启动建图模式（终端 A）
 打开新终端，配置环境并启动扩展场景的建图模式：
@@ -192,13 +209,31 @@ export GZ_PARTITION=uav_ego_lab
 - `manifest.json`：包含 schema 版本、map_id、scene_id（包含场景 world、model、config 及 map_extent 的联合 SHA-256）、算法构建指纹 build_id、分辨率及文件哈希。
 
 ### 5.4 手动保存地图包（可选）
-如果在建图模式下手动作了探索且执行器处于 `HOLD` 状态，可通过 CLI 手动保存：
+在线探索结束后，先调用 `/uav/cancel` 取消任务，确认执行器为 `HOLD` 且地图有效，再通过 CLI 保存到新目录：
 
 ```bash
 ./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle save .cache/maps/my_custom_map
 ```
 
 ---
+
+### 5.5 在线建图与定向探索
+
+**终端 A：** 使用第 5.1 节的 `mode:=mapping` 启动命令。**终端 B：** 在项目根目录设置第 3 节的环境变量，执行：
+
+```bash
+./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout expanded --local-only
+```
+
+默认小场景使用 `--layout lab`，同时终端 A 省略扩展场景 `world` 参数并使用 `map_extent:=5.0`。局部初始化通过 Gazebo 放置相机补足起点近距盲区，不是自主起飞；不需要地图包，未传 `--output` 时也不保存地图。看到 `Local launch area observed` 后，再在 RViz 使用 **2D Goal Pose** 发送目标。
+
+未知目标会触发朝该方向的分段探索，每段轨迹仍只允许经过已观测安全空间。观察阶段只调整偏航，横滚和俯仰持续回正；受阻、规划失败或预算耗尽时停止平移，并在里程计有效时继续保持水平姿态。已经确认处于实体障碍内的目标直接停止。整体任务状态通过以下命令查看：
+
+```bash
+./scripts/with_venv.sh ros2 topic echo /uav/navigation/state --qos-durability transient_local
+```
+
+`REACHED` 表示最终到达，`BLOCKED` 表示当前地图与预算内无法继续，`STOPPED` 表示地图、定位等异常。终止状态不会自动恢复，需重新发送目标。详细参数及小场景验收步骤见 [在线建图与定向探索](EGO_NVBLOX_GAZEBO.md#在线建图与定向探索)。
 
 ## 6. 完整操作指南：定位与自主导航
 
@@ -216,7 +251,7 @@ export GZ_PARTITION=uav_ego_lab
 ```
 
 参数重点：
-- `mode:=localization`：在此模式下，系统**关闭在线深度写入**，等待外部加载静态地图包，实现零传感器漂移的高精度全局规划。
+- `mode:=localization`：在此模式下，系统**关闭在线深度写入**，等待外部加载静态地图包；使用 Gazebo 真值定位复用同场景地图，不包含实机重定位，也不探索未知区域。
 - `goal_height:=1.2`：设定 RViz 选点工具的默认目标飞行高度（单位：米）。
 
 ### 6.2 加载地图包并确认就绪（终端 B）
@@ -225,18 +260,18 @@ export GZ_PARTITION=uav_ego_lab
 ```bash
 export ROS_DOMAIN_ID=68
 export GZ_PARTITION=uav_ego_lab
-# 1. 加载地图包
-./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle load .cache/maps/uav_ego_expanded_20260926
+# 1. 加载第 5 节保存的地图包；复用本机预置地图时替换为实际路径
+./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle load .cache/maps/uav_ego_expanded
 
 # 2. 检查地图快照有效性
 ./scripts/with_venv.sh ros2 topic echo /uav/map/snapshot --once --field valid --qos-durability transient_local
 ```
 
-当命令输出 `true`，且 RViz 中显示完整三维着色网格时，表明导航系统就绪。
+若首次输出 `false`，稍后重新检查；输出 `true` 后再发送目标。加载的地图须与启动时的 world、map_extent 及配置兼容。
 
 ### 6.3 RViz 交互式定高选点导航
 1. 切换至 RViz2 窗口，确认顶部工具栏包含 **2D Goal Pose** 工具（快捷键：`G`）。
-2. 在已探测出绿色/黄色的空闲空间区域，按住鼠标左键并拖拽出期望方向箭头，松开鼠标即发送目标。
+2. 在已观测且满足机体净空的空闲空间区域（网格颜色表示高度，不表示通行性），按住鼠标左键并拖拽出期望方向箭头，松开鼠标即发送目标。
 3. 转换节点 `rviz_fixed_height_goal` 会截获 2D 目标并赋予当前的 `goal_height`，发布至 `/uav/goal`。
 4. 规划成功后，RViz 中将绘制平滑路径（`/uav/planned_path`），无人机开始自主飞向目标。
 
@@ -320,7 +355,8 @@ export GZ_PARTITION=uav_ego_lab
 ```
 
 ### 8.3 异常注入与容错边界测试
-- **目标拒绝测试**：发送落在障碍物内部、地图外或未观测区域的目标，验证规划器输出 `BLOCKED_START_OR_GOAL` 或 `NO_PATH` 且拒绝生成危险轨迹。
+- **目标与模式测试**：加载模式中的未知目标不得触发探索；建图模式中的未知目标应分段探索，已知障碍目标应进入 `BLOCKED:KNOWN_GOAL_OCCUPIED`。任何模式都不得发布穿越未知、障碍或地图边界的轨迹。整体结果查看 `/uav/navigation/state`，单段失败查看 `/uav/planner/state`。
+- **在线探索验收**：默认小场景局部初始化后运行 `scripts/check_gazebo_exploration.py`；完整命令与已记录结果见 [探索验收](EGO_NVBLOX_GAZEBO.md#小场景探索验收)。
 - **地图丢失测试**：运行 `scripts/check_gazebo_map_loss.py`，验证当 ESDF 停止更新或超时时，执行器能立即在 2.0s 内触发 `STALE_MAP_OR_ODOMETRY` 并悬停。
 
 ---
@@ -357,7 +393,10 @@ export GZ_PARTITION=uav_ego_lab
 
 | 话题名称 | 消息类型 | QoS 特性 | 发送方 | 接收方 | 语义描述 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `/uav/goal` | `geometry_msgs/PoseStamped` | Reliable, Depth 10 | `rviz_goal` / 手动 | `planner` | 目标位置（必须在 map 坐标系） |
+| `/uav/goal` | `geometry_msgs/PoseStamped` | Reliable, Depth 10 | `rviz_goal` / 手动 | `executor` 内的目标管理 | 最终目标位置（必须在 map 坐标系） |
+| `/uav/local_goal` | `geometry_msgs/PoseStamped` | Reliable, Depth 10 | 目标管理 | `planner` | 单段临时目标，带关联时间戳 |
+| `/uav/navigation/state` | `std_msgs/String` | Transient Local, Depth 1 | 目标管理 | 监控器 | 整体任务状态与终止原因 |
+| `/uav/planner/result` | `uav_nav_interfaces/PlannerStatus` | Reliable, Depth 10 | `planner` | 目标管理 | 带目标关联时间戳的单段结果 |
 | `/uav/rviz/goal_2d` | `geometry_msgs/PoseStamped` | Reliable, Depth 10 | RViz 2D Nav Goal | `rviz_goal` | 原始 2D 选点平面坐标 |
 | `/uav/localization/odometry` | `nav_msgs/Odometry` | SensorData (Best Effort) | `odometry_velocity` | `planner`, `executor` | 机器人在 odom 系下的位姿与机体系 FLU 速度 |
 | `/uav/map/snapshot` | `uav_nav_interfaces/MapSnapshot` | Transient Local, Depth 1 | `map_session` | `planner`, `executor` | 不可变 ESDF 网格、分辨率、尺寸及有效标志 |
@@ -366,7 +405,7 @@ export GZ_PARTITION=uav_ego_lab
 | `/uav/planner/state` | `std_msgs/String` | Reliable, Depth 10 | `planner` | 状态监控器 | 规划器状态代码 |
 | `/uav/executor/state` | `std_msgs/String` | Reliable, Depth 10 | `executor` | `map_session`, `planner` | 执行器宏观状态（`HOLD` / `EXECUTING`） |
 | `/uav/executor/event` | `std_msgs/String` | Reliable, Depth 10 | `executor` | 监控器 / 自动化脚本 | 瞬时事件通知（如 `ACCEPTED`, `GOAL_REACHED`） |
-| `/cmd_vel` | `geometry_msgs/Twist` | Reliable, Depth 1 | `executor` | `ros_gz_bridge` | 机体系 FLU 线速度与偏航角速度指令 |
+| `/cmd_vel` | `geometry_msgs/Twist` | Reliable, Depth 1 | `executor` | `ros_gz_bridge` | 机体系 FLU 线速度与角速度指令 |
 
 ### 10.2 核心服务规范
 
@@ -389,6 +428,8 @@ map (世界大地坐标系)
 ```
 
 ### 10.4 状态机与事件代码表
+
+下面是执行器的单段轨迹状态。完整任务还包含 `OBSERVING`、`PLANNING`、`EXPLORING`、`NAVIGATING`、`REACHED`、`BLOCKED`、`STOPPED` 和 `CANCELLED`，以 `/uav/navigation/state` 为准；`HOLD` 时仍可能处于观察或等待规划阶段。临时段到达发布 `LOCAL_GOAL_REACHED`，不会清除最终目标。
 
 ```mermaid
 stateDiagram-v2
@@ -436,9 +477,9 @@ stateDiagram-v2
    ```
 4. **针对无响应孤儿进程定点清理**：
    ```bash
-   kill -TERM <PID>
+   kill -TERM -- "$SIM_PID"
    # 若数秒后依然存活，方可执行
-   kill -KILL <PID>
+   kill -KILL -- "$SIM_PID"
    ```
 
 ### 11.3 常见故障诊断与解决对策

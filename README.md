@@ -1,71 +1,195 @@
 # 无人机导航工作区（uav_nav_ws）
 
 ROS 2 无人机导航实验项目，包含 OAK-D / MID360 感知、VIO / LIO、三维 EKF、EGO + nvblox 三维导航和 PX4 通信接口。
-当前已实现 **Gazebo 中的深度建图、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
+当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
 仿真使用 Gazebo 真值定位和简化速度模型；真实定位、PX4 飞控接入与实机自主飞行尚未完成闭环验证。
 
-## 选择仿真入口
+## 选择运行方式
 
-在项目根目录执行命令，同一时间只运行一套仿真。
+| 使用方式 | 入口 / 参数 | 是否更新地图 | 启动后做什么 |
+| --- | --- | --- | --- |
+| 仅查看场景与传感器 | `run_uav_obstacle_course.sh` | 不启动 nvblox | 查看深度、点云和里程计 |
+| 在线建图并朝目标探索 | `uav_ego_nvblox.launch.py mode:=mapping` | 持续积分深度 | 局部初始化后，在 RViz 发送目标 |
+| 离线扫描并保存地图 | 同上，`mode:=mapping` | 扫描时积分深度 | 运行完整扫描脚本，生成地图包 |
+| 加载已有地图导航 | `uav_ego_nvblox.launch.py mode:=localization` | 不积分新深度 | 加载兼容地图，等待有效后发送目标 |
 
-| 目的 | 入口 | 启动内容 |
-| --- | --- | --- |
-| 查看障碍场地、检查传感器 | `./simulation/scripts/run_uav_obstacle_course.sh` | Gazebo、传感器桥、TF、里程计速度估计；不启动建图和导航 |
-| 建图、地图复用、RViz 点击目标避障 | `uav_ego_nvblox.launch.py`，见下方命令 | Gazebo、nvblox、EGO、仿真执行器，可同时启动 RViz |
+导航 launch 的 `mode` 只接受 `mapping` 和 `localization`；在线探索与离线扫描使用同一个建图模式。下方各流程择一运行，不要同时启动多套仿真。`uav_obstacle_course.sdf` 与导航用的 `uav_ego_expanded.sdf` 是不同场景，不能混用地图和扫描布局。
 
-`uav_obstacle_course.sdf` 与导航示例的 `uav_ego_expanded.sdf` 是不同场景，不能混用地图或扫描布局。
-完整操作步骤见 [无人机仿真使用手册](docs/SIMULATION_MANUAL.md) 与 [EGO + nvblox 仿真运行指引](docs/EGO_NVBLOX_GAZEBO.md)。
+## 运行前准备
 
-## 快速运行导航仿真
-
-### 首次准备
-
-按 [安装指南](docs/INSTALLATION.md) 准备 `.venv`、ROS 2 Jazzy、Gazebo Harmonic / ros_gz 和 NVIDIA CUDA 环境，再构建算法链路：
+按 [安装指南](docs/INSTALLATION.md) 准备 `.venv`、ROS 2 Jazzy、Gazebo Harmonic / ros_gz 和 NVIDIA CUDA 环境。首次使用或更新算法接口后，在项目根目录构建：
 
 ```bash
 ./scripts/build_algorithm_sim.sh
 ```
 
-当前构建脚本默认 CUDA 13.2、GPU 架构 89（本机 RTX 4070）；其他环境的调整说明见 [运行指引](docs/EGO_NVBLOX_GAZEBO.md#构建)。
-没有地图时，先按 [首次建图](docs/EGO_NVBLOX_GAZEBO.md#首次建图扩展场景) 扫描并保存 `.cache/maps/uav_ego_expanded`，再执行下方加载流程。地图不随 Git 分发。
+脚本默认 CUDA 13.2、GPU 架构 89（本机 RTX 4070）；其他环境见 [构建说明](docs/EGO_NVBLOX_GAZEBO.md#构建)。地图不随 Git 分发，只有加载地图流程需要事先保存的地图包。
 
-### 终端 A：启动扩展场景与 RViz
+## 推荐：使用仿真控制脚本
+
+统一入口自动记录并复用 ROS 域、Gazebo 分区和场景布局，无需在每个终端手动设置环境。
+
+```bash
+# 终端 A：扩展场景 + 在线建图 + Gazebo/RViz；Ctrl+C 退出
+./scripts/sim.sh start
+
+# 终端 B：等待服务、初始化起点，成功后在 RViz 使用 2D Goal Pose
+./scripts/sim.sh init
+./scripts/sim.sh status
+```
+
+| 操作 | 命令 |
+| --- | --- |
+| 小场景 / 无界面后台 | `./scripts/sim.sh start --layout lab --view none --background` |
+| 查看实时日志 | `./scripts/sim.sh logs --follow` |
+| 取消目标，继续建图 | `./scripts/sim.sh cancel` |
+| 保存当前地图 | `./scripts/sim.sh save .cache/maps/run1` |
+| 完整离线扫描并保存 | `./scripts/sim.sh survey .cache/maps/survey1` |
+| 退出整套仿真 | `./scripts/sim.sh stop` |
+
+加载地图时，先 `stop`，再 `start --mode localization`，然后在另一个终端执行 `./scripts/sim.sh load .cache/maps/run1`。场景需与保存时一致，已有目录不会被覆盖。脚本不会自动保存地图。
+
+详细的启动选项、逐步操作、命令行选点、状态判断和故障排查见 **[仿真启动与控制脚本手册](docs/SIMULATION_CONTROL.md)**。当前扩展场景已验证分段移动，但仍可能以 `EXPLORATION_BUDGET` 结束；不能将启动或发布目标成功理解为可靠到达。
+
+## 原始 launch 与 ROS 命令
+
+下面保留手动操作流程，供排查和调整底层参数。与控制脚本二选一，不要重复启动。**手动命令的每个终端**都先进入项目根目录，再设置相同环境变量：
 
 ```bash
 export ROS_DOMAIN_ID=68
 export GZ_PARTITION=uav_ego_lab
+```
+
+### 方式一：仅查看场景与传感器
+
+```bash
+./simulation/scripts/run_uav_obstacle_course.sh
+```
+
+需要 MID360 ROS 点云桥接时，改为：
+
+```bash
+./simulation/scripts/run_uav_obstacle_course.sh launch_mid360:=true
+```
+
+该入口启动障碍场地、传感器桥、TF 和里程计速度估计，不启动 nvblox、EGO 或目标导航。操作见 [障碍场地说明](docs/UAV_OBSTACLE_COURSE.md)。
+
+### 方式二：在线建图并朝目标探索
+
+**终端 A：** 启动扩展场景、在线建图和 RViz。
+
+```bash
+./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py \
+  mode:=mapping gui:=true map_extent:=10.5 goal_height:=1.2 \
+  world:="$PWD/src/uav_bringup/gazebo/worlds/uav_ego_expanded.sdf"
+```
+
+**终端 B：** 等待节点启动，初始化起飞区域。
+
+```bash
+export ROS_DOMAIN_ID=68
+export GZ_PARTITION=uav_ego_lab
+./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout expanded --local-only
+```
+
+若提示 `Gazebo pose bridge unavailable`，先确认终端 B 的 `ROS_DOMAIN_ID` 与终端 A 相同；新终端不会继承另一个终端的 `export`。初始化失败时先不要发送目标：机体附近未知空间可能使无人机只旋转观察，最后报告 `NO_REACHABLE_FRONTIER`。修正环境并完成初始化后重新发送目标。
+
+看到 `Local launch area observed` 后，在 RViz 顶部选择 **2D Goal Pose**（G），按下并拖动方向，松开即发送目标。默认目标 Z=1.2 m，中间轨迹可升降。目标可以在未知区域，系统会朝该方向选择安全观测位置，分段飞行并继续建图。
+
+局部初始化使用 Gazebo `set_pose` 放置相机，补足前向相机的机体近距盲区，**不是自主起飞或探索飞行**。它不要求扫描整张地图，也不保存地图；运行期间不要发送导航目标。起点安全体积仍未观测时不会盲飞。
+
+```bash
+./scripts/with_venv.sh ros2 topic echo /uav/navigation/state \
+  --qos-durability transient_local
+```
+
+`EXPLORING` 表示前往临时观测点，`NAVIGATING` 表示前往最终目标，`REACHED` 表示到达。目标已知被占据、无安全候选点或探索预算耗尽时进入 `BLOCKED`；地图、定位等异常进入 `STOPPED`。终止后不会因地图更新自动恢复，需要重新发送目标。详见 [在线探索说明](docs/EGO_NVBLOX_GAZEBO.md#在线建图与定向探索)。
+
+### 方式三：离线扫描并保存地图
+
+**终端 A：** 使用建图模式启动扩展场景。若方式二的同一套建图仿真仍在运行，可直接使用它，先取消导航目标；不要再启动一套。
+
+```bash
+./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py \
+  mode:=mapping gui:=true map_extent:=10.5 \
+  world:="$PWD/src/uav_bringup/gazebo/worlds/uav_ego_expanded.sdf"
+```
+
+**终端 B：** 完整扫描并保存到一个尚不存在的目录。
+
+```bash
+./scripts/with_venv.sh python scripts/survey_gazebo_map.py \
+  --layout expanded --output .cache/maps/uav_ego_expanded
+```
+
+完整扫描无需先执行 `--local-only`。等待 `Saved map bundle ...`；输出包含 `static_map.nvblx` 和 `manifest.json`。这是离线相机扫描，扫描期间不要发送导航目标。
+
+在线探索得到的地图也可保存。先取消任务并确认执行器为 `HOLD`，再另存到新目录：
+
+```bash
+./scripts/with_venv.sh ros2 service call /uav/cancel std_srvs/srv/Trigger '{}'
+./scripts/with_venv.sh ros2 topic echo /uav/executor/state --once
+./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle save .cache/maps/uav_ego_explored
+```
+
+已有目录不会被覆盖。详细流程见 [首次建图](docs/EGO_NVBLOX_GAZEBO.md#首次建图扩展场景)。
+
+### 方式四：加载已有地图导航
+
+**先退出原来的建图 launch，等待子进程结束。** `mode` 通过重新启动切换，不能在建图模式直接调用地图加载来代替模式切换。
+
+**终端 A：** 使用与保存地图时相同的场景、查询范围和兼容配置启动。
+
+```bash
 ./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py \
   mode:=localization gui:=true map_extent:=10.5 goal_height:=1.2 \
   world:="$PWD/src/uav_bringup/gazebo/worlds/uav_ego_expanded.sdf"
 ```
 
-### 终端 B：加载地图
-
-进入同一项目根目录，使用与终端 A 相同的环境变量：
+**终端 B：** 加载方式三保存的地图，确认快照有效。
 
 ```bash
-export ROS_DOMAIN_ID=68
-export GZ_PARTITION=uav_ego_lab
-# 本机已有扩展地图；其他机器请替换为自己扫描保存的目录
-./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle load .cache/maps/uav_ego_expanded_20260926
+./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle load .cache/maps/uav_ego_expanded
 ./scripts/with_venv.sh ros2 topic echo /uav/map/snapshot --once --field valid \
   --qos-durability transient_local
 ```
 
-本机已有目录为 `.cache/maps/uav_ego_expanded_20260926`；按首次建图指引新建的目录为 `.cache/maps/uav_ego_expanded`，两者不要混淆。可先运行 `ls .cache/maps` 核对目录，再填写加载路径。等待 `valid` 输出 `true` 后，在 RViz 顶部选择 **2D Goal Pose**（G），在已观测的空闲区域按下并拖动方向，松开即发送目标。默认目标高度为地图坐标系 Z=1.2 m，中间轨迹仍可升降。
+若首次输出 `false`，稍后重新检查；看到 `true` 后再使用 RViz **2D Goal Pose**。本机另有 `.cache/maps/uav_ego_expanded_20260926`，可用 `ls .cache/maps` 核对并替换加载路径，其他机器须使用自己的地图。
 
-地图默认按高度着色：`3D nvblox Map → Mesh Color → Height`；可改为 `Normals` 区分表面朝向。
-修改目标高度、查看规划状态、重开 RViz 和常见问题见 [操作说明](docs/EGO_NVBLOX_GAZEBO.md#rviz-定高选点)。
+此模式不更新地图、不探索未知区域；使用 Gazebo 真值定位复用同场景静态地图，不是实机重定位。详见 [地图加载说明](docs/EGO_NVBLOX_GAZEBO.md#加载地图并导航扩展场景)。
 
-### Gazebo 中的建图模式
+### 小场景与显示方式
+
+导航示例默认使用扩展场景；若要复现已验证的小场景探索，可使用下列完整入口，并在终端 B 将扫描布局设为 `lab`：
 
 ```bash
-export ROS_DOMAIN_ID=68
-export GZ_PARTITION=uav_ego_lab
+# 终端 A：默认 uav_ego_lab.sdf，map_extent 默认 5.0
 ./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py \
-  mode:=mapping gui:=true map_extent:=10.5 goal_height:=1.2 \
-  world:="$PWD/src/uav_bringup/gazebo/worlds/uav_ego_expanded.sdf"
+  mode:=mapping gui:=true goal_height:=1.2
+# 终端 B：局部初始化；完整扫描则改用 --output .cache/maps/uav_ego_lab
+./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout lab --local-only
 ```
+
+| 场景 | `world` | `map_extent` | 扫描 `--layout` |
+| --- | --- | --- | --- |
+| 默认小场景 | `uav_ego_lab.sdf`（省略 `world` 即可） | `5.0` | `lab` |
+| 扩展场景 | 显式传入 `uav_ego_expanded.sdf` 路径 | `10.5` | `expanded` |
+
+以下参数可用于上述两种导航模式，替换启动命令中的显示参数即可：
+
+| 显示方式 | 参数 |
+| --- | --- |
+| Gazebo + RViz | `gui:=true` |
+| 仅 RViz | `gui:=false launch_rviz:=true` |
+| 无界面 | `gui:=false launch_rviz:=false` |
+
+无界面仍需要 GPU 渲染深度。若以 `launch_rviz:=false` 启动，可在同域终端单独打开 RViz；同一域只运行一个选点转换节点：
+
+```bash
+./scripts/with_venv.sh ros2 launch uav_bringup rviz_navigation.launch.py goal_height:=1.2
+```
+
+地图默认按高度着色，颜色不代表可通行性。目标高度、显示参数和状态排查见 [运行指引](docs/EGO_NVBLOX_GAZEBO.md)。
 
 ### 停止与退出
 

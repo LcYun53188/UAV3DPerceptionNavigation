@@ -2,6 +2,8 @@
 
 本入口先验证算法，最后再接飞控。链路为：Gazebo 深度 + 真值 TF → nvblox 三维 TSDF/ESDF → 不可变地图快照 → 官方 EGO A* / rebound B 样条优化 → 独立曲线验收 → Gazebo 速度模型。没有 PX4、硬件相机、VINS 或 cuVSLAM 进程。
 
+日常操作推荐使用 `./scripts/sim.sh start`、`init`、`status`、`stop` 等统一命令，详见 [仿真控制脚本手册](SIMULATION_CONTROL.md)。脚本自动复用启动环境；本文保留原始 launch 和 ROS 命令，手动执行时仍需在各终端设置相同环境，不能与脚本重复启动。
+
 ## 构建
 
 现有 ROS Jazzy、Gazebo Harmonic、CUDA 13.2、Isaac/NITROS 依赖沿用工作区环境。当前构建脚本 CUDA 架构为本机 RTX 4070 的 89，其他显卡须调整。源码依赖使用固定版本和 `patches/vendor`，新 EGO 源码只存于 `.deps/ego_planner_src`。
@@ -38,6 +40,19 @@ export GZ_PARTITION=uav_ego_lab
 下面以约 20 × 20 m 的 `uav_ego_expanded.sdf` 为主流程。它包含中央柱、6 根新增立柱、4 个箱体、2 段隔墙和2 组门框，围墙高 4 m。
 `map_extent:=10.5` 表示查询范围为 X/Y 各 -10.5 至 10.5 m、Z 为 0–4 m；该范围参与地图兼容性指纹。
 
+## 启动方式速查
+
+| 目的 | 启动选择 | 启动后的操作 |
+| --- | --- | --- |
+| 查看场地与传感器 | `./simulation/scripts/run_uav_obstacle_course.sh` | 不包含本导航链路，详见 [障碍场地说明](UAV_OBSTACLE_COURSE.md) |
+| 在线建图并探索 | `mode:=mapping` | `survey_gazebo_map.py --layout expanded --local-only`，完成后发送目标 |
+| 完整扫描并保存 | `mode:=mapping` | `survey_gazebo_map.py --layout expanded --output <新目录>`，扫描期间不发送目标 |
+| 复用地图导航 | `mode:=localization` | `map_bundle load <兼容地图目录>`，等待 `valid=true` 后发送目标 |
+
+导航 launch 只接受 `mapping` 和 `localization` 两个模式；扫描与探索是建图模式下的两种使用流程。完整可复制命令见 [README 启动步骤](../README.md#选择运行方式)。首次局部初始化与完整扫描任选其一，完整扫描不依赖局部初始化。
+
+由建图切换到加载导航时，先保存需要保留的地图，再退出原 launch，使用 `mode:=localization` 重启后加载；从加载模式切回 `mapping` 会开启新的建图会话，当前入口不支持加载旧地图后继续增量建图。只退出 RViz 或调用 `/uav/cancel` 不会切换模式。
+
 ## 首次建图（扩展场景）
 
 **终端 A：** 启动建图模式。`gui:=true` 同时打开 Gazebo UI、RViz 和定高选点节点。
@@ -72,6 +87,84 @@ export GZ_PARTITION=uav_ego_lab
 ```
 
 保存目录必须不存在，保存失败不会覆盖已有地图。
+
+## 在线建图与定向探索
+
+`mode:=mapping` 保持深度积分开启，同时启用目标管理。RViz 或 `/uav/goal` 设置最终目标；执行器内的 `GoalManager` 选择 `/uav/local_goal`，EGO 只规划这一段。目标已经安全可达时直接导航，否则在与起点连通的已知空闲区域选择靠近未知边界的观测位置。临时目标之间要求停稳，不进行运动中的轨迹拼接。
+
+### 从局部地图开始
+
+空地图中的机体附近体积可能处于前向相机盲区。系统不会把这些未知体素当作空闲，也不会盲飞以获得地图。
+
+**终端 A：** 按运行前约定设置环境变量后启动（若同场景建图 launch 已在运行，不要重复启动）：
+
+```bash
+./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py \
+  mode:=mapping gui:=true map_extent:=10.5 goal_height:=1.2 \
+  world:="$PWD/src/uav_bringup/gazebo/worlds/uav_ego_expanded.sdf"
+```
+
+**终端 B：** 使用相同环境变量，等待节点启动后执行局部初始化：
+
+```bash
+# 与 launch 保持相同 ROS_DOMAIN_ID；小场景使用 --layout lab
+export ROS_DOMAIN_ID=68
+export GZ_PARTITION=uav_ego_lab
+./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout expanded --local-only
+```
+
+局部初始化在起点四周 0.8 m 的位置、1.2/1.7 m 两个高度朝向起点采集深度，然后返回起点并检查 0.3 m 查询半径内的完整观测体积。它只适用于仓库中的两个固定 Gazebo 场景，使用 `set_pose` 放置相机，**不属于自主飞行验收**。不传 `--output` 时不保存地图、不结束在线建图。需要归档时可另加新的 `--output` 目录。
+
+初始化成功后发送 RViz 目标即可。目标可以处于未知区域，但轨迹和临时目标必须处于已观测安全空间。每段到达后仅调整偏航，使前向相机朝向目标所在的水平方向；没有候选点时限时转向其他方向扫描。观察、等待规划、平移和任务终止后的 HOLD 都以横滚/俯仰为零为目标，不再通过倾斜整个机身补偿 OAK-D 的 18° 下倾安装角度。回正依赖新鲜、有效的里程计，丢失定位时输出零指令。相机仍按原始安装角度观测，视野不足时可能报告无安全候选点。该控制适用于当前无重力 Gazebo 速度模型，未模拟旋翼推力与真实飞行姿态。固定 ESDF 查询边界之外不作为可飞行空间，需要更大范围时重新设置 `map_extent`。
+
+深度图与 TF 通过独立话题到达。建图输入最多缓存 8 帧，并在图像时间戳后 0.5 秒内等待对应历史 TF；超时帧仍丢弃，关闭输入门控时清空缓存。若报告 `MAP_INVALID` 或 `STALE_MAP_OR_ODOMETRY`，检查建图日志和传感器更新，恢复后重新发送目标。
+
+### 状态与停止条件
+
+```bash
+./scripts/with_venv.sh ros2 topic echo /uav/navigation/state \
+  --qos-durability transient_local
+./scripts/with_venv.sh ros2 service call /uav/cancel std_srvs/srv/Trigger '{}'
+```
+
+| 任务状态 | 含义 |
+| --- | --- |
+| `OBSERVING` | 原地观察或等待安全观测点，可能执行偏航转向 |
+| `PLANNING` | 等待当前临时目标的 EGO 结果 |
+| `EXPLORING` | 执行通往观测位置的一段轨迹 |
+| `NAVIGATING` | 执行通往最终目标的轨迹 |
+| `REACHED` | 最终目标到达 |
+| `BLOCKED:<原因>` | 无候选点、连续失败或探索预算耗尽；保持停止 |
+| `STOPPED:<原因>` | 定位、地图、时钟或跟踪异常；保持停止 |
+| `CANCELLED:<原因>` | 用户取消、目标替换或地图会话改变 |
+
+`BLOCKED`、`STOPPED` 和 `CANCELLED` 不会因后续地图更新自动恢复，需要重新发送目标。任务状态以 `/uav/navigation/state` 为准；`/uav/planner/state` 只表示单段规划结果。局部到达事件为 `LOCAL_GOAL_REACHED`，不会清除最终目标。
+
+最终目标已经被观测为实体障碍时，直接进入 `BLOCKED:KNOWN_GOAL_OCCUPIED`，不再围绕该点继续探索。新地图使剩余轨迹不安全时，执行器立即停止，再从停稳状态进行有限重规划。机体安全体积、整条样条和动态限制仍使用原来的保守验证。每段目标的 `header.stamp` 作为关联标识，由 `PlannerStatus` 和 `TimedTrajectory.goal_stamp` 回传；取消、替换和规划超时会使旧标识失效，延迟轨迹无法重新启动飞行。目标管理与速度执行在同一个单线程节点内串行处理。
+
+默认候选点距离上限为 2 m（欧氏距离，绕行轨迹长度可能更长），允许比历史最近目标距离多绕 2 m；排除 0.45 m 范围内已访问或失败的观测点。无候选点持续 15 s、连续 4 次规划/接管失败、60 s 未接近目标至少 0.2 m，或完成 40 个探索段，会结束任务。单段规划等待上限 8 s；这些时间预算采用单调墙钟，在停稳后的任务决策阶段检查；执行中的轨迹仍由地图与跟踪安全检查控制。它们限制本地搜索，不是全局不可达证明。
+
+启动参数 `exploration_step`、`blocked_timeout` 分别控制候选距离与无候选点等待。其他配置在执行器的 `exploration.*` 参数中声明，启动时读取；修改 YAML/launch 后重启节点生效。`mode:=localization` 关闭未知区域探索和观察转向，仍经过同一个取消与目标关联机制。
+
+### 小场景探索验收
+
+仅适用于默认 `uav_ego_lab` 的真实障碍几何，先完成 `--layout lab --local-only` 初始化：
+
+```bash
+./scripts/with_venv.sh python scripts/check_gazebo_exploration.py \
+  --goal 3 0 1.2 --expect REACHED --min-segments 2 \
+  --output /tmp/uav_exploration_reached.json
+# 不可达目标位于中央实体柱内；会实际发送新目标
+./scripts/with_venv.sh python scripts/check_gazebo_exploration.py \
+  --goal 0 0 1.2 --expect BLOCKED --min-segments 0 \
+  --output /tmp/uav_exploration_blocked.json
+```
+
+本次小场景验收记录见 [gazebo_exploration.json](validation/gazebo_exploration.json)：未知目标经 3 段到达，实际轨迹最小真实障碍余量约 0.206 m；已知柱内目标保持停止。该记录不代表实机或扩展场景验收。
+
+2026-09-30 的 [扩展场景深度同步验证](validation/gazebo_depth_sync.json) 已观察到分段位移且未出现地图源过期，但最终目标因 `EXPLORATION_BUDGET` 停止。扩展场景目标可靠到达仍未完成验收。
+
+检查器记录初始目标观测状态、已观测体素变化、接受段数、任务状态和独立场景几何间距；终止后继续观察 3 s，检查未重新出发。若目标区域已因之前的测试被观测，不能把这次运行视作未知目标探索覆盖，应重启建图并局部初始化。脚本超时或退出时会取消任务。
 
 ## 加载地图并导航（扩展场景）
 
@@ -117,6 +210,8 @@ export GZ_PARTITION=uav_ego_lab
 | `gui` | `false` | 是否打开 Gazebo 图形界面 |
 | `launch_rviz` | 跟随 `gui` | 是否启动 RViz 和定高选点节点 |
 | `goal_height` | `1.2` | RViz 选点的目标 Z，高度单位为米 |
+| `exploration_step` | `2.0` | 探索候选点距当前点的最大欧氏距离（m） |
+| `blocked_timeout` | `15.0` | 没有安全候选点时允许观察的时间（s） |
 
 只打开 RViz、隐藏 Gazebo 界面时使用 `gui:=false launch_rviz:=true`；两者均隐藏时用 `gui:=false launch_rviz:=false`。
 无界面仿真仍需要 GPU 渲染深度图像。
@@ -159,9 +254,9 @@ RViz Fixed Frame 须为 `map`。工具发送 `/uav/rviz/goal_2d`，转换节点�
 ./scripts/with_venv.sh ros2 param set /rviz_fixed_height_goal height 1.8
 ```
 
-选点后执行器可立即开始运动。地图外、障碍物内或未观测的目标仍由规划器拒绝；停止运动使用下文的 `/uav/cancel` 服务。
+选点后执行器可开始观察或飞行。`mapping` 模式允许未知目标，并通过已观测安全区域内的临时目标逐段接近；`localization` 模式只在已有地图内导航。已知障碍目标会受阻停止，任何轨迹都不能穿越未知区域或地图边界。
 
-建图模式也可发送目标，但必须先观测起点机体体积和路线；未知区不会自动清空。执行中更换目标会等待当前轨迹结束或取消后停止，再从静止状态规划。地图失效/剩余曲线复检失败会停止仿真运动，在同一地图会话恢复后从停止状态重新规划；跨会话必须重新提交目标。
+执行中更换目标会停止当前轨迹，使旧目标失效，再从停稳状态处理新目标。有效新地图使剩余曲线不安全时，可进行有限重规划；地图失效、定位失联等进入 `STOPPED`，不会在数据恢复后自动重启。`BLOCKED`、`STOPPED`、地图会话改变或用户取消后，都需要重新提交目标。停止运动使用下文的 `/uav/cancel` 服务。
 
 ## 发送目标、检查状态与停止
 
@@ -175,12 +270,13 @@ RViz Fixed Frame 须为 `map`。工具发送 `/uav/rviz/goal_2d`，转换节点�
 在同域终端查看状态（每条 `echo` 持续输出，用 `Ctrl+C` 结束查看）：
 
 ```bash
+./scripts/with_venv.sh ros2 topic echo /uav/navigation/state --qos-durability transient_local
 ./scripts/with_venv.sh ros2 topic echo /uav/planner/state
 ./scripts/with_venv.sh ros2 topic echo /uav/executor/event
 ./scripts/with_venv.sh ros2 topic echo /uav/executor/state
 ```
 
-`ACCEPTED` 表示执行器接受轨迹，`GOAL_REACHED` 表示到达；`SAFE_SEED_FALLBACK` 表示使用通过碰撞验收的种子回退路线，可能在航点停顿。
+整体结果以 `/uav/navigation/state` 为准。`ACCEPTED` 表示执行器接受一段轨迹，`LOCAL_GOAL_REACHED` 只表示临时目标到达，`GOAL_REACHED` 表示最终段到达；`SAFE_SEED_FALLBACK` 表示使用通过碰撞验收的种子回退路线，可能在航点停顿。
 `BLOCKED_START_OR_GOAL` 表示起点或目标无法通过通行检查，应检查障碍物、地图边界与观测覆盖。
 
 取消当前目标，等待停止：
@@ -311,7 +407,7 @@ kill -KILL -- "$SIM_PID"
 | RViz 重开后地图为空 | 先核对 ROS_DOMAIN_ID、Fixed Frame=`map`、话题 `/nvblox_node/mesh`；若加载模式下未重发网格，取消目标、等待 HOLD 后重新加载原地图 |
 | 地图仍为灰色，或没有 Mesh Color 选项 | 构建新版 `nvblox_rviz_plugin` 并重启 RViz，加载 `uav_navigation.rviz`，选择 Height 或 Normals；旧地图 RGB 未融合颜色 |
 | 地图上方被截断 | 检查 `Cut Ceiling` / `Ceiling Height`，默认 3.8 m；裁切以网格块为单位 |
-| RViz 选点后不运动 | 检查地图 `valid`、规划器状态、目标是否在已观测空闲区，以及 `/rviz_fixed_height_goal` 是否运行；同一域仅保留一个定高选点节点 |
+| RViz 选点后不运动 | 检查地图 `valid`、`/uav/navigation/state`、起点安全体积是否已观测，以及 `/rviz_fixed_height_goal` 是否运行；同一域仅保留一个定高选点节点 |
 | TF 抖动或模型跳变 | 确认旧 Gazebo、旧 launch 已退出，所有终端域与分区一致 |
 | `gui:=false` 时看不到 RViz | 默认 launch_rviz 跟随 gui，显式加 `launch_rviz:=true` |
 
@@ -329,6 +425,9 @@ kill -KILL -- "$SIM_PID"
 | `/uav/localization/odometry` | Gazebo 真值 odom/FLU 机体速度 |
 | `/uav/map/snapshot` | map 坐标、epoch/version、来源时间、距离与 observed 数组 |
 | `/uav/trajectory` | odom 坐标下的均匀三次 B 样条控制点、时间间隔、绝对起点和动态限制 |
+| `/uav/goal`、`/uav/local_goal` | 最终目标与内部临时目标，均为 map 坐标 |
+| `/uav/navigation/state` | 整体任务状态，含锁定的受阻、异常与取消结果 |
+| `/uav/planner/result` | 带局部目标关联标识的单段规划结果 |
 | `/uav/planned_path` | 仅可视化 |
 | `/uav/planner/state` | 目标阻塞、无路、时效失败或轨迹发布状态 |
 | `/uav/executor/state`、`event` | HOLD/EXECUTING，以及拒绝、取消、失效和到达事件 |
