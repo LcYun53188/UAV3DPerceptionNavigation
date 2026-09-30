@@ -1,5 +1,6 @@
 """Single-writer simulation map session: depth gate, ESDF cache and map bundles."""
 import copy
+from collections import deque
 import json
 import os
 from pathlib import Path
@@ -51,6 +52,7 @@ class MapSession(Node):
         self.executor_received = 0.0
         self.camera_info = None
         self.last_depth_stamp = None
+        self.pending_depth = deque(maxlen=8)
         self.tf = Buffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.group = ReentrantCallbackGroup()
@@ -67,6 +69,7 @@ class MapSession(Node):
         self.create_service(SetBool, '/uav/map/input_enabled', self.set_input_enabled)
         self.create_service(FilePath, '/uav/map/save', self.save, callback_group=self.group)
         self.create_service(FilePath, '/uav/map/load', self.load, callback_group=self.group)
+        self.create_timer(0.02, self.flush_depth)
         self.create_timer(0.5, self.query)
         self.invalidate()
 
@@ -79,6 +82,7 @@ class MapSession(Node):
             response.success = False
             response.message = 'Input gate requires mapping mode, HOLD, and no map operation'
             return response
+        self.pending_depth.clear()
         self.input_enabled = req.data
         response.success = True
         return response
@@ -98,18 +102,37 @@ class MapSession(Node):
         age = (self.get_clock().now()-stamp).nanoseconds/1e9
         if age < 0 or age > 0.5:
             return
-        try:
-            # Historical pose only; missing transform drops the image.
-            self.tf.lookup_transform('map', msg.header.frame_id, stamp)
-        except TransformException:
-            return
         if self.last_depth_stamp is not None and stamp.nanoseconds <= self.last_depth_stamp:
             return
-        self.last_depth_stamp = stamp.nanoseconds
+        if self.pending_depth and stamp.nanoseconds <= Time.from_msg(self.pending_depth[-1][0].header.stamp).nanoseconds:
+            return
         aligned = copy.deepcopy(info)
         aligned.header = msg.header
-        self.info_pub.publish(aligned)
-        self.depth_pub.publish(msg)
+        self.pending_depth.append((msg, aligned))
+        self.flush_depth()
+
+    def flush_depth(self):
+        # Depth and TF arrive on independent topics. Wait briefly for the exact
+        # historical transform instead of dropping every image that wins that race.
+        # Never substitute the latest pose or forward frames across an input gate.
+        if self.busy or not self.input_enabled or self.mode != 'mapping':
+            self.pending_depth.clear()
+            return
+        while self.pending_depth:
+            msg, info = self.pending_depth[0]
+            stamp = Time.from_msg(msg.header.stamp)
+            age = (self.get_clock().now()-stamp).nanoseconds/1e9
+            if not 0 <= age <= 0.5:
+                self.pending_depth.popleft()
+                continue
+            try:
+                self.tf.lookup_transform('map', msg.header.frame_id, stamp)
+            except TransformException:
+                return
+            self.pending_depth.popleft()
+            self.last_depth_stamp = stamp.nanoseconds
+            self.info_pub.publish(info)
+            self.depth_pub.publish(msg)
 
     def invalidate(self):
         msg = MapSnapshot()

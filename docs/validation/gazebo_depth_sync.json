@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-30",
+  "world": "uav_ego_expanded",
+  "scope": "Headless Gazebo velocity model; movement verified, final goal not reached",
+  "fix": "Bounded depth queue waits for historical TF without relaxing freshness checks",
+  "tests_passed": 64,
+  "initialization": "local-only passed",
+  "first_trial_displacement_m": 0.5757958877496205,
+  "continued_trial": {
+    "start": [
+      -6.95108871677981,
+      -7.4111944799354905,
+      1.0499797368969517
+    ],
+    "final": {
+      "p": [
+        -6.149864932039403,
+        -7.249428663323149,
+        0.7499974113986122
+      ],
+      "state": "BLOCKED:EXPLORATION_BUDGET"
+    },
+    "states": [
+      "CANCELLED:CANCELLED",
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "BLOCKED:EXPLORATION_BUDGET"
+    ],
+    "displacement": 0.8706992180250259
+  },
+  "map_stale_log_count": 341
+}
