@@ -78,7 +78,9 @@ def generate_launch_description():
         DeclareLaunchArgument('gui', default_value='false'),
         DeclareLaunchArgument('launch_rviz', default_value=LaunchConfiguration('gui')),
         DeclareLaunchArgument('goal_height', default_value='1.2'),
-        DeclareLaunchArgument('exploration_step', default_value='2.0'),
+        # With the fixed downward camera, a 2 m horizon tends to select lower
+        # viewpoints before the upper body volume at flight height is observed.
+        DeclareLaunchArgument('exploration_step', default_value='3.0'),
         DeclareLaunchArgument('blocked_timeout', default_value='15.0'),
         DeclareLaunchArgument('map_extent', default_value='5.0'),
         DeclareLaunchArgument('world', default_value=str(share/'gazebo/worlds/uav_ego_lab.sdf')),
