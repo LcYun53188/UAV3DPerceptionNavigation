@@ -1,4 +1,5 @@
 """ROS-independent map parsing and conservative cubic B-spline validation."""
+from array import array
 from dataclasses import dataclass
 from enum import IntEnum
 import hashlib
@@ -14,6 +15,12 @@ class CellState(IntEnum):
     FREE = 1
     OCCUPIED = 2
     OUT_OF_MAP = 3
+
+
+def pack_grid_data(grid):
+    """Owned native buffers for ROS sequences, avoiding per-voxel Python lists."""
+    return (array('f', np.asarray(grid.distance, dtype=np.float32).tobytes(order='C')),
+            array('B', np.asarray(grid.observed, dtype=np.uint8).tobytes(order='C')))
 
 
 def parse_esdf(response, max_voxels=4_000_000):

@@ -22,7 +22,7 @@ from std_srvs.srv import SetBool
 from nvblox_msgs.srv import EsdfAndGradients, FilePath
 from tf2_ros import Buffer, TransformListener, TransformException
 from uav_nav_interfaces.msg import MapSnapshot
-from .core import parse_esdf, sha256, validate_bundle
+from .core import parse_esdf, pack_grid_data, sha256, validate_bundle
 
 
 class MapSession(Node):
@@ -172,7 +172,11 @@ class MapSession(Node):
                     raise ValueError('Map resolution mismatch')
                 age = (self.get_clock().now()-Time.from_msg(res.header.stamp)).nanoseconds/1e9
                 if self.mode == 'mapping' and not 0 <= age <= self.get_parameter('map_timeout').value:
-                    raise ValueError('Map source data stale')
+                    forwarded_age = ((self.get_clock().now().nanoseconds-self.last_depth_stamp)/1e9
+                                     if self.last_depth_stamp is not None else None)
+                    raise ValueError(f'Map source data stale: source_age={age:.3f}s, '
+                                     f'forwarded_depth_age={forwarded_age}, '
+                                     f'pending_depth={len(self.pending_depth)}')
                 msg = MapSnapshot()
                 msg.header.frame_id = 'map'
                 msg.header.stamp = self.get_clock().now().to_msg()
@@ -186,8 +190,7 @@ class MapSession(Node):
                 msg.origin = res.origin_m
                 msg.resolution = grid.resolution
                 msg.shape = list(grid.distance.shape)
-                msg.distance = grid.distance.ravel().tolist()
-                msg.observed = grid.observed.astype(np.uint8).ravel().tolist()
+                msg.distance, msg.observed = pack_grid_data(grid)
                 self.latest = msg
                 self.pub.publish(msg)
             except Exception as exc:

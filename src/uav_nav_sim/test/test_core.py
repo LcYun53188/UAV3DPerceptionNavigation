@@ -80,3 +80,28 @@ def test_bundle_checksum_scene_and_resolution(tmp_path):
     with pytest.raises(ValueError): validate_bundle(tmp_path,'scene',0.2)
     (tmp_path/'static_map.nvblx').write_bytes(b'corrupted')
     with pytest.raises(ValueError): validate_bundle(tmp_path,'scene',0.1)
+
+
+def test_snapshot_buffers_preserve_ros_wire_data_and_own_storage():
+    from rclpy.serialization import serialize_message, deserialize_message
+    from uav_nav_interfaces.msg import MapSnapshot
+    from uav_nav_sim.core import pack_grid_data
+    # Non-contiguous arrays must still use canonical x/y/z ordering. Include
+    # unknown sentinels/nonfinite values and float64 input conversion.
+    distance = np.arange(24, dtype=np.float64).reshape(2,3,4).transpose(2,0,1)
+    distance[0,0,0] = np.nan
+    distance[1,0,0] = np.inf
+    distance[2,0,0] = -1000.
+    observed = np.isfinite(distance) & (distance != -1000.)
+    grid = Grid(np.zeros(3), .1, distance, observed)
+    expected = MapSnapshot()
+    expected.distance = grid.distance.ravel().tolist()
+    expected.observed = grid.observed.astype(np.uint8).ravel().tolist()
+    actual = MapSnapshot()
+    actual.distance, actual.observed = pack_grid_data(grid)
+    assert serialize_message(actual) == serialize_message(expected)
+    restored = deserialize_message(serialize_message(actual), MapSnapshot)
+    np.testing.assert_equal(restored.distance, grid.distance.ravel().astype(np.float32))
+    assert list(restored.observed) == grid.observed.ravel().astype(np.uint8).tolist()
+    actual.distance[3] = -123.
+    assert grid.distance.ravel()[3] != -123.
