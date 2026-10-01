@@ -5,7 +5,7 @@
       "path": ".deps/ego_planner_src",
       "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
       "patch": "patches/vendor/ego_planner.patch",
-      "patch_sha256": "dda30ad3d4ca725da0cf108937d1b11b6daf0c5f3be0be44c47922a3c876712f"
+      "patch_sha256": "67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13"
     },
     {
       "path": "src/isaac_ros_nvblox",

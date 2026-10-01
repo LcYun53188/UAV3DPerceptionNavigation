@@ -8,10 +8,19 @@ bounds, then the entire curve is checked against the map. The separate Python
 Gazebo executor independently checks the same timed representation.
 
 The A* seed reserves half a voxel of extra clearance for swept-curve sampling.
+Exploration viewpoints use the same seed margin. A* connects exact endpoints
+to nearby free lattice cells using checked segments, instead of pushing blocked
+rounded endpoints along the start/goal ray. The adapter retains those connector
+segments when passing the seed to the optimizer and fallback builder.
+An obstructed incoming edge does not mark its destination as discovered; another
+neighbor can still connect to it. Coarse-search failure triggers one retry at
+map resolution, with the same clearance and collision rules.
 If rebound optimization fails or its smoothed curve fails validation, the adapter
 shortcuts the original seed using conservative segment checks and builds a cubic
-B-spline with three repeated controls at each waypoint. This fallback stops at
-waypoints and can be slower, but does not cut corners. It passes the same dynamic,
+B-spline with three repeated controls at each retained route corner. Single
+interior controls spaced at most 0.5 m apart keep straight travel continuous;
+they do not introduce intermediate stops. This fallback still stops at corners
+and does not cut them. It passes the same dynamic,
 collision, duration, and map-age checks before publication. Planner status
 `SAFE_SEED_FALLBACK` identifies this case; state changes are also logged.
 

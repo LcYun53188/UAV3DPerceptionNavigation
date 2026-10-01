@@ -8,6 +8,7 @@
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <chrono>
+#include "safe_seed.hpp"
 
 using V = Eigen::Vector3d;
 using Snapshot = uav_nav_interfaces::msg::MapSnapshot;
@@ -143,10 +144,15 @@ class Planner : public rclcpp::Node {
         int count=std::max(5,static_cast<int>(std::ceil((goal_-start).norm()/0.25)));
         for(int i=0;i<=count;++i) seed.push_back(start+(goal_-start)*double(i)/count);
       } else {
-        if(!optimizer_.a_star_->AstarSearch(s->resolution*2,start,goal_)) {report("NO_PATH");return;}
+        // A coarse lattice can miss a corridor present in the voxel map.
+        // Retry at map resolution before declaring it disconnected.
+        if(!optimizer_.a_star_->AstarSearch(s->resolution*2,start,goal_) &&
+           !optimizer_.a_star_->AstarSearch(s->resolution,start,goal_)) {report("NO_PATH");return;}
         seed=optimizer_.a_star_->getPath();
-        if(seed.size()<3) {report("NO_PATH");return;}
-        seed.front()=start; seed.back()=goal_;
+        if(seed.empty()) {report("NO_PATH");return;}
+        // Preserve the checked endpoint-to-grid connectors. Replacing the
+        // snapped endpoints would create unchecked shortcuts to their neighbors.
+        seed.insert(seed.begin(),start); seed.push_back(goal_);
       }
       controls.resize(3,seed.size()+4);
       controls.col(0)=controls.col(1)=start;
@@ -187,15 +193,10 @@ class Planner : public rclcpp::Node {
         size_t j=seed.size()-1;
         while(j>i+1 && segment(*s,seed[i],seed[j],seed_radius)) --j;
         if(segment(*s,seed[i],seed[j],seed_radius)) {report("NO_SAFE_SEED");return;}
-        const V a=route.back(), b=seed[j];
-        const int pieces=std::max(1,static_cast<int>(std::ceil((b-a).norm())));
-        for(int k=1;k<=pieces;++k) route.push_back(a+(b-a)*(double(k)/pieces));
+        route.push_back(seed[j]);
         i=j;
       }
-      if(route.size()==2) route.insert(route.begin()+1,(start+goal_)/2);
-      controls.resize(3,route.size()*3);
-      for(size_t i=0;i<route.size();++i)
-        for(int k=0;k<3;++k) controls.col(i*3+k)=route[i];
+      controls=safeSeedControls(route);
       if(!valid_curve()) {report("REJECT_CURVE_COLLISION");return;}
       report("SAFE_SEED_FALLBACK");
     }
