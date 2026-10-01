@@ -78,8 +78,16 @@ def main():
     home = (-7.5,-7.5) if args.layout == 'expanded' else (-3,0)
     if args.local_only:
         locations=[(home[0]+dx, home[1]+dy) for dx,dy in [(-.8,0),(.8,0),(0,-.8),(0,.8)]]
-    for z in ([1.2,1.7] if args.local_only else [1.2,2.2]):
-        for x,y in locations:
+    # The 5-degree camera needs lower viewpoints to observe the launch
+    # volume below its optical centre, as well as the existing upper views.
+    for z in ([0.8,1.2,1.7] if args.local_only else [1.2,2.2]):
+        scan_locations = locations
+        if args.local_only and z == 1.2:
+            # Oblique views cover corner voxels needed by the planner's seed
+            # margin, which the four cardinal views can leave unobserved.
+            scan_locations = locations+[(home[0]+dx, home[1]+dy)
+                for dx,dy in [(-.8,-.8),(-.8,.8),(.8,-.8),(.8,.8)]]
+        for x,y in scan_locations:
             headings = [math.atan2(home[1]-y, home[0]-x)] if args.local_only else [0,math.pi/2,math.pi,-math.pi/2]
             for yaw in headings:
                 pose(x,y,z,yaw);spin(args.dwell)
@@ -88,7 +96,8 @@ def main():
     if latest[0] is None or not latest[0].valid:raise RuntimeError('No valid ESDF after survey')
     if args.local_only:
         from uav_nav_sim.core import grid_from_message
-        if grid_from_message(latest[0]).collision([*home, 1.2], .3):
+        grid = grid_from_message(latest[0])
+        if grid.collision([*home, 1.2], .3+grid.resolution/2):
             raise RuntimeError('Launch volume still unobserved or blocked; do not send a navigation goal')
         print('Local launch area observed; online mapping remains enabled.',flush=True)
         if not args.output:

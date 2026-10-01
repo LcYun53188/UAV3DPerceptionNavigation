@@ -65,7 +65,7 @@
          the ground, so this forward-looking OAK-D mount has an 18-degree
          downward tilt relative to the UAV body. -->
     <link name="oakd_camera_link">
-      <pose relative_to="base_link">0.18 0 0.16 0 0.31415926536 0</pose>
+      <pose relative_to="base_link">0.18 0 0.16 0 0.08726646260 0</pose>
       <inertial>
         <mass>0.1</mass>
         <inertia>

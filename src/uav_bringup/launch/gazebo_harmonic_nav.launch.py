@@ -138,7 +138,7 @@ def generate_launch_description():
             "--yaw",
             "0.0",
             "--pitch",
-            "0.31415926536",
+            "0.08726646260",
             "--roll",
             "0.0",
             "--frame-id",

@@ -422,7 +422,7 @@ export GZ_PARTITION=uav_ego_lab
 map (世界大地坐标系)
  └── odom (里程计坐标系，仿真中静态对齐到 map)
       └── base_link (无人机几何中心)
-           ├── oakd_camera_link (相机安装位姿: X:0.18, Z:0.16, Pitch:18°)
+           ├── oakd_camera_link (相机安装位姿: X:0.18, Z:0.16, Pitch:5°)
            │    └── oakd_camera_optical_frame (光学坐标系)
            └── mid360_link (激光雷达安装位姿)
 ```
