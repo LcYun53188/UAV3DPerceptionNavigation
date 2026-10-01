@@ -12,8 +12,9 @@ from std_msgs.msg import String
 from rclpy.qos import QoSProfile, DurabilityPolicy
 from uav_nav_interfaces.msg import PlannerStatus
 
-from .exploration import ExplorationSettings, choose_subgoal
+from .exploration import ExplorationSettings, choose_subgoal, segment_free
 from .core import CellState
+from .autonomous import AutonomousExplorer
 
 
 def stamp_key(stamp):
@@ -41,10 +42,13 @@ class GoalManager:
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         executor.create_subscription(PoseStamped, '/uav/goal', self.goal_cb, 10)
         executor.create_subscription(PlannerStatus, '/uav/planner/result', self.planner_cb, 10)
+        self.autonomous = AutonomousExplorer(self)
         executor.create_timer(0.5, self.publish_status)
         self.publish_status()
 
     def publish_status(self):
+        self.autonomous.watchdog()
+        self.autonomous.publish()
         self.status.publish(String(data=self.state+(':'+self.reason if self.reason else '')))
 
     def report(self, state, reason=''):
@@ -58,13 +62,16 @@ class GoalManager:
         self.token = 0
         self.phase = 'IDLE'
         self.report(state, reason)
+        self.autonomous.finished(state, reason)
 
-    def goal_cb(self, msg):
+    def goal_cb(self, msg, autonomous=False):
         p = msg.pose.position
         goal = np.array([p.x, p.y, p.z])
         if msg.header.frame_id != 'map' or not np.all(np.isfinite(goal)):
             self.node.get_logger().warning('Rejected goal: requires finite map-frame XYZ')
             return
+        if not autonomous:
+            self.autonomous.disable('DISABLED:MANUAL_GOAL')
         self.node.stop('GOAL_REPLACED')
         self.goal = goal
         self.visited, self.rejected = [], []
@@ -73,8 +80,11 @@ class GoalManager:
         self.best_distance = float('inf')
         self.no_candidate_at = None
         self.last_selection = 0.0
+        self.last_known_probe = float('-inf')
         self.observe_since = None
         self.scan_index = 0
+        self.scan_remaining = self.stagnant_segments = 0
+        self.observed_at_progress = int(np.count_nonzero(self.node.grid.observed)) if self.node.grid is not None else 0
         self.phase = 'OBSERVE'
         self.report('OBSERVING')
 
@@ -119,6 +129,8 @@ class GoalManager:
         if reason in ('GOAL_REPLACED', 'CANCELLED', 'MAP_SESSION_CHANGED'):
             self.finish('CANCELLED', reason)
         elif self.goal is None:
+            if self.autonomous.enabled and reason not in ('GOAL_REACHED', 'LOCAL_GOAL_REACHED'):
+                self.finish('STOPPED', reason)
             return
         elif reason in ('GOAL_REACHED', 'LOCAL_GOAL_REACHED'):
             self.token = 0
@@ -130,6 +142,22 @@ class GoalManager:
             self.local = None
             self.segments += 1
             self.failures = 0
+            if self.explore and not self.node.map.static_map:
+                # A useful detour can increase goal distance while revealing a
+                # way around an obstacle. Count new map volume only on arrival;
+                # idle scans alone cannot indefinitely renew the task budget.
+                observed = int(np.count_nonzero(self.node.grid.observed))
+                gain = (observed-self.observed_at_progress)*self.node.grid.resolution**3
+                if gain >= self.settings.minimum_map_gain:
+                    self.progress_at = time.monotonic()
+                    self.observed_at_progress = observed
+                if np.linalg.norm(self.position()-self.goal) >= self.best_distance-0.2:
+                    self.stagnant_segments += 1
+                else:
+                    self.stagnant_segments = 0
+                if self.stagnant_segments >= 2:
+                    self.scan_remaining = 3
+                    self.stagnant_segments = 0
             self.phase = 'OBSERVE'
             self.observe_since = None
             self.scan_index = 0
@@ -145,7 +173,7 @@ class GoalManager:
         p = self.node.odom.pose.pose.position
         return np.array([p.x, p.y, p.z])
 
-    def observation_command(self, position, now):
+    def observation_command(self, position, now, require_observation=True, direction=None):
         command = Twist()
         if not self.explore or (self.node.map is not None and self.node.map.static_map):
             return command, True
@@ -158,10 +186,17 @@ class GoalManager:
         yaw = math.atan2(2*(w*z+x*y), 1-2*(y*y+z*z))
         pitch = math.asin(float(np.clip(2*(w*y-z*x), -1., 1.)))
         roll = math.atan2(2*(w*x+y*z), 1-2*(x*x+y*y))
-        direction = self.goal-position
+        if not require_observation:
+            # A fully observed direct corridor needs no camera scan, but body
+            # leveling and invalid-orientation checks still precede planning.
+            return command, abs(pitch) <= .06 and abs(roll) <= .06
+        if direction is None:
+            direction = self.goal-position
         desired = math.atan2(direction[1], direction[0])
         # With no candidate, sweep both sides and behind before declaring blocked.
-        desired += (0.0, math.pi/2, -math.pi/2, math.pi)[self.scan_index % 4]
+        # Sweep adjacent quadrants in order instead of repeatedly reversing
+        # through 180 degrees and spending the observation budget retracing.
+        desired += (0.0, math.pi/2, math.pi, -math.pi/2)[self.scan_index % 4]
         error = math.atan2(math.sin(desired-yaw), math.cos(desired-yaw))
         # Observe by yawing only. Do not tilt the aircraft to compensate for
         # the fixed camera mount or the target's elevation. The executor levels
@@ -177,6 +212,8 @@ class GoalManager:
     def tick(self):
         """Called only while the executor is holding, returns a turn or zero twist."""
         command = Twist()
+        if self.autonomous.enabled and self.autonomous.phase == 'SCAN':
+            return self.autonomous.scan_tick()
         if self.goal is None:
             return command
         now = time.monotonic()
@@ -222,7 +259,22 @@ class GoalManager:
             return command
         if self.phase != 'OBSERVE':
             return command
-        command, observed = self.observation_command(position, now)
+        result = None
+        # Bound probing cost. Only skip observation for a checked direct route;
+        # frontier exploration, failed candidates and active scans keep the
+        # existing observation/retry policy. The planner and executor still
+        # independently validate the actual timed curve before any movement.
+        if (self.explore and not node.map.static_map and self.scan_index == 0 and
+                self.scan_remaining == 0 and
+                now-self.last_known_probe >= 0.5 and
+                self.no_candidate_at is None):
+            self.last_known_probe = now
+            if (not any(np.linalg.norm(self.goal-p) < self.settings.revisit_radius
+                        for p in self.rejected) and
+                    not node.grid.collision(self.goal, node.radius) and
+                    segment_free(node.grid, position, self.goal, node.radius)):
+                result = (self.goal.copy(), True)
+        command, observed = self.observation_command(position, now, require_observation=result is None)
         if self.goal is None:
             return Twist()
         # Deadline is checked even during a scan; inability to orient or find a
@@ -232,9 +284,15 @@ class GoalManager:
             return Twist()
         if not observed or now-self.last_selection < 0.5:
             return command
+        if self.scan_remaining:
+            self.scan_remaining -= 1
+            self.scan_index += 1
+            self.observe_since = None
+            return Twist()
         self.last_selection = now
-        result = choose_subgoal(node.grid, position, self.goal, node.radius, self.settings,
-            self.visited, self.rejected, self.explore and not node.map.static_map, self.best_distance)
+        if result is None:
+            result = choose_subgoal(node.grid, position, self.goal, node.radius, self.settings,
+                self.visited, self.rejected, self.explore and not node.map.static_map, self.best_distance)
         if result is None:
             if not self.explore or node.map.static_map:
                 self.finish('BLOCKED', 'NO_KNOWN_PATH')

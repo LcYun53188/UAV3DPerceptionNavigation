@@ -81,7 +81,8 @@ def parser():
     start.add_argument('--background', action='store_true', help='后台运行；用 stop 退出')
     for name, help_text in [('stop', '退出整套受管仿真'), ('status', '进程、导航和地图状态'),
                             ('init', '离线放置相机，初始化起点；仅 mapping'),
-                            ('cancel', '取消目标，仿真继续运行')]:
+                            ('cancel', '取消目标与自动探索，仿真继续运行'),
+                            ('explore', '启动自主边界探索；无需手动目标，仅 mapping')]:
         sub.add_parser(name, help=help_text)
     logs = sub.add_parser('logs', help='查看最近日志')
     logs.add_argument('--follow', action='store_true')
@@ -195,7 +196,7 @@ def main():
         return
     session = read_session()
     with lock(CACHE / 'operation.lock'):
-        if args.command in ['init', 'survey', 'save'] and session['mode'] != 'mapping':
+        if args.command in ['init', 'survey', 'save', 'explore'] and session['mode'] != 'mapping':
             raise RuntimeError('该操作要求 mapping；先 stop，再 start --mode mapping。')
         if args.command == 'load' and session['mode'] != 'localization':
             raise RuntimeError('加载要求 localization；先 stop，再 start --mode localization。')

@@ -75,7 +75,8 @@ class Executor(Node):
             self.session = session
         if not msg.valid:
             self.map = self.grid = None
-            if self.curve is not None or (getattr(self, 'navigation', None) is not None and self.navigation.goal is not None):
+            if self.curve is not None or (getattr(self, 'navigation', None) is not None and
+                    (self.navigation.goal is not None or self.navigation.autonomous.enabled)):
                 self.stop('MAP_INVALID')
             return
         if self.map is not None and session == (self.map.map_id, self.map.epoch) and msg.version <= self.map.version:

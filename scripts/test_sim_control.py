@@ -35,7 +35,7 @@ def test_saved_environment_wins_over_new_terminal(monkeypatch):
     assert env['ROS_DOMAIN_ID'] == '68' and env['GZ_PARTITION'] == 'saved'
 
 
-@pytest.mark.parametrize('command,mode', [('init', 'localization'), ('load', 'mapping')])
+@pytest.mark.parametrize('command,mode', [('init', 'localization'), ('explore', 'localization'), ('load', 'mapping')])
 def test_wrong_mode_cannot_mutate_simulation(tmp_path, monkeypatch, command, mode):
     monkeypatch.setattr(control, 'CACHE', tmp_path)
     session = dict(mode=mode)

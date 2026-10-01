@@ -12,13 +12,13 @@ from rclpy.parameter import Parameter
 from rclpy.duration import Duration
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from std_msgs.msg import String
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, SetBool
 from uav_nav_interfaces.msg import MapSnapshot
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['status', 'cancel', 'ready', 'goal'])
+    parser.add_argument('command', choices=['status', 'cancel', 'ready', 'goal', 'explore'])
     parser.add_argument('xyz', nargs='*', type=float)
     args = parser.parse_args()
     if args.command == 'goal' and (len(args.xyz) != 3 or not all(math.isfinite(v) for v in args.xyz)):
@@ -41,6 +41,7 @@ def main():
         latest['odom_stamp'] = msg.header.stamp.sec + msg.header.stamp.nanosec/1e9
 
     durable = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+    node.create_subscription(String, '/uav/exploration/state', lambda m: record('exploration', m.data), durable)
     node.create_subscription(String, '/uav/navigation/state', lambda m: record('navigation', m.data), durable)
     node.create_subscription(String, '/uav/executor/state', lambda m: record('executor', m.data), 10)
     node.create_subscription(MapSnapshot, '/uav/map/snapshot', on_map, durable)
@@ -85,6 +86,19 @@ def main():
                 raise RuntimeError('未收到有效且新鲜的地图/里程计；先 init 或 load，再检查 status 和 logs。')
             if args.command == 'ready':
                 print('地图和里程计已就绪。')
+                return
+            if args.command == 'explore':
+                client = node.create_client(SetBool, '/uav/exploration/enabled')
+                if not client.wait_for_service(timeout_sec=3):
+                    raise RuntimeError('自动探索服务不可用；更新代码后需重启仿真。')
+                future = client.call_async(SetBool.Request(data=True))
+                rclpy.spin_until_future_complete(node, future, timeout_sec=5)
+                if not future.done():
+                    raise RuntimeError('自动探索请求超时；用 status 检查是否已启动。')
+                response = future.result()
+                if not response.success:
+                    raise RuntimeError(response.message)
+                print('已启动自主边界探索；用 status 查看进度，用 cancel 停止。')
                 return
             pub = node.create_publisher(PoseStamped, '/uav/goal', 10)
             if not wait(lambda: pub.get_subscription_count() > 0, 3):
