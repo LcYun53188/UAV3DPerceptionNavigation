@@ -1,0 +1,159 @@
+{
+  "layout": "expanded",
+  "goal": [
+    2.1182,
+    -3.69928,
+    1.2
+  ],
+  "completed": true,
+  "states": [
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "OBSERVING:NO_REACHABLE_FRONTIER",
+    "BLOCKED:NO_REACHABLE_FRONTIER",
+    "CANCELLED:CANCELLED"
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "ACCEPTED:1",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:2",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:3",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:4",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:5",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:6",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:7",
+    "LOCAL_GOAL_REACHED"
+  ],
+  "trajectories": [
+    {
+      "id": 1,
+      "duration": 10.044890292348578,
+      "map_version": 266,
+      "endpoint": [
+        -6.049999933689833,
+        -8.249999966472387,
+        0.7500000111758709
+      ],
+      "truth_clearance": 0.4500000111758709
+    },
+    {
+      "id": 2,
+      "duration": 9.09,
+      "map_version": 293,
+      "endpoint": [
+        -4.049999903887511,
+        -7.349999953061343,
+        0.750000011175871
+      ],
+      "truth_clearance": 0.44945560105565413
+    },
+    {
+      "id": 3,
+      "duration": 7.727792996459552,
+      "map_version": 317,
+      "endpoint": [
+        -2.4499998800456524,
+        -6.049999933689833,
+        0.7500000111758709
+      ],
+      "truth_clearance": 0.21478143439346148
+    },
+    {
+      "id": 4,
+      "duration": 4.787776931401744,
+      "map_version": 339,
+      "endpoint": [
+        -2.4499998800456524,
+        -7.249999951571226,
+        0.750000011175871
+      ],
+      "truth_clearance": 0.14931192614618055
+    },
+    {
+      "id": 5,
+      "duration": 12.950425188147618,
+      "map_version": 360,
+      "endpoint": [
+        -1.1499998606741428,
+        -8.649999972432854,
+        0.5500000081956388
+      ],
+      "truth_clearance": 0.10321703550693251
+    },
+    {
+      "id": 6,
+      "duration": 7.272,
+      "map_version": 419,
+      "endpoint": [
+        0.5500001646578312,
+        -8.9499999769032,
+        0.45000000670552254
+      ],
+      "truth_clearance": 0.15000000670552255
+    },
+    {
+      "id": 7,
+      "duration": 8.753333463768168,
+      "map_version": 442,
+      "endpoint": [
+        2.3500001914799213,
+        -9.549999985843899,
+        0.6500000096857548
+      ],
+      "truth_clearance": 0.05000001415610139
+    }
+  ],
+  "initial_observed": 106694,
+  "initial_goal_state": "UNKNOWN",
+  "initial_goal_volume_blocked": true,
+  "initial_start_blocked": false,
+  "start": [
+    -7.5,
+    -7.5,
+    1.2
+  ],
+  "latest_position": [
+    2.2534628948433033,
+    -9.51107272523809,
+    0.6502711598344443
+  ],
+  "terminal": "BLOCKED",
+  "final_position": [
+    2.2534628948433033,
+    -9.51107272523809,
+    0.6502711598344443
+  ],
+  "final_error": 5.839300688401099,
+  "final_observed": 193303,
+  "samples": 6820,
+  "min_truth_clearance": 0.0494227453958786,
+  "accepted_segments": 7,
+  "hold_drift": 1.0636518163606315e-07,
+  "passed": false
+}

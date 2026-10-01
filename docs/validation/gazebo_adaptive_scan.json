@@ -1,0 +1,421 @@
+{
+  "completed": true,
+  "autonomy_states": [
+    "DISABLED",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING"
+  ],
+  "navigation_states": [
+    "CANCELLED:CANCELLED",
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING"
+  ],
+  "events": [
+    "CANCELLED",
+    "GOAL_REPLACED",
+    "ACCEPTED:1",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:2",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:3",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:4",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:5",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:6",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:7"
+  ],
+  "transitions": [
+    {
+      "topic": "autonomy_states",
+      "state": "DISABLED",
+      "time": 1278.661205252
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:CANCELLED",
+      "time": 1278.661398705
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING",
+      "time": 1281.004304417
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_SCAN",
+      "time": 1281.004717194
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1295.240824751
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1295.241105265
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1295.241282135
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1297.651204467
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1297.783280154
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1303.248129311
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING",
+      "time": 1303.248324816
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_SCAN",
+      "time": 1303.248622783
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1317.484458593
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1317.484840402
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1317.485029016
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1317.487005571
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1317.784049691
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1322.528381554
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING:BRIEF",
+      "time": 1322.528661764
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+      "time": 1322.528914768
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1324.130918148
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1324.131521004
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1324.131783416
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1324.135931939
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1324.288827696
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1329.06882451
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING:BRIEF",
+      "time": 1329.069173624
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+      "time": 1329.069765021
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1330.653548505
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1330.662827019
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1330.662873209
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1333.770447289
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1333.788186376
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1349.208661048
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING",
+      "time": 1349.208903675
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_SCAN",
+      "time": 1349.209349759
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1363.52487387
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1363.525205348
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1363.52545971
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1363.527462716
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1363.783856999
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1370.349051183
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING:BRIEF",
+      "time": 1370.349371894
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+      "time": 1370.349899766
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1371.948805394
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1371.949094751
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1371.949226827
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1376.431430929
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1376.785972855
+    },
+    {
+      "topic": "navigation_states",
+      "state": "REACHED",
+      "time": 1394.868540745
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "SCANNING:BRIEF",
+      "time": 1394.868814697
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING:AUTONOMOUS_BRIEF_SCAN",
+      "time": 1394.869046282
+    },
+    {
+      "topic": "navigation_states",
+      "state": "CANCELLED:GOAL_REPLACED",
+      "time": 1396.474979865
+    },
+    {
+      "topic": "navigation_states",
+      "state": "OBSERVING",
+      "time": 1396.475384082
+    },
+    {
+      "topic": "autonomy_states",
+      "state": "EXPLORING",
+      "time": 1396.475581169
+    },
+    {
+      "topic": "navigation_states",
+      "state": "PLANNING",
+      "time": 1396.478319291
+    },
+    {
+      "topic": "navigation_states",
+      "state": "NAVIGATING",
+      "time": 1396.785927178
+    }
+  ],
+  "initial_observed": 136860,
+  "final_observed": 390512,
+  "monitor_seconds": 120,
+  "start": [
+    -7.5,
+    -7.5,
+    1.2
+  ],
+  "end": [
+    -3.971040994207861,
+    -3.1085635998690404,
+    1.4665291010657813
+  ],
+  "max_displacement": 6.829085521071489,
+  "accepted_segments": 7,
+  "note": "Read-only startup observation; mission continues, not a full-map coverage verification.",
+  "camera_pitch_degrees": 5,
+  "scan_durations_seconds": [
+    {
+      "mode": "SCANNING",
+      "duration": 14.237
+    },
+    {
+      "mode": "SCANNING",
+      "duration": 14.237
+    },
+    {
+      "mode": "SCANNING:BRIEF",
+      "duration": 1.603
+    },
+    {
+      "mode": "SCANNING:BRIEF",
+      "duration": 1.585
+    },
+    {
+      "mode": "SCANNING",
+      "duration": 14.316
+    },
+    {
+      "mode": "SCANNING:BRIEF",
+      "duration": 1.6
+    },
+    {
+      "mode": "SCANNING:BRIEF",
+      "duration": 1.607
+    }
+  ]
+}

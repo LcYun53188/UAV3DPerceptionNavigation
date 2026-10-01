@@ -1,0 +1,411 @@
+{
+  "layout": "expanded",
+  "goal": [
+    2.1182,
+    -3.69928,
+    1.2
+  ],
+  "completed": true,
+  "states": [
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "CANCELLED:CANCELLED"
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "ACCEPTED:2",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:3",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:4",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:5",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:6",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:7",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:8",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:9",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:10",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:11",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:12",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:13",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:14",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:15",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:16",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:17",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:18",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:19",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:20",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:21",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:22",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:23",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:24"
+  ],
+  "trajectories": [
+    {
+      "id": 2,
+      "duration": 9.09,
+      "map_version": 177,
+      "endpoint": [
+        -4.549999911338092,
+        -7.149999950081112,
+        0.8500000126659871
+      ],
+      "truth_clearance": 0.5032161585859025
+    },
+    {
+      "id": 3,
+      "duration": 7.333646560843765,
+      "map_version": 203,
+      "endpoint": [
+        -2.849999886006117,
+        -6.249999936670065,
+        0.7500000111758709
+      ],
+      "truth_clearance": 0.4500000111758709
+    },
+    {
+      "id": 4,
+      "duration": 4.242,
+      "map_version": 222,
+      "endpoint": [
+        -2.7499998845160007,
+        -7.249999951571226,
+        0.750000011175871
+      ],
+      "truth_clearance": 0.4499542029671288
+    },
+    {
+      "id": 5,
+      "duration": 21.21,
+      "map_version": 242,
+      "endpoint": [
+        -1.949999872595072,
+        -8.749999973922968,
+        0.7500000111758711
+      ],
+      "truth_clearance": 0.22754233403170893
+    },
+    {
+      "id": 6,
+      "duration": 8.484,
+      "map_version": 318,
+      "endpoint": [
+        -2.549999881535769,
+        -6.64999994263053,
+        0.5500000081956388
+      ],
+      "truth_clearance": 0.11947446829332375
+    },
+    {
+      "id": 7,
+      "duration": 9.696,
+      "map_version": 343,
+      "endpoint": [
+        -2.0499998740851884,
+        -4.3499999083578595,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.1500000067055226
+    },
+    {
+      "id": 8,
+      "duration": 4.242,
+      "map_version": 370,
+      "endpoint": [
+        -1.8499998711049557,
+        -3.949999902397394,
+        0.750000011175871
+      ],
+      "truth_clearance": 0.14983086307582638
+    },
+    {
+      "id": 9,
+      "duration": 6.6659999999999995,
+      "map_version": 387,
+      "endpoint": [
+        -1.1499998606741428,
+        -2.649999883025884,
+        0.5500000081956387
+      ],
+      "truth_clearance": 0.10959364875923827
+    },
+    {
+      "id": 10,
+      "duration": 4.242,
+      "map_version": 410,
+      "endpoint": [
+        -1.1499998606741428,
+        -3.1499998904764657,
+        0.5500000081956387
+      ],
+      "truth_clearance": 0.25000000819563867
+    },
+    {
+      "id": 11,
+      "duration": 9.09,
+      "map_version": 428,
+      "endpoint": [
+        -1.849999871104956,
+        -5.249999921768905,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.1500000067055226
+    },
+    {
+      "id": 12,
+      "duration": 11.07218834579135,
+      "map_version": 483,
+      "endpoint": [
+        -1.0499998591840267,
+        -5.549999926239252,
+        0.7500000111758709
+      ],
+      "truth_clearance": 0.09994416081682012
+    },
+    {
+      "id": 13,
+      "duration": 3.636,
+      "map_version": 513,
+      "endpoint": [
+        -0.44999985024333006,
+        -5.849999930709601,
+        0.5500000081956387
+      ],
+      "truth_clearance": 0.15000006929039872
+    },
+    {
+      "id": 14,
+      "duration": 8.793711617734402,
+      "map_version": 555,
+      "endpoint": [
+        -3.049999888986349,
+        -5.649999927729368,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.14924476424352934
+    },
+    {
+      "id": 15,
+      "duration": 9.562301843143752,
+      "map_version": 586,
+      "endpoint": [
+        -3.1499998904764652,
+        -2.849999886006117,
+        0.45000000670552254
+      ],
+      "truth_clearance": 0.14996958708671027
+    },
+    {
+      "id": 16,
+      "duration": 8.484,
+      "map_version": 641,
+      "endpoint": [
+        -1.4499998651444916,
+        -3.6499998979270467,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.1500000067055226
+    },
+    {
+      "id": 17,
+      "duration": 9.696,
+      "map_version": 664,
+      "endpoint": [
+        -0.04999984428286554,
+        -2.149999875575304,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.1500000067055226
+    },
+    {
+      "id": 18,
+      "duration": 8.484,
+      "map_version": 690,
+      "endpoint": [
+        1.050000172108412,
+        -3.949999902397395,
+        0.4500000067055226
+      ],
+      "truth_clearance": 0.1500000067055226
+    },
+    {
+      "id": 19,
+      "duration": 7.272,
+      "map_version": 718,
+      "endpoint": [
+        2.6500001959502693,
+        -4.649999912828207,
+        0.850000012665987
+      ],
+      "truth_clearance": 0.1500023636135266
+    },
+    {
+      "id": 20,
+      "duration": 4.242,
+      "map_version": 745,
+      "endpoint": [
+        3.250000204890967,
+        -4.049999903887511,
+        0.6500000096857548
+      ],
+      "truth_clearance": 0.34774987719571887
+    },
+    {
+      "id": 21,
+      "duration": 6.328268128764309,
+      "map_version": 790,
+      "endpoint": [
+        3.2500002048909664,
+        -5.649999927729369,
+        1.0500000156462193
+      ],
+      "truth_clearance": 0.3499579415089467
+    },
+    {
+      "id": 22,
+      "duration": 7.272,
+      "map_version": 816,
+      "endpoint": [
+        1.5500001795589924,
+        -5.549999926239252,
+        0.950000014156103
+      ],
+      "truth_clearance": 0.6500000141561031
+    },
+    {
+      "id": 23,
+      "duration": 10.302,
+      "map_version": 866,
+      "endpoint": [
+        1.5500001795589926,
+        -3.04999988898635,
+        0.5500000081956388
+      ],
+      "truth_clearance": 0.2298974108108814
+    },
+    {
+      "id": 24,
+      "duration": 5.454,
+      "map_version": 899,
+      "endpoint": [
+        2.0500001870095734,
+        -2.3499998785555367,
+        0.8500000126659871
+      ],
+      "truth_clearance": 0.24364156007751286
+    }
+  ],
+  "initial_observed": 111138,
+  "initial_goal_state": "UNKNOWN",
+  "initial_goal_volume_blocked": true,
+  "initial_start_blocked": false,
+  "start": [
+    -6.781208798984438,
+    -7.797561839935351,
+    0.9781549150648958
+  ],
+  "latest_position": [
+    1.5494335845224267,
+    -3.0470626687875293,
+    0.5498086973689501
+  ],
+  "terminal": null,
+  "final_position": [
+    1.5500277789745847,
+    -3.048896313022699,
+    0.5499976713222925
+  ],
+  "final_error": 1.0808892821735183,
+  "final_observed": 333905,
+  "samples": 18152,
+  "min_truth_clearance": 0.09978908165759476,
+  "accepted_segments": 23,
+  "hold_drift": 6.748702778460027e-06,
+  "passed": false
+}

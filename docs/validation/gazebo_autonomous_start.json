@@ -1,0 +1,59 @@
+{
+  "completed": true,
+  "autonomy_states": [
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING"
+  ],
+  "navigation_states": [
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "OBSERVING:AUTONOMOUS_SCAN",
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "OBSERVING:AUTONOMOUS_SCAN"
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "ACCEPTED:2",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:3",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:4",
+    "GOAL_REACHED"
+  ],
+  "initial_observed": 156483,
+  "final_observed": 310877,
+  "monitor_seconds": 90,
+  "start": [
+    -7.049238521571181,
+    -8.450759331617265,
+    1.7507307297294152
+  ],
+  "end": [
+    -2.848675427413458,
+    -6.149318016674895,
+    1.951008806033126
+  ],
+  "max_displacement": 4.794275755394717,
+  "accepted_segments": 3,
+  "note": "Read-only startup observation; mission continues, not a full-map coverage verification."
+}
