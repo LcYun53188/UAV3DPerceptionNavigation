@@ -85,3 +85,30 @@ TEST(SafeSeed, RightAngleStaysOnCheckedEdgesAndStopsAtCorner) {
   }
   EXPECT_TRUE(found_corner);
 }
+
+TEST(SafeSeed, SmoothCornerKeepsMovingAndRequiresSweptCollisionCheck) {
+  const auto controls=safeSeedControls({V::Zero(), V(2,0,0), V(2,2,0)},true);
+  UniformBspline curve(controls,3,limitedInterval(controls));
+  auto velocity=curve.getDerivative();
+  bool cuts_corner=false;
+  for(double t=.1;t<curve.getTimeSum()-.1;t+=.01) {
+    const V p=curve.evaluateDeBoorT(t);
+    EXPECT_GT(velocity.evaluateDeBoorT(t).norm(),1e-6);
+    if(p.x()<1.99 && p.y()>.01) cuts_corner=true;
+  }
+  EXPECT_TRUE(cuts_corner); // Planner must validate this rounded region.
+  EXPECT_LT(velocity.evaluateDeBoorT(curve.getTimeSum()).norm(),1e-10);
+}
+
+TEST(SafeSeed, MovingEndpointPreservesPositionVelocityAccelerationAfterRetiming) {
+  const V p(1,2,3), v(.23,-.07,.03), a(-.04,.03,.01);
+  for(double dt : {.3,.6,1.7,3.}) {
+    auto controls=safeSeedControls({p,p+V(3,0,0)},true);
+    setStartState(controls,dt,p,v,a);
+    UniformBspline curve(controls,3,dt);
+    EXPECT_LT((curve.evaluateDeBoorT(0)-p).norm(),1e-10);
+    EXPECT_LT((curve.getDerivative().evaluateDeBoorT(0)-v).norm(),1e-10);
+    EXPECT_LT((curve.getDerivative().getDerivative().evaluateDeBoorT(0)-a).norm(),1e-10);
+    EXPECT_LT(curve.getDerivative().evaluateDeBoorT(curve.getTimeSum()).norm(),1e-10);
+  }
+}

@@ -3,12 +3,14 @@
 #include <uav_nav_interfaces/msg/map_snapshot.hpp>
 #include <uav_nav_interfaces/msg/timed_trajectory.hpp>
 #include <uav_nav_interfaces/msg/planner_status.hpp>
+#include <uav_nav_interfaces/msg/trajectory_request.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <chrono>
 #include "safe_seed.hpp"
+#include "free_volume.hpp"
 
 using V = Eigen::Vector3d;
 using Snapshot = uav_nav_interfaces::msg::MapSnapshot;
@@ -25,6 +27,7 @@ class Planner : public rclcpp::Node {
     jmax_ = declare_parameter("max_jerk", 2.0);
     map_timeout_ = declare_parameter("map_timeout", 2.0);
     managed_ = declare_parameter("managed_goals", false);
+    continuous_ = declare_parameter("continuous_navigation", true);
     map_ = std::make_shared<GridMap>();
     optimizer_.setParam(shared_from_this());
     optimizer_.setEnvironment(map_);
@@ -44,7 +47,16 @@ class Planner : public rclcpp::Node {
         if (m->header.frame_id != "map") { report("REJECT_GOAL_FRAME"); return; }
         goal_ = V(m->pose.position.x, m->pose.position.y, m->pose.position.z);
         goal_stamp_ = m->header.stamp;
+        moving_.reset();
         pending_ = goal_.allFinite(); goal_active_=pending_;
+      });
+    moving_sub_ = create_subscription<uav_nav_interfaces::msg::TrajectoryRequest>("/uav/replan_request", 10,
+      [this](uav_nav_interfaces::msg::TrajectoryRequest::ConstSharedPtr m) {
+        if (!managed_) return;
+        moving_ = m;
+        goal_stamp_ = m->header.stamp;
+        goal_ = V(m->goal.x,m->goal.y,m->goal.z);
+        pending_ = true;
       });
     state_sub_ = create_subscription<std_msgs::msg::String>("/uav/executor/state", 10,
       [this](std_msgs::msg::String::ConstSharedPtr m) { executing_ = m->data == "EXECUTING"; });
@@ -81,13 +93,7 @@ class Planner : public rclcpp::Node {
     Eigen::Vector3i idx=((p-origin)/s.resolution).array().floor().cast<int>();
     for (int a=0;a<3;++a) if(lo[a]<0 || hi[a]>=static_cast<int>(s.shape[a])) return true;
     auto address=[&s](int x,int y,int z) { return (static_cast<size_t>(x)*s.shape[1]+y)*s.shape[2]+z; };
-    auto sum=[&](int x,int y,int z) -> int64_t {
-      return prefix_[(static_cast<size_t>(x)*(s.shape[1]+1)+y)*(s.shape[2]+1)+z];
-    };
-    Eigen::Vector3i h=hi+Eigen::Vector3i::Ones();
-    int64_t observed=sum(h.x(),h.y(),h.z())-sum(lo.x(),h.y(),h.z())-sum(h.x(),lo.y(),h.z())-sum(h.x(),h.y(),lo.z())
-      +sum(lo.x(),lo.y(),h.z())+sum(lo.x(),h.y(),lo.z())+sum(h.x(),lo.y(),lo.z())-sum(lo.x(),lo.y(),lo.z());
-    if(observed != static_cast<int64_t>((h-lo).prod())) return true;
+    if(!free_volume_.isFree(lo,hi)) return true;
     float d=s.distance[address(idx.x(),idx.y(),idx.z())];
     return !std::isfinite(d) || d<=r+std::sqrt(3.0)*s.resolution/2;
   }
@@ -98,7 +104,7 @@ class Planner : public rclcpp::Node {
     return false;
   }
   void plan() {
-    if (!pending_ || executing_ || !odom_ || !snapshot_) return;
+    if (!pending_ || (executing_ && !moving_) || !odom_ || !snapshot_) return;
     auto s=snapshot_; // Single-thread executor: frozen through the whole optimization.
     const double age=(now()-rclcpp::Time(s->header.stamp)).seconds();
     const double odom_age=(now()-rclcpp::Time(odom_->header.stamp)).seconds();
@@ -110,21 +116,26 @@ class Planner : public rclcpp::Node {
       report("WAIT_MAP_OR_ODOMETRY"); return;
     }
     if(odom_->header.frame_id!="odom") { report("REJECT_ODOM_FRAME"); return; }
-    // Integral observed-volume mask makes conservative body queries O(1).
-    prefix_.assign(static_cast<size_t>(s->shape[0]+1)*(s->shape[1]+1)*(s->shape[2]+1),0);
-    auto at=[&](int x,int y,int z) -> uint32_t& {
-      return prefix_[(static_cast<size_t>(x)*(s->shape[1]+1)+y)*(s->shape[2]+1)+z];
-    };
-    for(uint32_t x=1;x<=s->shape[0];++x) for(uint32_t y=1;y<=s->shape[1];++y) for(uint32_t z=1;z<=s->shape[2];++z)
-      at(x,y,z)=s->observed[((x-1)*s->shape[1]+y-1)*s->shape[2]+z-1]+at(x-1,y,z)+at(x,y-1,z)+at(x,y,z-1)
-        -at(x-1,y-1,z)-at(x-1,y,z-1)-at(x,y-1,z-1)+at(x-1,y-1,z-1);
+    V start_velocity=V::Zero(), start_acceleration=V::Zero();
+    if(moving_) {
+      const auto& v=moving_->start_velocity; const auto& a=moving_->start_acceleration;
+      start_velocity=V(v.x,v.y,v.z); start_acceleration=V(a.x,a.y,a.z);
+      const double lead=(rclcpp::Time(moving_->start_time)-now()).seconds();
+      if(moving_->header.frame_id!="map" || moving_->parent_trajectory_id==0 ||
+         moving_->map_id!=s->map_id || moving_->epoch!=s->epoch || !goal_.allFinite() ||
+         !start_velocity.allFinite() || !start_acceleration.allFinite() ||
+         start_velocity.norm()>vmax_ || start_acceleration.norm()>amax_ || lead<0.1 || lead>2.0) {
+        report("REJECT_HANDOVER_REQUEST"); return;
+      }
+    }
+    free_volume_.update(s->shape,s->distance,s->observed);
     const auto& p=odom_->pose.pose.position;
     V start(p.x,p.y,p.z);
+    if(moving_) { const auto& q=moving_->start_position; start=V(q.x,q.y,q.z); }
     if(collision(*s,start,radius_) || collision(*s,goal_,radius_)) { report("BLOCKED_START_OR_GOAL"); return; }
     if((start-goal_).norm()<0.15) { pending_=false; report("GOAL_REACHED"); return; }
-    // Simulation adapter requires a stopped takeover. It does not splice moving trajectories.
     auto v=odom_->twist.twist.linear;
-    if(V(v.x,v.y,v.z).norm()>0.05) { report("WAIT_STOPPED"); return; }
+    if(!moving_ && V(v.x,v.y,v.z).norm()>0.05) { report("WAIT_STOPPED"); return; }
     map_->resolution=s->resolution;
     // Reserve room for the swept-curve validator's sampling padding.
     const double seed_radius=radius_+s->resolution*0.5;
@@ -158,23 +169,30 @@ class Planner : public rclcpp::Node {
       controls.col(0)=controls.col(1)=start;
       for(size_t i=0;i<seed.size();++i) controls.col(i+2)=seed[i];
       controls.col(controls.cols()-2)=controls.col(controls.cols()-1)=goal_;
+      setStartState(controls,dt,start,start_velocity,start_acceleration);
       optimizer_.initControlPoints(controls,true);
       success=optimizer_.BsplineOptimizeTrajRebound(controls,dt);
     }
     auto valid_curve = [&]() {
       if(!controls.allFinite()) return false;
       dt=0.6;
-      UniformBspline candidate(controls,3,dt);
-      double scale=1.0;
-      auto derivative=candidate;
-      for(int d=1;d<=3;++d) {
-        derivative=derivative.getDerivative();
-        const double bound=derivative.getControlPoint().colwise().norm().maxCoeff();
-        const double limit=d==1?vmax_:(d==2?amax_:jmax_);
-        scale=std::max(scale,std::pow(bound/limit,1.0/d));
+      bool limited=false;
+      for(int attempt=0;attempt<24;++attempt) {
+        setStartState(controls,dt,start,start_velocity,start_acceleration);
+        UniformBspline derivative(controls,3,dt);
+        double scale=1.0;
+        for(int d=1;d<=3;++d) {
+          derivative=derivative.getDerivative();
+          const double bound=derivative.getControlPoint().colwise().norm().maxCoeff();
+          const double limit=d==1?vmax_:(d==2?amax_:jmax_);
+          scale=std::max(scale,std::pow(bound/limit,1.0/d));
+        }
+        if(scale<=1.0000001) {limited=true;break;}
+        dt*=scale*1.01;
+        if(!std::isfinite(dt) || dt>30) return false;
       }
-      dt*=scale*1.01;
-      candidate=UniformBspline(controls,3,dt);
+      if(!limited) return false;
+      UniformBspline candidate(controls,3,dt);
       const double duration=candidate.getTimeSum();
       if(duration>600 || !std::isfinite(duration)) return false;
       const double bound=candidate.getDerivative().getControlPoint().colwise().norm().maxCoeff();
@@ -184,10 +202,8 @@ class Planner : public rclcpp::Node {
       return true;
     };
     if(!success || !valid_curve()) {
-      // Rebound smoothing can cut through a corner or unobserved volume even
-      // when A* found a valid route. Keep that route and stop at its corners.
-      // Three identical controls at each waypoint give zero velocity and
-      // acceleration there; each connecting span stays on its checked segment.
+      // Rebound smoothing can cut through an obstacle or unobserved volume.
+      // Shortcut the checked A* route before trying a rounded route fallback.
       std::vector<V> route{start};
       for(size_t i=0;i+1<seed.size();) {
         size_t j=seed.size()-1;
@@ -196,8 +212,13 @@ class Planner : public rclcpp::Node {
         route.push_back(seed[j]);
         i=j;
       }
-      controls=safeSeedControls(route);
-      if(!valid_curve()) {report("REJECT_CURVE_COLLISION");return;}
+      // Try continuous corners, but accept them only after a full swept-body
+      // check. A tight/unknown corner retains the checked stopping fallback.
+      controls=safeSeedControls(route,continuous_);
+      if(!valid_curve()) {
+        controls=safeSeedControls(route);
+        if(!valid_curve()) {report("REJECT_CURVE_COLLISION");return;}
+      }
       report("SAFE_SEED_FALLBACK");
     }
     UniformBspline curve(controls,3,dt);
@@ -205,10 +226,15 @@ class Planner : public rclcpp::Node {
     if(std::chrono::duration<double>(std::chrono::steady_clock::now()-wall_start).count()>map_timeout_ ||
        (now()-rclcpp::Time(s->header.stamp)).seconds()>map_timeout_) {report("PLAN_EXPIRED");return;}
     Trajectory out;
+    if(moving_ && (rclcpp::Time(moving_->start_time)-now()).seconds()<0.1) {
+      report("HANDOVER_EXPIRED");return;
+    }
     out.header.stamp=now();out.header.frame_id="odom";
     out.goal_stamp=goal_stamp_;
     out.map_id=s->map_id;out.epoch=s->epoch;out.map_version=s->version;out.trajectory_id=++id_;
-    out.start_time=now()+rclcpp::Duration::from_seconds(0.5);out.knot_interval=dt;
+    out.start_time=moving_ ? moving_->start_time : static_cast<builtin_interfaces::msg::Time>(now()+rclcpp::Duration::from_seconds(0.5));
+    out.parent_trajectory_id=moving_ ? moving_->parent_trajectory_id : 0;
+    out.knot_interval=dt;
     out.max_velocity=vmax_;out.max_acceleration=amax_;out.max_jerk=jmax_;
     for(int i=0;i<controls.cols();++i) { geometry_msgs::msg::Point pt;pt.x=controls(0,i);pt.y=controls(1,i);pt.z=controls(2,i);out.control_points.push_back(pt); }
     trajectory_pub_->publish(out);
@@ -219,18 +245,20 @@ class Planner : public rclcpp::Node {
     }
     path_pub_->publish(path);pending_=false;report("TRAJECTORY_PUBLISHED");
   }
-  std::vector<uint32_t> prefix_;
+  FreeVolume free_volume_;
   std::string last_status_;
   double radius_,vmax_,amax_,jmax_,map_timeout_;
-  bool managed_=false;
+  bool managed_=false,continuous_=true;
   builtin_interfaces::msg::Time goal_stamp_;
   uint64_t id_=0; bool pending_=false,executing_=false,goal_active_=false;V goal_;
   GridMap::Ptr map_; ego_planner::BsplineOptimizer optimizer_;ego_planner::SwarmTrajData swarm_;
   Snapshot::ConstSharedPtr snapshot_;nav_msgs::msg::Odometry::ConstSharedPtr odom_;
+  uav_nav_interfaces::msg::TrajectoryRequest::ConstSharedPtr moving_;
   std::chrono::steady_clock::time_point map_received_;
   rclcpp::Subscription<Snapshot>::SharedPtr snapshots_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub_;
+  rclcpp::Subscription<uav_nav_interfaces::msg::TrajectoryRequest>::SharedPtr moving_sub_;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr state_sub_,event_sub_;
   rclcpp::Publisher<Trajectory>::SharedPtr trajectory_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;

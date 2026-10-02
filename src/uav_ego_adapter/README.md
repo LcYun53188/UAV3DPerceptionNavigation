@@ -3,7 +3,7 @@
 Single-threaded ROS 2 node holding an immutable nvblox snapshot throughout each
 attempt. Uses EGO's original A* as a detour seed and its rebound B-spline optimizer;
 there is no substitute APF or separate occupancy integrator. Stops are enforced by
-three repeated controls at each end. Retiming uses full derivative control-hull
+three repeated terminal controls. Retiming uses full derivative control-hull
 bounds, then the entire curve is checked against the map. The separate Python
 Gazebo executor independently checks the same timed representation.
 
@@ -17,17 +17,23 @@ neighbor can still connect to it. Coarse-search failure triggers one retry at
 map resolution, with the same clearance and collision rules.
 If rebound optimization fails or its smoothed curve fails validation, the adapter
 shortcuts the original seed using conservative segment checks and builds a cubic
-B-spline with three repeated controls at each retained route corner. Single
-interior controls spaced at most 0.5 m apart keep straight travel continuous;
-they do not introduce intermediate stops. This fallback still stops at corners
-and does not cut them. It passes the same dynamic,
+B-spline that first attempts rounded, continuous corners. Single interior controls
+spaced at most 0.5 m apart keep straight travel continuous. If the rounded curve
+fails validation, three repeated corner controls retain a stopping fallback on
+the checked edges. Both pass the same dynamic,
 collision, duration, and map-age checks before publication. Planner status
 `SAFE_SEED_FALLBACK` identifies this case; state changes are also logged.
 
-Current scope: stopped start/goal tasks in a static Gazebo world, identity
-map/odom alignment, conservative unknown-space policy. A failure never emits an
-unchecked alternative path. Moving handover and real vehicle braking remain
-future flight-control work. See `docs/EGO_NVBLOX_GAZEBO.md` for commands.
+Moving requests preserve the parent's predicted position, velocity and acceleration
+at the requested future start. The first three controls are recomputed after every
+retiming iteration; merely stretching time would change the boundary derivatives.
+Expired, unsafe or dynamically infeasible successors are rejected. The executor
+continues its original checked trajectory to rest when no successor is ready.
+
+Current scope: stopped goals and scheduled moving handovers in a static Gazebo
+world, identity map/odom alignment, conservative unknown-space policy. A failure
+never emits an unchecked alternative path. Real vehicle braking and PX4 integration
+remain future flight-control work. See `docs/EGO_NVBLOX_GAZEBO.md` for commands.
 
 The standard launch enables `managed_goals` and remaps the planner input to
 `/uav/local_goal`. The executor-owned goal manager retains `/uav/goal`, selects
