@@ -1,0 +1,400 @@
+{
+  "date": "2026-10-02",
+  "scope": "180 s expanded-world autonomous exploration from a fresh initialized local map. Checks observation reuse and sampled/static geometry clearance, not full map completion or a matched end-to-end timing comparison. Segment stagnation fix was applied after this process started and is not covered by this run.",
+  "command": "ROS_DOMAIN_ID=68 ./scripts/with_venv.sh python scripts/check_gazebo_autonomous.py --duration 180 --require-reuse --output .cache/sim/gazebo_observation_reuse.json",
+  "fixed_wait_omitted_seconds": 4.5,
+  "trial": {
+    "states": [
+      "DISABLED",
+      "SCANNING",
+      "EXPLORING",
+      "SCANNING",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING:BRIEF",
+      "EXPLORING",
+      "SCANNING",
+      "EXPLORING",
+      "DISABLED"
+    ],
+    "events": [
+      "CANCELLED",
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:2",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:3",
+      "GOAL_REACHED",
+      "OBSERVATION_REUSED",
+      "GOAL_REPLACED",
+      "ACCEPTED:4",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:5",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:6",
+      "GOAL_REACHED",
+      "OBSERVATION_REUSED",
+      "GOAL_REPLACED",
+      "ACCEPTED:7",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:8",
+      "GOAL_REACHED",
+      "OBSERVATION_REUSED",
+      "GOAL_REPLACED",
+      "ACCEPTED:9",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:10",
+      "GOAL_REACHED",
+      "GOAL_REPLACED",
+      "ACCEPTED:11",
+      "CANCELLED"
+    ],
+    "trajectories": [
+      {
+        "id": 1,
+        "clearance": 0.9000060138849415,
+        "endpoint": [
+          -7.049999948590995,
+          -8.44999996945262,
+          1.750000026077032
+        ]
+      },
+      {
+        "id": 2,
+        "clearance": 0.9500000275671463,
+        "endpoint": [
+          -6.049999933689834,
+          -8.649999972432854,
+          1.8500000275671484
+        ]
+      },
+      {
+        "id": 3,
+        "clearance": 0.8500000260770302,
+        "endpoint": [
+          -5.049999918788672,
+          -8.74999997392297,
+          1.9500000290572648
+        ]
+      },
+      {
+        "id": 4,
+        "clearance": 0.6792492571896402,
+        "endpoint": [
+          -3.3499998934566984,
+          -6.349999938160182,
+          1.6500000245869162
+        ]
+      },
+      {
+        "id": 5,
+        "clearance": 0.5946264134270323,
+        "endpoint": [
+          -1.7499998696148398,
+          -5.849999930709601,
+          2.0500000305473804
+        ]
+      },
+      {
+        "id": 6,
+        "clearance": 0.41037168813868236,
+        "endpoint": [
+          -0.9499998576939108,
+          -5.749999929219485,
+          1.4500000216066842
+        ]
+      },
+      {
+        "id": 7,
+        "clearance": 0.40771044742375856,
+        "endpoint": [
+          -4.649999912828207,
+          -2.949999887496233,
+          1.3500000201165676
+        ]
+      },
+      {
+        "id": 8,
+        "clearance": 0.9500000186264512,
+        "endpoint": [
+          -3.8499999009072776,
+          -2.349999878555536,
+          1.2500000186264513
+        ]
+      },
+      {
+        "id": 9,
+        "clearance": 0.9036701268719938,
+        "endpoint": [
+          -3.8499999009072776,
+          -1.349999863654375,
+          1.4500000216066837
+        ]
+      },
+      {
+        "id": 10,
+        "clearance": 0.2397316206679579,
+        "endpoint": [
+          -4.749999914318322,
+          3.2500002048909655,
+          2.0500000305473804
+        ]
+      },
+      {
+        "id": 11,
+        "clearance": 0.36816362989716983,
+        "endpoint": [
+          -4.749999914318324,
+          2.2500001899898057,
+          1.9500000290572648
+        ]
+      }
+    ],
+    "positions": 9146,
+    "unsafe_abort": false,
+    "minimum_clearance": 0.23949076423889343,
+    "completed": true,
+    "start": [
+      -7.5,
+      -7.5,
+      1.2
+    ],
+    "duration": 180.01531467699533,
+    "hold_drift": 0.0006645004368849898,
+    "reused_observations": 3,
+    "reached_viewpoints": 10,
+    "final_position": [
+      -4.751369923811641,
+      3.0838126138874,
+      2.0334738074869003
+    ],
+    "passed": true
+  },
+  "progress_scan_first_trial": {
+    "layout": "expanded",
+    "goal": [
+      -1.0,
+      -7.5,
+      1.8
+    ],
+    "completed": true,
+    "states": [
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "STOPPED:MAP_INVALID",
+      "CANCELLED:CANCELLED"
+    ],
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:2",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:3",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:4",
+      "MAP_INVALID"
+    ],
+    "trajectories": [
+      {
+        "id": 1,
+        "parent_id": 0,
+        "duration": 15.6,
+        "map_version": 131,
+        "endpoint": [
+          -3.1499998904764657,
+          -7.149999950081111,
+          0.8500000126659872
+        ],
+        "truth_clearance": 0.09803579084843694,
+        "truth_closest_point": [
+          -4.279896676475544,
+          -7.125087057605508,
+          0.39803579084843693
+        ],
+        "receipt_map_version": 131,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.5,
+        "min_body_distance": 0.10000000149011612,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 2,
+        "parent_id": 0,
+        "duration": 9.6,
+        "map_version": 167,
+        "endpoint": [
+          -1.049999859184027,
+          -8.649999972432854,
+          1.1500000171363354
+        ],
+        "truth_clearance": 0.2374764846689567,
+        "truth_closest_point": [
+          -2.5065059645433223,
+          -7.879812901244983,
+          0.5871759386737091
+        ],
+        "receipt_map_version": 167,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.6324555277824402,
+        "min_body_distance": 0.30000001192092896,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 3,
+        "parent_id": 0,
+        "duration": 6.0,
+        "map_version": 196,
+        "endpoint": [
+          -2.0499998740851884,
+          -8.849999975413086,
+          1.5500000230968
+        ],
+        "truth_clearance": 0.6147773351857269,
+        "truth_closest_point": [
+          -1.5957345480285425,
+          -8.985222664814273,
+          1.4481232151946757
+        ],
+        "receipt_map_version": 196,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 4,
+        "parent_id": 0,
+        "duration": 8.4,
+        "map_version": 218,
+        "endpoint": [
+          -0.04999984428286553,
+          -8.849999975413086,
+          1.4500000216066842
+        ],
+        "truth_clearance": 0.5066758770711766,
+        "truth_closest_point": [
+          -1.0596602083824278,
+          -9.093324122928824,
+          1.499478543621847
+        ],
+        "receipt_map_version": 218,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.9000000357627869,
+        "min_body_distance": 0.6000000238418579,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      }
+    ],
+    "initial_observed": 138151,
+    "initial_goal_state": "UNKNOWN",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      -7.5,
+      -7.5,
+      1.2
+    ],
+    "latest_position": [
+      -0.43431996541640444,
+      -8.99085829499545,
+      1.4921414665123827
+    ],
+    "duration": 51.718760381998436,
+    "terminal": "STOPPED",
+    "final_position": [
+      -0.43431996541640444,
+      -8.99085829499545,
+      1.4921414665123827
+    ],
+    "final_error": 1.6240163896723405,
+    "final_observed": 244539,
+    "samples": 2737,
+    "min_truth_clearance": 0.09643733032680224,
+    "accepted_segments": 4,
+    "hold_drift": 0.001981706620453553,
+    "passed": false
+  },
+  "progress_scan_first_note": "Fresh mapping trial of segment-progress fix stopped at 51.719 s by existing map validity rule: nvblox source age 2.360 s exceeded 2 s timeout (forwarded depth age 0.446 s). Four published trajectories retained positive truth clearance, no arrival pass. Healthy map recovered after stopping; timeout was not increased.",
+  "progress_scan_retry": {
+    "layout": "expanded",
+    "goal": [
+      -1.0,
+      -7.5,
+      1.8
+    ],
+    "completed": true,
+    "states": [
+      "OBSERVING",
+      "STOPPED:MAP_INVALID",
+      "CANCELLED:CANCELLED"
+    ],
+    "events": [
+      "GOAL_REPLACED",
+      "MAP_INVALID"
+    ],
+    "trajectories": [],
+    "initial_observed": 244539,
+    "initial_goal_state": "FREE",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      -0.43431996541640444,
+      -8.99085829499545,
+      1.4921414665123827
+    ],
+    "latest_position": [
+      -0.4343104635004885,
+      -8.990853858144936,
+      1.4921423713866544
+    ],
+    "duration": 1.2265423400021973,
+    "terminal": "STOPPED",
+    "final_position": [
+      -0.4343104635004885,
+      -8.990853858144936,
+      1.4921423713866544
+    ],
+    "final_error": 1.624015454835977,
+    "final_observed": 249665,
+    "samples": 213,
+    "min_truth_clearance": 0.6091417050045504,
+    "accepted_segments": 0,
+    "hold_drift": 1.59546744208929e-07,
+    "passed": false
+  },
+  "progress_scan_retry_note": "Same session/map after data recovered, explicit reissue of the same goal from the stopped pose. Source age 2.142 s exceeded the unchanged 2 s threshold again while forwarded depth age was 0.030 s. No trajectory was accepted. Progress-scan unit regressions pass; box arrival with this change has not passed the new end-to-end trial. Remains HOLD; source integration/TF timing needs separate diagnosis."
+}

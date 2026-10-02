@@ -1,0 +1,262 @@
+{
+  "scenario": "8 m synthetic incrementally observed free corridor, real ROS planner and executor, ideal velocity model",
+  "date": "2026-10-01",
+  "limits": {
+    "velocity": 0.5,
+    "acceleration": 1.0,
+    "jerk": 2.0
+  },
+  "measurement": "Stop threshold 0.05 m/s; exclude initial and final resting intervals.",
+  "scope": "No Gazebo sensors or SLAM; verifies continuous handovers, not complex scene navigation or flight safety.",
+  "commands": [
+    "./scripts/with_venv.sh python scripts/check_continuous_navigation.py --mode baseline --output .cache/sim/baseline_corridor.json",
+    "./scripts/with_venv.sh python scripts/check_continuous_navigation.py --mode continuous --output .cache/sim/continuous_corridor.json"
+  ],
+  "runs": [
+    {
+      "mode": "baseline",
+      "scenario": "synthetic_incremental_corridor",
+      "events": [
+        "GOAL_REPLACED",
+        "ACCEPTED:1",
+        "LOCAL_GOAL_REACHED",
+        "ACCEPTED:2",
+        "LOCAL_GOAL_REACHED",
+        "ACCEPTED:3",
+        "LOCAL_GOAL_REACHED",
+        "ACCEPTED:4"
+      ],
+      "states": [
+        "IDLE",
+        "CANCELLED:GOAL_REPLACED",
+        "OBSERVING",
+        "PLANNING",
+        "EXPLORING",
+        "OBSERVING",
+        "PLANNING",
+        "EXPLORING",
+        "OBSERVING",
+        "PLANNING",
+        "EXPLORING",
+        "OBSERVING",
+        "PLANNING",
+        "NAVIGATING",
+        "REACHED"
+      ],
+      "handovers": [],
+      "completed": true,
+      "duration": 49.718,
+      "stop_count": 3,
+      "stopped_seconds": 22.012999999999998,
+      "final_position": [
+        8.001017549688292,
+        -0.00011334414752614835,
+        -0.0001131350071571174
+      ],
+      "accepted_segments": 4
+    },
+    {
+      "mode": "continuous",
+      "scenario": "synthetic_incremental_corridor",
+      "events": [
+        "GOAL_REPLACED",
+        "ACCEPTED:1",
+        "REPLAN_REQUESTED",
+        "QUEUED:2",
+        "HANDOVER:1->2",
+        "ACCEPTED:2",
+        "REPLAN_REQUESTED",
+        "QUEUED:3",
+        "HANDOVER:2->3",
+        "ACCEPTED:3",
+        "REPLAN_REQUESTED",
+        "QUEUED:4",
+        "HANDOVER:3->4",
+        "ACCEPTED:4",
+        "REPLAN_REQUESTED",
+        "QUEUED:5",
+        "HANDOVER:4->5",
+        "ACCEPTED:5",
+        "REPLAN_REQUESTED",
+        "QUEUED:6",
+        "HANDOVER:5->6",
+        "ACCEPTED:6",
+        "REPLAN_REQUESTED",
+        "QUEUED:7",
+        "HANDOVER:6->7",
+        "ACCEPTED:7",
+        "GOAL_REACHED"
+      ],
+      "states": [
+        "IDLE",
+        "OBSERVING",
+        "PLANNING",
+        "EXPLORING",
+        "NAVIGATING",
+        "REACHED"
+      ],
+      "handovers": [
+        {
+          "speed": 0.47377289698876174,
+          "continuity_errors": [
+            6.402116564889265e-08,
+            7.863442184392878e-09,
+            1.3712721403475185e-08
+          ]
+        },
+        {
+          "speed": 0.3898748753043174,
+          "continuity_errors": [
+            3.909894835824288e-08,
+            8.411462609979532e-09,
+            7.12834233842014e-09
+          ]
+        },
+        {
+          "speed": 0.4245190129012896,
+          "continuity_errors": [
+            1.744730680473069e-08,
+            8.789982727855509e-10,
+            4.571836336676698e-09
+          ]
+        },
+        {
+          "speed": 0.46348340976673347,
+          "continuity_errors": [
+            1.0100707784177458e-07,
+            6.5686654699563155e-09,
+            2.2105980085882785e-08
+          ]
+        },
+        {
+          "speed": 0.3976649372965693,
+          "continuity_errors": [
+            1.6075479521102998e-08,
+            3.5098700385824926e-09,
+            2.7789355761039103e-09
+          ]
+        },
+        {
+          "speed": 0.2829288920406132,
+          "continuity_errors": [
+            9.364938559183367e-09,
+            6.290026716524504e-09,
+            5.711419079450904e-09
+          ]
+        }
+      ],
+      "completed": true,
+      "duration": 24.442,
+      "stop_count": 0,
+      "stopped_seconds": 0.0,
+      "final_position": [
+        8.001205058875435,
+        -2.1278647962497187e-05,
+        -2.1282406527438842e-05
+      ],
+      "accepted_segments": 7
+    }
+  ],
+  "free_volume_guard_repeat": {
+    "mode": "continuous",
+    "scenario": "synthetic_incremental_corridor",
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "REPLAN_REQUESTED",
+      "QUEUED:2",
+      "HANDOVER:1->2",
+      "ACCEPTED:2",
+      "REPLAN_REQUESTED",
+      "QUEUED:3",
+      "HANDOVER:2->3",
+      "ACCEPTED:3",
+      "REPLAN_REQUESTED",
+      "QUEUED:4",
+      "HANDOVER:3->4",
+      "ACCEPTED:4",
+      "REPLAN_REQUESTED",
+      "QUEUED:5",
+      "HANDOVER:4->5",
+      "ACCEPTED:5",
+      "REPLAN_REQUESTED",
+      "QUEUED:6",
+      "HANDOVER:5->6",
+      "ACCEPTED:6",
+      "REPLAN_REQUESTED",
+      "QUEUED:7",
+      "HANDOVER:6->7",
+      "ACCEPTED:7",
+      "GOAL_REACHED"
+    ],
+    "states": [
+      "IDLE",
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "NAVIGATING",
+      "REACHED"
+    ],
+    "handovers": [
+      {
+        "speed": 0.4734785000354258,
+        "continuity_errors": [
+          6.098289672634568e-09,
+          7.560674512881183e-10,
+          1.3070073417933507e-09
+        ]
+      },
+      {
+        "speed": 0.38971019696381903,
+        "continuity_errors": [
+          4.309451642725141e-08,
+          9.206749150543484e-09,
+          7.965571618662307e-09
+        ]
+      },
+      {
+        "speed": 0.4245003467613645,
+        "continuity_errors": [
+          1.1449176993445023e-08,
+          5.865797753715357e-10,
+          2.9916023276094345e-09
+        ]
+      },
+      {
+        "speed": 0.4631383081186312,
+        "continuity_errors": [
+          3.1553445643583135e-08,
+          2.0523652797527835e-09,
+          6.859115583306963e-09
+        ]
+      },
+      {
+        "speed": 0.39755686311225347,
+        "continuity_errors": [
+          4.731225963593784e-09,
+          1.0641488887120902e-09,
+          9.141180980350017e-10
+        ]
+      },
+      {
+        "speed": 0.27184984394991074,
+        "continuity_errors": [
+          3.53810982483047e-08,
+          2.386848003357619e-08,
+          2.3523861146940766e-08
+        ]
+      }
+    ],
+    "completed": true,
+    "duration": 24.5,
+    "stop_count": 0,
+    "stopped_seconds": 0.0,
+    "final_position": [
+      8.001136938399302,
+      -2.018535323826483e-05,
+      -2.0188600674906574e-05
+    ],
+    "accepted_segments": 7
+  }
+}

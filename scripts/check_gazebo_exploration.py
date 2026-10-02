@@ -74,6 +74,8 @@ def main():
     parser.add_argument('--timeout', type=float, default=180.)
     parser.add_argument('--min-segments', type=int, default=1)
     parser.add_argument('--output', default='/tmp/uav_exploration_result.json')
+    parser.add_argument('--stop-on-unsafe', action='store_true',
+                        help='Cancel immediately when independent geometry rejects a published curve')
     args = parser.parse_args()
     truth_clearance = expanded_clearance() if args.layout == 'expanded' else clearance
     rclpy.init()
@@ -114,10 +116,31 @@ def main():
             return
         curve = spline([[p.x,p.y,p.z] for p in msg.control_points], msg.knot_interval)
         duration = float(curve.t[-4])
-        truth = min(truth_clearance(p) for p in curve(np.linspace(0, duration, max(100, int(duration*20)))))
-        report['trajectories'].append({'id': msg.trajectory_id, 'duration': duration,
-            'map_version': msg.map_version, 'endpoint': curve(duration).tolist(), 'truth_clearance': float(truth)})
+        points = curve(np.linspace(0, duration, max(100, int(duration*20))))
+        clearances = np.array([truth_clearance(p) for p in points])
+        closest = points[int(np.argmin(clearances))]
+        entry = {'id': msg.trajectory_id, 'parent_id': msg.parent_trajectory_id, 'duration': duration,
+            'map_version': msg.map_version, 'endpoint': curve(duration).tolist(),
+            'truth_clearance': float(np.min(clearances)), 'truth_closest_point': closest.tolist()}
+        if latest['map'] is not None:
+            grid = grid_from_message(latest['map'])
+            index = grid.index(closest)
+            entry['receipt_map_version'] = latest['map'].version
+            entry['receipt_map_collision_at_closest'] = bool(grid.collision(closest, .3))
+            entry['receipt_map_distance_at_closest'] = float(grid.distance[tuple(index)]) if index is not None else None
+            lo = np.maximum(0,np.floor((closest-.3-grid.origin)/grid.resolution).astype(int))
+            hi = np.minimum(grid.distance.shape,np.floor((closest+.3-grid.origin)/grid.resolution).astype(int)+1)
+            region = tuple(slice(a,b) for a,b in zip(lo,hi))
+            body_distance = grid.distance[region]
+            entry['min_body_distance'] = float(np.min(body_distance))
+            entry['nonpositive_body_voxels'] = int(np.count_nonzero(body_distance <= 0))
+            entry['unknown_body_voxels'] = int(np.count_nonzero(~grid.observed[region]))
+        report['trajectories'].append(entry)
         checkpoint()
+        if args.stop_on_unsafe and entry['truth_clearance'] <= 0:
+            report['unsafe_abort'] = True
+            cancel.call_async(Trigger.Request())
+            checkpoint()
     qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
     node.create_subscription(MapSnapshot, '/uav/map/snapshot', on_map, qos)
     node.create_subscription(Odometry, '/uav/localization/odometry', on_odom, qos_profile_sensor_data)
@@ -148,13 +171,20 @@ def main():
         pub.publish(msg)
         if not pub.wait_for_all_acked(Duration(seconds=3.)):
             raise RuntimeError('Navigation goal delivery was not acknowledged')
-        deadline = time.monotonic()+args.timeout
+        started = time.monotonic()
+        deadline = started+args.timeout
         terminal = None
         while time.monotonic() < deadline:
             rclpy.spin_once(node, timeout_sec=.05)
+            if report.get('unsafe_abort'):
+                break
             if task_started and report['states'] and report['states'][-1].split(':')[0] in ('REACHED', 'BLOCKED', 'STOPPED'):
                 terminal = report['states'][-1].split(':')[0]
                 break
+        if terminal is None and cancel.service_is_ready():
+            future = cancel.call_async(Trigger.Request())
+            rclpy.spin_until_future_complete(node, future, timeout_sec=3.)
+        report['duration'] = time.monotonic()-started
         stopped = np.array(latest['position'])
         after_stop = len(samples)
         accepted_before = sum(e.startswith('ACCEPTED:') for e in report['events'])
