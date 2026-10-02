@@ -13,10 +13,14 @@ planning attempt. Consumers must reject an older epoch or decreasing version.
 `TimedTrajectory`: 3-D uniform cubic B-spline. For N control points and knot
 interval dt, knot vector is `[-3,-2,...,N] * dt`, time domain is
 `[0,(N-3)*dt]`. Control array order is time order, coordinates are metres, absolute
-start uses ROS simulation time, derivative units are m/s, m/s² and m/s³. First and
-last three controls coincide, defining zero velocity/acceleration at each end.
-The simulation executor accepts only a stopped takeover and validates the full
-curve; it does not interpolate `nav_msgs/Path`. `map_version` identifies the
+start uses ROS time (simulation time in Gazebo), derivative units are m/s, m/s²
+and m/s³. Last three controls coincide, defining a stopped endpoint. A stopped
+start (`parent_trajectory_id=0`) also has three coincident initial controls.
+A moving start preserves the exact position, velocity and acceleration of its
+identified parent at `start_time`. The executor queues the successor while the
+parent continues, checks C2 continuity and the full curve, and switches only at
+that timestamp. A failed or late successor leaves the parent's checked stop
+trajectory active. It does not interpolate `nav_msgs/Path`. `map_version` identifies the
 planning snapshot, while the latest available snapshot independently rechecks it.
 
 Simulation uses a fixed identity `map -> odom`; this contract does not authorize
@@ -28,6 +32,15 @@ In managed mode the executor accepts only the outstanding planning token; cancel
 replacement, completion, timeout, or terminal failure retires it. Tokens are
 strictly increasing within an executor process, including simulated clock resets.
 Rebuild both interface consumers after changing these message definitions.
+
+`TrajectoryRequest` on `/uav/replan_request` carries a separate request token in
+`header.stamp`, the map session, parent trajectory ID, absolute handover time,
+predicted initial position/velocity/acceleration, and the next goal. Only managed
+simulation planning accepts it. Its token does not replace the active token until
+handover. The executor rejects a wrong parent/session/token, boundary discontinuity,
+expired start or invalid curve; it rechecks queued curves on map updates. Cancel,
+health faults and session changes discard both the active and queued trajectory.
+`QUEUED`, `HANDOVER` and `REPLAN_REQUESTED` executor events expose this lifecycle.
 
 `/uav/navigation/state` is the overall task result; planner status and
 `LOCAL_GOAL_REACHED` refer only to one segment. A new map does not automatically

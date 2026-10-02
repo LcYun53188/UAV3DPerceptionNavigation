@@ -6,6 +6,8 @@ string map_id
 uint64 epoch
 uint64 map_version
 uint64 trajectory_id
+# Zero for stopped starts; otherwise replace this exact active trajectory.
+uint64 parent_trajectory_id
 builtin_interfaces/Time start_time
 float64 knot_interval
 geometry_msgs/Point[] control_points
