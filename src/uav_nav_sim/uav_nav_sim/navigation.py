@@ -10,7 +10,7 @@ import numpy as np
 from geometry_msgs.msg import PoseStamped, Twist
 from std_msgs.msg import String
 from rclpy.qos import QoSProfile, DurabilityPolicy
-from uav_nav_interfaces.msg import PlannerStatus
+from uav_nav_interfaces.msg import PlannerStatus, TrajectoryRequest
 
 from .exploration import ExplorationSettings, choose_subgoal, segment_free
 from .core import CellState
@@ -31,6 +31,16 @@ class GoalManager:
             executor.declare_parameter('exploration.'+name, value)
             values[name] = executor.get_parameter('exploration.'+name).value
         self.settings = ExplorationSettings(**values)
+        executor.declare_parameter('continuous_navigation', True)
+        executor.declare_parameter('moving_handover', True)
+        self.continuous = executor.get_parameter('continuous_navigation').value
+        self.moving_handover = executor.get_parameter('moving_handover').value
+        executor.declare_parameter('reuse_inflight_observation', True)
+        self.reuse_observation = executor.get_parameter('reuse_inflight_observation').value
+        self.reset_observation_credit()
+        self.replan = None
+        self.last_replan_probe = float('-inf')
+        self.replan_pub = executor.create_publisher(TrajectoryRequest, '/uav/replan_request', 10)
         self.goal = self.local = None
         self.token = self.last_token = 0
         self.state = 'IDLE'
@@ -58,6 +68,11 @@ class GoalManager:
         self.publish_status()
 
     def finish(self, state, reason=''):
+        retain = state == 'REACHED' and self.autonomous.enabled
+        arrival_view, last = (self.arrival_view, self.flight_view_last) if retain else (None, None)
+        self.reset_observation_credit()
+        self.arrival_view, self.flight_view_last = arrival_view, last
+        self.replan = None
         self.goal = self.local = None
         self.token = 0
         self.phase = 'IDLE'
@@ -78,6 +93,8 @@ class GoalManager:
         self.failures = self.segments = 0
         self.started = self.progress_at = time.monotonic()
         self.best_distance = float('inf')
+        self.segment_start_distance = (float(np.linalg.norm(self.position()-goal))
+                                       if self.node.odom is not None else float('inf'))
         self.no_candidate_at = None
         self.last_selection = 0.0
         self.last_known_probe = float('-inf')
@@ -89,13 +106,105 @@ class GoalManager:
         self.report('OBSERVING')
 
     def accepts(self, msg):
+        if msg.parent_trajectory_id:
+            return (self.goal is not None and self.phase == 'EXECUTING' and self.replan is not None and
+                    stamp_key(msg.goal_stamp) == self.replan['token'] and
+                    msg.parent_trajectory_id == self.replan['parent'] and
+                    stamp_key(msg.start_time) == self.replan['start_ns'])
         return self.goal is not None and self.phase == 'PLANNING' and self.token != 0 and stamp_key(msg.goal_stamp) == self.token
 
+    def replan_failed(self, reason):
+        # A speculative successor must never invalidate the executing stop path.
+        self.replan = None
+        self.node.get_logger().info('Moving replan deferred: '+reason)
+
+    def handover(self):
+        self.local, self.local_final = self.replan['target'], self.replan['final']
+        self.token = self.replan['token']
+        self.replan = None
+        self.segments += 1
+        self.accepted()
+
+    def inflight_tick(self, t, duration):
+        """Cheap, bounded straight-corridor probes while the old curve executes.
+
+        Full connected-component/frontier searches remain in HOLD: they must not
+        stall the 50 Hz control loop. No unseen space is used for a continuation.
+        """
+        node = self.node
+        now = time.monotonic()
+        self.track_flight_observation(now)
+        distance = np.linalg.norm(self.position()-self.goal) if self.goal is not None else 0.
+        if self.goal is not None and distance < self.best_distance-.2:
+            self.best_distance, self.progress_at = distance, now
+        if self.replan is not None:
+            if node.get_clock().now().nanoseconds >= self.replan['start_ns'] and node.pending is None:
+                self.replan_failed('HANDOVER_TIMEOUT')
+            return
+        lead = 1.2
+        if (not self.moving_handover or self.goal is None or self.local_final or self.local is None or
+                self.phase != 'EXECUTING' or not lead+.5 < duration-t <= 4.5 or
+                now-self.last_replan_probe < 1.0 or
+                self.segments >= self.settings.max_segments or
+                now-self.progress_at > self.settings.progress_timeout):
+            return
+        self.last_replan_probe = now
+        start_t = t+lead
+        start, velocity, acceleration = (node.curve(start_t, d) for d in (0,1,2))
+        if np.linalg.norm(velocity) < .08:
+            return
+        direction = self.goal-self.local
+        remaining = np.linalg.norm(direction)
+        if remaining < .6 or np.dot(direction, velocity) <= 0:
+            return
+        radius = node.radius+node.grid.resolution/2
+        target, final = None, False
+        # The final corridor may have become observed during flight.
+        candidates = [(self.goal, True)]
+        candidates += [(self.local+direction/remaining*min(step,remaining), False)
+                       for step in (3., 2., 1.) if step < remaining]
+        for candidate, is_final in candidates:
+            if (any(np.linalg.norm(candidate-p) < self.settings.revisit_radius for p in self.rejected) or
+                    np.linalg.norm(candidate-self.local) < .6):
+                continue
+            # Bound controller work even for a distant final goal.
+            if np.linalg.norm(candidate-start) > 6.:
+                continue
+            if segment_free(node.grid, start, candidate, radius):
+                target, final = candidate.copy(), is_final
+                break
+        if target is None:
+            return
+        clock_ns = node.get_clock().now().nanoseconds
+        start_ns = stamp_key(node.trajectory.start_time)+int(start_t*1e9)
+        if start_ns-clock_ns < 800_000_000:
+            return
+        token = max(clock_ns, self.last_token+1)
+        self.last_token = token
+        request = TrajectoryRequest()
+        request.header.frame_id = 'map'
+        request.header.stamp.sec, request.header.stamp.nanosec = divmod(token,1_000_000_000)
+        request.start_time.sec, request.start_time.nanosec = divmod(start_ns,1_000_000_000)
+        request.map_id, request.epoch = node.session
+        request.parent_trajectory_id = node.trajectory.trajectory_id
+        for field, value in [('start_position',start),('start_velocity',velocity),
+                             ('start_acceleration',acceleration),('goal',target)]:
+            point = getattr(request,field)
+            point.x, point.y, point.z = map(float,value)
+        self.replan = dict(token=token, parent=request.parent_trajectory_id, start_ns=start_ns,
+                           target=target, final=final)
+        self.replan_pub.publish(request)
+        node.event.publish(String(data='REPLAN_REQUESTED'))
+
     def accepted(self):
+        self.reset_observation_credit()
+        self.flight_observed_start = int(np.count_nonzero(self.node.grid.observed))
+        self.segment_start_distance = float(np.linalg.norm(self.position()-self.goal))
         self.phase = 'EXECUTING'
         self.report('NAVIGATING' if self.local_final else 'EXPLORING')
 
     def failed_segment(self, reason):
+        self.reset_observation_credit()
         if self.goal is None:
             return
         if self.local is not None:
@@ -111,6 +220,10 @@ class GoalManager:
             self.report('OBSERVING', reason)
 
     def planner_cb(self, msg):
+        if self.replan is not None and stamp_key(msg.goal_stamp) == self.replan['token']:
+            if msg.state not in ('WAIT_MAP_OR_ODOMETRY', 'SAFE_SEED_FALLBACK', 'TRAJECTORY_PUBLISHED'):
+                self.replan_failed(msg.state)
+            return
         if self.goal is None or self.phase != 'PLANNING' or stamp_key(msg.goal_stamp) != self.token:
             return
         if msg.state in ('WAIT_MAP_OR_ODOMETRY', 'WAIT_STOPPED', 'SAFE_SEED_FALLBACK', 'TRAJECTORY_PUBLISHED'):
@@ -126,6 +239,7 @@ class GoalManager:
             self.failed_segment(msg.state)
 
     def on_stop(self, reason):
+        self.replan = None
         if reason in ('GOAL_REPLACED', 'CANCELLED', 'MAP_SESSION_CHANGED'):
             self.finish('CANCELLED', reason)
         elif self.goal is None:
@@ -133,6 +247,7 @@ class GoalManager:
                 self.finish('STOPPED', reason)
             return
         elif reason in ('GOAL_REACHED', 'LOCAL_GOAL_REACHED'):
+            self.arrival_view = self.flight_observation_credit(time.monotonic())
             self.token = 0
             if np.linalg.norm(self.position()-self.goal) < 0.15:
                 self.finish('REACHED')
@@ -151,11 +266,12 @@ class GoalManager:
                 if gain >= self.settings.minimum_map_gain:
                     self.progress_at = time.monotonic()
                     self.observed_at_progress = observed
-                if np.linalg.norm(self.position()-self.goal) >= self.best_distance-0.2:
+                if np.linalg.norm(self.position()-self.goal) >= self.segment_start_distance-0.2:
                     self.stagnant_segments += 1
                 else:
                     self.stagnant_segments = 0
                 if self.stagnant_segments >= 2:
+                    self.node.event.publish(String(data='STAGNATION_SCAN_REQUESTED'))
                     self.scan_remaining = 3
                     self.stagnant_segments = 0
             self.phase = 'OBSERVE'
@@ -173,7 +289,48 @@ class GoalManager:
         p = self.node.odom.pose.pose.position
         return np.array([p.x, p.y, p.z])
 
-    def observation_command(self, position, now, require_observation=True, direction=None):
+    def reset_observation_credit(self):
+        self.flight_view_since = self.flight_view_yaw = self.flight_view_last = None
+        self.flight_view_version = None
+        self.flight_observed_start = None
+        self.arrival_view = None
+
+    def track_flight_observation(self, now):
+        if not self.reuse_observation or not self.explore or self.node.map.static_map:
+            return
+        q = self.node.odom.pose.pose.orientation
+        quaternion = np.array([q.x, q.y, q.z, q.w])
+        if not np.all(np.isfinite(quaternion)) or np.linalg.norm(quaternion) < 1e-6:
+            self.flight_view_since = None
+            return
+        x,y,z,w = quaternion/np.linalg.norm(quaternion)
+        yaw = math.atan2(2*(w*z+x*y), 1-2*(y*y+z*z))
+        pitch = math.asin(float(np.clip(2*(w*y-z*x), -1., 1.)))
+        roll = math.atan2(2*(w*x+y*z), 1-2*(x*x+y*y))
+        if abs(pitch) > .06 or abs(roll) > .06:
+            self.flight_view_since = None
+            return
+        if (self.flight_view_since is None or self.flight_view_last is None or
+                now-self.flight_view_last > .2 or
+                abs(math.atan2(math.sin(yaw-self.flight_view_yaw),
+                               math.cos(yaw-self.flight_view_yaw))) > .1):
+            self.flight_view_since = now
+            self.flight_view_yaw = yaw
+            self.flight_view_version = self.node.map.version
+        self.flight_view_last = now
+
+    def flight_observation_credit(self, now):
+        if (not self.reuse_observation or self.flight_view_since is None or
+                self.flight_view_last is None or now-self.flight_view_last > .2 or
+                now-self.flight_view_since < self.settings.observation_time or
+                self.flight_observed_start is None or
+                self.node.map.version <= self.flight_view_version):
+            return None
+        gain = (int(np.count_nonzero(self.node.grid.observed))-
+                self.flight_observed_start)*self.node.grid.resolution**3
+        return self.flight_view_yaw if gain >= self.settings.minimum_map_gain else None
+
+    def observation_command(self, position, now, require_observation=True, direction=None, reuse=False):
         command = Twist()
         if not self.explore or (self.node.map is not None and self.node.map.static_map):
             return command, True
@@ -205,6 +362,14 @@ class GoalManager:
             command.angular.z = float(np.clip(2*error, -0.6, 0.6))
             self.observe_since = None
             return command, False
+        if (reuse and self.arrival_view is not None and self.flight_view_last is not None and
+                0 <= now-self.flight_view_last <= .2 and self.scan_index == 0 and
+                self.scan_remaining == 0 and
+                abs(math.atan2(math.sin(desired-self.arrival_view),
+                               math.cos(desired-self.arrival_view))) <= .1):
+            self.arrival_view = None
+            self.observe_since = now-self.settings.observation_time
+            self.node.event.publish(String(data='OBSERVATION_REUSED'))
         if self.observe_since is None:
             self.observe_since = now
         return command, now-self.observe_since >= self.settings.observation_time
@@ -274,7 +439,7 @@ class GoalManager:
                     not node.grid.collision(self.goal, node.radius) and
                     segment_free(node.grid, position, self.goal, node.radius)):
                 result = (self.goal.copy(), True)
-        command, observed = self.observation_command(position, now, require_observation=result is None)
+        command, observed = self.observation_command(position, now, require_observation=result is None, reuse=True)
         if self.goal is None:
             return Twist()
         # Deadline is checked even during a scan; inability to orient or find a
@@ -292,7 +457,8 @@ class GoalManager:
         self.last_selection = now
         if result is None:
             result = choose_subgoal(node.grid, position, self.goal, node.radius, self.settings,
-                self.visited, self.rejected, self.explore and not node.map.static_map, self.best_distance)
+                self.visited, self.rejected, self.explore and not node.map.static_map, self.best_distance,
+                continuous=self.continuous)
         if result is None:
             if not self.explore or node.map.static_map:
                 self.finish('BLOCKED', 'NO_KNOWN_PATH')

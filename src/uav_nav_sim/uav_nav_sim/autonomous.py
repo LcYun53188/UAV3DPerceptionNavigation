@@ -25,8 +25,9 @@ def frontier_viewpoint(grid, start, radius, visited=(), rejected=(), preferred_h
         return None
     unknown = ~grid.observed | ~np.isfinite(grid.distance)
     padding = int(np.ceil((radius+r/2)/r))
-    near_unknown = maximum_filter(unknown, size=2*padding+1, mode='constant', cval=1)
-    safe = ~near_unknown & (grid.distance > radius+(np.sqrt(3)+1)*r/2)
+    near_blocked = maximum_filter(unknown | (grid.distance <= 0),
+                                  size=2*padding+1, mode='constant', cval=1)
+    safe = ~near_blocked & (grid.distance > radius+(np.sqrt(3)+1)*r/2)
     components, _ = label(safe, generate_binary_structure(3, 1))
     index = grid.index(start)
     component = components[tuple(index)]
@@ -199,7 +200,7 @@ class AutonomousExplorer:
             return command
         if np.linalg.norm([velocity.x, velocity.y, velocity.z]) > .05:
             return command
-        command, observed = self.manager.observation_command(position, now, direction=self.scan_direction)
+        command, observed = self.manager.observation_command(position, now, direction=self.scan_direction, reuse=self.scan_views == 1)
         if not self.enabled or not observed:
             return command
         self.manager.scan_index += 1

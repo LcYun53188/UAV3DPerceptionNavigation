@@ -59,10 +59,14 @@ def setup(context):
                          'aabb_size':[2*extent, 2*extent, 4.0]}]),
         Node(package='uav_nav_sim', executable='gazebo_executor', output='screen',
              parameters=[common, {'managed_goals': True, 'explore_unknown': mode == 'mapping',
+                         'continuous_navigation': LaunchConfiguration('continuous_navigation').perform(context).lower() == 'true',
+                         'moving_handover': LaunchConfiguration('moving_handover').perform(context).lower() == 'true',
+                         'reuse_inflight_observation': LaunchConfiguration('reuse_inflight_observation').perform(context).lower() == 'true',
                          'exploration.step_radius': float(LaunchConfiguration('exploration_step').perform(context)),
                          'exploration.blocked_timeout': float(LaunchConfiguration('blocked_timeout').perform(context))}]),
         Node(package='uav_ego_adapter', executable='ego_nvblox_planner', output='screen',
-             parameters=[str(config), common, {'managed_goals': True}],
+             parameters=[str(config), common, {'managed_goals': True,
+                         'continuous_navigation': LaunchConfiguration('continuous_navigation').perform(context).lower() == 'true'}],
              remappings=[('/uav/goal', '/uav/local_goal')]),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(share/'launch/rviz_navigation.launch.py')),
@@ -78,6 +82,9 @@ def generate_launch_description():
         DeclareLaunchArgument('gui', default_value='false'),
         DeclareLaunchArgument('launch_rviz', default_value=LaunchConfiguration('gui')),
         DeclareLaunchArgument('goal_height', default_value='1.2'),
+        DeclareLaunchArgument('continuous_navigation', default_value='true'),
+        DeclareLaunchArgument('moving_handover', default_value='true'),
+        DeclareLaunchArgument('reuse_inflight_observation', default_value='true'),
         # With the fixed downward camera, a 2 m horizon tends to select lower
         # viewpoints before the upper body volume at flight height is observed.
         DeclareLaunchArgument('exploration_step', default_value='3.0'),

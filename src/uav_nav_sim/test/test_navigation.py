@@ -334,6 +334,7 @@ def test_two_stagnant_segments_scan_sides_before_reusing_forward_candidates(task
     node.map.static_map=False
     begin(manager)
     manager.best_distance=1.
+    manager.segment_start_distance=1.
     for x in [1.,.9]:
         manager.local=np.array([x,0.,0.])
         node.odom.pose.pose.position.x=x
@@ -517,3 +518,190 @@ def test_brief_scan_dispatches_without_three_extra_turns(task, monkeypatch):
     manager.tick()
     assert auto.enabled and auto.phase == 'GOAL'
     assert np.allclose(manager.goal, [2.,0.,0.])
+
+
+def prepare_inflight(task):
+    from uav_nav_sim.core import spline
+    manager,node,now=task
+    begin(manager,4.)
+    manager.local=np.array([2.,0.,0.])
+    manager.local_final=False
+    manager.phase='EXECUTING'
+    node.curve=spline([[x,0.,0.] for x in [0,0,0,.4,.8,1.2,1.6,2,2,2]],1.)
+    node.trajectory=TimedTrajectory(trajectory_id=9)
+    node.trajectory.start_time.sec=98
+    node.session=('map',1)
+    node.pending=None
+    advance(node,now,.6)
+    node.odom.pose.pose.position.x=float(node.curve(2.6)[0])
+    return manager,node,now
+
+
+def test_inflight_request_uses_future_state_and_separate_token(task):
+    manager,node,now=prepare_inflight(task)
+    current_token=manager.token
+    manager.inflight_tick(2.6,7.)
+    request=manager.replan_pub.publish.call_args.args[0]
+    assert request.parent_trajectory_id==9
+    assert request.start_time.sec==101
+    assert request.start_time.nanosec==800_000_000
+    assert np.allclose([request.start_position.x,request.start_position.y,request.start_position.z],node.curve(3.8))
+    assert manager.token==current_token and manager.phase=='EXECUTING'
+    reply=TimedTrajectory(goal_stamp=request.header.stamp,start_time=request.start_time,parent_trajectory_id=9)
+    assert manager.accepts(reply)
+    reply.parent_trajectory_id=8
+    assert not manager.accepts(reply)
+    reply.parent_trajectory_id=9
+    node.stop('CANCELLED')
+    assert manager.replan is None and not manager.accepts(reply)
+
+
+def test_failed_speculative_plan_does_not_reject_active_destination(task):
+    manager,node,now=prepare_inflight(task)
+    manager.inflight_tick(2.6,7.)
+    request=manager.replan_pub.publish.call_args.args[0]
+    old=node.curve
+    manager.planner_cb(PlannerStatus(goal_stamp=request.header.stamp,state='NO_PATH'))
+    assert manager.replan is None and node.curve is old
+    assert not manager.rejected and manager.failures==0 and manager.phase=='EXECUTING'
+
+
+def test_speculative_timeout_keeps_old_curve_and_retires_token(task):
+    manager,node,now=prepare_inflight(task)
+    manager.inflight_tick(2.6,7.)
+    request=manager.replan_pub.publish.call_args.args[0]
+    old=node.curve
+    advance(node,now,1.3)
+    manager.inflight_tick(3.9,7.)
+    assert manager.replan is None and node.curve is old
+    assert not manager.accepts(TimedTrajectory(goal_stamp=request.header.stamp,start_time=request.start_time,parent_trajectory_id=9))
+
+
+def test_unknown_continuation_or_final_stop_does_not_request_handover(task):
+    manager,node,now=prepare_inflight(task)
+    manager.local_final=True
+    manager.inflight_tick(2.6,7.)
+    manager.replan_pub.publish.assert_not_called()
+    manager.local_final=False
+    observed=node.grid.observed.copy()
+    observed[22:,:,:]=False
+    node.grid=Grid(node.grid.origin.copy(),node.grid.resolution,node.grid.distance.copy(),observed)
+    manager.inflight_tick(2.6,7.)
+    manager.replan_pub.publish.assert_not_called()
+
+
+def prepare_observation_credit(task):
+    manager,node,now=task
+    node.map=NS(static_map=False,version=1)
+    manager.explore=True
+    begin(manager,3.)
+    manager.local=np.array([1.,0.,0.])
+    manager.local_final=False
+    manager.accepted()
+    # Map gained 0.8 m^3 during flight, beyond the minimum 0.5 m^3.
+    manager.flight_observed_start-=100
+    for _ in range(17):
+        manager.track_flight_observation(now[0])
+        advance(node,now,.1)
+        node.map.version+=1
+    manager.track_flight_observation(now[0])
+    node.odom.pose.pose.position.x=1.
+    return manager,node,now
+
+
+def test_arrival_reuses_recent_level_view_once(task):
+    manager,node,now=prepare_observation_credit(task)
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    _,observed=manager.observation_command(manager.position(),now[0],reuse=True)
+    assert observed and manager.arrival_view is None
+    assert node.event.publish.call_args.args[0].data=='OBSERVATION_REUSED'
+    count=node.event.publish.call_count
+    manager.observation_command(manager.position(),now[0],reuse=True)
+    assert node.event.publish.call_count==count
+
+
+@pytest.mark.parametrize('fault',['no_gain','no_update','yaw_change','gap','disabled','tilt'])
+def test_inflight_observation_requires_gain_updates_and_stable_recent_heading(task,fault):
+    manager,node,now=prepare_observation_credit(task)
+    if fault=='no_gain':
+        manager.flight_observed_start=int(np.count_nonzero(node.grid.observed))
+    elif fault=='no_update':
+        node.map.version=manager.flight_view_version
+    elif fault=='yaw_change':
+        node.odom.pose.pose.orientation.z=np.sin(.2)
+        node.odom.pose.pose.orientation.w=np.cos(.2)
+        manager.track_flight_observation(now[0])
+    elif fault=='gap':
+        advance(node,now,.3)
+    elif fault=='disabled':
+        manager.reuse_observation=False
+    elif fault=='tilt':
+        node.odom.pose.pose.orientation.y=np.sin(.1)
+        node.odom.pose.pose.orientation.w=np.cos(.1)
+        manager.track_flight_observation(now[0])
+    assert manager.flight_observation_credit(now[0]) is None
+
+
+@pytest.mark.parametrize('fault',['stale','forced_scan','wrong_heading','panorama'])
+def test_observation_reuse_never_skips_changed_view_or_required_scan(task,fault):
+    manager,node,now=prepare_observation_credit(task)
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    reuse=True
+    if fault=='stale':
+        advance(node,now,.3)
+    elif fault=='forced_scan':
+        manager.scan_remaining=3
+    elif fault=='wrong_heading':
+        manager.arrival_view=1.
+    elif fault=='panorama':
+        reuse=False
+    _,observed=manager.observation_command(manager.position(),now[0],reuse=reuse)
+    assert not observed
+    assert all(call.args[0].data != 'OBSERVATION_REUSED' for call in node.event.publish.call_args_list)
+
+
+def test_cancel_and_failed_plan_clear_observation_credit(task):
+    manager,node,now=prepare_observation_credit(task)
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    manager.failed_segment('NO_PATH')
+    assert manager.arrival_view is None
+    manager.arrival_view=0.
+    node.stop('CANCELLED')
+    assert manager.arrival_view is None and manager.flight_view_last is None
+
+
+def test_autonomous_arrival_retains_credit_for_brief_scan_only(task):
+    manager,node,now=prepare_observation_credit(task)
+    auto=prepare_brief_scan(manager,node)
+    # Recreate a goal without disabling the autonomous owner.
+    manager.goal=np.array([1.,0.,0.])
+    manager.accepted()
+    manager.flight_observed_start-=100
+    for _ in range(17):
+        manager.track_flight_observation(now[0])
+        advance(node,now,.1)
+        node.map.version+=1
+    manager.track_flight_observation(now[0])
+    manager.on_stop('GOAL_REACHED')
+    assert auto.scan_views==1 and manager.arrival_view==0.
+    _,observed=manager.observation_command(manager.position(),now[0],direction=auto.scan_direction,reuse=True)
+    assert observed
+
+
+def test_flight_progress_does_not_trigger_stagnation_panorama(task):
+    manager,node,now=prepare_observation_credit(task)
+    # inflight_tick maintains best_distance before the arrival callback.
+    manager.best_distance=2.
+    manager.stagnant_segments=1
+    assert manager.segment_start_distance==3.
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    assert manager.stagnant_segments==0 and manager.scan_remaining==0
+
+
+def test_two_flights_without_net_goal_progress_still_force_panorama(task):
+    manager,node,now=prepare_observation_credit(task)
+    manager.segment_start_distance=2.
+    manager.stagnant_segments=1
+    manager.best_distance=1.5  # Earlier transient progress is not arrival progress.
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    assert manager.scan_remaining==3

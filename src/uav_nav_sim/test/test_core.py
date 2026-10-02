@@ -71,6 +71,17 @@ def test_unknown_body_volume_and_boundary():
     assert grid.collision([-1.95,0,0],0.2)
 
 
+@pytest.mark.parametrize('value',[-.1,0.,float('nan'),float('inf')])
+def test_clear_centre_does_not_hide_blocked_voxel_inside_body(value):
+    g=free_grid()
+    distance=g.distance.copy()
+    distance[22,20,20]=value
+    blocked=Grid(g.origin.copy(),g.resolution,distance,g.observed.copy())
+    assert blocked.distance[20,20,20]==3.
+    assert blocked.collision([.05,.05,.05],.3)
+    assert not blocked.collision([.05,.05,.05],.05)
+
+
 def test_bundle_checksum_scene_and_resolution(tmp_path):
     (tmp_path/'static_map.nvblx').write_bytes(b'test fixture')
     manifest=dict(schema=1,frame_id='map',scene_id='scene',resolution=0.1,localization='gazebo_world_identity',sha256=sha256(tmp_path/'static_map.nvblx'))

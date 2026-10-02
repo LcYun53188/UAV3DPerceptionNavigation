@@ -186,3 +186,19 @@ def test_viewpoint_prefers_clearance_over_small_goal_distance_advantage():
     point, final = choose_subgoal(g, [0., 0., 0.], [6., 0., 0.], .3, ExplorationSettings())
     assert not final and point[0] > 1.5
     assert g.distance[tuple(g.index(point))] > 1.
+
+
+def test_continuous_known_route_reaches_frontier_without_artificial_horizon():
+    g = grid(40)
+    settings = ExplorationSettings(step_radius=1.)
+    short, _ = choose_subgoal(g, [0.,0.,0.], [7.,0.,0.], .3, settings)
+    whole, final = choose_subgoal(g, [0.,0.,0.], [7.,0.,0.], .3, settings, continuous=True)
+    assert not final and whole[0] > 4.
+    assert short[0] < 1.1
+    assert segment_free(g, np.zeros(3), whole, .4)
+
+
+def test_continuous_route_still_excludes_unknown_and_disconnected_regions():
+    g = grid(40, wall=True)
+    result = choose_subgoal(g,[0.,0.,0.],[7.,0.,0.],.3,ExplorationSettings(),continuous=True)
+    assert result is None or result[0][0] < 1.2

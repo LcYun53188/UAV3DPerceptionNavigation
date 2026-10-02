@@ -13,7 +13,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 from uav_nav_interfaces.msg import MapSnapshot, TimedTrajectory
-from .core import grid_from_message, spline, validate_trajectory
+from .core import grid_from_message, spline, validate_trajectory, validate_handover
 from .navigation import GoalManager
 from .attitude import level_body_rates
 
@@ -29,6 +29,7 @@ class Executor(Node):
         self.limits = [self.get_parameter(k).value for k in ('max_velocity','max_acceleration','max_jerk')]
         self.timeout = self.get_parameter('map_timeout').value
         self.grid = self.map = self.odom = self.curve = self.trajectory = None
+        self.pending = None
         self.map_wall = self.odom_wall = 0.0
         self.last_id = 0
         self.session = None
@@ -47,6 +48,7 @@ class Executor(Node):
 
     def stop(self, reason):
         self.curve = self.trajectory = None
+        self.pending = None
         self.state = 'HOLD'
         self.command.publish(Twist())
         if self.navigation is not None:
@@ -98,6 +100,12 @@ class Executor(Node):
                 # The new map is valid; only the old remaining path is unsafe.
                 # Keep it available for a stopped, bounded replan.
                 self.stop(f'MAP_RECHECK_FAILED: {exc}')
+        if getattr(self, 'pending', None) is not None:
+            try:
+                validate_trajectory(self.pending[0], self.grid, self.radius, self.limits)
+            except ValueError as exc:
+                self.pending = None
+                self.navigation.replan_failed(f'PENDING_MAP_RECHECK_FAILED: {exc}')
 
     def ready(self):
         if self.map is None or self.grid is None or self.odom is None:
@@ -112,7 +120,8 @@ class Executor(Node):
             self.event.publish(String(data='REJECTED:OBSOLETE_GOAL'))
             return
         try:
-            if not self.ready() or self.curve is not None:
+            moving = msg.parent_trajectory_id != 0
+            if not self.ready() or (self.curve is not None and not moving):
                 now = self.get_clock().now()
                 ages = {name: None if msg is None else
                         (now-Time.from_msg(msg.header.stamp)).nanoseconds/1e9
@@ -130,12 +139,23 @@ class Executor(Node):
                 raise ValueError('Invalid declared limits')
             pos = self.odom.pose.pose.position
             vel = self.odom.twist.twist.linear
-            if (np.linalg.norm(curve(0)-[pos.x,pos.y,pos.z])>0.1 or
+            if moving:
+                if (self.navigation is None or self.curve is None or self.pending is not None or
+                        self.trajectory.trajectory_id != msg.parent_trajectory_id):
+                    raise ValueError('Handover parent is not active')
+                offset = (Time.from_msg(msg.start_time)-Time.from_msg(self.trajectory.start_time)).nanoseconds/1e9
+                validate_handover(self.curve, curve, offset)
+            elif (np.linalg.norm(curve(0)-[pos.x,pos.y,pos.z])>0.1 or
                     np.linalg.norm([vel.x,vel.y,vel.z])>0.05 or np.linalg.norm(curve(0,1))>1e-5):
                 raise ValueError('Discontinuous takeover')
             validate_trajectory(curve,self.grid,self.radius,limits)
             if (Time.from_msg(msg.start_time)-self.get_clock().now()).nanoseconds <= 0:
                 raise ValueError('Validation missed start time')
+            if moving:
+                self.pending = (curve,msg)
+                self.last_id = msg.trajectory_id
+                self.event.publish(String(data=f'QUEUED:{msg.trajectory_id}'))
+                return
             self.curve,self.trajectory = curve,msg
             self.last_id = msg.trajectory_id
             self.state = 'EXECUTING'
@@ -146,7 +166,10 @@ class Executor(Node):
             self.event.publish(String(data=f'REJECTED:{exc}'))
             self.get_logger().warning(f'Trajectory rejected: {exc}')
             if self.navigation is not None:
-                self.navigation.failed_segment(f'REJECTED:{exc}')
+                if msg.parent_trajectory_id:
+                    self.navigation.replan_failed(f'REJECTED:{exc}')
+                else:
+                    self.navigation.failed_segment(f'REJECTED:{exc}')
 
     def cancel(self, _, response):
         self.stop('CANCELLED')
@@ -188,6 +211,22 @@ class Executor(Node):
         if not self.ready():
             self.stop('STALE_MAP_OR_ODOMETRY')
             return
+        if self.pending is not None and ns >= Time.from_msg(self.pending[1].start_time).nanoseconds:
+            curve, msg = self.pending
+            lateness = (ns-Time.from_msg(msg.start_time).nanoseconds)/1e9
+            p = self.odom.pose.pose.position
+            old_t = (now-Time.from_msg(self.trajectory.start_time)).nanoseconds/1e9
+            if (lateness > .1 or not self.navigation.accepts(msg) or
+                    self.trajectory.trajectory_id != msg.parent_trajectory_id or
+                    np.linalg.norm(self.curve(min(old_t,float(self.curve.t[-4])))-[p.x,p.y,p.z]) > .1):
+                self.pending = None
+                self.navigation.replan_failed('HANDOVER_MISSED_OR_TRACKING')
+            else:
+                self.curve, self.trajectory = curve, msg
+                self.pending = None
+                self.navigation.handover()
+                self.event.publish(String(data=f'HANDOVER:{msg.parent_trajectory_id}->{msg.trajectory_id}'))
+                self.event.publish(String(data=f'ACCEPTED:{msg.trajectory_id}'))
         t = (now-Time.from_msg(self.trajectory.start_time)).nanoseconds/1e9
         if t < 0:
             self.publish_hold(Twist())
@@ -207,6 +246,8 @@ class Executor(Node):
         if t >= duration and np.linalg.norm(error)<0.04:
             self.stop('GOAL_REACHED')
             return
+        if self.navigation is not None:
+            self.navigation.inflight_tick(t, duration)
         velocity = self.curve(min(t,duration),1)+2.0*error
         speed = np.linalg.norm(velocity)
         if speed > self.limits[0]:

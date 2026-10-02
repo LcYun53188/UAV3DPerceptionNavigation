@@ -85,7 +85,12 @@ class Grid:
         return CellState.FREE if self.distance[i] > 0 else CellState.OCCUPIED
 
     def collision(self, point, radius):
-        """Distance bound plus observed-volume check, including voxel quantization."""
+        """Centre distance bound plus observed, positive body volume.
+
+        A partially reconstructed ESDF need not give a global nearest-obstacle
+        distance at the centre. Never ignore occupied/invalid voxels inside the
+        body box merely because the centre reports generous clearance.
+        """
         i = self.index(point)
         if i is None or not np.isfinite(radius) or radius < 0:
             return True
@@ -96,6 +101,9 @@ class Grid:
             return True
         region = tuple(slice(a, b+1) for a, b in zip(lo, hi))
         if not np.all(self.observed[region]):
+            return True
+        distance = self.distance[region]
+        if not np.all(np.isfinite(distance) & (distance > 0)):
             return True
         d = self.distance[tuple(i)]
         return not np.isfinite(d) or d <= radius + np.sqrt(3)*self.resolution/2
@@ -111,6 +119,16 @@ def spline(controls, interval):
 
 def derivative_bounds(curve):
     return [float(np.max(np.linalg.norm(curve.derivative(d).c[:len(curve.c)-d], axis=1))) for d in (1, 2, 3)]
+
+
+def validate_handover(current, successor, offset):
+    """C2 continuity at the scheduled splice, not at message receipt time."""
+    if not np.isfinite(offset) or not 0 <= offset < float(current.t[-4]):
+        raise ValueError('Handover outside active trajectory')
+    for derivative in (0, 1, 2):
+        error = np.linalg.norm(current(offset, derivative)-successor(0, derivative))
+        if not np.isfinite(error) or error > 1e-5:
+            raise ValueError('Discontinuous moving takeover')
 
 
 def validate_trajectory(curve, grid, radius, limits, start=0.0):

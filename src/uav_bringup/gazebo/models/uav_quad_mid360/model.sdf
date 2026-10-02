@@ -62,7 +62,7 @@
     </link>
 
     <!-- Gazebo cameras look along local +X. Positive pitch rotates +X toward
-         the ground, so this forward-looking OAK-D mount has an 18-degree
+         the ground, so this forward-looking OAK-D mount has a 5-degree
          downward tilt relative to the UAV body. -->
     <link name="oakd_camera_link">
       <pose relative_to="base_link">0.18 0 0.16 0 0.08726646260 0</pose>

@@ -11,6 +11,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import dijkstra
 
 from .core import CellState
+from .viewpoints import goal_unknown_points, view_gain, visible_gain
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class ExplorationSettings:
     clearance_weight: float = 0.4
     altitude_weight: float = 0.75
     minimum_map_gain: float = 0.5
+    goal_view_weight: float = 2.0
 
     def __post_init__(self):
         for name, value in vars(self).items():
@@ -71,7 +73,7 @@ def reachable_routes(connected, start_index, traversal_cost=None):
 
 
 def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
-                   explore=True, best_distance=None):
+                   explore=True, best_distance=None, continuous=False):
     """Return (position, is_final), or None when no safe candidate remains.
 
     A six-connected, eroded free component excludes inaccessible frontiers.
@@ -97,8 +99,9 @@ def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
     # Extra half-voxel padding conservatively covers axis-adjacent center edges.
     padding = int(np.ceil((radius+r/2)/r))
     unknown = ~grid.observed | ~np.isfinite(grid.distance)
-    near_unknown = maximum_filter(unknown, size=2*padding+1, mode='constant', cval=1)
-    safe = ~near_unknown & (grid.distance > radius + (np.sqrt(3)+1)*r/2)
+    near_blocked = maximum_filter(unknown | (grid.distance <= 0),
+                                  size=2*padding+1, mode='constant', cval=1)
+    safe = ~near_blocked & (grid.distance > radius + (np.sqrt(3)+1)*r/2)
     components, _ = label(safe, generate_binary_structure(3, 1))
     index = grid.index(start)
     component = components[tuple(index)]
@@ -153,9 +156,27 @@ def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
              + clearance_cost[tuple(frontier_indices.T)])
     for point in visited:
         score += 1.5*np.exp(-np.sum((frontiers-point)**2, axis=1)/(2*max(settings.revisit_radius, .8)**2))
+    # A free centre can still have unseen body voxels, especially above a
+    # downward camera. Prefer viewpoints that can observe those missing cells.
+    # This changes ranking only: all flight candidates remain in the same safe
+    # connected component, and occupied sight lines get no observation credit.
+    targets = (goal_unknown_points(grid, goal, radius+r/2)
+               if grid.state(goal) == CellState.FREE else np.empty((0, 3)))
+    if len(targets):
+        estimated = score-settings.goal_view_weight*view_gain(frontiers, goal, targets)
+        shortlist = np.argsort(estimated)[:32]
+        adjusted = score.copy()
+        for candidate in shortlist:
+            adjusted[candidate] -= settings.goal_view_weight*visible_gain(
+                grid, frontiers[candidate], goal, targets)
+        score = adjusted
     connector = np.linalg.norm(grid.origin+(index+.5)*r-start)
     for destination in np.argsort(score)[:128]:
         cursor = int(frontier_ids[destination])
+        if continuous:
+            # The entire connected route is known. Let the trajectory planner
+            # traverse it in one curve instead of stopping at artificial horizons.
+            return frontiers[destination].copy(), False
         # The horizon is physical route length, not clearance-weighted cost.
         # Transit may revisit old points when a detour needs to backtrack.
         route = []
