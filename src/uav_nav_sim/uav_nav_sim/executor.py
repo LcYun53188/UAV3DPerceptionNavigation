@@ -280,6 +280,8 @@ def main():
     finally:
         if rclpy.ok():
             node.command.publish(Twist())
+        if node.navigation is not None:
+            node.navigation.background.close()
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()

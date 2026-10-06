@@ -705,3 +705,116 @@ def test_two_flights_without_net_goal_progress_still_force_panorama(task):
     manager.best_distance=1.5  # Earlier transient progress is not arrival progress.
     manager.on_stop('LOCAL_GOAL_REACHED')
     assert manager.scan_remaining==3
+
+
+def test_background_result_may_request_detour_without_direct_ray(task,monkeypatch):
+    manager,node,now=prepare_inflight(task)
+    manager.explore=True
+    node.map.static_map=False
+    node.map.version=1
+    manager.background=Mock()
+    target=np.array([3.,1.5,0.])
+    manager.background.poll.return_value=((node.session,9,tuple(manager.goal)),(target,False))
+    monkeypatch.setattr('uav_nav_sim.navigation.segment_free',lambda *a:False)
+    manager.inflight_tick(2.6,7.)
+    request=manager.replan_pub.publish.call_args.args[0]
+    assert np.allclose([request.goal.x,request.goal.y,request.goal.z],target)
+    assert request.parent_trajectory_id==9 and manager.phase=='EXECUTING'
+
+
+@pytest.mark.parametrize('old',['parent','session','goal','retired'])
+def test_background_stale_search_cannot_request_handover(task,monkeypatch,old):
+    manager,node,now=prepare_inflight(task)
+    manager.background=Mock()
+    context=(node.session,9,tuple(manager.goal))
+    if old=='parent':context=(node.session,8,tuple(manager.goal))
+    elif old=='session':context=(('old',0),9,tuple(manager.goal))
+    elif old=='goal':context=(node.session,9,(5.,0.,0.))
+    else:context=None
+    manager.background.poll.return_value=(context,(np.array([3.,1.5,0.]),False))
+    monkeypatch.setattr('uav_nav_sim.navigation.segment_free',lambda *a:False)
+    manager.inflight_tick(2.6,7.)
+    manager.replan_pub.publish.assert_not_called()
+    assert manager.phase=='EXECUTING'
+
+
+def test_background_failure_preserves_current_stop_path(task,monkeypatch):
+    manager,node,now=prepare_inflight(task)
+    manager.explore=True;node.map.static_map=False;node.map.version=1
+    manager.background=Mock()
+    manager.background.poll.side_effect=RuntimeError('worker failed')
+    monkeypatch.setattr('uav_nav_sim.navigation.segment_free',lambda *a:False)
+    curve=node.curve
+    manager.inflight_tick(2.6,7.)
+    assert node.curve is curve and manager.failures==0
+    manager.replan_pub.publish.assert_not_called()
+
+
+def test_near_goal_volume_gap_keeps_observation_stop(task,monkeypatch):
+    manager,node,now=prepare_inflight(task)
+    manager.background=Mock()
+    manager.background.poll.return_value=None
+    observed=node.grid.observed.copy()
+    observed[30,:,:]=False  # Goal x=4 has an unseen body voxel band.
+    node.grid=Grid(node.grid.origin.copy(),node.grid.resolution,node.grid.distance.copy(),observed)
+    manager.inflight_tick(2.6,7.)
+    manager.background.submit.assert_not_called()
+    manager.replan_pub.publish.assert_not_called()
+    assert manager.phase=='EXECUTING'
+
+
+def test_focused_heading_is_latched_and_no_candidate_restores_first_sweep_view(task, monkeypatch):
+    manager, node, now = task
+    manager.explore = True
+    node.map.static_map = False
+    begin(manager)
+    manager.rejected.append(manager.goal.copy())
+    choose_heading = Mock(return_value=1.)
+    monkeypatch.setattr('uav_nav_sim.navigation.focused_scan_yaw', choose_heading)
+    monkeypatch.setattr('uav_nav_sim.navigation.choose_subgoal', lambda *a, **k: None)
+    manager.tick()
+    assert manager.focused_yaw == 1. and manager.observe_since is None
+    manager.tick()
+    assert choose_heading.call_count == 1
+    node.odom.pose.pose.orientation.z = np.sin(.5)
+    node.odom.pose.pose.orientation.w = np.cos(.5)
+    manager.tick()
+    advance(node, now, 1.6)
+    manager.tick()
+    assert manager.scan_index == 0 and manager.focused_yaw is None
+    assert node.event.publish.call_args[0][0].data == 'FOCUSED_OBSERVATION_FALLBACK'
+    command = manager.tick()
+    assert command.angular.z < 0  # Ordinary first view faces the goal again.
+    assert choose_heading.call_count == 1
+    manager.local_pub.publish.assert_not_called()
+
+
+def test_stagnation_and_autonomous_panorama_keep_original_directions(task, monkeypatch):
+    manager, node, now = task
+    manager.explore = True
+    node.map.static_map = False
+    begin(manager)
+    choose_heading = Mock(return_value=1.)
+    monkeypatch.setattr('uav_nav_sim.navigation.focused_scan_yaw', choose_heading)
+    manager.scan_remaining = 3
+    manager.observation_command(manager.position(), now[0])
+    manager.scan_remaining = 0
+    manager.observation_command(manager.position(), now[0], direction=np.array([1.,0.,0.]))
+    choose_heading.assert_not_called()
+
+
+def test_unusable_start_is_reported_separately_through_scan_timeout(task):
+    manager, node, now = task
+    manager.explore = True
+    node.map.static_map = False
+    observed = node.grid.observed.copy()
+    observed[10,10,10] = False
+    node.grid = Grid(node.grid.origin, node.grid.resolution, node.grid.distance, observed)
+    begin(manager)
+    manager.tick()
+    advance(node, now, 1.6)
+    manager.tick()
+    assert manager.state == 'OBSERVING' and manager.reason == 'START_VOLUME_BLOCKED'
+    advance(node, now, manager.settings.blocked_timeout+.1)
+    manager.tick()
+    assert manager.state == 'BLOCKED' and manager.reason == 'START_VOLUME_BLOCKED'

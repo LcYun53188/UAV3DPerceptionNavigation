@@ -15,6 +15,8 @@ from uav_nav_interfaces.msg import PlannerStatus, TrajectoryRequest
 from .exploration import ExplorationSettings, choose_subgoal, segment_free
 from .core import CellState
 from .autonomous import AutonomousExplorer
+from .background import BackgroundSelector
+from .viewpoints import focused_scan_yaw
 
 
 def stamp_key(stamp):
@@ -37,7 +39,15 @@ class GoalManager:
         self.moving_handover = executor.get_parameter('moving_handover').value
         executor.declare_parameter('reuse_inflight_observation', True)
         self.reuse_observation = executor.get_parameter('reuse_inflight_observation').value
+        executor.declare_parameter('focused_observation', True)
+        self.focused_observation = executor.get_parameter('focused_observation').value
+        self.focused_yaw = None
+        self.focused_checked = False
         self.reset_observation_credit()
+        executor.declare_parameter('background_replan', True)
+        self.background_replan = executor.get_parameter('background_replan').value
+        self.background = BackgroundSelector()
+        self.background_target = None
         self.replan = None
         self.last_replan_probe = float('-inf')
         self.replan_pub = executor.create_publisher(TrajectoryRequest, '/uav/replan_request', 10)
@@ -68,6 +78,8 @@ class GoalManager:
         self.publish_status()
 
     def finish(self, state, reason=''):
+        self.background.invalidate()
+        self.background_target = None
         retain = state == 'REACHED' and self.autonomous.enabled
         arrival_view, last = (self.arrival_view, self.flight_view_last) if retain else (None, None)
         self.reset_observation_credit()
@@ -96,10 +108,13 @@ class GoalManager:
         self.segment_start_distance = (float(np.linalg.norm(self.position()-goal))
                                        if self.node.odom is not None else float('inf'))
         self.no_candidate_at = None
+        self.no_candidate_reason = 'NO_REACHABLE_FRONTIER'
         self.last_selection = 0.0
         self.last_known_probe = float('-inf')
         self.observe_since = None
         self.scan_index = 0
+        self.focused_yaw = None
+        self.focused_checked = False
         self.scan_remaining = self.stagnant_segments = 0
         self.observed_at_progress = int(np.count_nonzero(self.node.grid.observed)) if self.node.grid is not None else 0
         self.phase = 'OBSERVE'
@@ -119,6 +134,9 @@ class GoalManager:
         self.node.get_logger().info('Moving replan deferred: '+reason)
 
     def handover(self):
+        # Record where we actually passed, rather than marking an unreached
+        # observation target as visited. This discourages speculative loops.
+        self.visited.append(self.position().copy())
         self.local, self.local_final = self.replan['target'], self.replan['final']
         self.token = self.replan['token']
         self.replan = None
@@ -134,6 +152,17 @@ class GoalManager:
         node = self.node
         now = time.monotonic()
         self.track_flight_observation(now)
+        try:
+            result = self.background.poll()
+            if result is not None:
+                context, selection = result
+                if (context == (node.session, node.trajectory.trajectory_id, tuple(self.goal)) and
+                        selection is not None):
+                    self.background_target = selection
+                    node.event.publish(String(data='BACKGROUND_SEARCH_READY'))
+        except Exception as exc:
+            self.background_target = None
+            node.get_logger().warning('Background replan deferred: '+str(exc))
         distance = np.linalg.norm(self.position()-self.goal) if self.goal is not None else 0.
         if self.goal is not None and distance < self.best_distance-.2:
             self.best_distance, self.progress_at = distance, now
@@ -143,7 +172,7 @@ class GoalManager:
             return
         lead = 1.2
         if (not self.moving_handover or self.goal is None or self.local_final or self.local is None or
-                self.phase != 'EXECUTING' or not lead+.5 < duration-t <= 4.5 or
+                self.phase != 'EXECUTING' or not lead+.5 < duration-t <= 6.0 or
                 now-self.last_replan_probe < 1.0 or
                 self.segments >= self.settings.max_segments or
                 now-self.progress_at > self.settings.progress_timeout):
@@ -155,14 +184,19 @@ class GoalManager:
             return
         direction = self.goal-self.local
         remaining = np.linalg.norm(direction)
-        if remaining < .6 or np.dot(direction, velocity) <= 0:
+        if remaining < .6:
+            return
+        # A nearby target with unseen/blocked body volume needs an actual
+        # observation at this endpoint; chaining away would skip that view.
+        if remaining < 2.5 and node.grid.collision(self.goal, node.radius+node.grid.resolution/2):
             return
         radius = node.radius+node.grid.resolution/2
         target, final = None, False
+        from_background = False
         # The final corridor may have become observed during flight.
-        candidates = [(self.goal, True)]
+        candidates = [(self.goal, True)] if np.dot(direction, velocity) > 0 else []
         candidates += [(self.local+direction/remaining*min(step,remaining), False)
-                       for step in (3., 2., 1.) if step < remaining]
+                       for step in (3., 2., 1.) if step < remaining and np.dot(direction, velocity) > 0]
         for candidate, is_final in candidates:
             if (any(np.linalg.norm(candidate-p) < self.settings.revisit_radius for p in self.rejected) or
                     np.linalg.norm(candidate-self.local) < .6):
@@ -170,11 +204,34 @@ class GoalManager:
             # Bound controller work even for a distant final goal.
             if np.linalg.norm(candidate-start) > 6.:
                 continue
-            if segment_free(node.grid, start, candidate, radius):
+            if segment_free(node.grid, start, candidate, radius, 256):
                 target, final = candidate.copy(), is_final
                 break
+        if target is None and self.background_target is not None:
+            candidate, is_final = self.background_target
+            self.background_target = None
+            if (np.linalg.norm(candidate-self.local) >= .6 and
+                    np.linalg.norm(candidate-start) <= 6. and
+                    not node.grid.collision(start, radius) and
+                    not node.grid.collision(candidate, radius) and
+                    not any(np.linalg.norm(candidate-p) < self.settings.revisit_radius
+                            for p in self.rejected)):
+                target, final = candidate.copy(), is_final
+                from_background = True
         if target is None:
+            if (self.background_replan and self.explore and not node.map.static_map and
+                    duration-t > lead+1.):
+                try:
+                    submitted = self.background.submit(
+                        (node.session, node.trajectory.trajectory_id, tuple(self.goal)),
+                        node.grid, start.copy(), self.goal.copy(), node.radius, self.settings,
+                        tuple([*self.visited, self.local.copy()]), tuple(self.rejected), self.best_distance)
+                    if submitted:
+                        node.event.publish(String(data='BACKGROUND_SEARCH_STARTED'))
+                except Exception as exc:
+                    node.get_logger().warning('Background submit deferred: '+str(exc))
             return
+        self.background.invalidate()
         clock_ns = node.get_clock().now().nanoseconds
         start_ns = stamp_key(node.trajectory.start_time)+int(start_t*1e9)
         if start_ns-clock_ns < 800_000_000:
@@ -195,8 +252,12 @@ class GoalManager:
                            target=target, final=final)
         self.replan_pub.publish(request)
         node.event.publish(String(data='REPLAN_REQUESTED'))
+        if from_background:
+            node.event.publish(String(data='BACKGROUND_REPLAN_REQUESTED'))
 
     def accepted(self):
+        self.background.invalidate()
+        self.background_target = None
         self.reset_observation_credit()
         self.flight_observed_start = int(np.count_nonzero(self.node.grid.observed))
         self.segment_start_distance = float(np.linalg.norm(self.position()-self.goal))
@@ -204,6 +265,8 @@ class GoalManager:
         self.report('NAVIGATING' if self.local_final else 'EXPLORING')
 
     def failed_segment(self, reason):
+        self.background.invalidate()
+        self.background_target = None
         self.reset_observation_credit()
         if self.goal is None:
             return
@@ -217,6 +280,8 @@ class GoalManager:
         else:
             self.phase = 'OBSERVE'
             self.observe_since = None
+            self.focused_yaw = None
+            self.focused_checked = False
             self.report('OBSERVING', reason)
 
     def planner_cb(self, msg):
@@ -277,6 +342,8 @@ class GoalManager:
             self.phase = 'OBSERVE'
             self.observe_since = None
             self.scan_index = 0
+            self.focused_yaw = None
+            self.focused_checked = False
             self.report('OBSERVING')
         elif reason.startswith('MAP_RECHECK_FAILED') or reason == 'CURRENT_VOLUME_BLOCKED':
             self.failed_segment(reason)
@@ -347,9 +414,20 @@ class GoalManager:
             # A fully observed direct corridor needs no camera scan, but body
             # leveling and invalid-orientation checks still precede planning.
             return command, abs(pitch) <= .06 and abs(roll) <= .06
+        manual_direction = direction is not None
         if direction is None:
             direction = self.goal-position
         desired = math.atan2(direction[1], direction[0])
+        if (self.focused_observation and not manual_direction and
+                self.scan_index == 0 and self.scan_remaining == 0):
+            if not self.focused_checked:
+                self.focused_checked = True
+                self.focused_yaw = focused_scan_yaw(self.node.grid, position,
+                                                   self.goal, self.node.radius, yaw)
+                if self.focused_yaw is not None:
+                    self.node.event.publish(String(data=f'FOCUSED_OBSERVATION:{self.focused_yaw:.3f}'))
+            if self.focused_yaw is not None:
+                desired = self.focused_yaw
         # With no candidate, sweep both sides and behind before declaring blocked.
         # Sweep adjacent quadrants in order instead of repeatedly reversing
         # through 180 degrees and spending the observation budget retracing.
@@ -437,7 +515,7 @@ class GoalManager:
             if (not any(np.linalg.norm(self.goal-p) < self.settings.revisit_radius
                         for p in self.rejected) and
                     not node.grid.collision(self.goal, node.radius) and
-                    segment_free(node.grid, position, self.goal, node.radius)):
+                    segment_free(node.grid, position, self.goal, node.radius+node.grid.resolution/2)):
                 result = (self.goal.copy(), True)
         command, observed = self.observation_command(position, now, require_observation=result is None, reuse=True)
         if self.goal is None:
@@ -445,7 +523,7 @@ class GoalManager:
         # Deadline is checked even during a scan; inability to orient or find a
         # frontier must not keep the task alive indefinitely.
         if self.no_candidate_at is not None and now-self.no_candidate_at > self.settings.blocked_timeout:
-            self.finish('BLOCKED', 'NO_REACHABLE_FRONTIER')
+            self.finish('BLOCKED', self.no_candidate_reason)
             return Twist()
         if not observed or now-self.last_selection < 0.5:
             return command
@@ -455,19 +533,27 @@ class GoalManager:
             self.observe_since = None
             return Twist()
         self.last_selection = now
+        diagnostics = {}
         if result is None:
             result = choose_subgoal(node.grid, position, self.goal, node.radius, self.settings,
                 self.visited, self.rejected, self.explore and not node.map.static_map, self.best_distance,
-                continuous=self.continuous)
+                continuous=self.continuous, diagnostics=diagnostics)
         if result is None:
             if not self.explore or node.map.static_map:
                 self.finish('BLOCKED', 'NO_KNOWN_PATH')
             else:
                 if self.no_candidate_at is None:
                     self.no_candidate_at = now
-                self.scan_index += 1
+                self.no_candidate_reason = diagnostics.get('reason', 'NO_REACHABLE_FRONTIER')
+                if self.scan_index == 0 and self.focused_yaw is not None:
+                    # A focused view is an extra first attempt, not a
+                    # replacement for any direction in the fallback sweep.
+                    self.focused_yaw = None
+                    self.node.event.publish(String(data='FOCUSED_OBSERVATION_FALLBACK'))
+                else:
+                    self.scan_index += 1
                 self.observe_since = None
-                self.report('OBSERVING', 'NO_REACHABLE_FRONTIER')
+                self.report('OBSERVING', self.no_candidate_reason)
             return Twist()
         self.no_candidate_at = None
         self.local, self.local_final = result

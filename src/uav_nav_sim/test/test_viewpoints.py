@@ -48,3 +48,24 @@ def test_upper_gap_selects_reachable_viewpoint_with_observation_gain():
     assert not final and not g.collision(point,.35)
     targets = goal_unknown_points(g,goal,.4)
     assert visible_gain(g,point,goal,targets) > 0
+
+
+def test_focused_view_avoids_turn_when_corridor_gap_is_already_in_view():
+    from uav_nav_sim.viewpoints import focused_scan_yaw
+    g = scene()
+    observed = g.observed.copy()
+    observed[39:42, 31:34, 19:22] = False
+    g = Grid(g.origin, g.resolution, g.distance, observed)
+    position, goal = np.array([0., 0., 1.]), np.array([2., 0., 1.])
+    assert focused_scan_yaw(g, position, goal, .3, .2) == .2
+    assert focused_scan_yaw(scene(), position, goal, .3, .2) is None
+
+
+def test_focused_view_keeps_occluded_goal_gap_in_fallback():
+    from uav_nav_sim.viewpoints import focused_scan_yaw
+    g = scene()
+    observed, distance = g.observed.copy(), g.distance.copy()
+    observed[49:51, 29:31, 19:21] = False
+    distance[38:40, :, :] = 0.
+    g = Grid(g.origin, g.resolution, distance, observed)
+    assert focused_scan_yaw(g, np.array([0.,0.,1.]), np.array([2.,0.,1.]), .3, 0.) is None
