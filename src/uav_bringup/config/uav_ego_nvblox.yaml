@@ -9,7 +9,8 @@ nvblox_node:
     use_depth: true
     use_color: false
     use_lidar: false
-    input_qos: SENSOR_DATA
+    # Aligned image/info pairs must arrive together; keep bounded reliable input.
+    input_qos: DEFAULT
     num_cameras: 1
     map_clearing_radius_m: -1.0
     integrate_depth_rate_hz: 10.0

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Large ESDF responses can overflow the Linux default 212 KiB UDP buffer.
+     Keep reliability and freshness checks; reserve receive capacity instead.
+     https://fast-dds.docs.eprosima.com/en/2.x/fastdds/use_cases/large_data/large_data.html
+     Linux rmem_max must allow 8 MiB and wmem_max must allow 1 MiB. -->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+  <participant profile_name="uav_large_maps" is_default_profile="true">
+    <rtps>
+      <sendSocketBufferSize>1048576</sendSocketBufferSize>
+      <listenSocketBufferSize>8388608</listenSocketBufferSize>
+    </rtps>
+  </participant>
+</profiles>

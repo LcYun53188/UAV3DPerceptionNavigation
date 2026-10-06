@@ -52,6 +52,9 @@ class MapSession(Node):
         self.executor_received = 0.0
         self.camera_info = None
         self.last_depth_stamp = None
+        self.last_raw_stamp = None
+        self.timing = dict(received=0, forwarded=0, expired=0, tf_wait=0,
+                           source_stamp_ns=None, source_age_at_reply=None, query_seconds=None, parse_seconds=None, error=None)
         self.pending_depth = deque(maxlen=8)
         self.tf = Buffer()
         self.tf_listener = TransformListener(self.tf, self)
@@ -61,8 +64,8 @@ class MapSession(Node):
         self.load_client = self.create_client(FilePath, '/nvblox_node/load_map', callback_group=self.group)
         qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.pub = self.create_publisher(MapSnapshot, '/uav/map/snapshot', qos)
-        self.depth_pub = self.create_publisher(Image, '/uav/mapping/depth', qos_profile_sensor_data)
-        self.info_pub = self.create_publisher(CameraInfo, '/uav/mapping/camera_info', qos_profile_sensor_data)
+        self.depth_pub = self.create_publisher(Image, '/uav/mapping/depth', QoSProfile(depth=5))
+        self.info_pub = self.create_publisher(CameraInfo, '/uav/mapping/camera_info', QoSProfile(depth=5))
         self.create_subscription(CameraInfo, '/rgbd_camera/camera_info', self.info_cb, qos_profile_sensor_data)
         self.create_subscription(Image, '/rgbd_camera/depth_image', self.depth_cb, qos_profile_sensor_data)
         self.create_subscription(String, '/uav/executor/state', self.executor_cb, 10)
@@ -71,7 +74,19 @@ class MapSession(Node):
         self.create_service(FilePath, '/uav/map/load', self.load, callback_group=self.group)
         self.create_timer(0.02, self.flush_depth)
         self.create_timer(0.5, self.query)
+        self.diagnostics = self.create_publisher(String, '/uav/map/diagnostics', 10)
+        self.create_timer(1., self.publish_diagnostics)
         self.invalidate()
+
+    def publish_diagnostics(self):
+        now_ns = self.get_clock().now().nanoseconds
+        def age(stamp):
+            return (now_ns-stamp)/1e9 if stamp is not None else None
+        data = dict(self.timing, raw_age=age(self.last_raw_stamp),
+                    forwarded_age=age(self.last_depth_stamp),
+                    cached_source_age=age(self.timing['source_stamp_ns']),
+                    pending_depth=len(self.pending_depth), query_pending=self.query_pending)
+        self.diagnostics.publish(String(data=json.dumps(data)))
 
     def executor_cb(self, msg):
         self.executor_state = msg.data
@@ -91,6 +106,9 @@ class MapSession(Node):
         self.camera_info = msg
 
     def depth_cb(self, msg):
+        if hasattr(self, 'timing'):
+            self.timing['received'] += 1
+            self.last_raw_stamp = Time.from_msg(msg.header.stamp).nanoseconds
         if self.busy or not self.input_enabled or self.mode != 'mapping' or self.camera_info is None:
             return
         if msg.encoding not in ('32FC1', '16UC1') or msg.header.frame_id != 'oakd_camera_optical_frame':
@@ -124,13 +142,19 @@ class MapSession(Node):
             age = (self.get_clock().now()-stamp).nanoseconds/1e9
             if not 0 <= age <= 0.5:
                 self.pending_depth.popleft()
+                if hasattr(self, 'timing'):
+                    self.timing['expired'] += 1
                 continue
             try:
                 self.tf.lookup_transform('map', msg.header.frame_id, stamp)
             except TransformException:
+                if hasattr(self, 'timing'):
+                    self.timing['tf_wait'] += 1
                 return
             self.pending_depth.popleft()
             self.last_depth_stamp = stamp.nanoseconds
+            if hasattr(self, 'timing'):
+                self.timing['forwarded'] += 1
             self.info_pub.publish(info)
             self.depth_pub.publish(msg)
 
@@ -158,6 +182,7 @@ class MapSession(Node):
             setattr(req.aabb_size_m, axis, val)
         self.query_pending = True
         epoch = self.epoch
+        query_start = time.monotonic()
         future = self.esdf.call_async(req)
         def done(f):
             self.query_pending = False
@@ -165,12 +190,17 @@ class MapSession(Node):
                 return
             try:
                 res = f.result()
+                self.timing['query_seconds'] = time.monotonic()-query_start
+                self.timing['source_stamp_ns'] = Time.from_msg(res.header.stamp).nanoseconds
+                parse_start = time.monotonic()
                 grid = parse_esdf(res)
+                self.timing['parse_seconds'] = time.monotonic()-parse_start
                 if not np.any(grid.observed):
                     raise ValueError('No observed voxels')
                 if abs(grid.resolution-self.resolution) > 1e-6:
                     raise ValueError('Map resolution mismatch')
                 age = (self.get_clock().now()-Time.from_msg(res.header.stamp)).nanoseconds/1e9
+                self.timing['source_age_at_reply'] = age
                 if self.mode == 'mapping' and not 0 <= age <= self.get_parameter('map_timeout').value:
                     forwarded_age = ((self.get_clock().now().nanoseconds-self.last_depth_stamp)/1e9
                                      if self.last_depth_stamp is not None else None)
@@ -192,8 +222,11 @@ class MapSession(Node):
                 msg.shape = list(grid.distance.shape)
                 msg.distance, msg.observed = pack_grid_data(grid)
                 self.latest = msg
+                self.timing['error'] = None
                 self.pub.publish(msg)
             except Exception as exc:
+                self.timing['error'] = str(exc)
+                self.publish_diagnostics()
                 self.invalidate()
                 self.get_logger().warning(f'ESDF unavailable: {exc}')
         future.add_done_callback(done)

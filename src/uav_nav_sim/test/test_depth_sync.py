@@ -92,3 +92,35 @@ def test_waiting_queue_is_bounded_and_keeps_order(session):
     node.flush_depth()
     stamps = [Time.from_msg(call.args[0].header.stamp).nanoseconds for call in node.depth_pub.publish.call_args_list]
     assert len(stamps) == 8 and stamps == sorted(set(stamps))
+
+
+def test_depth_timing_tracks_tf_wait_and_forwarding(session):
+    node,now=session
+    node.timing=dict(received=0,forwarded=0,tf_wait=0,expired=0)
+    node.tf.lookup_transform.side_effect=TransformException('future')
+    MapSession.depth_cb(node,depth())
+    assert node.timing['received']==1 and node.timing['tf_wait']==1
+    assert node.last_raw_stamp==10_000_000_000
+    node.tf.lookup_transform.side_effect=None
+    node.flush_depth()
+    assert node.timing['forwarded']==1
+    MapSession.depth_cb(node,depth(10.05))
+    node.tf.lookup_transform.side_effect=TransformException('future')
+    MapSession.depth_cb(node,depth(10.08))
+    now[0]=10.7
+    node.flush_depth()
+    assert node.timing['expired']==1
+
+
+def test_diagnostics_distinguish_forwarded_and_integrated_source_age(session):
+    import json
+    node,now=session
+    node.last_raw_stamp=10_000_000_000
+    node.last_depth_stamp=10_000_000_000
+    node.timing=dict(source_stamp_ns=8_000_000_000,query_seconds=.02,parse_seconds=.005)
+    node.diagnostics=Mock();node.query_pending=False
+    MapSession.publish_diagnostics(node)
+    data=json.loads(node.diagnostics.publish.call_args.args[0].data)
+    assert data['forwarded_age']==pytest.approx(.1)
+    assert data['cached_source_age']==pytest.approx(2.1)
+    assert data['query_seconds']==.02 and data['parse_seconds']==.005
