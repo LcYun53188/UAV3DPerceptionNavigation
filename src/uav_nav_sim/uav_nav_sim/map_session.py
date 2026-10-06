@@ -1,4 +1,4 @@
-"""Single-writer simulation map session: depth gate, ESDF cache and map bundles."""
+"""Single-writer simulation map session: RGB/depth gate, ESDF cache and map bundles."""
 import copy
 from collections import deque
 import json
@@ -52,27 +52,36 @@ class MapSession(Node):
         self.executor_received = 0.0
         self.camera_info = None
         self.last_depth_stamp = None
+        self.last_color_stamp = None
         self.last_raw_stamp = None
         self.timing = dict(received=0, forwarded=0, expired=0, tf_wait=0,
                            source_stamp_ns=None, source_age_at_reply=None, query_seconds=None, parse_seconds=None, error=None)
         self.pending_depth = deque(maxlen=8)
+        self.pending_color = deque(maxlen=8)
+        self.color_timing = dict(received=0, forwarded=0, expired=0, tf_wait=0)
         self.tf = Buffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.group = ReentrantCallbackGroup()
         self.esdf = self.create_client(EsdfAndGradients, '/nvblox_node/get_esdf_and_gradient', callback_group=self.group)
         self.save_client = self.create_client(FilePath, '/nvblox_node/save_map', callback_group=self.group)
+        self.mesh_client = self.create_client(FilePath, '/nvblox_node/save_ply', callback_group=self.group)
         self.load_client = self.create_client(FilePath, '/nvblox_node/load_map', callback_group=self.group)
         qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.pub = self.create_publisher(MapSnapshot, '/uav/map/snapshot', qos)
         self.depth_pub = self.create_publisher(Image, '/uav/mapping/depth', QoSProfile(depth=5))
         self.info_pub = self.create_publisher(CameraInfo, '/uav/mapping/camera_info', QoSProfile(depth=5))
+        self.color_pub = self.create_publisher(Image, '/uav/mapping/color', QoSProfile(depth=5))
+        self.color_info_pub = self.create_publisher(CameraInfo, '/uav/mapping/color_camera_info', QoSProfile(depth=5))
+        self.create_subscription(Image, '/rgbd_camera/image', self.color_cb, qos_profile_sensor_data)
         self.create_subscription(CameraInfo, '/rgbd_camera/camera_info', self.info_cb, qos_profile_sensor_data)
         self.create_subscription(Image, '/rgbd_camera/depth_image', self.depth_cb, qos_profile_sensor_data)
         self.create_subscription(String, '/uav/executor/state', self.executor_cb, 10)
         self.create_service(SetBool, '/uav/map/input_enabled', self.set_input_enabled)
         self.create_service(FilePath, '/uav/map/save', self.save, callback_group=self.group)
         self.create_service(FilePath, '/uav/map/load', self.load, callback_group=self.group)
+        self.create_service(FilePath, '/uav/map/export_mesh', self.export_mesh, callback_group=self.group)
         self.create_timer(0.02, self.flush_depth)
+        self.create_timer(0.02, self.flush_color)
         self.create_timer(0.5, self.query)
         self.diagnostics = self.create_publisher(String, '/uav/map/diagnostics', 10)
         self.create_timer(1., self.publish_diagnostics)
@@ -85,7 +94,9 @@ class MapSession(Node):
         data = dict(self.timing, raw_age=age(self.last_raw_stamp),
                     forwarded_age=age(self.last_depth_stamp),
                     cached_source_age=age(self.timing['source_stamp_ns']),
-                    pending_depth=len(self.pending_depth), query_pending=self.query_pending)
+                    pending_depth=len(self.pending_depth), query_pending=self.query_pending,
+                    color=self.color_timing, pending_color=len(self.pending_color),
+                    color_forwarded_age=age(self.last_color_stamp))
         self.diagnostics.publish(String(data=json.dumps(data)))
 
     def executor_cb(self, msg):
@@ -98,6 +109,7 @@ class MapSession(Node):
             response.message = 'Input gate requires mapping mode, HOLD, and no map operation'
             return response
         self.pending_depth.clear()
+        self.pending_color.clear()
         self.input_enabled = req.data
         response.success = True
         return response
@@ -106,12 +118,21 @@ class MapSession(Node):
         self.camera_info = msg
 
     def depth_cb(self, msg):
-        if hasattr(self, 'timing'):
-            self.timing['received'] += 1
+        MapSession.image_cb(self, msg, 'depth')
+
+    def color_cb(self, msg):
+        MapSession.image_cb(self, msg, 'color')
+
+    def image_cb(self, msg, stream):
+        timing = self.color_timing if stream == 'color' else getattr(self, 'timing', None)
+        if timing is not None:
+            timing['received'] += 1
+        if stream == 'depth':
             self.last_raw_stamp = Time.from_msg(msg.header.stamp).nanoseconds
         if self.busy or not self.input_enabled or self.mode != 'mapping' or self.camera_info is None:
             return
-        if msg.encoding not in ('32FC1', '16UC1') or msg.header.frame_id != 'oakd_camera_optical_frame':
+        encodings = ('rgb8', 'bgra8') if stream == 'color' else ('32FC1', '16UC1')
+        if msg.encoding not in encodings or msg.header.frame_id != 'oakd_camera_optical_frame':
             return
         info = self.camera_info
         if msg.width != info.width or msg.height != info.height or info.k[0] <= 0 or info.k[4] <= 0:
@@ -120,43 +141,53 @@ class MapSession(Node):
         age = (self.get_clock().now()-stamp).nanoseconds/1e9
         if age < 0 or age > 0.5:
             return
-        if self.last_depth_stamp is not None and stamp.nanoseconds <= self.last_depth_stamp:
+        last_stamp = getattr(self, f'last_{stream}_stamp')
+        pending = getattr(self, f'pending_{stream}')
+        if last_stamp is not None and stamp.nanoseconds <= last_stamp:
             return
-        if self.pending_depth and stamp.nanoseconds <= Time.from_msg(self.pending_depth[-1][0].header.stamp).nanoseconds:
+        if pending and stamp.nanoseconds <= Time.from_msg(pending[-1][0].header.stamp).nanoseconds:
             return
         aligned = copy.deepcopy(info)
         aligned.header = msg.header
-        self.pending_depth.append((msg, aligned))
-        self.flush_depth()
+        pending.append((msg, aligned))
+        MapSession.flush_images(self, stream)
 
     def flush_depth(self):
-        # Depth and TF arrive on independent topics. Wait briefly for the exact
-        # historical transform instead of dropping every image that wins that race.
+        MapSession.flush_images(self, 'depth')
+
+    def flush_color(self):
+        MapSession.flush_images(self, 'color')
+
+    def flush_images(self, stream):
+        # RGB and depth share the input gate and exact historical TF policy.
         # Never substitute the latest pose or forward frames across an input gate.
+        pending = getattr(self, f'pending_{stream}')
+        timing = self.color_timing if stream == 'color' else getattr(self, 'timing', None)
         if self.busy or not self.input_enabled or self.mode != 'mapping':
-            self.pending_depth.clear()
+            pending.clear()
             return
-        while self.pending_depth:
-            msg, info = self.pending_depth[0]
+        while pending:
+            msg, info = pending[0]
             stamp = Time.from_msg(msg.header.stamp)
             age = (self.get_clock().now()-stamp).nanoseconds/1e9
             if not 0 <= age <= 0.5:
-                self.pending_depth.popleft()
-                if hasattr(self, 'timing'):
-                    self.timing['expired'] += 1
+                pending.popleft()
+                if timing is not None:
+                    timing['expired'] += 1
                 continue
             try:
                 self.tf.lookup_transform('map', msg.header.frame_id, stamp)
             except TransformException:
-                if hasattr(self, 'timing'):
-                    self.timing['tf_wait'] += 1
+                if timing is not None:
+                    timing['tf_wait'] += 1
                 return
-            self.pending_depth.popleft()
-            self.last_depth_stamp = stamp.nanoseconds
-            if hasattr(self, 'timing'):
-                self.timing['forwarded'] += 1
-            self.info_pub.publish(info)
-            self.depth_pub.publish(msg)
+            pending.popleft()
+            setattr(self, f'last_{stream}_stamp', stamp.nanoseconds)
+            if timing is not None:
+                timing['forwarded'] += 1
+            info_pub = self.color_info_pub if stream == 'color' else self.info_pub
+            info_pub.publish(info)
+            getattr(self, f'{stream}_pub').publish(msg)
 
     def invalidate(self):
         msg = MapSnapshot()
@@ -264,8 +295,8 @@ class MapSession(Node):
                 raise ValueError('nvblox save service unavailable')
             self.begin_operation()
             started = True
-            # Gate depth before draining. Nvblox serializes integration and save
-            # tasks on its processing queue; quiet depth prevents new writes.
+            # Gate RGB/depth before draining. Nvblox serializes integration
+            # and save tasks on its processing queue.
             await self.delay(1.0)
             dest.parent.mkdir(parents=True, exist_ok=True)
             temp = Path(tempfile.mkdtemp(prefix='.map-', dir=dest.parent))
@@ -287,6 +318,43 @@ class MapSession(Node):
             self.get_logger().info(f'Saved map bundle: {dest}')
         except Exception as exc:
             self.get_logger().error(f'Save rejected: {exc}')
+            response.success = False
+        finally:
+            if temp is not None:
+                shutil.rmtree(temp)
+            if started:
+                self.busy = False
+        return response
+
+    async def export_mesh(self, req, response):
+        temp = None
+        started = False
+        try:
+            if self.latest is None or not self.latest.valid:
+                raise ValueError('Export requires a valid map; init or load first')
+            if self.mode == 'mapping' and not 0 <= (self.get_clock().now()-Time.from_msg(
+                    self.latest.header.stamp)).nanoseconds/1e9 <= self.get_parameter('map_timeout').value:
+                raise ValueError('Export requires a fresh live map')
+            dest = Path(req.file_path).expanduser().resolve()
+            if dest.suffix != '.ply' or dest.exists():
+                raise ValueError('Choose a new .ply file; existing files are never overwritten')
+            if not self.mesh_client.service_is_ready():
+                raise ValueError('nvblox PLY service unavailable')
+            self.begin_operation()
+            started = True
+            await self.delay(1.0)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            temp = Path(tempfile.mkdtemp(prefix='.mesh-', dir=dest.parent))
+            filename = temp/'mesh.ply'
+            result = await self.mesh_client.call_async(FilePath.Request(file_path=str(filename)))
+            if not result.success or not filename.is_file() or filename.stat().st_size == 0:
+                raise ValueError('nvblox PLY export failed')
+            # Publish a complete file atomically without overwriting a racing writer.
+            os.link(filename, dest)
+            response.success = True
+            self.get_logger().info(f'Exported mesh with stored vertex colors: {dest}')
+        except Exception as exc:
+            self.get_logger().error(f'Mesh export rejected: {exc}')
             response.success = False
         finally:
             if temp is not None:

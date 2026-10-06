@@ -68,3 +68,32 @@ def test_operation_lock_rejects_overlap(tmp_path):
 def test_invalid_goal_height_rejected(value):
     with pytest.raises(SystemExit):
         control.parser().parse_args(['start', '--goal-height', value])
+
+
+@pytest.mark.parametrize('filename,exists', [('mesh.obj', False), ('mesh.ply', True)])
+def test_export_rejects_invalid_destination_before_cancel(tmp_path, monkeypatch, filename, exists):
+    dest = tmp_path / filename
+    if exists:
+        dest.write_text('existing model')
+    monkeypatch.setattr(control, 'CACHE', tmp_path)
+    monkeypatch.setattr(control, 'read_session', lambda *a: dict(mode='mapping'))
+    run = Mock()
+    monkeypatch.setattr(control, 'run', run)
+    monkeypatch.setattr(control.sys, 'argv', ['sim', 'export-mesh', str(dest)])
+    with pytest.raises(RuntimeError, match='.ply'):
+        control.main()
+    run.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['mapping', 'localization'])
+def test_export_waits_for_hold_before_saving(tmp_path, monkeypatch, mode):
+    monkeypatch.setattr(control, 'CACHE', tmp_path)
+    session = dict(mode=mode)
+    monkeypatch.setattr(control, 'read_session', lambda *a: session)
+    run = Mock()
+    monkeypatch.setattr(control, 'run', run)
+    dest = tmp_path / 'mesh.ply'
+    monkeypatch.setattr(control.sys, 'argv', ['sim', 'export-mesh', str(dest)])
+    control.main()
+    assert [c.args[1][2] for c in run.call_args_list] == ['cancel', 'export-mesh']
+    assert run.call_args_list[1].args[1][-1] == str(dest)

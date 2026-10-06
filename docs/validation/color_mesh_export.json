@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-06",
+  "branch": "feature/color-mesh-export",
+  "layout": "lab",
+  "ros_domain_id": 181,
+  "gz_partition": "uav_color_mesh_validation",
+  "initialization": "survey_gazebo_map.py --local-only --layout lab completed",
+  "export": "sim_control.main export-mesh with isolated test session state: cancel, HOLD, export_mesh",
+  "file": ".cache/color_mesh_validation/verified_color_mesh.ply",
+  "vertices": 20006,
+  "faces": 30448,
+  "unique_vertex_rgb": 148,
+  "non_gray_vertices": 14522,
+  "file_bytes": 1798180,
+  "python_tests_passed": 221,
+  "build_packages": [
+    "uav_nav_sim",
+    "uav_bringup"
+  ],
+  "scope": "Isolated local mapping and PLY RGB export; does not validate full scene coverage or autonomous flight.",
+  "notes": [
+    "Original managed simulation was not restarted.",
+    "An early export overlapped the first survey; the input gate rejected the conflicting survey operation. A sequential local survey and CLI export then completed."
+  ]
+}

@@ -14,13 +14,17 @@ from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
 from std_msgs.msg import String
 from std_srvs.srv import Trigger, SetBool
 from uav_nav_interfaces.msg import MapSnapshot
+from nvblox_msgs.srv import FilePath
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['status', 'cancel', 'ready', 'goal', 'explore'])
+    parser.add_argument('command', choices=['status', 'cancel', 'ready', 'goal', 'explore', 'export-mesh'])
     parser.add_argument('xyz', nargs='*', type=float)
+    parser.add_argument('--output')
     args = parser.parse_args()
+    if args.command == 'export-mesh' and not args.output:
+        parser.error('export-mesh requires --output')
     if args.command == 'goal' and (len(args.xyz) != 3 or not all(math.isfinite(v) for v in args.xyz)):
         parser.error('goal requires three finite map-frame coordinates')
     rclpy.init()
@@ -69,6 +73,17 @@ def main():
             latest['ready'] = ready()
             latest['receive_age_seconds'] = {k: round(time.monotonic()-v, 2) for k, v in received.items()}
             print(json.dumps(latest, indent=2, ensure_ascii=False))
+        elif args.command == 'export-mesh':
+            client = node.create_client(FilePath, '/uav/map/export_mesh')
+            if not client.wait_for_service(timeout_sec=10):
+                raise RuntimeError('模型导出服务不可用；更新代码后需重启仿真。')
+            future = client.call_async(FilePath.Request(file_path=args.output))
+            rclpy.spin_until_future_complete(node, future, timeout_sec=75)
+            if not future.done():
+                raise RuntimeError('模型导出超时；操作可能仍在执行，检查文件和日志。')
+            if not future.result().success:
+                raise RuntimeError('模型导出失败；检查地图是否有效以及 launch 日志。')
+            print(f'已导出三维模型：{args.output}')
         elif args.command == 'cancel':
             client = node.create_client(Trigger, '/uav/cancel')
             if not client.wait_for_service(timeout_sec=10):

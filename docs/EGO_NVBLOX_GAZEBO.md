@@ -223,7 +223,8 @@ export GZ_PARTITION=uav_ego_lab
 调整范围（上限必须大于下限）；超出范围使用端点颜色。这是高度显示，不表示障碍风险。
 
 `Normals` 按表面朝向着色，便于区分地面与不同方向的墙面；`RGB` 使用地图自带颜色。
-当前深度建图设置 `use_color: false`，已有地图没有融合相机颜色，因此 RGB 模式仍可能灰色。
+当前建图配置开启 `use_color: true`，通过地图会话融合相机 RGB。旧地图或未被彩色相机观测的表面仍可能灰色。
+可用 `./scripts/sim.sh export-mesh .cache/maps/color_mesh.ply` 导出包含顶点 RGB 的三维模型，详见 [仿真控制说明](SIMULATION_CONTROL.md)。
 高度/朝向着色不需要重新建图，不修改 TSDF、ESDF 或规划结果；切换模式会重绘已缓存的地图。
 `Cut Ceiling` 和 `Ceiling Height` 仍可隐藏高处网格（按网格块裁切）。
 

@@ -90,6 +90,8 @@ def parser():
         item = sub.add_parser(name, help={'survey': '完整离线扫描并保存', 'save': '保存当前地图',
                                          'load': '加载静态地图；仅 localization'}[name])
         item.add_argument('directory', type=lambda value: Path(value).expanduser().resolve())
+    mesh = sub.add_parser('export-mesh', help='导出带地图顶点颜色的三维 PLY 模型')
+    mesh.add_argument('filename', type=lambda value: Path(value).expanduser().resolve())
     goal = sub.add_parser('goal', help='发布 map 坐标系 XYZ 目标（米）')
     goal.add_argument('xyz', type=float, nargs=3)
     return p
@@ -203,6 +205,12 @@ def main():
         if args.command in ['init', 'survey']:
             extra = ['--local-only'] if args.command == 'init' else ['--output', str(args.directory)]
             run(session, ['python', 'scripts/survey_gazebo_map.py', '--layout', session['layout'], *extra])
+        elif args.command == 'export-mesh':
+            if args.filename.suffix != '.ply' or args.filename.exists():
+                raise RuntimeError('请使用尚不存在的 .ply 文件路径。')
+            run(session, ['python', 'scripts/sim_ros_control.py', 'cancel'], timeout=25)
+            run(session, ['python', 'scripts/sim_ros_control.py', 'export-mesh',
+                          '--output', str(args.filename)], timeout=100)
         elif args.command in ['save', 'load']:
             if args.command == 'save' and args.directory.exists():
                 raise RuntimeError('保存目录已存在；请使用新目录。')

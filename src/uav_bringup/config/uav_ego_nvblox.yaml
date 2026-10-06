@@ -7,7 +7,7 @@ nvblox_node:
     use_tf_transforms: true
     use_topic_transforms: false
     use_depth: true
-    use_color: false
+    use_color: true
     use_lidar: false
     # Aligned image/info pairs must arrive together; keep bounded reliable input.
     input_qos: DEFAULT

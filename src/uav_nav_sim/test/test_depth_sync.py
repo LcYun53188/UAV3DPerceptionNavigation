@@ -18,7 +18,9 @@ def session():
     info.k[0] = info.k[4] = 1.
     node = NS(busy=False, input_enabled=True, mode='mapping', camera_info=info,
               executor_state='HOLD', pending_depth=deque(maxlen=8),
-              last_depth_stamp=None, tf=Mock(), info_pub=Mock(), depth_pub=Mock(),
+              last_depth_stamp=None, last_color_stamp=None,
+              pending_color=deque(maxlen=8), color_timing=dict(received=0, forwarded=0, expired=0, tf_wait=0),
+              tf=Mock(), info_pub=Mock(), depth_pub=Mock(),
               get_clock=lambda: NS(now=lambda: Time(seconds=now[0], clock_type=ClockType.ROS_TIME)))
     node.flush_depth = lambda: MapSession.flush_depth(node)
     return node, now
@@ -124,3 +126,63 @@ def test_diagnostics_distinguish_forwarded_and_integrated_source_age(session):
     assert data['forwarded_age']==pytest.approx(.1)
     assert data['cached_source_age']==pytest.approx(2.1)
     assert data['query_seconds']==.02 and data['parse_seconds']==.005
+
+
+@pytest.mark.parametrize('field,value', [('busy', True), ('mode', 'localization'), ('input_enabled', False)])
+def test_color_cannot_integrate_when_mapping_is_gated(session, field, value):
+    node, _ = session
+    node.color_pub = Mock()
+    node.color_info_pub = Mock()
+    msg = depth()
+    msg.encoding = 'rgb8'
+    setattr(node, field, value)
+    MapSession.color_cb(node, msg)
+    MapSession.flush_color(node)
+    node.color_pub.publish.assert_not_called()
+
+
+def test_color_tf_wait_alignment_and_teleport_gate(session):
+    node, _ = session
+    node.color_pub = Mock()
+    node.color_info_pub = Mock()
+    node.tf.lookup_transform.side_effect = TransformException('future')
+    msg = depth()
+    msg.encoding = 'rgb8'
+    MapSession.color_cb(node, msg)
+    node.color_pub.publish.assert_not_called()
+    assert node.color_timing['tf_wait'] == 1
+    node.tf.lookup_transform.side_effect = None
+    MapSession.flush_color(node)
+    node.color_pub.publish.assert_called_once_with(msg)
+    assert node.color_info_pub.publish.call_args.args[0].header == msg.header
+    assert node.last_depth_stamp is None
+    MapSession.color_cb(node, msg)
+    assert node.color_pub.publish.call_count == 1
+    node.tf.lookup_transform.side_effect = TransformException('future')
+    msg = depth(10.05)
+    msg.encoding = 'rgb8'
+    MapSession.color_cb(node, msg)
+    assert MapSession.set_input_enabled(node, NS(data=False), NS()).success
+    assert MapSession.set_input_enabled(node, NS(data=True), NS()).success
+    node.tf.lookup_transform.side_effect = None
+    MapSession.flush_color(node)
+    assert node.color_pub.publish.call_count == 1
+
+
+def test_color_expiration_and_bad_calibration(session):
+    node, now = session
+    node.color_pub = Mock()
+    node.color_info_pub = Mock()
+    msg = depth()
+    msg.encoding = 'rgb8'
+    node.camera_info.width = 3
+    MapSession.color_cb(node, msg)
+    assert not node.pending_color
+    node.camera_info.width = 2
+    node.tf.lookup_transform.side_effect = TransformException('future')
+    MapSession.color_cb(node, msg)
+    now[0] = 10.6
+    node.tf.lookup_transform.side_effect = None
+    MapSession.flush_color(node)
+    assert node.color_timing['expired'] == 1
+    node.color_pub.publish.assert_not_called()
