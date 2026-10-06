@@ -103,6 +103,7 @@ class GoalManager:
         self.goal = goal
         self.visited, self.rejected = [], []
         self.failures = self.segments = 0
+        self.final_failures = 0
         self.started = self.progress_at = time.monotonic()
         self.best_distance = float('inf')
         self.segment_start_distance = (float(np.linalg.norm(self.position()-goal))
@@ -275,7 +276,10 @@ class GoalManager:
         self.local = None
         self.token = 0
         self.failures += 1
-        if self.failures >= self.settings.max_failures:
+        if self.local_final:
+            self.final_failures += 1
+        if (self.failures >= self.settings.max_failures or
+                self.final_failures >= self.settings.max_failures):
             self.finish('BLOCKED', reason)
         else:
             self.phase = 'OBSERVE'
@@ -319,6 +323,12 @@ class GoalManager:
                 return
             if self.local is not None:
                 self.visited.append(self.local.copy())
+            # A new observation position can reveal a usable route to the final
+            # goal. Do not keep its old rejection for the entire task, including
+            # nearby failed viewpoints that excluded it by revisit_radius.
+            # final_failures remains cumulative so detours cannot renew retries.
+            self.rejected = [p for p in self.rejected
+                             if np.linalg.norm(p-self.goal) >= self.settings.revisit_radius]
             self.local = None
             self.segments += 1
             self.failures = 0

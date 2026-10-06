@@ -302,6 +302,44 @@ def test_rejected_known_goal_does_not_bypass_observation(task):
     manager.local_pub.publish.assert_not_called()
 
 
+@pytest.mark.parametrize('offset', [0., .2])
+def test_new_viewpoint_allows_previously_rejected_final_goal(task, offset):
+    manager, node, now = task
+    manager.explore = True
+    node.map.static_map = False
+    begin(manager)
+    manager.rejected = [manager.goal + np.array([offset, 0., 0.]), np.array([0., 1., 0.])]
+    manager.local = np.array([1., 0., 0.])
+    manager.local_final = False
+    node.odom.pose.pose.position.x = 1.
+    manager.on_stop('LOCAL_GOAL_REACHED')
+    assert len(manager.rejected) == 1
+    assert np.allclose(manager.rejected[0], [0., 1., 0.])
+    manager.tick()
+    assert manager.phase == 'PLANNING' and manager.local_final
+    assert np.allclose(manager.local, manager.goal)
+
+
+def test_final_goal_retry_budget_survives_successful_detours(task):
+    manager, node, now = task
+    begin(manager)
+    for attempt in range(manager.settings.max_failures):
+        manager.local = manager.goal.copy()
+        manager.local_final = True
+        manager.failed_segment('NO_PATH')
+        if attempt == manager.settings.max_failures-1:
+            break
+        manager.local = np.array([1., 0., 0.])
+        manager.local_final = False
+        node.odom.pose.pose.position.x = 1.
+        manager.on_stop('LOCAL_GOAL_REACHED')
+        assert manager.failures == 0
+    assert manager.state == 'BLOCKED' and manager.reason == 'NO_PATH'
+    assert manager.goal is None
+    begin(manager)
+    assert manager.final_failures == 0
+
+
 @pytest.mark.parametrize('map_gain', [False, True])
 def test_detour_renews_progress_only_after_arrival_with_new_map_volume(task, map_gain):
     manager,node,now=task
