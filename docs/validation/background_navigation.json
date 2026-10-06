@@ -1,0 +1,221 @@
+{
+  "without_background": {
+    "mode": "continuous",
+    "scenario": "synthetic_incremental_bend",
+    "background_replan": "false",
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "LOCAL_GOAL_REACHED",
+      "OBSERVATION_REUSED",
+      "ACCEPTED:2",
+      "REPLAN_REQUESTED",
+      "QUEUED:3",
+      "HANDOVER:2->3",
+      "ACCEPTED:3",
+      "REPLAN_REQUESTED",
+      "QUEUED:4",
+      "HANDOVER:3->4",
+      "ACCEPTED:4",
+      "REPLAN_REQUESTED",
+      "QUEUED:5",
+      "HANDOVER:4->5",
+      "ACCEPTED:5",
+      "REPLAN_REQUESTED",
+      "QUEUED:6",
+      "HANDOVER:5->6",
+      "ACCEPTED:6",
+      "GOAL_REACHED"
+    ],
+    "states": [
+      "IDLE",
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "NAVIGATING",
+      "REACHED"
+    ],
+    "handovers": [
+      {
+        "speed": 0.4521265423222914,
+        "continuity_errors": [
+          2.6238904163161574e-08,
+          5.55842302584196e-09,
+          2.903619836079692e-09
+        ]
+      },
+      {
+        "speed": 0.4961258653088478,
+        "continuity_errors": [
+          5.359958166144798e-08,
+          9.170564807231587e-09,
+          1.3203443881415174e-08
+        ]
+      },
+      {
+        "speed": 0.1559032753517647,
+        "continuity_errors": [
+          1.985376469331202e-08,
+          1.9699539038994595e-09,
+          4.2390424622788585e-08
+        ]
+      },
+      {
+        "speed": 0.4895254260593609,
+        "continuity_errors": [
+          1.0291411436657421e-07,
+          2.165120380716922e-09,
+          1.957330213707485e-08
+        ]
+      }
+    ],
+    "completed": true,
+    "duration": 32.523,
+    "stop_count": 1,
+    "stopped_seconds": 2.292,
+    "final_position": [
+      8.000859364693177,
+      -0.00045111547135803315,
+      -2.3727430841406976e-05
+    ],
+    "accepted_segments": 6,
+    "minimum_obstacle_clearance": 0.3975290787018037
+  },
+  "with_background": {
+    "mode": "continuous",
+    "scenario": "synthetic_incremental_bend",
+    "background_replan": "true",
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "BACKGROUND_SEARCH_STARTED",
+      "BACKGROUND_SEARCH_READY",
+      "REPLAN_REQUESTED",
+      "BACKGROUND_REPLAN_REQUESTED",
+      "QUEUED:2",
+      "HANDOVER:1->2",
+      "ACCEPTED:2",
+      "BACKGROUND_SEARCH_STARTED",
+      "BACKGROUND_SEARCH_READY",
+      "REPLAN_REQUESTED",
+      "BACKGROUND_REPLAN_REQUESTED",
+      "QUEUED:3",
+      "HANDOVER:2->3",
+      "ACCEPTED:3",
+      "BACKGROUND_SEARCH_STARTED",
+      "BACKGROUND_SEARCH_READY",
+      "REPLAN_REQUESTED",
+      "BACKGROUND_REPLAN_REQUESTED",
+      "QUEUED:4",
+      "HANDOVER:3->4",
+      "ACCEPTED:4",
+      "REPLAN_REQUESTED",
+      "QUEUED:5",
+      "HANDOVER:4->5",
+      "ACCEPTED:5",
+      "REPLAN_REQUESTED",
+      "QUEUED:6",
+      "HANDOVER:5->6",
+      "ACCEPTED:6",
+      "BACKGROUND_SEARCH_STARTED",
+      "BACKGROUND_SEARCH_READY",
+      "REPLAN_REQUESTED",
+      "QUEUED:7",
+      "HANDOVER:6->7",
+      "ACCEPTED:7",
+      "REPLAN_REQUESTED",
+      "QUEUED:8",
+      "HANDOVER:7->8",
+      "ACCEPTED:8",
+      "GOAL_REACHED"
+    ],
+    "states": [
+      "IDLE",
+      "CANCELLED:GOAL_REPLACED",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "NAVIGATING",
+      "REACHED"
+    ],
+    "handovers": [
+      {
+        "speed": 0.4899725853847746,
+        "continuity_errors": [
+          7.844794823515123e-08,
+          1.3073790100764954e-10,
+          1.3806987510074231e-08
+        ]
+      },
+      {
+        "speed": 0.48816901101219906,
+        "continuity_errors": [
+          6.659229276602405e-09,
+          1.962020542178086e-09,
+          1.7528362522407526e-09
+        ]
+      },
+      {
+        "speed": 0.44927167356532,
+        "continuity_errors": [
+          2.463020170372407e-08,
+          8.263914473601303e-09,
+          8.641464085778984e-09
+        ]
+      },
+      {
+        "speed": 0.48594894665674426,
+        "continuity_errors": [
+          5.4897164072430745e-08,
+          2.064760377514979e-08,
+          1.1926634164509671e-08
+        ]
+      },
+      {
+        "speed": 0.4545429787989413,
+        "continuity_errors": [
+          1.3057402326505183e-08,
+          4.552179007092853e-09,
+          1.8829102535878675e-09
+        ]
+      },
+      {
+        "speed": 0.3761266126469465,
+        "continuity_errors": [
+          3.11636867251793e-08,
+          1.2354402494293419e-08,
+          2.591278277064905e-08
+        ]
+      },
+      {
+        "speed": 0.41309293290792604,
+        "continuity_errors": [
+          3.9517695914213786e-08,
+          1.922601037847684e-08,
+          2.0869616316339463e-08
+        ]
+      }
+    ],
+    "completed": true,
+    "duration": 31.543,
+    "stop_count": 0,
+    "stopped_seconds": 0.0,
+    "final_position": [
+      8.000791608496904,
+      -0.0006398637476368906,
+      -2.120796083073902e-05
+    ],
+    "accepted_segments": 8,
+    "minimum_obstacle_clearance": 0.5956080016261782
+  },
+  "date": "2026-10-02",
+  "scope": "Incrementally observed synthetic corridor with an extruded rectangular obstacle. Actual ROS planner/executor, ideal velocity model. Only background_replan differs; source observations are synthetic, not Gazebo sensor data. Stop threshold 0.05 m/s excludes initial/final rest. Values are single runs, not a statistical timing estimate.",
+  "commands": [
+    "./scripts/with_venv.sh python scripts/check_continuous_navigation.py --scenario bend --background-replan false --timeout 120 --output .cache/sim/bend_false.json",
+    "./scripts/with_venv.sh python scripts/check_continuous_navigation.py --scenario bend --background-replan true --timeout 120 --output .cache/sim/bend_true.json"
+  ]
+}

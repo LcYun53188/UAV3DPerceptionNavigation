@@ -101,10 +101,17 @@ def main():
         if active:
             samples.append(latest['position'])
     def on_state(msg):
+        nonlocal task_started
+        if active and msg.data.split(':')[0] in ('OBSERVING','PLANNING','EXPLORING','NAVIGATING'):
+            task_started = True
         if active and (not report['states'] or report['states'][-1] != msg.data):
             report['states'].append(msg.data)
             print(msg.data, flush=True)
             checkpoint()
+    def on_diagnostics(msg):
+        if active:
+            data = json.loads(msg.data)
+            report.setdefault('mapping_diagnostics', []).append(data)
     def on_event(msg):
         nonlocal task_started
         if active:
@@ -146,6 +153,7 @@ def main():
     node.create_subscription(Odometry, '/uav/localization/odometry', on_odom, qos_profile_sensor_data)
     node.create_subscription(String, '/uav/navigation/state', on_state, qos)
     node.create_subscription(String, '/uav/executor/event', on_event, 10)
+    node.create_subscription(String, '/uav/map/diagnostics', on_diagnostics, 10)
     node.create_subscription(TimedTrajectory, '/uav/trajectory', on_trajectory, 10)
     pub = node.create_publisher(PoseStamped, '/uav/goal', 10)
     cancel = node.create_client(Trigger, '/uav/cancel')
@@ -171,6 +179,17 @@ def main():
         pub.publish(msg)
         if not pub.wait_for_all_acked(Duration(seconds=3.)):
             raise RuntimeError('Navigation goal delivery was not acknowledged')
+        report['goal_publish_attempts'] = 1
+        delivery_deadline = time.monotonic()+15
+        next_publish = time.monotonic()+3
+        while not task_started and time.monotonic() < delivery_deadline:
+            rclpy.spin_once(node, timeout_sec=.05)
+            if not task_started and time.monotonic() >= next_publish:
+                pub.publish(msg)
+                report['goal_publish_attempts'] += 1
+                next_publish = time.monotonic()+3
+        if not task_started:
+            raise RuntimeError('Navigation did not confirm goal startup within 15 s')
         started = time.monotonic()
         deadline = started+args.timeout
         terminal = None

@@ -1,0 +1,1113 @@
+{
+  "date": "2026-10-02",
+  "change": "Bounded reliable QoS (depth 5) for aligned depth/image intrinsics, matching nvblox DEFAULT input QoS. Raw sensor reception and 2 s source validity rule unchanged.",
+  "native_rates_before": {
+    "depth_callback_hz": 4.7,
+    "integration_hz": 3.3,
+    "esdf_service_hz": 1.8
+  },
+  "native_rates_after": {
+    "depth_callback_hz": 8.3,
+    "integration_hz": 4.6,
+    "esdf_service_hz": 2.0
+  },
+  "rate_scope": "Native sliding-window statistics from different session histories, not a controlled throughput benchmark. Profiling before showed mean depth integration approximately 0.000287 s and ESDF service approximately 0.005009 s.",
+  "flow_before": {
+    "raw": {
+      "count": 114,
+      "wall_rate": 7.890200707656583,
+      "max_wall_gap": 0.8570873979988392,
+      "max_source_gap": 0.8579999999999472
+    },
+    "forwarded": {
+      "count": 73,
+      "wall_rate": 4.957480644889349,
+      "max_wall_gap": 1.017618598001718,
+      "max_source_gap": 0.9900000000000091
+    },
+    "map": {
+      "count": 17,
+      "wall_rate": 1.1026629863556534,
+      "max_wall_gap": 3.006864659997518,
+      "max_source_gap": 3.00200000000018,
+      "source_age_quantiles": [
+        0.08000000000015461,
+        0.2940000000000964,
+        0.8355999999999764,
+        1.2579999999998108
+      ]
+    }
+  },
+  "flow_after": {
+    "raw": {
+      "count": 88,
+      "wall_rate": 5.936866112468133,
+      "max_wall_gap": 1.2497427019989118,
+      "max_source_gap": 1.254000000000019
+    },
+    "forwarded": {
+      "count": 38,
+      "wall_rate": 2.526775376660118,
+      "max_wall_gap": 1.7838525249972008,
+      "max_source_gap": 1.7820000000000107
+    },
+    "map": {
+      "count": 31,
+      "wall_rate": 2.0517817876029003,
+      "max_wall_gap": 0.530350474997249,
+      "max_source_gap": 0.5219999999999914,
+      "source_age_quantiles": [
+        0.05000000000001137,
+        0.19799999999997908,
+        0.7279999999999944,
+        1.078000000000003
+      ]
+    }
+  },
+  "first_trial_note": "180 s trial before observation guard: 24 handovers but failed arrival. No map invalidation. Demonstrates why preserving necessary observation is required.",
+  "guarded_trial_note": "Same mapping session after initial one-shot test goal was not consumed; an explicit CLI goal briefly moved along one safe segment before the old test timeout cancelled it. Local init then returned to launch pose, preserving the partially observed map. Final retry confirms goal startup before timing; not a fresh-map matched speed comparison.",
+  "diagnostics_note": "In recorded trial data, integrated_age is age of source stamp from last exported reply, not nvblox live integration state; it is renamed cached_source_age in the updated diagnostics. It can grow between replies. source_age_at_reply records the actual response validity check.",
+  "first_trial": {
+    "layout": "expanded",
+    "goal": [
+      -1.0,
+      -7.5,
+      1.8
+    ],
+    "completed": true,
+    "states": [
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "CANCELLED:CANCELLED"
+    ],
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:1",
+      "REPLAN_REQUESTED",
+      "QUEUED:2",
+      "HANDOVER:1->2",
+      "ACCEPTED:2",
+      "REPLAN_REQUESTED",
+      "QUEUED:3",
+      "HANDOVER:2->3",
+      "ACCEPTED:3",
+      "REPLAN_REQUESTED",
+      "QUEUED:4",
+      "HANDOVER:3->4",
+      "ACCEPTED:4",
+      "REPLAN_REQUESTED",
+      "QUEUED:5",
+      "HANDOVER:4->5",
+      "ACCEPTED:5",
+      "REPLAN_REQUESTED",
+      "QUEUED:6",
+      "HANDOVER:5->6",
+      "ACCEPTED:6",
+      "REPLAN_REQUESTED",
+      "QUEUED:7",
+      "HANDOVER:6->7",
+      "ACCEPTED:7",
+      "REPLAN_REQUESTED",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:8",
+      "REPLAN_REQUESTED",
+      "QUEUED:9",
+      "HANDOVER:8->9",
+      "ACCEPTED:9",
+      "REPLAN_REQUESTED",
+      "QUEUED:10",
+      "HANDOVER:9->10",
+      "ACCEPTED:10",
+      "REPLAN_REQUESTED",
+      "QUEUED:11",
+      "HANDOVER:10->11",
+      "ACCEPTED:11",
+      "REPLAN_REQUESTED",
+      "QUEUED:12",
+      "HANDOVER:11->12",
+      "ACCEPTED:12",
+      "REPLAN_REQUESTED",
+      "QUEUED:13",
+      "HANDOVER:12->13",
+      "ACCEPTED:13",
+      "REPLAN_REQUESTED",
+      "QUEUED:14",
+      "HANDOVER:13->14",
+      "ACCEPTED:14",
+      "REPLAN_REQUESTED",
+      "QUEUED:15",
+      "HANDOVER:14->15",
+      "ACCEPTED:15",
+      "REPLAN_REQUESTED",
+      "QUEUED:16",
+      "HANDOVER:15->16",
+      "ACCEPTED:16",
+      "REPLAN_REQUESTED",
+      "QUEUED:17",
+      "HANDOVER:16->17",
+      "ACCEPTED:17",
+      "STAGNATION_SCAN_REQUESTED",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:18",
+      "REPLAN_REQUESTED",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:19",
+      "REPLAN_REQUESTED",
+      "QUEUED:20",
+      "HANDOVER:19->20",
+      "ACCEPTED:20",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:21",
+      "REPLAN_REQUESTED",
+      "QUEUED:22",
+      "HANDOVER:21->22",
+      "ACCEPTED:22",
+      "REPLAN_REQUESTED",
+      "REPLAN_REQUESTED",
+      "QUEUED:23",
+      "HANDOVER:22->23",
+      "ACCEPTED:23",
+      "REPLAN_REQUESTED",
+      "QUEUED:24",
+      "HANDOVER:23->24",
+      "ACCEPTED:24",
+      "REPLAN_REQUESTED",
+      "QUEUED:25",
+      "HANDOVER:24->25",
+      "ACCEPTED:25",
+      "REPLAN_REQUESTED",
+      "QUEUED:26",
+      "HANDOVER:25->26",
+      "ACCEPTED:26",
+      "REPLAN_REQUESTED",
+      "QUEUED:27",
+      "HANDOVER:26->27",
+      "ACCEPTED:27",
+      "REPLAN_REQUESTED",
+      "QUEUED:28",
+      "HANDOVER:27->28",
+      "ACCEPTED:28",
+      "REPLAN_REQUESTED",
+      "QUEUED:29",
+      "HANDOVER:28->29",
+      "ACCEPTED:29",
+      "CANCELLED"
+    ],
+    "trajectories": [
+      {
+        "id": 1,
+        "parent_id": 0,
+        "duration": 15.6,
+        "map_version": 390,
+        "endpoint": [
+          -3.1499998904764657,
+          -7.149999950081111,
+          0.8500000126659872
+        ],
+        "truth_clearance": 0.09803579084843694,
+        "truth_closest_point": [
+          -4.279896676475544,
+          -7.125087057605508,
+          0.39803579084843693
+        ],
+        "receipt_map_version": 390,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.5,
+        "min_body_distance": 0.10000000149011612,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 2,
+        "parent_id": 1,
+        "duration": 8.938763668727734,
+        "map_version": 415,
+        "endpoint": [
+          -1.849999871104956,
+          -8.849999975413086,
+          1.450000021606684
+        ],
+        "truth_clearance": 0.29120518947493185,
+        "truth_closest_point": [
+          -2.922491641284492,
+          -7.697300321637765,
+          0.5912051894749318
+        ],
+        "receipt_map_version": 415,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 3,
+        "parent_id": 2,
+        "duration": 6.858712799633894,
+        "map_version": 425,
+        "endpoint": [
+          -0.5499998517334461,
+          -8.749999973922966,
+          1.2500000186264515
+        ],
+        "truth_clearance": 0.4829932144687988,
+        "truth_closest_point": [
+          -1.7540527142427573,
+          -8.482993214468799,
+          0.979418778746435
+        ],
+        "receipt_map_version": 425,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.8062257766723633,
+        "min_body_distance": 0.5,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 4,
+        "parent_id": 3,
+        "duration": 4.2,
+        "map_version": 431,
+        "endpoint": [
+          -2.1499998755753045,
+          -8.74999997392297,
+          1.3500000201165678
+        ],
+        "truth_clearance": 0.48585587582614315,
+        "truth_closest_point": [
+          -1.6847627949725723,
+          -8.485855875826143,
+          0.9827018402255685
+        ],
+        "receipt_map_version": 431,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.8124038577079773,
+        "min_body_distance": 0.5,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 5,
+        "parent_id": 4,
+        "duration": 7.132007090694831,
+        "map_version": 435,
+        "endpoint": [
+          -0.6499998532235624,
+          -8.749999973922968,
+          1.2500000186264515
+        ],
+        "truth_clearance": 0.6867658936432064,
+        "truth_closest_point": [
+          -1.7621219999262199,
+          -8.675551314391587,
+          1.1483460880721923
+        ],
+        "receipt_map_version": 436,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0049875974655151,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 6,
+        "parent_id": 5,
+        "duration": 5.5766531026688995,
+        "map_version": 442,
+        "endpoint": [
+          -2.1499998755753036,
+          -8.849999975413084,
+          1.5500000230967994
+        ],
+        "truth_clearance": 0.705655596990024,
+        "truth_closest_point": [
+          -1.6639403261514094,
+          -8.894344403009976,
+          1.4285378813780196
+        ],
+        "receipt_map_version": 442,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.100000023841858,
+        "min_body_distance": 0.800000011920929,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 7,
+        "parent_id": 6,
+        "duration": 4.490394171238121,
+        "map_version": 447,
+        "endpoint": [
+          -0.549999851733446,
+          -8.749999973922966,
+          1.250000018626451
+        ],
+        "truth_clearance": 0.7108624165287465,
+        "truth_closest_point": [
+          -1.469314812264813,
+          -8.889137583471253,
+          1.363435215098788
+        ],
+        "receipt_map_version": 447,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.100000023841858,
+        "min_body_distance": 0.800000011920929,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 8,
+        "parent_id": 0,
+        "duration": 6.0,
+        "map_version": 468,
+        "endpoint": [
+          -1.849999871104956,
+          -8.849999975413086,
+          1.4500000216066842
+        ],
+        "truth_clearance": 0.7500000245869141,
+        "truth_closest_point": [
+          -1.849999871104956,
+          -8.849999975413086,
+          1.4500000216066842
+        ],
+        "receipt_map_version": 468,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.100000023841858,
+        "min_body_distance": 0.800000011920929,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 9,
+        "parent_id": 8,
+        "duration": 8.593972969618976,
+        "map_version": 472,
+        "endpoint": [
+          0.6500001661479473,
+          -8.749999973922968,
+          1.3500000201165678
+        ],
+        "truth_clearance": 0.6760416715170856,
+        "truth_closest_point": [
+          -0.21864922762169164,
+          -8.923958328482914,
+          1.2400344053264059
+        ],
+        "receipt_map_version": 472,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 10,
+        "parent_id": 9,
+        "duration": 9.783339558868365,
+        "map_version": 481,
+        "endpoint": [
+          -2.1499998755753036,
+          -8.849999975413084,
+          1.5500000230967994
+        ],
+        "truth_clearance": 0.6873069229243094,
+        "truth_closest_point": [
+          0.07798796057260682,
+          -8.91269307707569,
+          1.2660237885236714
+        ],
+        "receipt_map_version": 481,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 11,
+        "parent_id": 10,
+        "duration": 9.397655897744244,
+        "map_version": 493,
+        "endpoint": [
+          0.6500001661479473,
+          -8.749999973922968,
+          1.3500000201165676
+        ],
+        "truth_clearance": 0.6388811154329752,
+        "truth_closest_point": [
+          -0.9101983047603206,
+          -8.961118884567025,
+          1.2890945856480267
+        ],
+        "receipt_map_version": 493,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 12,
+        "parent_id": 11,
+        "duration": 8.760074459835508,
+        "map_version": 504,
+        "endpoint": [
+          -1.949999872595072,
+          -8.9499999769032,
+          1.650000024586916
+        ],
+        "truth_clearance": 0.6500000230967999,
+        "truth_closest_point": [
+          -1.949999872595072,
+          -8.9499999769032,
+          1.650000024586916
+        ],
+        "receipt_map_version": 504,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 13,
+        "parent_id": 12,
+        "duration": 9.0,
+        "map_version": 514,
+        "endpoint": [
+          0.7500001676380634,
+          -8.549999970942736,
+          1.3500000201165676
+        ],
+        "truth_clearance": 0.6418293837794669,
+        "truth_closest_point": [
+          0.0027652397627657074,
+          -8.958170616220533,
+          1.3607857823176563
+        ],
+        "receipt_map_version": 514,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 14,
+        "parent_id": 13,
+        "duration": 8.982385078768068,
+        "map_version": 525,
+        "endpoint": [
+          -1.9499998725950718,
+          -8.9499999769032,
+          1.650000024586916
+        ],
+        "truth_clearance": 0.41304184680026207,
+        "truth_closest_point": [
+          -1.0304884023815704,
+          -9.186958153199738,
+          1.508215180966559
+        ],
+        "receipt_map_version": 525,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.800000011920929,
+        "min_body_distance": 0.5,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 15,
+        "parent_id": 14,
+        "duration": 11.657375994040665,
+        "map_version": 535,
+        "endpoint": [
+          1.0500001721084116,
+          -8.049999963492153,
+          1.4500000216066835
+        ],
+        "truth_clearance": 0.4180209315771041,
+        "truth_closest_point": [
+          -1.1316983598660766,
+          -9.181979068422896,
+          1.5125756780295279
+        ],
+        "receipt_map_version": 535,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.800000011920929,
+        "min_body_distance": 0.5,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 16,
+        "parent_id": 15,
+        "duration": 11.554400172173986,
+        "map_version": 551,
+        "endpoint": [
+          -1.8499998711049557,
+          -8.849999975413084,
+          1.4500000216066837
+        ],
+        "truth_clearance": 0.6929873049704889,
+        "truth_closest_point": [
+          -0.4959851057205224,
+          -8.907012695029511,
+          1.3704883275925033
+        ],
+        "receipt_map_version": 551,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 17,
+        "parent_id": 16,
+        "duration": 11.795058261636331,
+        "map_version": 566,
+        "endpoint": [
+          1.0500001721084118,
+          -8.049999963492155,
+          1.4500000216066835
+        ],
+        "truth_clearance": 0.6599547900885061,
+        "truth_closest_point": [
+          0.22958169170986092,
+          -8.940045209911494,
+          1.410502811214163
+        ],
+        "receipt_map_version": 566,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.0,
+        "min_body_distance": 0.699999988079071,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 18,
+        "parent_id": 0,
+        "duration": 9.360597018072475,
+        "map_version": 628,
+        "endpoint": [
+          -0.24999984726309776,
+          -6.449999939650297,
+          1.750000026077032
+        ],
+        "truth_clearance": 0.13852669618755759,
+        "truth_closest_point": [
+          0.1993546794418678,
+          -6.440315926832997,
+          1.3905936188083525
+        ],
+        "receipt_map_version": 628,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.44721361994743347,
+        "min_body_distance": 0.10000000149011612,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 19,
+        "parent_id": 0,
+        "duration": 9.0,
+        "map_version": 653,
+        "endpoint": [
+          1.7500001825392246,
+          -6.949999947100878,
+          1.750000026077032
+        ],
+        "truth_clearance": 0.23595109223400174,
+        "truth_closest_point": [
+          0.20897474660413667,
+          -6.372436161339834,
+          1.4935312842653
+        ],
+        "receipt_map_version": 653,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.5830951929092407,
+        "min_body_distance": 0.20000000298023224,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 20,
+        "parent_id": 19,
+        "duration": 15.0,
+        "map_version": 663,
+        "endpoint": [
+          -1.3499998636543753,
+          -7.849999960511923,
+          1.8500000275671482
+        ],
+        "truth_clearance": 0.5029740079211866,
+        "truth_closest_point": [
+          0.6931878563905962,
+          -7.790338516722208,
+          1.395090882641014
+        ],
+        "receipt_map_version": 663,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.8124038577079773,
+        "min_body_distance": 0.41231057047843933,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 21,
+        "parent_id": 0,
+        "duration": 4.524192650551655,
+        "map_version": 702,
+        "endpoint": [
+          -2.4499998800456524,
+          -8.049999963492157,
+          1.8500000275671484
+        ],
+        "truth_clearance": 0.5636159358874255,
+        "truth_closest_point": [
+          -1.3504876591726847,
+          -7.8487945268994865,
+          1.8507012833442018
+        ],
+        "receipt_map_version": 702,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.9899495244026184,
+        "min_body_distance": 0.6082763075828552,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 22,
+        "parent_id": 21,
+        "duration": 4.993581245169015,
+        "map_version": 706,
+        "endpoint": [
+          -1.4499998651444912,
+          -8.849999975413086,
+          1.8500000275671482
+        ],
+        "truth_clearance": 0.5851301272484328,
+        "truth_closest_point": [
+          -1.879687339184188,
+          -7.9456355175133755,
+          1.8503637661017567
+        ],
+        "receipt_map_version": 706,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.9273619055747986,
+        "min_body_distance": 0.6000000238418579,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 23,
+        "parent_id": 22,
+        "duration": 6.1816673391631305,
+        "map_version": 714,
+        "endpoint": [
+          -2.9499998874962334,
+          -8.249999966472389,
+          1.8500000275671482
+        ],
+        "truth_clearance": 0.7525185850171854,
+        "truth_closest_point": [
+          -1.4553482367030122,
+          -8.847481414982814,
+          1.8499999874560324
+        ],
+        "receipt_map_version": 714,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.100000023841858,
+        "min_body_distance": 0.800000011920929,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 24,
+        "parent_id": 23,
+        "duration": 4.2,
+        "map_version": 719,
+        "endpoint": [
+          -2.0499998740851884,
+          -8.74999997392297,
+          1.9500000290572648
+        ],
+        "truth_clearance": 0.8500000260770302,
+        "truth_closest_point": [
+          -2.0499998740851884,
+          -8.74999997392297,
+          1.9500000290572648
+        ],
+        "receipt_map_version": 719,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 1.2000000476837158,
+        "min_body_distance": 0.9000000357627869,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 25,
+        "parent_id": 24,
+        "duration": 4.2,
+        "map_version": 723,
+        "endpoint": [
+          -1.4095059172570024,
+          -7.987507092644686,
+          1.8585008636702836
+        ],
+        "truth_clearance": 0.6053640490121213,
+        "truth_closest_point": [
+          -1.4095059172570024,
+          -7.987507092644686,
+          1.8585008636702836
+        ],
+        "receipt_map_version": 723,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.9695360064506531,
+        "min_body_distance": 0.6000000238418579,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 26,
+        "parent_id": 25,
+        "duration": 6.41267329202849,
+        "map_version": 727,
+        "endpoint": [
+          -2.949999887496233,
+          -8.44999996945262,
+          1.8500000275671482
+        ],
+        "truth_clearance": 0.6139433415377404,
+        "truth_closest_point": [
+          -1.6962074090990051,
+          -8.03494371663579,
+          1.8503558891589884
+        ],
+        "receipt_map_version": 728,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.9539392590522766,
+        "min_body_distance": 0.6000000238418579,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 27,
+        "parent_id": 26,
+        "duration": 6.0,
+        "map_version": 733,
+        "endpoint": [
+          -2.8499998860061173,
+          -6.849999945610763,
+          1.7500000260770325
+        ],
+        "truth_clearance": 0.33007490039363824,
+        "truth_closest_point": [
+          -2.4489177638818878,
+          -7.59341704868039,
+          1.4421167508445465
+        ],
+        "receipt_map_version": 733,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.6480740904808044,
+        "min_body_distance": 0.22360680997371674,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 28,
+        "parent_id": 27,
+        "duration": 4.627510085509533,
+        "map_version": 737,
+        "endpoint": [
+          -2.6499998830258846,
+          -8.44999996945262,
+          1.8500000275671482
+        ],
+        "truth_clearance": 0.3224478891241415,
+        "truth_closest_point": [
+          -2.4448662483243804,
+          -7.6277584699108045,
+          1.4353566305649774
+        ],
+        "receipt_map_version": 737,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.6403124332427979,
+        "min_body_distance": 0.22360680997371674,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 29,
+        "parent_id": 28,
+        "duration": 7.115421341706474,
+        "map_version": 744,
+        "endpoint": [
+          -2.849999886006117,
+          -6.8499999456107625,
+          1.7500000260770323
+        ],
+        "truth_clearance": 0.5155267361936238,
+        "truth_closest_point": [
+          -2.563883749353977,
+          -7.5616783028630055,
+          1.5891680360144516
+        ],
+        "receipt_map_version": 744,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.7874007821083069,
+        "min_body_distance": 0.36055514216423035,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      }
+    ],
+    "initial_observed": 138151,
+    "initial_goal_state": "UNKNOWN",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      -7.5,
+      -7.5,
+      1.2
+    ],
+    "latest_position": [
+      -2.6351750063050887,
+      -8.375903056959753,
+      1.818798962097954
+    ],
+    "duration": 180.00683410700003,
+    "terminal": null,
+    "final_position": [
+      -2.6351750063050887,
+      -8.375903056959753,
+      1.818798962097954
+    ],
+    "final_error": 1.8550894499759973,
+    "final_observed": 373359,
+    "samples": 9150,
+    "min_truth_clearance": 0.09682262711276568,
+    "accepted_segments": 29,
+    "hold_drift": 0.00046664371067752,
+    "passed": false,
+    "diagnostic_summary": {
+      "samples": 183,
+      "max_cached_source_age": 1.14,
+      "reported_errors": 0,
+      "max_query_seconds": 0.04051672500645509,
+      "max_parse_seconds": 0.015663249003409874
+    }
+  },
+  "guarded_trial": {
+    "layout": "expanded",
+    "goal": [
+      -1.0,
+      -7.5,
+      1.8
+    ],
+    "completed": true,
+    "states": [
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "EXPLORING",
+      "OBSERVING",
+      "PLANNING",
+      "NAVIGATING",
+      "REACHED",
+      "CANCELLED:CANCELLED"
+    ],
+    "events": [
+      "GOAL_REPLACED",
+      "ACCEPTED:2",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:3",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:4",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:5",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:6",
+      "LOCAL_GOAL_REACHED",
+      "ACCEPTED:7",
+      "GOAL_REACHED"
+    ],
+    "trajectories": [
+      {
+        "id": 3,
+        "parent_id": 0,
+        "duration": 4.064707155713691,
+        "map_version": 1011,
+        "endpoint": [
+          -0.6499998532235622,
+          -8.44999996945262,
+          1.3500000201165676
+        ],
+        "truth_clearance": 0.48144374673263685,
+        "truth_closest_point": [
+          -0.7277885595017,
+          -8.453953456374947,
+          1.2054471098064226
+        ],
+        "receipt_map_version": 1011,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.8544003367424011,
+        "min_body_distance": 0.5,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 4,
+        "parent_id": 0,
+        "duration": 8.4,
+        "map_version": 1030,
+        "endpoint": [
+          -2.649999883025885,
+          -8.649999972432852,
+          1.3500000201165678
+        ],
+        "truth_clearance": 0.5280088354901538,
+        "truth_closest_point": [
+          -0.649309778369209,
+          -8.449941170467758,
+          1.3509798747609463
+        ],
+        "receipt_map_version": 1030,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.8944272398948669,
+        "min_body_distance": 0.5099019408226013,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 5,
+        "parent_id": 0,
+        "duration": 8.4,
+        "map_version": 1059,
+        "endpoint": [
+          -2.749999884516001,
+          -6.949999947100879,
+          1.5500000230968
+        ],
+        "truth_clearance": 0.39993358778824045,
+        "truth_closest_point": [
+          -2.6999335877882404,
+          -7.350948568293911,
+          0.8008249989419347
+        ],
+        "receipt_map_version": 1059,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.5,
+        "min_body_distance": 0.20000000298023224,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 6,
+        "parent_id": 0,
+        "duration": 13.295222197012956,
+        "map_version": 1088,
+        "endpoint": [
+          -1.249999862164259,
+          -6.049999933689832,
+          1.750000026077032
+        ],
+        "truth_clearance": 0.340200312505113,
+        "truth_closest_point": [
+          -2.5159829441258044,
+          -5.921030289465093,
+          0.8507281912138303
+        ],
+        "receipt_map_version": 1088,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.670820415019989,
+        "min_body_distance": 0.30000001192092896,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      },
+      {
+        "id": 7,
+        "parent_id": 0,
+        "duration": 7.199999999999999,
+        "map_version": 1120,
+        "endpoint": [
+          -1.0,
+          -7.500000000000002,
+          1.8000000000000003
+        ],
+        "truth_clearance": 0.26193735599045237,
+        "truth_closest_point": [
+          -1.3042212596449996,
+          -6.804399835100122,
+          1.5619373559904524
+        ],
+        "receipt_map_version": 1120,
+        "receipt_map_collision_at_closest": false,
+        "receipt_map_distance_at_closest": 0.699999988079071,
+        "min_body_distance": 0.30000001192092896,
+        "nonpositive_body_voxels": 0,
+        "unknown_body_voxels": 0
+      }
+    ],
+    "initial_observed": 157908,
+    "initial_goal_state": "UNKNOWN",
+    "initial_goal_volume_blocked": true,
+    "initial_start_blocked": false,
+    "start": [
+      -7.5,
+      -7.5,
+      1.2
+    ],
+    "goal_publish_attempts": 1,
+    "latest_position": [
+      -0.9998067285963934,
+      -7.500924517143535,
+      1.8005291601974154
+    ],
+    "duration": 91.994435624998,
+    "terminal": "REACHED",
+    "final_position": [
+      -0.9998067285963934,
+      -7.500924517143535,
+      1.8005291601974154
+    ],
+    "final_error": 0.0010826339633828452,
+    "final_observed": 329421,
+    "samples": 4751,
+    "min_truth_clearance": 0.2607239267494286,
+    "accepted_segments": 6,
+    "hold_drift": 3.197024270130893e-05,
+    "passed": true,
+    "diagnostic_summary": {
+      "samples": 95,
+      "max_cached_source_age": 2.414,
+      "reported_errors": 0,
+      "max_query_seconds": 0.03719519200240029,
+      "max_parse_seconds": 0.01346289300272474
+    }
+  }
+}

@@ -11,7 +11,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from std_srvs.srv import SetBool
 from rclpy.qos import QoSProfile, DurabilityPolicy, qos_profile_sensor_data
-from uav_nav_interfaces.msg import TimedTrajectory
+from uav_nav_interfaces.msg import TimedTrajectory, MapSnapshot
 from uav_nav_sim.core import spline
 from check_gazebo_exploration import expanded_clearance
 
@@ -28,10 +28,29 @@ def main():
     node = rclpy.create_node('gazebo_autonomous_check')
     client = node.create_client(SetBool, '/uav/exploration/enabled')
     truth = expanded_clearance()
-    report = dict(states=[], events=[], trajectories=[], positions=0, unsafe_abort=False,
+    report = dict(layout='expanded', requested_duration=args.duration,
+                  states=[], events=[], trajectories=[], positions=0, unsafe_abort=False,
                   minimum_clearance=None, completed=False)
     active = False
     position = None
+    observed = None
+
+    def mapping(msg):
+        nonlocal observed
+        if msg.valid:
+            observed = int(np.count_nonzero(msg.observed))
+            if active:
+                report['final_observed'] = observed
+
+    def diagnostics(msg):
+        if active:
+            entry = json.loads(msg.data)
+            summary = report.setdefault('mapping_diagnostics', dict(samples=0, errors=[], max_source_age_at_reply=0.))
+            summary['samples'] += 1
+            if entry.get('error'):
+                summary['errors'].append(entry['error'])
+            summary['max_source_age_at_reply'] = max(summary['max_source_age_at_reply'],
+                                                    entry.get('source_age_at_reply') or 0.)
 
     def save():
         path = Path(args.output)
@@ -74,7 +93,8 @@ def main():
         curve = spline([[p.x,p.y,p.z] for p in msg.control_points],msg.knot_interval)
         duration = float(curve.t[-4])
         clearance = min(float(truth(p)) for p in curve(np.linspace(0,duration,max(100,int(duration*20)))))
-        report['trajectories'].append(dict(id=msg.trajectory_id,clearance=clearance,
+        report['trajectories'].append(dict(id=msg.trajectory_id,parent_id=msg.parent_trajectory_id,
+                                         duration=duration,clearance=clearance,
                                          endpoint=curve(duration).tolist()))
         if clearance <= 0:
             abort()
@@ -85,15 +105,19 @@ def main():
     node.create_subscription(String,'/uav/exploration/state',state,qos)
     node.create_subscription(String,'/uav/executor/event',event,10)
     node.create_subscription(TimedTrajectory,'/uav/trajectory',trajectory,10)
+    node.create_subscription(MapSnapshot,'/uav/map/snapshot',mapping,qos)
+    node.create_subscription(String,'/uav/map/diagnostics',diagnostics,10)
     try:
         if not client.wait_for_service(timeout_sec=20):
             raise RuntimeError('No exploration service')
         deadline=time.monotonic()+10
-        while position is None and time.monotonic()<deadline:
+        while (position is None or observed is None) and time.monotonic()<deadline:
             rclpy.spin_once(node,timeout_sec=.05)
-        if position is None:
-            raise RuntimeError('No odometry')
+        if position is None or observed is None:
+            raise RuntimeError('No odometry or valid map')
         report['start']=position.tolist()
+        report['initial_observed']=observed
+        report['final_observed']=observed
         active=True
         future=client.call_async(SetBool.Request(data=True))
         rclpy.spin_until_future_complete(node,future,timeout_sec=10)
@@ -107,9 +131,12 @@ def main():
                 break
         report['duration']=time.monotonic()-started
     finally:
+        report['terminal_before_disable'] = report['states'][-1] if report['states'] else None
+        report['disable_confirmed'] = False
         if client.service_is_ready():
             future=client.call_async(SetBool.Request(data=False))
             rclpy.spin_until_future_complete(node,future,timeout_sec=5)
+            report['disable_confirmed'] = bool(future.done() and future.result() is not None and future.result().success)
         stopped = position.copy() if position is not None else None
         drift=0.
         deadline=time.monotonic()+3
@@ -122,7 +149,11 @@ def main():
         report['reached_viewpoints']=report['events'].count('GOAL_REACHED')
         report['final_position']=position.tolist() if position is not None else None
         report['completed']=True
+        terminal = (report['terminal_before_disable'] or '').split(':')[0]
         report['passed']=bool(not report['unsafe_abort'] and report['reached_viewpoints']>0 and
+                              terminal in ('SCANNING', 'EXPLORING', 'FRONTIERS_EXHAUSTED', 'LIMIT_REACHED') and
+                              report['disable_confirmed'] and
+                              report.get('final_observed',0)>report.get('initial_observed',0) and
                               report['minimum_clearance'] is not None and report['minimum_clearance']>0 and
                               drift<.05 and (not args.require_reuse or report['reused_observations']>0))
         save()

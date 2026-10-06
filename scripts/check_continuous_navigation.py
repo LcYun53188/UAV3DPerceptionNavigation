@@ -27,6 +27,8 @@ from uav_nav_sim.core import Grid, pack_grid_data, spline, validate_handover
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=['baseline', 'continuous'], default='continuous')
+    parser.add_argument('--scenario', choices=['straight','bend'], default='straight')
+    parser.add_argument('--background-replan', choices=['true','false'], default='true')
     parser.add_argument('--domain', type=int, default=79)
     parser.add_argument('--timeout', type=float, default=100.)
     parser.add_argument('--output', type=Path, required=True)
@@ -36,11 +38,12 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     enabled = str(args.mode == 'continuous').lower()
     processes, logs = [], []
-    report = dict(mode=args.mode, scenario='synthetic_incremental_corridor', events=[], states=[], handovers=[], samples=[])
+    report = dict(mode=args.mode, scenario='synthetic_incremental_'+args.scenario, background_replan=args.background_replan, events=[], states=[], handovers=[], samples=[])
     try:
         for package, executable, params in [
             ('uav_ego_adapter', 'ego_nvblox_planner', ['--params-file', str(root/'src/uav_bringup/config/uav_ego_nvblox.yaml')]),
-            ('uav_nav_sim', 'gazebo_executor', ['-p', 'explore_unknown:=true', '-p', f'moving_handover:={enabled}'])]:
+            ('uav_nav_sim', 'gazebo_executor', ['-p', 'explore_unknown:=true', '-p', f'moving_handover:={enabled}',
+                                                        '-p', f'background_replan:={args.background_replan}'])]:
             log = args.output.with_suffix('.'+executable+'.log').open('w')
             logs.append(log)
             command = ['ros2','run',package,executable,'--ros-args',*params,
@@ -87,8 +90,16 @@ def main():
         node.create_subscription(String,'/uav/executor/event',event_cb,10)
         node.create_subscription(String,'/uav/navigation/state',state_cb,durable)
         node.create_subscription(TimedTrajectory,'/uav/trajectory',lambda m: trajectories.__setitem__(m.trajectory_id,m),10)
-        distance = np.full((80,20,20),3.,dtype=np.float32)
+        distance = np.full((80,50 if args.scenario=='bend' else 20,20),3.,dtype=np.float32)
         x = -2+(np.arange(80)+.5)*.2
+        def obstacle_distance(p):
+            q=np.abs(np.asarray(p)[:2]-[3.7,-.65])-[.5,1.35]
+            return float(np.linalg.norm(np.maximum(q,0))+min(max(q),0))
+        if args.scenario=='bend':
+            y=-2+(np.arange(distance.shape[1])+.5)*.2
+            for ix,px in enumerate(x):
+                for iy,py in enumerate(y):
+                    distance[ix,iy,:]=obstacle_distance([px,py])
         next_map = 0.; version = 0
         previous = begin = time.monotonic()
         known_until = 3.
@@ -144,6 +155,11 @@ def main():
             final_position=position.tolist(),accepted_segments=sum(e.startswith('ACCEPTED:') for e in report['events']))
         args.output.write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps({k:v for k,v in report.items() if k not in ('samples','states','events')},indent=2))
+        if args.scenario=='bend':
+            report['minimum_obstacle_clearance']=min(obstacle_distance(p)-.3 for p in samples[:,1:4])
+            args.output.write_text(json.dumps(report,indent=2)+'\n')
+            if report['minimum_obstacle_clearance']<=0:
+                raise RuntimeError('Sampled path violated obstacle clearance')
         if not report['completed'] or (args.mode=='continuous' and not report['handovers']):
             raise RuntimeError('Scenario did not complete with the expected moving handovers')
     finally:

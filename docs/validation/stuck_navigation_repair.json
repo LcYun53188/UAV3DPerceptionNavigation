@@ -1,0 +1,197 @@
+{
+  "layout": "expanded",
+  "goal": [
+    0.0139173,
+    8.64018,
+    1.2
+  ],
+  "completed": true,
+  "states": [
+    "CANCELLED:GOAL_REPLACED",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "CANCELLED:CANCELLED"
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:0.761",
+    "ACCEPTED:1",
+    "GOAL_REACHED"
+  ],
+  "trajectories": [
+    {
+      "id": 1,
+      "parent_id": 0,
+      "duration": 20.4,
+      "map_version": 38,
+      "endpoint": [
+        0.0139173,
+        8.64018,
+        1.2
+      ],
+      "truth_clearance": 0.18659691403847084,
+      "truth_closest_point": [
+        -1.0109455210174054,
+        5.51946289428276,
+        1.17527609263881
+      ],
+      "receipt_map_version": 38,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.7071067690849304,
+      "min_body_distance": 0.4000000059604645,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    }
+  ],
+  "initial_observed": 731809,
+  "initial_goal_state": "FREE",
+  "initial_goal_volume_blocked": false,
+  "initial_start_blocked": false,
+  "start": [
+    -2.5498146523419085,
+    2.4488669344399083,
+    1.1505527951013637
+  ],
+  "goal_publish_attempts": 1,
+  "latest_position": [
+    0.015015955645845387,
+    8.641225736277766,
+    1.2000795560368958
+  ],
+  "duration": 22.704424177999954,
+  "terminal": "REACHED",
+  "final_position": [
+    0.015015955645845387,
+    8.641225736277766,
+    1.2000795560368958
+  ],
+  "final_error": 0.0015188606762271228,
+  "final_observed": 761108,
+  "samples": 1289,
+  "min_truth_clearance": 0.18623800689065145,
+  "accepted_segments": 1,
+  "hold_drift": 1.9216198318264978e-05,
+  "passed": true,
+  "mapping_diagnostics_summary": {
+    "samples": 26,
+    "errors": [],
+    "max_query_seconds": 0.02832053200017981,
+    "max_source_age_at_reply": 0.186
+  },
+  "frozen_scene_regression": {
+    "position": [
+      1.2429385691133192,
+      9.202750365864771,
+      1.2450769820081529
+    ],
+    "goal": [
+      0.0139173,
+      8.64018,
+      1.2
+    ],
+    "before_selector": null,
+    "after_selector": {
+      "point": [
+        0.0139173,
+        8.64018,
+        1.2
+      ],
+      "final": true
+    },
+    "escape_segment_after": true,
+    "body_radius": 0.3,
+    "seed_radius": 0.35,
+    "executed_in_gazebo": false
+  },
+  "preceding_trials": [
+    {
+      "passed": false,
+      "states": [
+        "CANCELLED:GOAL_REPLACED",
+        "OBSERVING",
+        "PLANNING",
+        "NAVIGATING",
+        "STOPPED:STALE_MAP_OR_ODOMETRY",
+        "CANCELLED:CANCELLED"
+      ],
+      "start": [
+        1.242938569113206,
+        9.202750365864771,
+        1.245076982008266
+      ],
+      "final_position": [
+        1.037367755399095,
+        9.188716156831864,
+        1.2285592042994908
+      ],
+      "accepted_segments": 1,
+      "duration": 4.431703820000166,
+      "min_truth_clearance": 0.3902667913519999
+    },
+    {
+      "passed": false,
+      "states": [
+        "NAVIGATING",
+        "CANCELLED:GOAL_REPLACED",
+        "OBSERVING",
+        "PLANNING",
+        "EXPLORING",
+        "STOPPED:STALE_MAP_OR_ODOMETRY",
+        "CANCELLED:CANCELLED"
+      ],
+      "start": [
+        0.6092036799493458,
+        9.128944326793556,
+        1.1999587641313294
+      ],
+      "final_position": [
+        -1.449980867391706,
+        7.006312613265669,
+        0.9470836833238437
+      ],
+      "accepted_segments": 2,
+      "duration": 11.349062619000051,
+      "min_truth_clearance": 0.2770680911431615
+    },
+    {
+      "passed": false,
+      "states": [
+        "CANCELLED:GOAL_REPLACED",
+        "OBSERVING",
+        "STOPPED:STALE_MAP_OR_ODOMETRY",
+        "CANCELLED:CANCELLED"
+      ],
+      "start": [
+        -2.549835528180394,
+        2.448872839581151,
+        1.150550734527001
+      ],
+      "final_position": [
+        -2.5498146523419085,
+        2.4488669344399083,
+        1.1505527951013637
+      ],
+      "accepted_segments": 0,
+      "duration": 3.3963316309996117,
+      "min_truth_clearance": 0.8505507345270009
+    }
+  ],
+  "udp_service_probe": {
+    "queries": 1186,
+    "duration_seconds": 20,
+    "median_rpc_seconds": 0.01729757799989784,
+    "max_rpc_seconds": 0.041127910999875894,
+    "payload_bytes": 7301444,
+    "native_service_max_seconds": 0.031031,
+    "limitations": "High-rate diagnostic probe, not a matched 2 Hz throughput benchmark."
+  },
+  "validation_context": {
+    "map_preserved": true,
+    "gazebo_and_rviz_preserved": true,
+    "restart": "planner, executor and map-session client only; native nvblox map remained in memory",
+    "map_transport": "UDP-only scoped to map session; 8 MiB receive buffer; 2 s freshness threshold unchanged",
+    "limitations": "Manual RViz goals moved the vehicle between repair trials. Final Gazebo run starts at its recorded start, not the original frozen pose; not a same-state speed comparison. Frozen-map offline regression isolates the original connector failure."
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "layout": "expanded",
+  "requested_duration": 180.0,
+  "states": [
+    "DISABLED",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING:BRIEF",
+    "EXPLORING",
+    "SCANNING",
+    "EXPLORING",
+    "DISABLED"
+  ],
+  "events": [
+    "CANCELLED",
+    "GOAL_REPLACED",
+    "ACCEPTED:1",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:2",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:0.786",
+    "ACCEPTED:3",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:4",
+    "GOAL_REACHED",
+    "OBSERVATION_REUSED",
+    "GOAL_REPLACED",
+    "ACCEPTED:5",
+    "GOAL_REACHED",
+    "OBSERVATION_REUSED",
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:2.513",
+    "ACCEPTED:6",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:7",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "ACCEPTED:8",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:2.447",
+    "ACCEPTED:9",
+    "GOAL_REACHED",
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:1.825",
+    "ACCEPTED:10",
+    "CANCELLED"
+  ],
+  "trajectories": [
+    {
+      "id": 1,
+      "parent_id": 0,
+      "duration": 4.952324994556374,
+      "clearance": 0.900006001751374,
+      "endpoint": [
+        -7.049999948590994,
+        -8.44999996945262,
+        1.750000026077032
+      ]
+    },
+    {
+      "id": 2,
+      "parent_id": 0,
+      "duration": 4.2,
+      "clearance": 0.9500000275671463,
+      "endpoint": [
+        -6.049999933689834,
+        -8.649999972432854,
+        1.8500000275671484
+      ]
+    },
+    {
+      "id": 3,
+      "parent_id": 0,
+      "duration": 12.767838452973995,
+      "clearance": 0.6656004854294166,
+      "endpoint": [
+        -3.0499998889863487,
+        -6.249999936670064,
+        1.750000026077032
+      ]
+    },
+    {
+      "id": 4,
+      "parent_id": 0,
+      "duration": 5.9639872511114325,
+      "clearance": 0.7105921263457775,
+      "endpoint": [
+        -1.6499998681247237,
+        -5.749999929219484,
+        2.0500000305473804
+      ]
+    },
+    {
+      "id": 5,
+      "parent_id": 0,
+      "duration": 4.2,
+      "clearance": 0.3964194879991883,
+      "endpoint": [
+        -1.049999859184027,
+        -5.649999927729369,
+        1.2500000186264515
+      ]
+    },
+    {
+      "id": 6,
+      "parent_id": 0,
+      "duration": 13.799999999999999,
+      "clearance": 0.3960396050417265,
+      "endpoint": [
+        -4.449999909847976,
+        -3.049999888986349,
+        1.450000021606684
+      ]
+    },
+    {
+      "id": 7,
+      "parent_id": 0,
+      "duration": 4.163894126692757,
+      "clearance": 0.8769897760372976,
+      "endpoint": [
+        -4.04999990388751,
+        -2.149999875575304,
+        1.2500000186264515
+      ]
+    },
+    {
+      "id": 8,
+      "parent_id": 0,
+      "duration": 6.0,
+      "clearance": 0.7780406394685921,
+      "endpoint": [
+        -3.6499998979270467,
+        -1.249999862164259,
+        1.5500000230968
+      ]
+    },
+    {
+      "id": 9,
+      "parent_id": 0,
+      "duration": 6.0,
+      "clearance": 0.45000009164214044,
+      "endpoint": [
+        -4.3499999083578595,
+        -0.14999984577298167,
+        1.3500000201165678
+      ]
+    },
+    {
+      "id": 10,
+      "parent_id": 0,
+      "duration": 17.4,
+      "clearance": 0.19151178903263266,
+      "endpoint": [
+        -4.749999914318323,
+        3.5500002093613143,
+        1.850000027567148
+      ]
+    }
+  ],
+  "positions": 9142,
+  "unsafe_abort": false,
+  "minimum_clearance": 0.191377456960644,
+  "completed": true,
+  "start": [
+    -7.5,
+    -7.5,
+    1.2
+  ],
+  "initial_observed": 138149,
+  "final_observed": 519094,
+  "mapping_diagnostics": {
+    "samples": 184,
+    "errors": [],
+    "max_source_age_at_reply": 0.774
+  },
+  "duration": 180.00951062700005,
+  "terminal_before_disable": "EXPLORING",
+  "disable_confirmed": true,
+  "hold_drift": 0.0007420410529672359,
+  "reused_observations": 2,
+  "reached_viewpoints": 9,
+  "final_position": [
+    -4.644006015231507,
+    2.61111320576455,
+    0.541753339158584
+  ],
+  "passed": true,
+  "validation_context": {
+    "fresh_session": true,
+    "initialization": "Local sim.sh init survey only; no previous map loaded",
+    "focused_observation": true,
+    "background_replan": true,
+    "ui": "Gazebo GUI and RViz opened while trial was running",
+    "limitations": "Bounded 180-second exploration, not complete coverage or a matched navigation speed comparison."
+  },
+  "moving_handovers": 0,
+  "focused_observations": 4,
+  "brief_scans": 5,
+  "full_scans": 5
+}

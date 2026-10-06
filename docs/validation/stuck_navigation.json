@@ -1,0 +1,125 @@
+{
+  "position": [
+    1.2429385691133192,
+    9.202750365864771,
+    1.2450769820081529
+  ],
+  "map_version": 625,
+  "diagnostics": {
+    "received": 4642,
+    "forwarded": 4520,
+    "expired": 0,
+    "tf_wait": 4888,
+    "source_stamp_ns": 566216000000,
+    "source_age_at_reply": 0.288,
+    "query_seconds": 0.008621066999921823,
+    "parse_seconds": 0.006663944999900195,
+    "error": null,
+    "raw_age": 0.388,
+    "forwarded_age": 0.388,
+    "cached_source_age": 0.784,
+    "pending_depth": 0,
+    "query_pending": true
+  },
+  "goal": [
+    0.0139173,
+    8.64018,
+    1.2
+  ],
+  "resolution": 0.10000000149011612,
+  "origin": [
+    -10.5,
+    -10.5,
+    0.0
+  ],
+  "body": {
+    "0.3": {
+      "collision": false,
+      "unknown": 0,
+      "nonfinite": 0,
+      "occupied": 0,
+      "min_distance": 0.4000000059604645
+    },
+    "0.35": {
+      "collision": false,
+      "unknown": 0,
+      "nonfinite": 0,
+      "occupied": 0,
+      "min_distance": 0.4000000059604645
+    },
+    "0.4": {
+      "collision": true,
+      "unknown": 4,
+      "nonfinite": 0,
+      "occupied": 0,
+      "min_distance": -1000.0
+    },
+    "0.45": {
+      "collision": true,
+      "unknown": 16,
+      "nonfinite": 0,
+      "occupied": 0,
+      "min_distance": -1000.0
+    }
+  },
+  "centre_distance": 0.699999988079071,
+  "goal_state": "FREE",
+  "selection_seconds": 0.04548166800009312,
+  "subgoal": null,
+  "unknown_near_seed_volume": [
+    [
+      1.5500001795589924,
+      8.850000288337469,
+      1.650000024586916
+    ],
+    [
+      1.6500001810491085,
+      8.850000288337469,
+      0.850000012665987
+    ],
+    [
+      1.6500001810491085,
+      8.850000288337469,
+      1.5500000230967999
+    ],
+    [
+      1.6500001810491085,
+      8.850000288337469,
+      1.650000024586916
+    ]
+  ],
+  "maximum_unknown_view_gain": 0.0,
+  "truth_clearance": 0.3972496341352287,
+  "offline_escape": {
+    "target": [
+      0.9429385691133192,
+      9.202750365864771,
+      1.2450769820081529
+    ],
+    "normal_seed_segment_free": false,
+    "fine_segment_free": true,
+    "checked_radius": 0.351,
+    "sample_spacing": 0.001,
+    "executed": false,
+    "subgoal_from_exit": {
+      "position": [
+        0.0139173,
+        8.64018,
+        1.2
+      ],
+      "final": true
+    }
+  },
+  "direct_goal": {
+    "body_radius_segment_free": true,
+    "seed_radius_segment_free": false
+  },
+  "root_cause": "Map update stopped flight; current body volume remains free, but extra seed clearance plus coarse sweep padding rejects start connectors. Missing nearby voxels have no predicted view gain under stationary yaw, so repeated scans cannot fix the connector.",
+  "observed_log_sequence": [
+    "MAP_RECHECK_FAILED at 18:42:30",
+    "NO_REACHABLE_FRONTIER",
+    "New manual goal at 18:44:27: NO_PATH, then NO_REACHABLE_FRONTIER"
+  ],
+  "snapshot_file": ".cache/sim/stuck_scene.npz",
+  "scope": "Read-only live capture and offline geometric checks; no robot motion or map reset requested during diagnosis. View estimate uses fixed camera model, not a proof of all sensor visibility."
+}

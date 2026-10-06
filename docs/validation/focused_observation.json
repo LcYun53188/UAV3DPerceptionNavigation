@@ -1,0 +1,506 @@
+{
+  "layout": "expanded",
+  "goal": [
+    -1.0,
+    -7.5,
+    1.8
+  ],
+  "completed": true,
+  "states": [
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "EXPLORING",
+    "OBSERVING",
+    "PLANNING",
+    "NAVIGATING",
+    "REACHED",
+    "CANCELLED:CANCELLED"
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:0.367",
+    "ACCEPTED:1",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "QUEUED:2",
+    "HANDOVER:1->2",
+    "ACCEPTED:2",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "QUEUED:3",
+    "HANDOVER:2->3",
+    "ACCEPTED:3",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:4",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:0.950",
+    "ACCEPTED:5",
+    "STAGNATION_SCAN_REQUESTED",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:6",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "QUEUED:7",
+    "HANDOVER:6->7",
+    "ACCEPTED:7",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:-0.628",
+    "ACCEPTED:8",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:1.108",
+    "ACCEPTED:9",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:2.267",
+    "ACCEPTED:10",
+    "STAGNATION_SCAN_REQUESTED",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:11",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:-2.943",
+    "ACCEPTED:12",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:-2.034",
+    "ACCEPTED:13",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:-1.765",
+    "ACCEPTED:14",
+    "LOCAL_GOAL_REACHED",
+    "FOCUSED_OBSERVATION:-0.348",
+    "ACCEPTED:15",
+    "GOAL_REACHED"
+  ],
+  "trajectories": [
+    {
+      "id": 1,
+      "parent_id": 0,
+      "duration": 13.538952446973209,
+      "map_version": 125,
+      "endpoint": [
+        -4.449999909847975,
+        -8.9499999769032,
+        1.750000026077032
+      ],
+      "truth_clearance": 0.5587126322453941,
+      "truth_closest_point": [
+        -5.610885865265362,
+        -9.041287367754606,
+        1.6684178459713335
+      ],
+      "receipt_map_version": 125,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.9000000357627869,
+      "min_body_distance": 0.6000000238418579,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 2,
+      "parent_id": 1,
+      "duration": 7.3683234350800735,
+      "map_version": 144,
+      "endpoint": [
+        -2.849999886006117,
+        -9.449999984353779,
+        1.750000026077032
+      ],
+      "truth_clearance": 0.15000001564622106,
+      "truth_closest_point": [
+        -2.849999886006117,
+        -9.449999984353779,
+        1.750000026077032
+      ],
+      "receipt_map_version": 144,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.2083046436309814,
+      "min_body_distance": 0.8246211409568787,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 3,
+      "parent_id": 2,
+      "duration": 10.799999999999999,
+      "map_version": 151,
+      "endpoint": [
+        -1.4499998651444914,
+        -8.749999973922968,
+        0.5500000081956387
+      ],
+      "truth_clearance": 0.19697176918399223,
+      "truth_closest_point": [
+        -2.350465198921447,
+        -8.779293871830799,
+        0.4969717691839922
+      ],
+      "receipt_map_version": 151,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.1704699993133545,
+      "min_body_distance": 0.8062257766723633,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 4,
+      "parent_id": 0,
+      "duration": 4.2,
+      "map_version": 181,
+      "endpoint": [
+        -2.3499998785555367,
+        -8.74999997392297,
+        0.9500000141561034
+      ],
+      "truth_clearance": 0.2499664923698332,
+      "truth_closest_point": [
+        -1.4493883802558174,
+        -8.74974213001793,
+        0.5499664923698332
+      ],
+      "receipt_map_version": 181,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.6782330274581909,
+      "min_body_distance": 0.30000001192092896,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 5,
+      "parent_id": 0,
+      "duration": 4.8,
+      "map_version": 201,
+      "endpoint": [
+        -2.9499998874962325,
+        -7.64999995753169,
+        0.9500000141561029
+      ],
+      "truth_clearance": 0.5107141870710648,
+      "truth_closest_point": [
+        -2.71343329869545,
+        -8.085058984352822,
+        0.9502940803621284
+      ],
+      "receipt_map_version": 201,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.8944272398948669,
+      "min_body_distance": 0.5099019408226013,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 6,
+      "parent_id": 0,
+      "duration": 6.6,
+      "map_version": 247,
+      "endpoint": [
+        -3.249999891966581,
+        -6.249999936670065,
+        0.8500000126659869
+      ],
+      "truth_clearance": 0.5414533951916305,
+      "truth_closest_point": [
+        -3.224627726215988,
+        -7.404785552504111,
+        0.8414533951916304
+      ],
+      "receipt_map_version": 247,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.3000000715255737,
+      "min_body_distance": 0.9486832618713379,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 7,
+      "parent_id": 6,
+      "duration": 4.2,
+      "map_version": 256,
+      "endpoint": [
+        -3.849999900907279,
+        -6.349999938160182,
+        1.3500000201165678
+      ],
+      "truth_clearance": 0.5586043850385642,
+      "truth_closest_point": [
+        -3.341105616369348,
+        -6.2568627927979374,
+        0.8586043850385642
+      ],
+      "receipt_map_version": 256,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.3379088640213013,
+      "min_body_distance": 0.8246211409568787,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 8,
+      "parent_id": 0,
+      "duration": 12.0,
+      "map_version": 277,
+      "endpoint": [
+        -1.149999860674143,
+        -8.349999967962505,
+        1.9500000290572648
+      ],
+      "truth_clearance": 0.45606275560904924,
+      "truth_closest_point": [
+        -2.4384888686317368,
+        -8.034313883647224,
+        1.5172935624052544
+      ],
+      "receipt_map_version": 277,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.8774964213371277,
+      "min_body_distance": 0.37416574358940125,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 9,
+      "parent_id": 0,
+      "duration": 6.0,
+      "map_version": 309,
+      "endpoint": [
+        -0.04999984428286554,
+        -8.549999970942737,
+        1.7500000260770325
+      ],
+      "truth_clearance": 0.83148702039327,
+      "truth_closest_point": [
+        -1.0318064188132299,
+        -8.503896682828628,
+        1.7962493332214275
+      ],
+      "receipt_map_version": 309,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.2727922201156616,
+      "min_body_distance": 0.8062257766723633,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 10,
+      "parent_id": 0,
+      "duration": 4.8,
+      "map_version": 332,
+      "endpoint": [
+        0.5500001646578311,
+        -7.749999959021805,
+        1.7500000260770316
+      ],
+      "truth_clearance": 0.5365686492131021,
+      "truth_closest_point": [
+        0.34772543794794486,
+        -8.01814137394606,
+        1.6911730541867627
+      ],
+      "receipt_map_version": 332,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.943398118019104,
+      "min_body_distance": 0.5099019408226013,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 11,
+      "parent_id": 0,
+      "duration": 6.0,
+      "map_version": 379,
+      "endpoint": [
+        1.1500001735985281,
+        -6.64999994263053,
+        1.6500000245869164
+      ],
+      "truth_clearance": 0.6321096128784147,
+      "truth_closest_point": [
+        0.5508667183891665,
+        -7.748949876123538,
+        1.750318664714526
+      ],
+      "receipt_map_version": 379,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.0344079732894897,
+      "min_body_distance": 0.6324555277824402,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 12,
+      "parent_id": 0,
+      "duration": 8.4,
+      "map_version": 400,
+      "endpoint": [
+        -0.7499998547136785,
+        -6.349999938160182,
+        1.8500000275671482
+      ],
+      "truth_clearance": 0.35096786939817065,
+      "truth_closest_point": [
+        0.15427194092456387,
+        -6.409150893467639,
+        1.6324233828948465
+      ],
+      "receipt_map_version": 400,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 1.0,
+      "min_body_distance": 0.6403124332427979,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 13,
+      "parent_id": 0,
+      "duration": 5.3999999999999995,
+      "map_version": 424,
+      "endpoint": [
+        -1.6499998681247239,
+        -5.749999929219485,
+        1.8500000275671484
+      ],
+      "truth_clearance": 0.4630364980429234,
+      "truth_closest_point": [
+        -0.8950282167217188,
+        -5.891170963766477,
+        1.8500512284496777
+      ],
+      "receipt_map_version": 424,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.7071067690849304,
+      "min_body_distance": 0.2828427255153656,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 14,
+      "parent_id": 0,
+      "duration": 6.0,
+      "map_version": 443,
+      "endpoint": [
+        -2.2499998770654206,
+        -6.849999945610763,
+        1.8500000275671484
+      ],
+      "truth_clearance": 0.3656746879449853,
+      "truth_closest_point": [
+        -2.181663844467992,
+        -6.22415751951397,
+        1.6359001147487622
+      ],
+      "receipt_map_version": 443,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.9273619055747986,
+      "min_body_distance": 0.6000000238418579,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    },
+    {
+      "id": 15,
+      "parent_id": 0,
+      "duration": 5.394353681445883,
+      "map_version": 461,
+      "endpoint": [
+        -1.0,
+        -7.5,
+        1.8000000000000003
+      ],
+      "truth_clearance": 0.5000000000000002,
+      "truth_closest_point": [
+        -1.0,
+        -7.5,
+        1.8000000000000003
+      ],
+      "receipt_map_version": 461,
+      "receipt_map_collision_at_closest": false,
+      "receipt_map_distance_at_closest": 0.9165151715278625,
+      "min_body_distance": 0.5099019408226013,
+      "nonpositive_body_voxels": 0,
+      "unknown_body_voxels": 0
+    }
+  ],
+  "initial_observed": 111663,
+  "initial_goal_state": "UNKNOWN",
+  "initial_goal_volume_blocked": true,
+  "initial_start_blocked": false,
+  "start": [
+    -7.5,
+    -7.5,
+    1.2
+  ],
+  "goal_publish_attempts": 1,
+  "latest_position": [
+    -0.998695555758551,
+    -7.5006774096792155,
+    1.7999472452105387
+  ],
+  "duration": 176.29403194399993,
+  "terminal": "REACHED",
+  "final_position": [
+    -0.998695555758551,
+    -7.5006774096792155,
+    1.7999472452105387
+  ],
+  "final_error": 0.001470796287850733,
+  "final_observed": 374115,
+  "samples": 8965,
+  "min_truth_clearance": 0.19604345405195012,
+  "accepted_segments": 15,
+  "hold_drift": 3.7613677047303686e-05,
+  "passed": true,
+  "mapping_diagnostics_summary": {
+    "samples": 179,
+    "errors": [],
+    "max_source_age_at_reply": 0.706,
+    "max_cached_source_age": 1.174
+  },
+  "validation_context": {
+    "fresh_session": true,
+    "initialization": "sim.sh init local survey; no prior map loaded",
+    "focused_observation": true,
+    "background_replan": true,
+    "stop_on_unsafe": true,
+    "limitations": "Single fresh-map trial, no matched baseline; not an end-to-end speedup or complete map coverage claim. Runtime loaded first implementation before equivalent vectorization of frustum filtering; final vectorization covered by Python regression tests."
+  },
+  "focused_observations": 9,
+  "moving_handovers": 3
+}
