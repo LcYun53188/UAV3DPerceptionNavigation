@@ -1,5 +1,6 @@
 """Gazebo velocity-model executor. Deliberately has no PX4 dependency or output."""
 import math
+import json
 import time
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -47,6 +48,9 @@ class Executor(Node):
         self.create_timer(0.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
 
     def stop(self, reason):
+        if reason == 'STALE_MAP_OR_ODOMETRY':
+            self.get_logger().warning('HEALTH_CHECK_FAILED: '+json.dumps(
+                Executor.health_diagnostics(self), sort_keys=True))
         self.curve = self.trajectory = None
         self.pending = None
         self.state = 'HOLD'
@@ -66,6 +70,17 @@ class Executor(Node):
         self.odom_wall = time.monotonic()
 
     def map_cb(self, msg):
+        started = time.monotonic()
+        try:
+            Executor._map_cb(self, msg)
+        finally:
+            self.last_map_callback_seconds = time.monotonic()-started
+            if self.last_map_callback_seconds > .25:
+                self.get_logger().warning(
+                    f'SLOW_MAP_CALLBACK: {self.last_map_callback_seconds:.3f}s '
+                    f'version={msg.version}')
+
+    def _map_cb(self, msg):
         session = (msg.map_id, msg.epoch)
         if self.session is not None and (msg.epoch < self.session[1] or
                 (msg.epoch == self.session[1] and msg.map_id != self.session[0])):
@@ -115,7 +130,42 @@ class Executor(Node):
                 0 <= (now-Time.from_msg(self.odom.header.stamp)).nanoseconds/1e9 <= 0.5 and
                 time.monotonic()-self.map_wall <= self.timeout and time.monotonic()-self.odom_wall <= 0.5)
 
+    def health_diagnostics(self):
+        """Capture each freshness gate before a stop clears the active task."""
+        now = self.get_clock().now()
+        wall = time.monotonic()
+        result = {'failed_checks': [],
+                  'last_map_callback_seconds': getattr(self, 'last_map_callback_seconds', None),
+                  'last_tick_seconds': getattr(self, 'last_tick_seconds', None),
+                  'last_trajectory_callback_seconds': getattr(self, 'last_trajectory_callback_seconds', None)}
+        for name, limit in [('map', getattr(self, 'timeout', 2.0)), ('odom', .5)]:
+            msg = getattr(self, name, None)
+            header = getattr(msg, 'header', None)
+            age = ((now-Time.from_msg(header.stamp)).nanoseconds/1e9
+                   if header is not None else None)
+            received = getattr(self, name+'_wall', None)
+            receive_age = wall-received if received is not None else None
+            result[name+'_stamp_age'] = age
+            result[name+'_receive_age'] = receive_age
+            result[name+'_limit'] = limit
+            for gate, value in [('stamp', age), ('receive', receive_age)]:
+                if value is None or not 0 <= value <= limit:
+                    result['failed_checks'].append(name+'_'+gate)
+        result['map_version'] = getattr(getattr(self, 'map', None), 'version', None)
+        result['grid_missing'] = getattr(self, 'grid', None) is None
+        return result
+
     def trajectory_cb(self, msg):
+        started = time.monotonic()
+        try:
+            Executor._trajectory_cb(self, msg)
+        finally:
+            self.last_trajectory_callback_seconds = time.monotonic()-started
+            if self.last_trajectory_callback_seconds > .25:
+                self.get_logger().warning(
+                    f'SLOW_TRAJECTORY_CALLBACK: {self.last_trajectory_callback_seconds:.3f}s')
+
+    def _trajectory_cb(self, msg):
         if self.navigation is not None and not self.navigation.accepts(msg):
             self.event.publish(String(data='REJECTED:OBSOLETE_GOAL'))
             return
@@ -198,6 +248,15 @@ class Executor(Node):
         self.command.publish(command)
 
     def tick(self):
+        started = time.monotonic()
+        try:
+            Executor._tick(self)
+        finally:
+            self.last_tick_seconds = time.monotonic()-started
+            if self.last_tick_seconds > .25:
+                self.get_logger().warning(f'SLOW_EXECUTOR_TICK: {self.last_tick_seconds:.3f}s')
+
+    def _tick(self):
         now = self.get_clock().now()
         ns = now.nanoseconds
         if self.last_ros is not None and ns < self.last_ros:
