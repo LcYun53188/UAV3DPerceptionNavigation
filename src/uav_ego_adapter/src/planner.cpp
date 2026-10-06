@@ -10,6 +10,7 @@
 #include <std_msgs/msg/string.hpp>
 #include <chrono>
 #include "safe_seed.hpp"
+#include "swept_segment.hpp"
 #include "free_volume.hpp"
 
 using V = Eigen::Vector3d;
@@ -98,10 +99,8 @@ class Planner : public rclcpp::Node {
     return !std::isfinite(d) || d<=r+std::sqrt(3.0)*s.resolution/2;
   }
   bool segment(const Snapshot& s,const V& a,const V& b,double r) {
-    const double length=(b-a).norm();
-    int n=std::max(1,static_cast<int>(std::ceil(length/(s.resolution*0.5))));
-    for(int i=0;i<=n;++i) if(collision(s,a+(b-a)*(double(i)/n),r+length/n/2)) return true;
-    return false;
+    return !sweptSegmentFree(a,b,r,s.resolution,
+        [this,&s](const V& p,double radius){return collision(s,p,radius);});
   }
   void plan() {
     if (!pending_ || (executing_ && !moving_) || !odom_ || !snapshot_) return;

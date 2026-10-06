@@ -38,12 +38,41 @@ class ExplorationSettings:
             raise ValueError('step_radius must exceed revisit_radius')
 
 
-def segment_free(grid, start, end, radius):
+def segment_free(grid, start, end, radius, maximum_checks=4096):
+    """Certify covered intervals, refining padding near voxel boundaries.
+
+    A free midpoint box enlarged by half the interval length covers the
+    entire swept body. Uncertified intervals subdivide at most six times;
+    exhausted work or any blocked body sample still rejects the segment.
+    """
+    start, end = np.asarray(start), np.asarray(end)
+    if (not np.all(np.isfinite(start)) or not np.all(np.isfinite(end)) or
+            grid.collision(start, radius) or grid.collision(end, radius)):
+        return False
     length = np.linalg.norm(end-start)
+    if not np.isfinite(length):
+        return False
     count = max(1, int(np.ceil(length/(grid.resolution/2))))
-    padding = length/count/2
-    return all(not grid.collision(p, radius+padding)
-               for p in np.linspace(start, end, count+1))
+    if count > maximum_checks-2:
+        return False
+    checks = 2
+    for i in range(count):
+        stack = [(start+(end-start)*(i/count), start+(end-start)*((i+1)/count), 0)]
+        while stack:
+            a, b, depth = stack.pop()
+            middle = (a+b)/2
+            if checks >= maximum_checks:
+                return False
+            checks += 1
+            if not grid.collision(middle, radius+np.linalg.norm(b-a)/2):
+                continue
+            if depth >= 6 or checks >= maximum_checks:
+                return False
+            checks += 1
+            if grid.collision(middle, radius):
+                return False
+            stack.extend([(middle, b, depth+1), (a, middle, depth+1)])
+    return True
 
 
 def reachable_routes(connected, start_index, traversal_cost=None):
@@ -73,7 +102,7 @@ def reachable_routes(connected, start_index, traversal_cost=None):
 
 
 def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
-                   explore=True, best_distance=None, continuous=False):
+                   explore=True, best_distance=None, continuous=False, diagnostics=None):
     """Return (position, is_final), or None when no safe candidate remains.
 
     A six-connected, eroded free component excludes inaccessible frontiers.
@@ -81,10 +110,14 @@ def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
     Progress can temporarily move away from the goal within detour_budget.
     """
     start, goal = np.asarray(start, dtype=float), np.asarray(goal, dtype=float)
+    if diagnostics is not None:
+        diagnostics['reason'] = 'NO_REACHABLE_FRONTIER'
     # Match the planner's seed clearance. Selecting viewpoints with body-only
     # clearance can leave EGO unable to connect them to its search lattice.
     radius += grid.resolution*0.5
     if grid.collision(start, radius) or grid.state(goal) == CellState.OCCUPIED:
+        if diagnostics is not None and grid.collision(start, radius):
+            diagnostics['reason'] = 'START_VOLUME_BLOCKED'
         return None
     if not grid.collision(goal, radius) and segment_free(grid, start, goal, radius):
         if not any(np.linalg.norm(goal-p) < settings.revisit_radius for p in rejected):
@@ -117,6 +150,8 @@ def choose_subgoal(grid, start, goal, radius, settings, visited=(), rejected=(),
                 index = i
                 break
     if component == 0:
+        if diagnostics is not None:
+            diagnostics['reason'] = 'START_NOT_CONNECTED'
         return None
     connected = components == component
     gi = grid.index(goal)

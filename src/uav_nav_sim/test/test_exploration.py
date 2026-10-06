@@ -202,3 +202,36 @@ def test_continuous_route_still_excludes_unknown_and_disconnected_regions():
     g = grid(40, wall=True)
     result = choose_subgoal(g,[0.,0.,0.],[7.,0.,0.],.3,ExplorationSettings(),continuous=True)
     assert result is None or result[0][0] < 1.2
+
+
+def test_adaptive_connector_recovers_near_unknown_boundary_without_entering_it():
+    distance, observed = np.full((40,40,40),3.), np.ones((40,40,40),bool)
+    observed[:,:,24:] = False  # Unknown space starts at z=.4.
+    g = Grid(np.array([-2.,-2.,-2.]), .1, distance, observed)
+    start, end = np.array([0.,0.,.045]), np.array([.3,0.,.045])
+    assert not g.collision(start,.35)
+    assert g.collision(start,.375)  # Old coarse coverage falsely rejects.
+    assert segment_free(g,start,end,.35)
+    assert not segment_free(g,start,end+[0.,0.,.1],.35)
+    distance, observed = distance.copy(), observed.copy()
+    distance[:,:,24:] = 0.
+    observed[:,:,24:] = True
+    g = Grid(g.origin, .1, distance, observed)
+    assert segment_free(g,start,end,.35)
+    assert not segment_free(g,start,end+[0.,0.,.1],.35)
+
+
+def test_adaptive_connector_rejects_blocked_interior_and_exhausted_budget():
+    observed = np.ones((40,40,40),bool)
+    observed[20:21,:,:] = False
+    g = Grid(np.array([-2.,-2.,-2.]), .1, np.full((40,40,40),3.), observed)
+    assert not segment_free(g,np.array([-.8,0.,0.]),np.array([.8,0.,0.]),.3)
+    class Uncertifiable:
+        resolution = .1
+        checks = 0
+        def collision(self, point, radius):
+            self.checks += 1
+            return radius > .35
+    tight = Uncertifiable()
+    assert not segment_free(tight,np.zeros(3),np.array([.3,0.,0.]),.35)
+    assert tight.checks <= 4096
