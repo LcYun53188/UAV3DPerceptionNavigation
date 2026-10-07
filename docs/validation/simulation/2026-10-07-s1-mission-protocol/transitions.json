@@ -1,0 +1,192 @@
+[
+  {
+    "mission_uuid": "00000000-0000-0000-0000-000000000000",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 0,
+    "phase": "IDLE",
+    "generation": 0,
+    "owner": "NONE",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 1,
+    "phase": "RUNNING",
+    "generation": 1,
+    "owner": "TASK",
+    "child_uuid": "190c087e-2970-4020-bec4-93eaae5e989b",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 2,
+    "phase": "PAUSING",
+    "generation": 1,
+    "owner": "TASK",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:PAUSE_REQUESTED"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 3,
+    "phase": "PAUSING",
+    "generation": 2,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:PAUSE_REQUESTED"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 4,
+    "phase": "PAUSED",
+    "generation": 2,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 6,
+    "phase": "RUNNING",
+    "generation": 3,
+    "owner": "TASK",
+    "child_uuid": "1a3e067d-5383-4d70-9984-a2a529265ccb",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 7,
+    "phase": "STOPPING",
+    "generation": 3,
+    "owner": "TASK",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:CANCEL_REQUESTED"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 8,
+    "phase": "STOPPING",
+    "generation": 4,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:CANCEL_REQUESTED"
+  },
+  {
+    "mission_uuid": "da9f718d-7a7c-47fe-91ea-346020a9bff6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 9,
+    "phase": "CANCELED",
+    "generation": 4,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:CANCEL_REQUESTED"
+  },
+  {
+    "mission_uuid": "4cc223d8-3b66-49d9-852b-3478f062f571",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 10,
+    "phase": "RUNNING",
+    "generation": 5,
+    "owner": "TASK",
+    "child_uuid": "7a699881-db54-408b-920d-3c63314c7361",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "4cc223d8-3b66-49d9-852b-3478f062f571",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 11,
+    "phase": "STOPPING",
+    "generation": 5,
+    "owner": "TASK",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  },
+  {
+    "mission_uuid": "4cc223d8-3b66-49d9-852b-3478f062f571",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 12,
+    "phase": "STOPPING",
+    "generation": 6,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  },
+  {
+    "mission_uuid": "4cc223d8-3b66-49d9-852b-3478f062f571",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 13,
+    "phase": "SUCCEEDED",
+    "generation": 6,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  },
+  {
+    "mission_uuid": "689fba60-c2f6-4e59-aa35-1b79d0f28649",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 15,
+    "phase": "STOPPING",
+    "generation": 7,
+    "owner": "TASK",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:CANCEL_REQUESTED"
+  },
+  {
+    "mission_uuid": "689fba60-c2f6-4e59-aa35-1b79d0f28649",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 16,
+    "phase": "ABORTED",
+    "generation": 8,
+    "owner": "NONE",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:CANCEL_TIMEOUT"
+  },
+  {
+    "mission_uuid": "bbd27d42-846f-455b-8e74-ec98e4b6c6d6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 17,
+    "phase": "RUNNING",
+    "generation": 9,
+    "owner": "TASK",
+    "child_uuid": "92f2c9de-908f-4a75-9f57-47f676933c0b",
+    "reason": "MOCK_ONLY:"
+  },
+  {
+    "mission_uuid": "bbd27d42-846f-455b-8e74-ec98e4b6c6d6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 18,
+    "phase": "STOPPING",
+    "generation": 9,
+    "owner": "TASK",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  },
+  {
+    "mission_uuid": "bbd27d42-846f-455b-8e74-ec98e4b6c6d6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 19,
+    "phase": "STOPPING",
+    "generation": 10,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  },
+  {
+    "mission_uuid": "bbd27d42-846f-455b-8e74-ec98e4b6c6d6",
+    "instance": "cd20936e-7b3d-424c-a8cd-322f79c4eaac",
+    "sequence": 20,
+    "phase": "SUCCEEDED",
+    "generation": 10,
+    "owner": "HOLD_CONTROLLER",
+    "child_uuid": "00000000-0000-0000-0000-000000000000",
+    "reason": "MOCK_ONLY:FINAL_TARGET_CONFIRMED"
+  }
+]

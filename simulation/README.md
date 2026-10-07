@@ -46,3 +46,5 @@
 按 [开发计划](../docs/SIMULATION_DEVELOPMENT_PLAN.md) 推进，当前已完成 S0 基础链路并开始 S1 首批状态聚合（S0 感知样例仍待补齐）。已实现 `scripts/sim.sh doctor` 离线依赖审计和主机回归运行器，使用方法见 [验收工具说明](acceptance/README.md)，实测证据见 [S0 报告](../docs/validation/simulation/2026-10-07-s0/REPORT.md)。当前全部在本机进行仿真开发，Jetson 验证延期为可选阶段；QGC 文件版本/hash 已核验，PX4 SITL v1.16.2、Agent v2.4.3 和对应消息包已构建并通过未解锁 x500 基础链路冒烟，使用方法见 [本机 SITL](px4/README.md)，尚未进入飞行验收。
 
 S1 的只读 AircraftState、独立构建与故障验证入口见 [状态聚合器说明](../src/uav_mission/README.md)，实测边界见 [S1 首批报告](../docs/validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)。
+
+S1 最小任务 Action、暂停/恢复和 FlightSession mock 见 [协议说明](../src/uav_mission/PROTOCOL.md)，普通 Action 客户端及故障验证见 [协议报告](../docs/validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)。mock 使用独立 domain 79，不连接飞控。
