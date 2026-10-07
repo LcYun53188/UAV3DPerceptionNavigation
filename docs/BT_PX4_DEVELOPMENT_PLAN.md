@@ -1,10 +1,10 @@
 # BehaviorTree 与 PX4 协同开发计划
 
-日期：2026-10-07。状态：开发中；最小任务 Action/暂停协议与 FlightSession mock 已交付，BT XML、实际任务后端和飞行控制尚未实现。
+日期：2026-10-07。状态：开发中；最小任务 Action/暂停协议与 FlightSession mock 已交付，W0 真实飞行任务后端已实现；BT XML、EGO 实际任务后端与复杂场景仍待开发。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
-本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块、独立构建及 Agent v2.4.3 / px4_msgs v1.16.2 对应已验证；未解锁 x500 基础链路见 [构建与验证记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。只读状态聚合与任务接口/mock 协议已开发，见 [S1 协议验证](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；实际任务后端与飞行控制仍待开发。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
+本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块、独立构建及 Agent v2.4.3 / px4_msgs v1.16.2 对应已验证；未解锁 x500 基础链路见 [构建与验证记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。只读状态聚合与任务接口/mock 协议已开发，见 [S1 协议验证](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；W0 真实任务与飞行控制验证见 [飞行报告](validation/simulation/2026-10-07-px4-flight/REPORT.md)；BT/EGO 集成继续开发。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
 
 当前执行范围（2026-10-07 用户调整）：暂不使用 Jetson，仿真和导航全部在本机开发/验收；Jetson 软件移植、ARM 样例与跨机联调属于后续可选阶段，不阻塞本机 S0–S8。
 

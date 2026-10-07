@@ -14,29 +14,58 @@ def us_to_time(timestamp_us: int) -> Time:
 
 
 def vehicle_odometry_to_ros(msg) -> Odometry:
+    """PX4 NED/FRD -> odom ENU / base_link FLU; twist is child-frame.
+
+    Arbitrary FRD-world origins need an explicit alignment, so reject them here.
+    Unknown covariance is large, never zero confidence. Invalid poses are rejected.
+    """
+    if int(msg.pose_frame) != 1 or int(msg.velocity_frame) not in (1, 3):
+        raise ValueError('Unsupported PX4 odometry frame')
+    position, velocity, quaternion = list(msg.position), list(msg.velocity), list(msg.q)
+    if not all(math.isfinite(float(v)) for v in position+velocity+quaternion):
+        raise ValueError('Nonfinite PX4 odometry')
+    if sum(float(v)**2 for v in quaternion) < 1e-12:
+        raise ValueError('Zero quaternion')
     odom = Odometry()
-    odom.header.frame_id = 'map'
-    odom.child_frame_id = 'base_link'
+    odom.header.frame_id, odom.child_frame_id = 'odom', 'base_link'
+    odom.header.stamp = us_to_time(int(msg.timestamp_sample or msg.timestamp))
+    odom.pose.pose.position.x, odom.pose.pose.position.y, odom.pose.pose.position.z = (
+        float(position[1]), float(position[0]), -float(position[2]))
+    q = vehicle_attitude_to_pose(msg).pose.pose.orientation
+    odom.pose.pose.orientation = q
+    w, x, y, z = q.w, q.x, q.y, q.z
+    r = [[1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
+         [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
+         [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]]
+    if int(msg.velocity_frame) == 1:
+        v = [float(velocity[1]), float(velocity[0]), -float(velocity[2])]
+        body_v = [sum(r[j][i]*v[j] for j in range(3)) for i in range(3)]
+    else:
+        body_v = [float(velocity[0]), -float(velocity[1]), -float(velocity[2])]
+    odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.linear.z = body_v
+    rates = list(msg.angular_velocity)
+    if not all(math.isfinite(float(v)) for v in rates):
+        raise ValueError('Nonfinite body angular velocity')
+    odom.twist.twist.angular.x = float(rates[0])
+    odom.twist.twist.angular.y = -float(rates[1])
+    odom.twist.twist.angular.z = -float(rates[2])
 
-    try:
-        odom.header.stamp = us_to_time(int(msg.timestamp))
-    except Exception:
-        pass
-
-    try:
-        odom.pose.pose.position.x = float(msg.position[0])
-        odom.pose.pose.position.y = float(msg.position[1])
-        odom.pose.pose.position.z = float(msg.position[2])
-    except Exception:
-        pass
-
-    try:
-        odom.twist.twist.linear.x = float(msg.velocity[0])
-        odom.twist.twist.linear.y = float(msg.velocity[1])
-        odom.twist.twist.linear.z = float(msg.velocity[2])
-    except Exception:
-        pass
-
+    def variance(values):
+        return [float(v) if math.isfinite(float(v)) and float(v) >= 0 else 1e6 for v in values]
+    pv, ov, vv = (variance(getattr(msg, field)) for field in
+                  ('position_variance', 'orientation_variance', 'velocity_variance'))
+    for i, v in enumerate([pv[1], pv[0], pv[2], ov[1], ov[0], ov[2]]):
+        odom.pose.covariance[7*i] = v
+    if int(msg.velocity_frame) == 1:
+        vv = [vv[1], vv[0], vv[2]]
+        for i in range(3):
+            for j in range(3):
+                odom.twist.covariance[6*i+j] = sum(r[k][i]*vv[k]*r[k][j] for k in range(3))
+    else:
+        for i in range(3):
+            odom.twist.covariance[7*i] = vv[i]
+    for i in range(3, 6):
+        odom.twist.covariance[7*i] = 1e6
     return odom
 
 

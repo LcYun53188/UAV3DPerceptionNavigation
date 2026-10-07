@@ -96,3 +96,5 @@ PX4 failure dispositions, fresh AircraftState, localization/map sessions and W0.
 ResetFault/AcquireControl are not implemented; no real authorization is claimed.
 S1 mock protocols are covered here; full S1 readiness still requires independent
 state providers and the reset/re-authorize contract noted in the AircraftState report.
+
+The real W0 flight backend is now available in [the local SITL guide](../../simulation/px4/README.md#w0-真实飞行任务). The mock contracts above remain synthetic; they do not establish the real backend's physical performance.

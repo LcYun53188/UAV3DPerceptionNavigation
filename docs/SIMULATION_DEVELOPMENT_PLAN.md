@@ -1,10 +1,10 @@
 # UAV 全链路仿真开发计划
 
-日期：2026-10-07。状态：S0 基础链路与 S1 首批接口/mock 已交付；S0 感知样例及实际任务/控制接入继续开发；已交付离线依赖审计、验收 schema、主机回归运行器，以及本机 PX4/Agent/消息包独立构建与未解锁 x500 冒烟链路；真实任务执行与飞行控制模式尚未实现。详见 [S0 开发与验证记录](validation/simulation/2026-10-07-s0/REPORT.md)。
+日期：2026-10-07。状态：S0 基础链路与 S1 首批接口/mock 已交付；S0 感知样例及实际任务/控制接入继续开发；已交付离线依赖审计、验收 schema、主机回归运行器，以及本机 PX4/Agent/消息包独立构建与未解锁 x500 冒烟链路；W0 已知区域的真实起飞/航点/悬停/返航/原生降落后端已实现；感知、EGO 任务适配与 BT 集成仍待推进。详见 [S0 开发与验证记录](validation/simulation/2026-10-07-s0/REPORT.md)。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
-本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 首批只读 AircraftState 聚合与源/时钟丢失验证已完成，见 [S1 首批记录](validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)；最小任务接口、暂停/恢复与 FlightSession mock 已验证，见 [S1 协议记录](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；实际状态/授权接入、S2 BT 与 S3/S4 飞行门槛仍待实现。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
+本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 首批只读 AircraftState 聚合与源/时钟丢失验证已完成，见 [S1 首批记录](validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)；最小任务接口、暂停/恢复与 FlightSession mock 已验证，见 [S1 协议记录](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；W0 真实状态/授权/坐标与任务后端已验证，见 [飞行验证](validation/simulation/2026-10-07-px4-flight/REPORT.md)；S2 BT、EGO 接入及 S3/S4 全部正式门槛仍待补齐。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
 
 当前执行范围（2026-10-07 用户调整）：暂不使用 Jetson，Gazebo、PX4 SITL、感知、导航、BT 与测试全部在本机执行。S0/S6 不再依赖 ARM 样例，S7 改为本机集成负载与稳定性验收；Jetson/跨机联调移到本机主线交付后的可选阶段。既有 Jetson 未验证结果保留为历史证据，不再阻塞本机开发。见 [本机范围调整与回归记录](validation/simulation/2026-10-07-local-s0/REPORT.md)。
 
@@ -165,7 +165,7 @@ SITL 先使用 UDP Agent；官方示例为 `MicroXRCEAgent udp4 -p 8888`。Agent
 
 ### 6.4 坐标迁移工作包与权威来源
 
-现有 `converters.py::vehicle_odometry_to_ros` 直接复制位置/速度并标记 map，未填姿态；现有执行器要求 odom/base_link，规划器还直接使用 odom 位置检查 map。S3 必须修复这些接口，不能只修改 frame_id。
+修订前 `converters.py::vehicle_odometry_to_ros` 直接复制位置/速度并标记 map，未填姿态；本批已修复 NED/FRD→ENU/FLU、child-frame twist、协方差和非法帧拒绝。现有执行器要求 odom/base_link，规划器还直接使用 odom 位置检查 map。S3 必须修复这些接口，不能只修改 frame_id。
 
 | 数据/变换 | 首版契约 | 交付与门槛 |
 | --- | --- | --- |

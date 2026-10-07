@@ -50,6 +50,9 @@ def free_port(port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration', type=float, default=45)
+    parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
+    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault'], default='full')
+    parser.add_argument('--flight', action='store_true', help='Run real known-region flight mission after disarmed smoke')
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
@@ -84,10 +87,18 @@ def main():
                GZ_SIM_RESOURCE_PATH=f"{models}:{worlds}:" + os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
                GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
                GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
+    if args.flight:
+        env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()), UAV_WORKSPACE=str(ROOT),
+                   UAV_FLIGHT_MISSION_FILE=str(args.mission_file.resolve()) if args.mission_file else '',
+                   UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario, PX4_PARAM_COM_RC_IN_MODE='4',
+                   PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
     manifest = dict(run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
                     domain=domain, partition=env['GZ_PARTITION'], instance=instance,
                     xrce_port=xrce_port, gcs_port=14550, px4_gcs_local_port=18577,
                     model='x500_7', namespace='/px4_7', versions=lock,
+                    flight_recipe_sha256=file_hash(args.mission_file.resolve() if args.mission_file else ROOT/'simulation/missions/W0_flight_sequence.json') if args.flight else None,
+                    flight_profile_sha256=file_hash(ROOT/'simulation/safe_regions/W0.json') if args.flight else None,
+                    px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
                     tool_sha256=file_hash(Path(__file__)),
                     world_sha256=file_hash(worlds / 'default.sdf'),
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
@@ -170,7 +181,7 @@ def main():
         odom = last.get('vehicle_odometry')
         source_age = clock_end - odom.timestamp / 1e6 if odom and clock_end is not None else None
         result = dict(qgc_connected=qgc_connected, arming_states=sorted(arming_states),
-                      odom_source_age_s=source_age, scope='disarmed x500/DDS/clock/QGC smoke only', samples=samples,
+                      odom_source_age_s=source_age, scope='disarmed x500/DDS/clock/QGC smoke only', samples=dict(samples),
                       receive_age_s={k: time.monotonic() - v for k, v in received.items()}, writers=writers,
                       arming_state=status.arming_state if status else None,
                       nav_state=status.nav_state if status else None,
@@ -184,6 +195,21 @@ def main():
             and writers.get('/clock') == 1 and all(v == 1 for v in writers.values())
             and all(v < 1 for v in result['receive_age_s'].values()))
         result['passed'] = result['dds_clock_passed'] and qgc_connected and source_age is not None and math.isfinite(source_age) and abs(source_age) < .5
+        if args.flight and result['passed']:
+            flight = launch('flight_tasks', [sys.executable, ROOT / 'scripts/run_px4_flight_tasks.py'])
+            until = time.monotonic() + 245
+            next_log,log_offset=0.,0
+            while flight.poll() is None and time.monotonic() < until:
+                if time.monotonic()>=next_log:
+                    with (run_dir/'flight_tasks.log').open() as progress:
+                        progress.seek(log_offset)
+                        for line in progress:
+                            if '[px4_flight_gateway]:' in line:print(line.rstrip(),flush=True)
+                        log_offset=progress.tell()
+                    next_log=time.monotonic()+.2
+                rclpy.spin_once(node, timeout_sec=.05)
+            result['flight_passed'] = flight.poll() == 0
+            result['passed'] = result['passed'] and result['flight_passed']
         if args.aircraft_state:
             def current_state():
                 msg = last.get('aircraft_state')
