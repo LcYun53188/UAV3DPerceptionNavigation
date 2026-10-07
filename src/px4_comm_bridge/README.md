@@ -126,3 +126,5 @@ MANUAL/FAULT/LANDED 不因新导航命令恢复，当前恢复方式为操作者
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src/px4_comm_bridge ./scripts/with_venv.sh python -m pytest -q src/px4_comm_bridge/test
 ```
+
+VehicleOdometry 回读现在要求明确 NED pose 和 NED/body-FRD velocity，输出 odom/ENU pose 与 base_link/FLU twist；包含姿态和协方差转换，非法帧/非有限 pose 拒绝发布。真实 W0 任务使用独立唯一网关，见 [本机飞行入口](../../simulation/px4/README.md#w0-真实飞行任务)；旧桥接的自动控制入口不由该 profile 启动。

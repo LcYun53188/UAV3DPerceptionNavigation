@@ -1,0 +1,165 @@
+{
+  "full": {
+    "run_id": "13c71b3f-ca94-465c-bde4-5b9bcccefffc",
+    "passed": true,
+    "result": {
+      "code": "SUCCEEDED",
+      "reason": "LANDED_AND_DISARMED",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "hovers": [
+      {
+        "duration_s": 32.01999446099944,
+        "samples": 1601,
+        "max_drift_m": 0.09576530526061809
+      },
+      {
+        "duration_s": 5.02015600499908,
+        "samples": 251,
+        "max_drift_m": 0.045050009396826324
+      }
+    ],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          -3.469446951953614e-18,
+          0.0,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          -0.01677842847722681,
+          -0.03548399430864466,
+          1.9052216913917053
+        ],
+        "error_m": 0.09070992840210484
+      },
+      {
+        "phase": "NAVIGATE",
+        "expected_world": [
+          3.000000000000001,
+          1.9999999999999991,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          3.039568426428805,
+          2.0312918343421345,
+          1.9804661146943778
+        ],
+        "error_m": 0.0508677551486779
+      },
+      {
+        "phase": "NAVIGATE",
+        "expected_world": [
+          -2.000000000000001,
+          2.0,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          -2.031737393397318,
+          1.9980231596084224,
+          1.9970215112328487
+        ],
+        "error_m": 0.03334073216446646
+      },
+      {
+        "phase": "RETURN",
+        "expected_world": [
+          -3.469446951953614e-18,
+          0.0,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          -0.002705496556136017,
+          -0.02604675478210452,
+          2.0125679743723293
+        ],
+        "error_m": 0.03659896023258093
+      }
+    ],
+    "final_land": true,
+    "final_arming": 1,
+    "hover_max_px4_speed_mps": 0.05658661009958401,
+    "landing_xy_error_m": 0.038132367194957384,
+    "outputs_at_action_result": 4963,
+    "outputs_at_end": 4963
+  },
+  "cancel": {
+    "run_id": "f49a0143-1926-484f-a807-146a61e5279d",
+    "passed": true,
+    "result": {
+      "code": "CANCELED",
+      "reason": "STOPPED_AND_HOLDING",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "hovers": [],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          0.0,
+          0.0,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          -0.03994514726409339,
+          -0.036395435711964595,
+          1.897604190412447
+        ],
+        "error_m": 0.10445965886634875
+      }
+    ],
+    "final_land": true,
+    "final_arming": 1,
+    "hover_max_px4_speed_mps": null,
+    "landing_xy_error_m": 1.1095777677407892,
+    "outputs_at_action_result": 1008,
+    "outputs_at_end": 2508,
+    "cancel_hold": {
+      "duration_s": 29.99797066999963,
+      "samples": 1500,
+      "max_drift_m": 0.08263622976918908,
+      "final_landed_disarmed": true
+    },
+    "stopping_time_s": 3.27553906400135,
+    "speed_at_cancel_mps": 0.5051862964841252,
+    "max_truth_braking_displacement_m": 0.41955279712511756
+  },
+  "clock-fault": {
+    "run_id": "3d912d2e-dbd1-40e5-949e-a7026d6fe4e4",
+    "passed": true,
+    "result": {
+      "code": "ABORTED",
+      "reason": "STALE_OR_INVALID_AIRCRAFT_STATE",
+      "cleanup_confirmed": false,
+      "mock": false
+    },
+    "hovers": [],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          3.923103213310242e-05,
+          -0.00011400505900382996,
+          1.9870608209381921
+        ],
+        "actual_world": [
+          -0.027397747808928005,
+          0.05892660639451547,
+          1.8818692553532173
+        ],
+        "error_m": 0.12370871868606652
+      }
+    ],
+    "final_land": true,
+    "final_arming": 1,
+    "hover_max_px4_speed_mps": null,
+    "landing_xy_error_m": 1.6132009418127384,
+    "outputs_at_action_result": 860,
+    "outputs_at_end": 860,
+    "clock_fault_latched": true,
+    "fallback_landed_disarmed": true
+  }
+}

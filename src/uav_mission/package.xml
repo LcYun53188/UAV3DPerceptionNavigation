@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>uav_mission</name><version>0.1.0</version>
-  <description>Mission support: conservative read-only aircraft state aggregation.</description>
+  <description>Aircraft state, mission protocols and local PX4 SITL flight tasks.</description>
   <maintainer email="dev@example.com">UAV developers</maintainer><license>Apache-2.0</license>
   <buildtool_depend>ament_python</buildtool_depend>
   <exec_depend>rclpy</exec_depend><exec_depend>px4_msgs</exec_depend>
   <exec_depend>uav_nav_interfaces</exec_depend>
   <exec_depend>action_msgs</exec_depend><exec_depend>unique_identifier_msgs</exec_depend>
+  <exec_depend>px4_comm_bridge</exec_depend><exec_depend>nav_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend><exec_depend>tf2_ros</exec_depend>
   <test_depend>python3-pytest</test_depend>
   <export><build_type>ament_python</build_type></export>
 </package>

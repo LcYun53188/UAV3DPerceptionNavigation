@@ -1,0 +1,64 @@
+{
+  "qgc_connected": true,
+  "arming_states": [
+    1
+  ],
+  "odom_source_age_s": 0.004000000000001336,
+  "scope": "disarmed x500/DDS/clock/QGC smoke only",
+  "samples": {
+    "clock": 4438,
+    "vehicle_odometry": 1337,
+    "vehicle_local_position": 1337,
+    "vehicle_status": 28,
+    "vehicle_land_detected": 16
+  },
+  "receive_age_s": {
+    "clock": 0.0007446790004905779,
+    "vehicle_odometry": 0.004311324000809691,
+    "vehicle_local_position": 0.004264739000063855,
+    "vehicle_status": 0.08051492100094038,
+    "vehicle_land_detected": 0.15617183399990608
+  },
+  "writers": {
+    "/clock": 1,
+    "/px4_7/fmu/out/airspeed_validated": 1,
+    "/px4_7/fmu/out/arming_check_request": 1,
+    "/px4_7/fmu/out/battery_status": 1,
+    "/px4_7/fmu/out/collision_constraints": 1,
+    "/px4_7/fmu/out/estimator_status_flags": 1,
+    "/px4_7/fmu/out/failsafe_flags": 1,
+    "/px4_7/fmu/out/home_position": 1,
+    "/px4_7/fmu/out/manual_control_setpoint": 1,
+    "/px4_7/fmu/out/message_format_response": 1,
+    "/px4_7/fmu/out/mode_completed": 1,
+    "/px4_7/fmu/out/position_setpoint_triplet": 1,
+    "/px4_7/fmu/out/register_ext_component_reply": 1,
+    "/px4_7/fmu/out/sensor_combined": 1,
+    "/px4_7/fmu/out/timesync_status": 1,
+    "/px4_7/fmu/out/vehicle_attitude": 1,
+    "/px4_7/fmu/out/vehicle_command_ack": 1,
+    "/px4_7/fmu/out/vehicle_control_mode": 1,
+    "/px4_7/fmu/out/vehicle_global_position": 1,
+    "/px4_7/fmu/out/vehicle_gps_position": 1,
+    "/px4_7/fmu/out/vehicle_land_detected": 1,
+    "/px4_7/fmu/out/vehicle_local_position": 1,
+    "/px4_7/fmu/out/vehicle_odometry": 1,
+    "/px4_7/fmu/out/vehicle_status_v1": 1,
+    "/px4_7/fmu/out/vtol_vehicle_status": 1
+  },
+  "arming_state": 1,
+  "nav_state": 4,
+  "landed": true,
+  "xy_valid": true,
+  "z_valid": true,
+  "clock_start": 0.008,
+  "clock_end": 17.756,
+  "position_ned": [
+    -0.018808746710419655,
+    -0.04000556096434593,
+    -0.015965536236763
+  ],
+  "dds_clock_passed": true,
+  "passed": true,
+  "flight_passed": true
+}

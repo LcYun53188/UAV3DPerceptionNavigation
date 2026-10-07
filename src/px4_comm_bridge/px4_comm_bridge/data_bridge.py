@@ -1,3 +1,4 @@
+from rclpy.qos import qos_profile_sensor_data
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from sensor_msgs.msg import Imu, NavSatFix
@@ -50,7 +51,7 @@ class Px4DataBridge:
             self.vehicle_odometry_type,
             self.node.get_parameter('px4_odometry_topic').value,
             self.px4_odometry_cb,
-            10,
+            qos_profile_sensor_data,
         )
         self.node.create_subscription(
             self.vehicle_imu_type,
@@ -73,7 +74,10 @@ class Px4DataBridge:
         self.node.get_logger().info('PX4 data bridge enabled (odom + imu + gps + attitude)')
 
     def px4_odometry_cb(self, msg):
-        self.odom_pub.publish(vehicle_odometry_to_ros(msg))
+        try:
+            self.odom_pub.publish(vehicle_odometry_to_ros(msg))
+        except ValueError as exc:
+            self.node.get_logger().warning(str(exc), throttle_duration_sec=5.)
 
     def px4_imu_cb(self, msg):
         self.imu_pub.publish(vehicle_imu_to_ros(msg))
