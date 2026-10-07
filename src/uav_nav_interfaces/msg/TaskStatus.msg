@@ -1,0 +1,13 @@
+std_msgs/Header header
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+uint64 event_sequence
+string phase
+string result_code
+string reason
+ControlSession control_session
+string map_session
+unique_identifier_msgs/UUID child_uuid
+bool has_child
+float64 total_remaining_s
+bool mock

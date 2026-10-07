@@ -53,3 +53,13 @@ as current facts. The instance UUID and sequence identify observer restart/event
 not a mission or control session. See [observer contract](../uav_mission/README.md)
 for supported values and remaining providers. These messages do not change the
 algorithm trajectory/frame contracts above.
+
+S1 task interfaces now include `ExecuteMission`, `NavigateToPose3D`, `TaskStatus`,
+`ControlSession`, `ControlStatus` and `PauseMission`/`ResumeMission`. The root task
+identity is the ExecuteMission ROS goal UUID; child UUIDs and control generations
+are separate. Deadlines are monotonic budgets; header stamps remain ROS time.
+Each root/child result must be identity-scoped and cleanup-confirmed before a safe
+terminal claim. Unknown physical facts remain unavailable in the explicitly marked
+mock backend. See [protocol/field semantics](../uav_mission/PROTOCOL.md). These are
+minimum S1 interfaces; the mock endpoint does not implement the production nested
+navigation backend or change legacy algorithm executor tokens.
