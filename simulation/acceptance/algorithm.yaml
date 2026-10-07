@@ -1,0 +1,50 @@
+schema: 1
+profile: algorithm
+scope: Algorithm task/map/clock acceptance; threshold collection pending
+tests:
+  T01:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T02:
+    requirement: N/A
+    reason: PX4 native flight/mode feedback unavailable in algorithm profile
+  T03:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T04:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T05:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T06:
+    requirement: N/A
+    reason: PX4 native flight/mode feedback unavailable in algorithm profile
+  T07:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T08:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T09:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T10:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T11:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T12:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T13:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T14:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+  T15:
+    requirement: required
+    reason: Required algorithm portion; implementation/evidence pending
+metrics: []

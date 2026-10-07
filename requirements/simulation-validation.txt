@@ -1,0 +1,3 @@
+# Offline acceptance/doctor tools; does not change the CUDA build dependencies.
+PyYAML==6.0.2
+jsonschema==4.23.0

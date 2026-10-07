@@ -84,6 +84,7 @@ def parser():
                             ('cancel', '取消目标与自动探索，仿真继续运行'),
                             ('explore', '启动自主边界探索；无需手动目标，仅 mapping')]:
         sub.add_parser(name, help=help_text)
+    sub.add_parser('doctor', help='S0 离线依赖审计；不判定 topic/TF/clock 就绪')
     logs = sub.add_parser('logs', help='查看最近日志')
     logs.add_argument('--follow', action='store_true')
     for name in ['survey', 'save', 'load']:
@@ -178,6 +179,10 @@ def main():
     CACHE.mkdir(parents=True, exist_ok=True)
     if args.command == 'start':
         start(args)
+        return
+    if args.command == 'doctor':
+        subprocess.run([str(WRAPPER), 'python', 'scripts/check_sim_environment.py'],
+                       cwd=ROOT, check=True)
         return
     session = read_session(False)
     if args.command == 'stop':

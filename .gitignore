@@ -14,3 +14,7 @@ scripts/nav_launch.local.env
 
 /build_uav/
 /install_uav/
+
+# Validation records and standalone regression scripts stay local.
+/docs/validation/
+/scripts/test_*

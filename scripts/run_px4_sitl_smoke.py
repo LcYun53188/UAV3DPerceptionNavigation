@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""Owned, disarmed x500 smoke session. Run with scripts/with_px4_sim.sh.
+
+Checks DDS samples/clock and QGC log evidence. Never sends motion commands.
+"""
+import argparse
+import fcntl
+import math
+import re
+from datetime import datetime, timezone
+import os
+from pathlib import Path
+import signal
+import socket
+import subprocess
+import time
+import uuid
+
+import rclpy
+from rclpy.qos import qos_profile_sensor_data
+from rosgraph_msgs.msg import Clock
+from px4_msgs.msg import VehicleStatus, VehicleOdometry, VehicleLocalPosition, VehicleLandDetected
+from sim_validation import ROOT, file_hash, read, write_json
+from prepare_px4_sim import ensure_source, check_external
+
+
+def stop(process):
+    # Retire every member of our process group, even if its root exited early.
+    try:
+        os.killpg(process.pid, signal.SIGINT)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    process.wait(timeout=5)
+
+
+def free_port(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.bind(('127.0.0.1', port))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--duration', type=float, default=45)
+    args = parser.parse_args()
+    if not 10 <= args.duration <= 180:
+        parser.error('duration must be within [10, 180] seconds')
+    lock = read(ROOT / 'simulation/px4/versions.lock.yaml')
+    for key in ['sitl', 'agent', 'px4_msgs']:
+        ensure_source(lock[key])
+    check_external(lock)
+    for artifact in lock.get('build_artifacts', []):
+        if file_hash(ROOT / artifact['path']) != artifact['sha256']:
+            raise RuntimeError(f"Build artifact differs from lock: {artifact['path']}")
+    # Dedicated instance; domain/partition are distinct from the algorithm session.
+    instance, domain, xrce_port = 7, 78, 8898
+    for port in [xrce_port, 18570 + instance, 14580 + instance, 14550]:
+        free_port(port)
+    if Path(f'/tmp/px4_lock-{instance}').exists():
+        raise RuntimeError('PX4 instance lock already exists; inspect before starting')
+    run_id = str(uuid.uuid4())
+    run_dir = ROOT / '.cache/simulation/sitl' / run_id
+    run_dir.mkdir(parents=True)
+    (run_dir / 'rootfs').mkdir()
+    px4 = ROOT / lock['sitl']['path']
+    build = px4 / 'build/px4_sitl_default'
+    models = px4 / 'Tools/simulation/gz/models'
+    worlds = px4 / 'Tools/simulation/gz/worlds'
+    env = dict(os.environ, ROS_DOMAIN_ID=str(domain), ROS_LOCALHOST_ONLY='1',
+               GZ_PARTITION=f'uav_px4_s0_{run_id}', GZ_IP='127.0.0.1',
+               PX4_SIM_MODEL='gz_x500', PX4_GZ_STANDALONE='1', PX4_GZ_WORLD='default',
+               HEADLESS='1', PX4_UXRCE_DDS_PORT=str(xrce_port), PX4_PARAM_UXRCE_DDS_SYNCT='0',
+               PX4_GZ_MODELS=str(models), PX4_GZ_WORLDS=str(worlds),
+               GZ_SIM_RESOURCE_PATH=f"{models}:{worlds}:" + os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
+               GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
+               GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
+    manifest = dict(run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
+                    domain=domain, partition=env['GZ_PARTITION'], instance=instance,
+                    xrce_port=xrce_port, gcs_port=14550, px4_gcs_local_port=18577,
+                    model='x500_7', namespace='/px4_7', versions=lock,
+                    tool_sha256=file_hash(Path(__file__)),
+                    world_sha256=file_hash(worlds / 'default.sdf'),
+                    server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
+                    model_sha256=file_hash(models / 'x500/model.sdf'), processes={})
+    write_json(run_dir / 'manifest.json', manifest)
+    processes, logs = [], []
+
+    def launch(name, command, process_env=env):
+        log = (run_dir / f'{name}.log').open('w')
+        logs.append(log)
+        process = subprocess.Popen(command, cwd=run_dir, env=process_env, stdout=log,
+                                   stderr=subprocess.STDOUT, start_new_session=True)
+        processes.append(process)
+        manifest['processes'][name] = dict(pid=process.pid, command=[str(v) for v in command])
+        write_json(run_dir / 'manifest.json', manifest)
+        return process
+
+    os.environ['ROS_DOMAIN_ID'] = str(domain)
+    os.environ['ROS_LOCALHOST_ONLY'] = '1'
+    rclpy.init()
+    node = rclpy.create_node('px4_s0_observer')
+    samples, last, received = {}, {}, {}
+    arming_states = set()
+
+    def callback(name):
+        def receive(msg):
+            samples[name] = samples.get(name, 0) + 1
+            last[name] = msg
+            received[name] = time.monotonic()
+            if name == 'vehicle_status':
+                arming_states.add(int(msg.arming_state))
+        return receive
+
+    for topic, kind in [('vehicle_status', VehicleStatus), ('vehicle_odometry', VehicleOdometry),
+                        ('vehicle_local_position', VehicleLocalPosition), ('vehicle_land_detected', VehicleLandDetected)]:
+        version = kind.MESSAGE_VERSION
+        name = f'/px4_{instance}/fmu/out/{topic}' + (f'_v{version}' if version else '')
+        node.create_subscription(kind, name, callback(topic), qos_profile_sensor_data)
+    node.create_subscription(Clock, '/clock', callback('clock'), qos_profile_sensor_data)
+    first_clock = None
+    failure = None
+    try:
+        launch('agent', [ROOT / '.deps/microxrce-install/bin/MicroXRCEAgent', 'udp4', '-p', str(xrce_port)])
+        launch('gazebo', ['gz', 'sim', '-r', '-s', worlds / 'default.sdf'])
+        launch('clock_bridge', ['ros2', 'run', 'ros_gz_bridge', 'parameter_bridge',
+                               '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'])
+        launch('px4', [build / 'bin/px4', '-d', '-i', str(instance), '-w', run_dir / 'rootfs', build / 'etc'])
+        config = run_dir / 'qgc-config/QGroundControl'
+        config.mkdir(parents=True)
+        (config / 'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+        qgc_env = dict(env, XDG_CONFIG_HOME=str(run_dir / 'qgc-config'),
+                       XDG_CACHE_HOME=str(run_dir / 'qgc-cache'), QT_QPA_PLATFORM='offscreen')
+        launch('qgc', [lock['artifacts']['qgc']['path'], '--allow-multiple', '--log-output',
+                       '--logging', 'Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'], qgc_env)
+        deadline = time.monotonic() + args.duration
+        while time.monotonic() < deadline:
+            rclpy.spin_once(node, timeout_sec=.1)
+            if first_clock is None and 'clock' in last:
+                c = last['clock'].clock
+                first_clock = c.sec + c.nanosec / 1e9
+            if any(p.poll() is not None for p in processes):
+                raise RuntimeError('A managed process exited; inspect logs')
+        writers = {name: len(node.get_publishers_info_by_topic(name))
+                   for name, types in node.get_topic_names_and_types() if name == '/clock' or name.startswith(f'/px4_{instance}/fmu/out/')}
+        status = last.get('vehicle_status')
+        local = last.get('vehicle_local_position')
+        landed = last.get('vehicle_land_detected')
+        c = last.get('clock')
+        clock_end = c.clock.sec + c.clock.nanosec / 1e9 if c else None
+        qgc_log = (run_dir / 'qgc.log').read_text(errors='replace')
+        qgc_connected = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2', qgc_log))
+        odom = last.get('vehicle_odometry')
+        source_age = clock_end - odom.timestamp / 1e6 if odom and clock_end is not None else None
+        result = dict(qgc_connected=qgc_connected, arming_states=sorted(arming_states),
+                      odom_source_age_s=source_age, scope='disarmed x500/DDS/clock/QGC smoke only', samples=samples,
+                      receive_age_s={k: time.monotonic() - v for k, v in received.items()}, writers=writers,
+                      arming_state=status.arming_state if status else None,
+                      nav_state=status.nav_state if status else None,
+                      landed=landed.landed if landed else None,
+                      xy_valid=local.xy_valid if local else None, z_valid=local.z_valid if local else None,
+                      clock_start=first_clock, clock_end=clock_end,
+                      position_ned=[local.x, local.y, local.z] if local else None)
+        result['dds_clock_passed'] = (all(samples.get(k, 0) >= 5 for k in ['vehicle_status', 'vehicle_odometry', 'vehicle_local_position', 'vehicle_land_detected', 'clock'])
+            and arming_states == {VehicleStatus.ARMING_STATE_DISARMED} and landed.landed
+            and local.xy_valid and local.z_valid and clock_end > first_clock
+            and writers.get('/clock') == 1 and all(v == 1 for v in writers.values())
+            and all(v < 1 for v in result['receive_age_s'].values()))
+        result['passed'] = result['dds_clock_passed'] and qgc_connected and source_age is not None and math.isfinite(source_age) and abs(source_age) < .5
+        write_json(run_dir / 'observation.json', result)
+    except Exception as exc:
+        failure = str(exc)
+        write_json(run_dir / 'failure.json', dict(error=failure))
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+        for process in reversed(processes):
+            stop(process)
+        for log in logs:
+            log.close()
+        write_json(run_dir / 'cleanup.json', dict(root_exit_codes=[p.returncode for p in processes]))
+    print(f'Evidence: {run_dir}', flush=True)
+    if failure:
+        print(f'FAIL: {failure}', flush=True)
+        return 1
+    print(f"DDS/clock: {result['dds_clock_passed']}; QGC: {result['qgc_connected']}; PASS: {result['passed']}", flush=True)
+    return 0 if result['passed'] else 1
+
+
+if __name__ == '__main__':
+    guard = ROOT / '.cache/simulation/px4-smoke.lock'
+    guard.parent.mkdir(parents=True, exist_ok=True)
+    with guard.open('a') as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        raise SystemExit(main())
