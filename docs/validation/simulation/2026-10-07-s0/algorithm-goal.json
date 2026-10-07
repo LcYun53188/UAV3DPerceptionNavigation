@@ -1,0 +1,51 @@
+{
+  "odometry": [
+    -1.5002918395539384,
+    6.79366651498605e-05,
+    1.1999055880240526
+  ],
+  "events": [
+    "GOAL_REPLACED",
+    "FOCUSED_OBSERVATION:0.000",
+    "ACCEPTED:1",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "QUEUED:2",
+    "HANDOVER:1->2",
+    "ACCEPTED:2",
+    "BACKGROUND_SEARCH_STARTED",
+    "BACKGROUND_SEARCH_READY",
+    "REPLAN_REQUESTED",
+    "BACKGROUND_REPLAN_REQUESTED",
+    "QUEUED:3",
+    "HANDOVER:2->3",
+    "ACCEPTED:3",
+    "LOCAL_GOAL_REACHED",
+    "ACCEPTED:4",
+    "GOAL_REACHED"
+  ],
+  "planner": "TRAJECTORY_PUBLISHED",
+  "trajectory": {
+    "id": 4,
+    "map_id": "590c33bb-ece2-471e-9e50-289482e708c4",
+    "epoch": 1791376884827759760,
+    "map_version": 140,
+    "duration": 4.2,
+    "bounds": [
+      0.07949526235781143,
+      0.055212271490674654,
+      0.09202045248445777
+    ]
+  },
+  "goal": [
+    -1.5,
+    0.0,
+    1.2
+  ],
+  "samples": 935,
+  "min_truth_clearance": 0.5871753645787154,
+  "final_error": 0.00031416450613802084,
+  "passed": true
+}

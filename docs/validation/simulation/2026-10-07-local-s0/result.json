@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "run_id": "3dc229a4-6bb0-406f-8824-99ec3a7512cc",
+  "profile": "algorithm",
+  "scope": "S0 host regression only; does not establish flight or navigation acceptance",
+  "status": "PASS",
+  "started_at": "2026-10-07T12:48:31.915174+00:00",
+  "duration_monotonic_s": 9.559767888999886,
+  "config_hash": "b87037cb285d4c7d6c6c366939930857d17de363b2506e82aeeca08d1f6a3d43",
+  "tests": [
+    {
+      "test_id": "S0_NAV_REGRESSION",
+      "required": true,
+      "status": "PASS",
+      "reason": "exit_code=0, timeout=False; host regression only",
+      "evidence": [
+        "config.snapshot.json",
+        "S0_NAV_REGRESSION.log",
+        "S0_NAV_REGRESSION.process.json"
+      ]
+    },
+    {
+      "test_id": "S0_PX4_BRIDGE_REGRESSION",
+      "required": true,
+      "status": "PASS",
+      "reason": "exit_code=0, timeout=False; host regression only",
+      "evidence": [
+        "config.snapshot.json",
+        "S0_PX4_BRIDGE_REGRESSION.log",
+        "S0_PX4_BRIDGE_REGRESSION.process.json"
+      ]
+    },
+    {
+      "test_id": "S0_JETSON_SAMPLE",
+      "required": false,
+      "status": "N/A",
+      "reason": "Deferred by user on 2026-10-07: current development and acceptance run entirely on the local workstation; Jetson validation belongs to an optional later stage",
+      "evidence": [
+        "config.snapshot.json"
+      ]
+    }
+  ]
+}

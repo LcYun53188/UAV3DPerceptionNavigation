@@ -1,0 +1,5 @@
+schema: 1
+scenario_id: S0_regression
+profile: algorithm
+acceptance: simulation/acceptance/algorithm_s0.yaml
+description: Read-only host regressions; no Gazebo process lifecycle or control writes

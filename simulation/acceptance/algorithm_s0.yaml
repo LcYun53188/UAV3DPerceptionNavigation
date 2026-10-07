@@ -1,0 +1,16 @@
+schema: 1
+profile: algorithm
+scope: S0 host regression only; does not establish flight or navigation acceptance
+tests:
+  S0_NAV_REGRESSION:
+    requirement: required
+    reason: Existing algorithm and simulation lifecycle regression
+  S0_PX4_BRIDGE_REGRESSION:
+    requirement: required
+    reason: Existing bridge logic regression; no SITL claim
+  S0_JETSON_SAMPLE:
+    requirement: N/A
+    reason: 'Deferred by user on 2026-10-07: current development and acceptance run
+      entirely on the local workstation; Jetson validation belongs to an optional
+      later stage'
+metrics: []

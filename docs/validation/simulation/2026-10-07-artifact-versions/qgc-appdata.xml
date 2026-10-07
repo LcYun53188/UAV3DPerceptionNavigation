@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.mavlink.qgroundcontrol</id>
+  <name>QGroundControl</name>
+  <launchable type="desktop-id">org.mavlink.qgroundcontrol.desktop</launchable>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0 OR GPL-3.0</project_license>
+  <content_rating type="oars-1.1"/>
+
+  <developer id="com.qgroundcontrol">
+    <name translate="no">QGroundControl</name>
+  </developer>
+
+  <summary>Open Source Ground Control App</summary>
+  <description>
+    <p>
+      QGroundControl (QGC) is a highly intuitive and powerful Ground Control Station (GCS) designed for UAVs.
+      Whether you're a first-time pilot or an experienced professional,
+      QGC provides a seamless user experience for flight control and mission planning,
+      making it the go-to solution for any MAVLink-enabled drone.
+    </p>
+  </description>
+  <icon type="stock">QGroundControl</icon>
+
+  <provides>
+    <binary>QGroundControl</binary>
+  </provides>
+
+  <releases>
+    <release version="5.1.5" date="2026-09-30T15:30:58-07:00">
+      <description>
+        <p>Rebuilt with CMake for Qt6.8</p>
+      </description>
+    </release>
+  </releases>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Connected Vehicle</caption>
+      <!-- AppStream requires a remote URL; keep the image alongside this file so it
+           can never rot due to docs-site restructuring -->
+      <image>https://raw.githubusercontent.com/mavlink/qgroundcontrol/master/deploy/linux/connected_vehicle.jpg</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://qgroundcontrol.com</url>
+  <url type="help">https://docs.qgroundcontrol.com/master/en/index.html</url>
+  <url type="bugtracker">https://github.com/mavlink/qgroundcontrol/issues</url>
+  <url type="contact">https://docs.qgroundcontrol.com/master/en/qgc-user-guide/support/support.html</url>
+  <!-- <url type="contribute">https://github.com/mavlink/qgroundcontrol/blob/master/.github/CONTRIBUTING.md</url> -->
+
+  <requires>
+    <display_length>360</display_length>
+  </requires>
+<!--   <recommends>
+    <internet>first-run</internet>
+  </recommends> -->
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+    <control>gamepad</control>
+  </supports>
+
+  <categories>
+    <category>Qt</category>
+    <category>Utility</category>
+    <category>Maps</category>
+  </categories>
+
+  <keywords>
+    <keyword translate="no">mavlink</keyword>
+    <keyword translate="no">qt</keyword>
+    <keyword>drone</keyword>
+    <keyword translate="no">ardupilot</keyword>
+    <keyword translate="no">pixhawk</keyword>
+  </keywords>
+</component>

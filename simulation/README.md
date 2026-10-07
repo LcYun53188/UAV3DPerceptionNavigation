@@ -40,3 +40,7 @@
 
 独立入口：`./simulation/scripts/run_isaac_sim_45_ui.sh`，需已有对应安装。
 参见 [Isaac 内容说明](../docs/ISAAC_ROS_COMPONENTS.md)。
+
+## 全链路仿真开发
+
+按 [开发计划](../docs/SIMULATION_DEVELOPMENT_PLAN.md) 推进，当前为 S0 第一批。已实现 `scripts/sim.sh doctor` 离线依赖审计和主机回归运行器，使用方法见 [验收工具说明](acceptance/README.md)，实测证据见 [S0 报告](../docs/validation/simulation/2026-10-07-s0/REPORT.md)。当前全部在本机进行仿真开发，Jetson 验证延期为可选阶段；QGC 文件版本/hash 已核验，PX4 SITL v1.16.2、Agent v2.4.3 和对应消息包已构建并通过未解锁 x500 基础链路冒烟，使用方法见 [本机 SITL](px4/README.md)，尚未进入飞行验收。

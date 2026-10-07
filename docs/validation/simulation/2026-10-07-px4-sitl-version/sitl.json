@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/PX4/PX4-Autopilot.git",
+  "version": "v1.16.2",
+  "commit": "54f0455ffcd755534539a7cf33a09a20bf71d29d",
+  "tag_object": "cec6f597235c27f8d42d900e5c5fc8e4d792dbd6",
+  "selection": "Latest stable release in PX4 1.16.x as verified on 2026-10-07; upgrade only by explicit lock update",
+  "verified_on": "2026-10-07",
+  "release_url": "https://github.com/PX4/PX4-Autopilot/releases/tag/v1.16.2",
+  "path": ".deps/PX4-Autopilot",
+  "checkout_status": "PENDING: source checkout, submodules and build not yet performed",
+  "target": "px4_sitl_default",
+  "initial_model": "gz_x500"
+}

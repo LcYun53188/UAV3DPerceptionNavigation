@@ -1,0 +1,16 @@
+schema: 1
+profile: algorithm
+backend: gazebo_velocity
+ros_clock: /clock
+use_sim_time: true
+deadline_clock: monotonic
+localization: gazebo_ground_truth
+alignment: gazebo_world_identity
+px4: false
+capabilities:
+- map
+- navigation
+pending:
+- mission_actions
+- clock_fault_latch
+hardware_authorization: false

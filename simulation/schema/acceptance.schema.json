@@ -1,0 +1,149 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "algorithm",
+        "px4_control",
+        "px4_mapping",
+        "px4_vio",
+        "jetson_loop"
+      ]
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tests": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(T[0-9]{2}|S0_[A-Z0-9_]+)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "requirement": {
+            "type": "string",
+            "enum": [
+              "required",
+              "N/A"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "requirement",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "clock_domain": {
+            "type": "string",
+            "enum": [
+              "monotonic",
+              "ros",
+              "source",
+              "none"
+            ]
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "<=",
+              "<",
+              ">=",
+              ">",
+              "=="
+            ]
+          },
+          "threshold": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "window": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "timeout": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "on_violation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applicable_tests": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "freeze_stage": {
+            "type": "string",
+            "pattern": "^S[0-8]$"
+          },
+          "config_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "metric_id",
+          "source",
+          "clock_domain",
+          "operator",
+          "threshold",
+          "unit",
+          "window",
+          "timeout",
+          "on_violation",
+          "applicable_tests",
+          "evidence_path",
+          "freeze_stage",
+          "config_hash"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "profile",
+    "scope",
+    "tests",
+    "metrics"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
