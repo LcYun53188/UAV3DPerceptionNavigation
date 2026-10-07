@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "scripts/test_sim_control.py",
+    "scripts/test_sim_validation.py",
+    "src/uav_nav_sim/test"
+  ],
+  "exit_code": 0,
+  "timeout": false
+}

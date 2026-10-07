@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "full_build_script_exit_code": 0,
+  "targeted_pytest": {
+    "status": "PASS",
+    "passed": 250,
+    "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=180 ./scripts/with_venv.sh python -m pytest -q scripts/test_px4_sim_tools.py scripts/test_sim_validation.py scripts/test_sim_control.py src/uav_nav_sim/test"
+  },
+  "logs": [
+    {
+      "path": ".cache/simulation/px4-build-script.log",
+      "sha256": "010c900822d1ebed55406e685ef4dbf91c502fefd02830fcf4e49d195fc7eb58"
+    },
+    {
+      "path": ".cache/simulation/px4-build.log",
+      "sha256": "fad2e9d4a7bf47286f2f9bda54ea21699bb56ee6ab843e47852e46c0ce640aee"
+    },
+    {
+      "path": ".cache/simulation/agent-build.log",
+      "sha256": "8bbd9c7c57c934b65af41cc2f1d5c5675d0a1525ffb83a5239f3baaeb8afde23"
+    },
+    {
+      "path": ".cache/simulation/px4-msgs-build.log",
+      "sha256": "41ce0dd738542bb52d30f27ab92d18d532fe3f0977454b9f4dba737b2d787d92"
+    },
+    {
+      "path": ".cache/simulation/px4-build-initial-failure.log",
+      "sha256": "63230b0ed46757377d6f6704bbe5fac1c5d61cfeb77211a7201b5cffbb727bc7"
+    }
+  ],
+  "python": {
+    "version": "Python 3.11.15",
+    "requirements": "requirements/px4-sim.txt",
+    "requirements_sha256": "f61f441f0fdc1d4e8558184e3147771be3f6c65f94aac92a113d53648f46419b",
+    "ros_python": "3.12 (isolated px4_msgs overlay via with_px4_sim.sh)"
+  },
+  "binaries": [
+    {
+      "path": ".deps/PX4-Autopilot/build/px4_sitl_default/bin/px4",
+      "sha256": "5525e3edf3413d57039f374be8b934bbf53390de41edc54eb6ced15ed0aa72da"
+    },
+    {
+      "path": ".deps/microxrce-install/bin/MicroXRCEAgent",
+      "sha256": "c38c5e77dff741e61cfed1d24efe1915807f35e37da085288e5a4588a4620962"
+    }
+  ],
+  "px4_submodules": [
+    "-f47ce7b5fbbb3aa43d33d2be1f6cd3746b13d5bf Tools/simulation/flightgear/flightgear_bridge",
+    "-70683dc759cbd3ebccfa78429b564f8b1fb5d149 Tools/simulation/gazebo-classic/sitl_gazebo-classic",
+    " e05f4312d3f28aa621157610584a4870406cb6d3 Tools/simulation/gz (e05f431)",
+    "-66b764ada522893c05224950aa6268c809f8e48a Tools/simulation/jmavsim/jMAVSim",
+    "-68de2cc63ded9a0d6641d45e9eb3ed2b43454cba Tools/simulation/jsbsim/jsbsim_bridge",
+    "-85151aaf6ba8b24ce82b387e088452c63f7e2096 boards/modalai/voxl2/libfc-sensor-api",
+    "-e37940d8535f603a16b8f6f21c21edaf584218aa platforms/nuttx/NuttX/apps",
+    "-886acbbdb4f061e5c0ce1a76afbcfa7cb7df9849 platforms/nuttx/NuttX/nuttx",
+    "-c488af4e8807de80739aa48efd2ea51614dd8195 src/drivers/actuators/vertiq_io/iq-module-communication-cpp",
+    "-36a01e428b110ff84c8babe5b65667b5e3037d5e src/drivers/cyphal/legacy_data_types",
+    "-5c69d451ab0787a81dcb615692d707f2a286f5e5 src/drivers/cyphal/libcanard",
+    "-d0bd6516dac8ff61287fe49a9f2c75e7d4dc1b8e src/drivers/cyphal/public_regulated_data_types",
+    " 4cea5de87ce7e2a52e5289bd3639fd8eb770eafa src/drivers/gps/devices (4cea5de)",
+    "-993be80a62ec957c01fb41115b83663959a49f46 src/drivers/uavcan/libdronecan/dsdl",
+    "-19fdf2e5b383243ccdb1094edae0603cf11469e8 src/drivers/uavcan/libdronecan/libuavcan/dsdl_compiler/pydronecan",
+    "-314887ca403c2fb0a0316add22672102936ed36c src/lib/cdrstream/cyclonedds",
+    "-7790c70717e09c003711f6f65015666c223fc283 src/lib/cdrstream/rosidl",
+    "-673f5ce29015a9bba3c96792920a10601b5b0718 src/lib/crypto/libtomcrypt",
+    "-fd73d7630b9d3ed5a79d613ff680a549e9780de7 src/lib/crypto/libtommath",
+    "-baca5d31259c598540e4d1284bc8d8f793abf83a src/lib/crypto/monocypher",
+    " 9ef591c447fe0386d698bf6fb9a6d27e43988ee4 src/lib/events/libevents (9ef591c)",
+    " 052e6de72f67f1777198bce98f3de62f7f3c16a0 src/lib/heatshrink/heatshrink (heads/main)",
+    " 5bfd76d80281f6027134e854aafe6cb3dbfbe9e1 src/modules/mavlink/mavlink (5bfd76d)",
+    " 4960d4d20dcf9fc2981785355567fc5773416bc9 src/modules/mavlink/mavlink/pymavlink (4960d4d)",
+    " 711aef423edd1820347b866d1e4164832df35d04 src/modules/uxrce_dds_client/Micro-XRCE-DDS-Client (711aef4)",
+    "-f093aa7955bb24dfa3e626de084583711e3bac5c src/modules/zenoh/zenoh-pico"
+  ],
+  "agent_dependencies": [
+    {
+      "path": ".deps/agent-build/fastcdr/src/fastcdr",
+      "commit": "757d5e422253568c487ad97c22e44680fc1ddbaf",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".deps/agent-build/fastdds/src/fastdds",
+      "commit": "2203e4d20dc9990277821b085bdd2d0eef0e70e6",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".deps/agent-build/spdlog/src/spdlog",
+      "commit": "eb3220622e73a4889eee355ffa37972b3cac3df5",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

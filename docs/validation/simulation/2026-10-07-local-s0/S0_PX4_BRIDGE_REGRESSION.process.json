@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "src/px4_comm_bridge/test"
+  ],
+  "exit_code": 0,
+  "timeout": false
+}

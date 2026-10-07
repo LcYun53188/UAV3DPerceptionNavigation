@@ -1,0 +1,38 @@
+{
+  "qgc": {
+    "path": "/home/nuc/Program/QGC/QGroundControl-x86_64.AppImage",
+    "version": "5.1.5",
+    "version_evidence": "AppImage embedded AppStream release + binary v5.1.5 string",
+    "sha256": "9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344",
+    "size_bytes": 195332600,
+    "verified_on": "2026-10-07"
+  },
+  "vendor_firmware": {
+    "source_url": "https://gitee.com/kit-miao/dm-fc01/blob/master/%E5%9B%BA%E4%BB%B6/PX4/damiao_dm-fc01_V1.16.px4",
+    "download_url": "https://gitee.com/kit-miao/dm-fc01/raw/master/%E5%9B%BA%E4%BB%B6/PX4/damiao_dm-fc01_V1.16.px4",
+    "filename": "damiao_dm-fc01_V1.16.px4",
+    "sha256": "2b5cc6ec1012a097bdc6779a6bc23afd05c5d8b53d6cc1561f09d8cb0528bba0",
+    "size_bytes": 1663881,
+    "verified_on": "2026-10-07",
+    "metadata": {
+      "board_id": 7140,
+      "magic": "PX4FWv1",
+      "description": "Firmware for the DAMIAO DM-FC01 flight controller",
+      "build_time": 1787190790,
+      "summary": "DM-FC01",
+      "version": "1.0.0",
+      "image_size": 1785596,
+      "image_maxsize": 1835008,
+      "git_identity": "v1.16.0-7-g78a512995e",
+      "board_revision": 1,
+      "git_hash": "78a512995e73dad88051707b5bee3df07eed4d78",
+      "parameter_xml_size": 753269,
+      "mav_autopilot": 12,
+      "airframe_xml_size": 19501
+    },
+    "image_sha256": "071419d812aab50b6c301c206a974833f8f45c68ff7ab8cdd82e5c8fa6b97259",
+    "scope": "DM-FC01 hardware firmware; not a host SITL executable",
+    "source_correspondence": "UNVERIFIED: git hash is embedded metadata; corresponding vendor source tree not obtained",
+    "running_vehicle_build": "UNVERIFIED: user supplied firmware identity; no fresh flight-controller telemetry read"
+  }
+}

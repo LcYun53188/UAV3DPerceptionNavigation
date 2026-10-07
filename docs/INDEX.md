@@ -7,6 +7,8 @@
 - [无人机仿真使用手册](SIMULATION_MANUAL.md)：系统架构、环境准备、建图与地图包、RViz 交互导航、自动化回归及接口排错全流程。
 - [EGO + nvblox 仿真运行指引](EGO_NVBLOX_GAZEBO.md)：模式选择与切换、在线探索、地图保存和加载、RViz 选点、停止及排错。
 - [EGO + nvblox 开发手册](EGO_NVBLOX_DEVELOPMENT_GUIDE.md)
+- [BehaviorTree 与 PX4 协同开发计划](BT_PX4_DEVELOPMENT_PLAN.md)：任务树、Action 接口、控制权、PX4 执行后端、阶段排期与验收门槛。
+- [UAV 全链路仿真开发计划](SIMULATION_DEVELOPMENT_PLAN.md)：算法回归、PX4 动力学、室内 VIO、本机稳定性、场景矩阵和故障验收；Jetson 联调延期。
 - [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)
 - [安装与构建](INSTALLATION.md)
 - [CUDA 构建环境](CUDA_TOOLKIT_13_2_INSTALLATION.md)

@@ -1,0 +1,177 @@
+{
+  "scenario": {
+    "schema": 1,
+    "scenario_id": "S0_regression",
+    "profile": "algorithm",
+    "acceptance": "simulation/acceptance/algorithm_s0.yaml",
+    "description": "Read-only host regressions; no Gazebo process lifecycle or control writes"
+  },
+  "acceptance": {
+    "schema": 1,
+    "profile": "algorithm",
+    "scope": "S0 host regression only; does not establish flight or navigation acceptance",
+    "tests": {
+      "S0_NAV_REGRESSION": {
+        "requirement": "required",
+        "reason": "Existing algorithm and simulation lifecycle regression"
+      },
+      "S0_PX4_BRIDGE_REGRESSION": {
+        "requirement": "required",
+        "reason": "Existing bridge logic regression; no SITL claim"
+      },
+      "S0_JETSON_SAMPLE": {
+        "requirement": "N/A",
+        "reason": "Deferred by user on 2026-10-07: current development and acceptance run entirely on the local workstation; Jetson validation belongs to an optional later stage"
+      }
+    },
+    "metrics": []
+  },
+  "versions": {
+    "schema": 1,
+    "scope": "S0 local workstation baseline; PX4 freeze pending; Jetson deferred",
+    "host": {
+      "architecture": "x86_64",
+      "os_id": "ubuntu",
+      "os_version": "24.04",
+      "ros_distro": "jazzy"
+    },
+    "packages": {
+      "ros-jazzy-ros-base": "0.11.0-1noble.20260412.071950",
+      "ros-jazzy-rclpy": "7.1.11-1noble.20260412.041747",
+      "ros-jazzy-gz-sim-vendor": "0.0.10-1noble.20260318.175144",
+      "ros-jazzy-ros-gz-sim": "1.0.22-1noble.20260412.044601",
+      "ros-jazzy-ros-gz-bridge": "1.0.22-1noble.20260412.043437",
+      "ros-jazzy-rmw-fastrtps-cpp": "8.4.3-1noble.20260412.034154",
+      "ros-jazzy-behaviortree-cpp": "4.9.0-1noble.20260412.042652",
+      "cuda-toolkit-13-2": "13.2.1-1"
+    },
+    "sources": [
+      {
+        "path": "src/FAST_LIO_ROS2",
+        "commit": "2fffc570a25d0df172720bac034fbdb6a13d2162"
+      },
+      {
+        "path": "src/FAST_LIO_ROS2/include/ikd-Tree",
+        "commit": "e2e3f4e9d3b95a9e66b1ba83dc98d4a05ed8a3c4"
+      },
+      {
+        "path": "src/isaac_ros_common",
+        "commit": "1ef3b8ba857261a7ecd0eaf41aeaaf24e0815b8e"
+      },
+      {
+        "path": "src/isaac_ros_image_pipeline",
+        "commit": "ab21ed0818e50bd4524a442bc186acbde8de8a56"
+      },
+      {
+        "path": "src/isaac_ros_nitros",
+        "commit": "a22f10d4918662c485b0a1323e2fe1d8c21407a9"
+      },
+      {
+        "path": "src/isaac_ros_nvblox",
+        "commit": "6362295e581ef243773c8a348ac46711e4a1fca4"
+      },
+      {
+        "path": "src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
+        "commit": "3f42b210df9ad7a2099f00fcf324049d97342cb0"
+      },
+      {
+        "path": "src/isaac_ros_visual_slam",
+        "commit": "04bf49a2daf7710d2ba2390d1772435a1baeb48d"
+      },
+      {
+        "path": "src/livox_ros_driver2",
+        "commit": "13eb05e4e6dd7a765b934d0c5fd6236676a57b49"
+      },
+      {
+        "path": "src/magic_enum",
+        "commit": "9f19f78a7d726af84761ecd6d8414613507a95e6"
+      },
+      {
+        "path": "src/negotiated",
+        "commit": "eac198b55dcd052af5988f0f174902913c5f20e7"
+      },
+      {
+        "path": "third_party/Livox-SDK2",
+        "commit": "f5d9375f84efe2b15bc0a052d3e18482ed13adf4"
+      },
+      {
+        "path": ".deps/ego_planner_src",
+        "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9"
+      }
+    ],
+    "files": [
+      {
+        "path": "src/uav_bringup/config/isaac_visual_slam_oakd_vio_only.yaml",
+        "sha256": "7ad1263577c81c89356a94634b46b4674de100338b00d918cb0776a6341ad77a"
+      },
+      {
+        "path": "patches/vendor/sources.json",
+        "sha256": "bbc29100a2c9f55050a35c0f986b4500d5aaa0a5828859af41911391e854d606"
+      },
+      {
+        "path": "patches/vendor/livox_ros_driver2.patch",
+        "sha256": "b79e1eed6acf6df8508b4882af6a6a3694b708a5589eee6a5c7be9079135e6cd"
+      },
+      {
+        "path": "patches/vendor/fast_lio_ros2.patch",
+        "sha256": "8f884a6c4feac53fe668123d1d3d9b748cd191ebc9480221795ff06c5f8acbca"
+      },
+      {
+        "path": "patches/vendor/livox_sdk2.patch",
+        "sha256": "2062417e143db954cf48c61d2b12e433ca8ee0a291ac15c73d84364f326926c1"
+      },
+      {
+        "path": "patches/vendor/isaac_ros_nvblox.patch",
+        "sha256": "765839c6d48e13a822f5ed0994017cbe308e4d578a0b50263d1a70ce637cc380"
+      },
+      {
+        "path": "patches/vendor/magic_enum.patch",
+        "sha256": "cc674f3c6df6b5303504f858d17c7eaa95fa895c43aeb2c39b14db3a0a52d80a"
+      },
+      {
+        "path": "patches/vendor/isaac_ros_nitros.patch",
+        "sha256": "4ab4613793ab8bb97d33a22828a7e72ece2b23a33c2490e4dd480ad93a17acb0"
+      },
+      {
+        "path": "patches/vendor/negotiated.patch",
+        "sha256": "a1c11f87a5e5f4f1cb45f71ad58a47be0e2e6ab54c4af71985158666f92f7816"
+      },
+      {
+        "path": "patches/vendor/nvblox_core.patch",
+        "sha256": "a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d"
+      },
+      {
+        "path": "patches/vendor/ego_planner.patch",
+        "sha256": "67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13"
+      },
+      {
+        "path": "requirements/simulation-validation.txt",
+        "sha256": "2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1"
+      }
+    ],
+    "vio": {
+      "algorithm": "Isaac ROS Visual SLAM / cuVSLAM VIO-only",
+      "source": "src/isaac_ros_visual_slam",
+      "config": "src/uav_bringup/config/isaac_visual_slam_oakd_vio_only.yaml",
+      "simulation_config_status": "PENDING: current hardware config uses system time",
+      "arm_status": "DEFERRED: optional later Jetson stage, outside current local simulation scope"
+    },
+    "pending": {
+      "px4": "S0 pin concrete PX4 1.16 tag/commit before S3",
+      "agent": "S0 pin Client-compatible Agent before S3",
+      "qgc": "S0 record application version/hash before S3"
+    },
+    "deferred": {
+      "jetson": "User deferred Jetson on 2026-10-07; ARM build, component samples and cross-host validation required only when Jetson work resumes"
+    }
+  },
+  "tool_hashes": {
+    "scripts/check_sim_environment.py": "eaf67f795e79e3dc2efbbe3b2dbe8e747d8819e317d17ee835715d2b1f7514ba",
+    "scripts/run_sim_scenario.py": "26cd5c5da7345a0029063100207f619657e18fd454eb54d5af00061131e217f4",
+    "scripts/sim_control.py": "d5ac63dc2340e6077b69545ef26594fa41473a2b7f6fa8d85c100fe51d2d81ca",
+    "scripts/sim_ros_control.py": "0619120e300691fc0b5061bad228fe9347c791635a157c34e2abe71270049916",
+    "scripts/sim_validation.py": "dd5281b09753cf577b3253bd481463afdacc57d89f4f8933900652ec4a664db2",
+    "scripts/test_sim_control.py": "f01ad84b7738a263ced5ae83c9f51418aa830ab0e2d1a916214891f90eef54e3",
+    "scripts/test_sim_validation.py": "1b20c0bada4b05400e8faa934f37f4fb4477cff6d6796ed32327d17d08921978"
+  }
+}

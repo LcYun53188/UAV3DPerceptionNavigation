@@ -1,0 +1,279 @@
+{
+  "schema": 1,
+  "scope": "offline_dependency_audit",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "architecture",
+      "expected": "x86_64",
+      "actual": "x86_64",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "os_id",
+      "expected": "ubuntu",
+      "actual": "ubuntu",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "os_version",
+      "expected": "24.04",
+      "actual": "24.04",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "ros_install",
+      "expected": true,
+      "actual": true,
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-ros-base",
+      "expected": "0.11.0-1noble.20260412.071950",
+      "actual": "0.11.0-1noble.20260412.071950",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-rclpy",
+      "expected": "7.1.11-1noble.20260412.041747",
+      "actual": "7.1.11-1noble.20260412.041747",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-gz-sim-vendor",
+      "expected": "0.0.10-1noble.20260318.175144",
+      "actual": "0.0.10-1noble.20260318.175144",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-ros-gz-sim",
+      "expected": "1.0.22-1noble.20260412.044601",
+      "actual": "1.0.22-1noble.20260412.044601",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-ros-gz-bridge",
+      "expected": "1.0.22-1noble.20260412.043437",
+      "actual": "1.0.22-1noble.20260412.043437",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-rmw-fastrtps-cpp",
+      "expected": "8.4.3-1noble.20260412.034154",
+      "actual": "8.4.3-1noble.20260412.034154",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:ros-jazzy-behaviortree-cpp",
+      "expected": "4.9.0-1noble.20260412.042652",
+      "actual": "4.9.0-1noble.20260412.042652",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "package:cuda-toolkit-13-2",
+      "expected": "13.2.1-1",
+      "actual": "13.2.1-1",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/FAST_LIO_ROS2",
+      "expected": "2fffc570a25d0df172720bac034fbdb6a13d2162",
+      "actual": "2fffc570a25d0df172720bac034fbdb6a13d2162",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/FAST_LIO_ROS2/include/ikd-Tree",
+      "expected": "e2e3f4e9d3b95a9e66b1ba83dc98d4a05ed8a3c4",
+      "actual": "e2e3f4e9d3b95a9e66b1ba83dc98d4a05ed8a3c4",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_common",
+      "expected": "1ef3b8ba857261a7ecd0eaf41aeaaf24e0815b8e",
+      "actual": "1ef3b8ba857261a7ecd0eaf41aeaaf24e0815b8e",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_image_pipeline",
+      "expected": "ab21ed0818e50bd4524a442bc186acbde8de8a56",
+      "actual": "ab21ed0818e50bd4524a442bc186acbde8de8a56",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_nitros",
+      "expected": "a22f10d4918662c485b0a1323e2fe1d8c21407a9",
+      "actual": "a22f10d4918662c485b0a1323e2fe1d8c21407a9",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_nvblox",
+      "expected": "6362295e581ef243773c8a348ac46711e4a1fca4",
+      "actual": "6362295e581ef243773c8a348ac46711e4a1fca4",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
+      "expected": "3f42b210df9ad7a2099f00fcf324049d97342cb0",
+      "actual": "3f42b210df9ad7a2099f00fcf324049d97342cb0",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/isaac_ros_visual_slam",
+      "expected": "04bf49a2daf7710d2ba2390d1772435a1baeb48d",
+      "actual": "04bf49a2daf7710d2ba2390d1772435a1baeb48d",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/livox_ros_driver2",
+      "expected": "13eb05e4e6dd7a765b934d0c5fd6236676a57b49",
+      "actual": "13eb05e4e6dd7a765b934d0c5fd6236676a57b49",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/magic_enum",
+      "expected": "9f19f78a7d726af84761ecd6d8414613507a95e6",
+      "actual": "9f19f78a7d726af84761ecd6d8414613507a95e6",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:src/negotiated",
+      "expected": "eac198b55dcd052af5988f0f174902913c5f20e7",
+      "actual": "eac198b55dcd052af5988f0f174902913c5f20e7",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:third_party/Livox-SDK2",
+      "expected": "f5d9375f84efe2b15bc0a052d3e18482ed13adf4",
+      "actual": "f5d9375f84efe2b15bc0a052d3e18482ed13adf4",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "source:.deps/ego_planner_src",
+      "expected": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
+      "actual": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:src/uav_bringup/config/isaac_visual_slam_oakd_vio_only.yaml",
+      "expected": "7ad1263577c81c89356a94634b46b4674de100338b00d918cb0776a6341ad77a",
+      "actual": "7ad1263577c81c89356a94634b46b4674de100338b00d918cb0776a6341ad77a",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/sources.json",
+      "expected": "bbc29100a2c9f55050a35c0f986b4500d5aaa0a5828859af41911391e854d606",
+      "actual": "bbc29100a2c9f55050a35c0f986b4500d5aaa0a5828859af41911391e854d606",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/livox_ros_driver2.patch",
+      "expected": "b79e1eed6acf6df8508b4882af6a6a3694b708a5589eee6a5c7be9079135e6cd",
+      "actual": "b79e1eed6acf6df8508b4882af6a6a3694b708a5589eee6a5c7be9079135e6cd",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/fast_lio_ros2.patch",
+      "expected": "8f884a6c4feac53fe668123d1d3d9b748cd191ebc9480221795ff06c5f8acbca",
+      "actual": "8f884a6c4feac53fe668123d1d3d9b748cd191ebc9480221795ff06c5f8acbca",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/livox_sdk2.patch",
+      "expected": "2062417e143db954cf48c61d2b12e433ca8ee0a291ac15c73d84364f326926c1",
+      "actual": "2062417e143db954cf48c61d2b12e433ca8ee0a291ac15c73d84364f326926c1",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/isaac_ros_nvblox.patch",
+      "expected": "765839c6d48e13a822f5ed0994017cbe308e4d578a0b50263d1a70ce637cc380",
+      "actual": "765839c6d48e13a822f5ed0994017cbe308e4d578a0b50263d1a70ce637cc380",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/magic_enum.patch",
+      "expected": "cc674f3c6df6b5303504f858d17c7eaa95fa895c43aeb2c39b14db3a0a52d80a",
+      "actual": "cc674f3c6df6b5303504f858d17c7eaa95fa895c43aeb2c39b14db3a0a52d80a",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/isaac_ros_nitros.patch",
+      "expected": "4ab4613793ab8bb97d33a22828a7e72ece2b23a33c2490e4dd480ad93a17acb0",
+      "actual": "4ab4613793ab8bb97d33a22828a7e72ece2b23a33c2490e4dd480ad93a17acb0",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/negotiated.patch",
+      "expected": "a1c11f87a5e5f4f1cb45f71ad58a47be0e2e6ab54c4af71985158666f92f7816",
+      "actual": "a1c11f87a5e5f4f1cb45f71ad58a47be0e2e6ab54c4af71985158666f92f7816",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/nvblox_core.patch",
+      "expected": "a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d",
+      "actual": "a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:patches/vendor/ego_planner.patch",
+      "expected": "67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13",
+      "actual": "67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "file:requirements/simulation-validation.txt",
+      "expected": "2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1",
+      "actual": "2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1",
+      "status": "PASS",
+      "error": ""
+    },
+    {
+      "name": "managed_vendor_patches",
+      "status": "PASS",
+      "output": "src/livox_ros_driver2: applied\nsrc/FAST_LIO_ROS2: applied\nthird_party/Livox-SDK2: applied\nsrc/isaac_ros_nvblox: applied\nsrc/magic_enum: applied\nsrc/isaac_ros_nitros: applied\nsrc/negotiated: applied\nsrc/isaac_ros_nvblox/nvblox_ros/nvblox_core: applied",
+      "error": ""
+    }
+  ],
+  "pending": {
+    "px4": "S0 pin concrete PX4 1.16 tag/commit before S3",
+    "agent": "S0 pin Client-compatible Agent before S3",
+    "qgc": "S0 record application version/hash before S3",
+    "jetson": "S0 build/load/sample required before S6/S7; E layer BLOCKED"
+  },
+  "runtime_readiness": "INCONCLUSIVE: topics, TF, clock and live navigation not sampled"
+}

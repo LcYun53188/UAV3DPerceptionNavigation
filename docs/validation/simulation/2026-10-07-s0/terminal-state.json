@@ -1,0 +1,25 @@
+{
+  "executor": "HOLD",
+  "exploration": "DISABLED:MANUAL_GOAL",
+  "navigation": "REACHED",
+  "map": {
+    "valid": true,
+    "version": 237,
+    "static": false
+  },
+  "map_stamp": 119.008,
+  "position": [
+    -1.5002859034690408,
+    6.656922271333389e-05,
+    1.199907506943508
+  ],
+  "odom_stamp": 119.36,
+  "ready": true,
+  "receive_age_seconds": {
+    "executor": 0.0,
+    "exploration": 0.38,
+    "navigation": 0.38,
+    "map": 0.36,
+    "position": 0.02
+  }
+}

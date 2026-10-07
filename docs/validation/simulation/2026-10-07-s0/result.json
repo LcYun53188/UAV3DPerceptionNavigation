@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "run_id": "ffb3dc46-e4dd-44fb-ae7b-c8b3742b3177",
+  "profile": "algorithm",
+  "scope": "S0 host regression only; does not establish flight or navigation acceptance",
+  "status": "INCONCLUSIVE",
+  "started_at": "2026-10-07T12:44:59.725227+00:00",
+  "duration_monotonic_s": 9.495466452000073,
+  "config_hash": "7e499958787ace50280ebc390f20f175c3fb5d40190a66438ea3372791ca56a6",
+  "tests": [
+    {
+      "test_id": "S0_NAV_REGRESSION",
+      "required": true,
+      "status": "PASS",
+      "reason": "exit_code=0, timeout=False; host regression only",
+      "evidence": [
+        "config.snapshot.json",
+        "S0_NAV_REGRESSION.log",
+        "S0_NAV_REGRESSION.process.json"
+      ]
+    },
+    {
+      "test_id": "S0_PX4_BRIDGE_REGRESSION",
+      "required": true,
+      "status": "PASS",
+      "reason": "exit_code=0, timeout=False; host regression only",
+      "evidence": [
+        "config.snapshot.json",
+        "S0_PX4_BRIDGE_REGRESSION.log",
+        "S0_PX4_BRIDGE_REGRESSION.process.json"
+      ]
+    },
+    {
+      "test_id": "S0_JETSON_SAMPLE",
+      "required": true,
+      "status": "INCONCLUSIVE",
+      "reason": "S0 build/load/sample required before S6/S7; E layer BLOCKED",
+      "evidence": [
+        "config.snapshot.json"
+      ]
+    }
+  ]
+}
