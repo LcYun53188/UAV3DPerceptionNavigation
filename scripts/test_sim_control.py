@@ -97,3 +97,14 @@ def test_export_waits_for_hold_before_saving(tmp_path, monkeypatch, mode):
     control.main()
     assert [c.args[1][2] for c in run.call_args_list] == ['cancel', 'export-mesh']
     assert run.call_args_list[1].args[1][-1] == str(dest)
+
+
+def test_doctor_does_not_require_or_command_session(monkeypatch):
+    monkeypatch.setattr(control.sys, 'argv', ['sim', 'doctor'])
+    session = Mock(side_effect=AssertionError('doctor must be offline'))
+    monkeypatch.setattr(control, 'read_session', session)
+    run = Mock()
+    monkeypatch.setattr(control.subprocess, 'run', run)
+    control.main()
+    assert run.call_args.args[0][-1] == 'scripts/check_sim_environment.py'
+    session.assert_not_called()
