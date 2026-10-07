@@ -1,17 +1,14 @@
 # S1 AircraftState observer
 
-First S1 increment: read-only PX4 1.16 facts. This package does not implement
+First S1 increment: read-only PX4 1.16 facts. This read-only observer does not implement
 MissionServer, FlightSession, a control lease, navigation authorization or flight
-Actions. It publishes no PX4 input, TF or localization messages.
+Actions. This observer publishes no PX4 input, TF or localization messages.
 
 Build against the pinned isolated PX4 messages (do not source the older workspace
 `px4_msgs` over this environment):
 
 ```bash
-./scripts/with_px4_sim.sh colcon --log-base .cache/simulation/mission-colcon-log build \
-  --base-paths src/uav_nav_interfaces src/uav_mission \
-  --build-base .deps/mission-build --install-base .deps/mission-install \
-  --symlink-install --parallel-workers 1
+./scripts/build_px4_flight.sh
 ./scripts/with_px4_sim.sh bash -e -c \
   'source .deps/mission-install/local_setup.bash; python scripts/run_px4_sitl_smoke.py --duration 30 --aircraft-state'
 ```
@@ -68,3 +65,5 @@ PYTHONPATH=src/uav_mission PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 SKIP_WS_SETUP=true \
 The next S1 increment adds [task/FlightSession protocols and ROS mock](PROTOCOL.md).
 Use its separate mock smoke for Action/service validation; it does not change the
 read-only AircraftState observer or authorize a real vehicle.
+
+真实 PX4 W0 执行后端现已实现，运行入口、任务格式与配置见 [本机飞行说明](../../simulation/px4/README.md#w0-真实飞行任务)。它使用实际飞控回读，与 `/uav/mock/*` 合成协议端点分开。

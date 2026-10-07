@@ -1,0 +1,133 @@
+[WARN] [1791384251.984573678] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791384251.984602881] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1791384252.596170130] [px4_flight_gateway]: PRESTREAM: 
+[INFO] [1791384254.083883506] [px4_flight_gateway]: OFFBOARD_REQUEST: 
+[INFO] [1791384254.124041445] [px4_flight_gateway]: ARM_REQUEST: 
+[INFO] [1791384254.143494606] [px4_flight_gateway]: TAKEOFF: 
+[INFO] [1791384264.463992853] [px4_flight_gateway]: NAVIGATE: 
+[INFO] [1791384269.468001483] [px4_flight_gateway]: CANCEL_BRAKE: 
+[INFO] [1791384272.683725589] [px4_flight_gateway]: HOLD_HANDOFF: 
+[INFO] [1791384272.743632690] [px4_flight_gateway]: COMPLETE: 
+[INFO] [1791384302.763520963] [px4_flight_gateway]: FINAL_NATIVE_LAND: 
+[INFO] [1791384309.243714121] [px4_flight_gateway]: FINAL_HOLD_CLOSED: 
+{
+  "passed": true,
+  "scenario": "cancel",
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        12.089700140083625,
+        -1.1172127319598297,
+        2.2981792122125624
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 30.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        7.392836575846731,
+        -2.8317017692370863,
+        2.2981792122125624
+      ]
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "recipe_sha256": "8ec8a848d47e9a37ce195239dd6a49d89176a5b672338d8bffd41b3887853ddc",
+  "outputs_at_action_result": 1008,
+  "landing_cancel_rejected": false,
+  "cancel_hold": {
+    "duration_s": 29.99797066999963,
+    "samples": 1500,
+    "max_drift_m": 0.08263622976918908,
+    "final_landed_disarmed": true
+  },
+  "action_status": 5,
+  "result": {
+    "code": "CANCELED",
+    "reason": "STOPPED_AND_HOLDING",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "mission_uuid": "14318584-6697-488c-a90c-151e1503c68c",
+  "home_enu": [
+    -0.04849127680063248,
+    -0.008541899733245373,
+    -0.001820787787437439
+  ],
+  "home_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "NAVIGATE",
+    "CANCEL_BRAKE",
+    "HOLD_HANDOFF",
+    "COMPLETE",
+    "FINAL_NATIVE_LAND",
+    "FINAL_HOLD_CLOSED"
+  ],
+  "max_truth_displacement_m": 2.2744458445804483,
+  "hovers": [],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        0.0,
+        0.0,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        -0.03994514726409339,
+        -0.036395435711964595,
+        1.897604190412447
+      ],
+      "error_m": 0.10445965886634875
+    }
+  ],
+  "source_sha256": {
+    "src/uav_mission/uav_mission/px4_flight.py": "0dd38e4d9c9dafd009ca00e72afc340e165aad0f8065f7d301b37828bd3d9c7b",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "93f92db0e162cc10d304ccaa5358c4ce633b9bf033c9440405b54e944a037564",
+    "scripts/run_px4_sitl_smoke.py": "4dd14f351ca11ef70dc3ca55f0288e6bd69ceaf5d5b9024066b6c7b870bbe837"
+  },
+  "final_truth": [
+    0.914793889638066,
+    0.6279450311496146,
+    -0.013000454440006887
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "outputs_at_end": 2508
+}

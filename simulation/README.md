@@ -48,3 +48,5 @@
 S1 的只读 AircraftState、独立构建与故障验证入口见 [状态聚合器说明](../src/uav_mission/README.md)，实测边界见 [S1 首批报告](../docs/validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)。
 
 S1 最小任务 Action、暂停/恢复和 FlightSession mock 见 [协议说明](../src/uav_mission/PROTOCOL.md)，普通 Action 客户端及故障验证见 [协议报告](../docs/validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)。mock 使用独立 domain 79，不连接飞控。
+
+W0 的真实 PX4 起飞、定点导航、悬停、返航、降落及暂停/取消入口：`./scripts/sim.sh px4-flight`。使用 [本机飞行说明](px4/README.md#w0-真实飞行任务) 中的独立构建与配置；真值与动力学结果见 [飞行报告](../docs/validation/simulation/2026-10-07-px4-flight/REPORT.md)。

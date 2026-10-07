@@ -1,0 +1,197 @@
+[WARN] [1791384113.759119023] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791384113.759148151] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1791384114.367966559] [px4_flight_gateway]: PRESTREAM: 
+[INFO] [1791384115.858752425] [px4_flight_gateway]: OFFBOARD_REQUEST: 
+[INFO] [1791384115.898840174] [px4_flight_gateway]: ARM_REQUEST: 
+[INFO] [1791384115.918654613] [px4_flight_gateway]: TAKEOFF: 
+[INFO] [1791384126.198668412] [px4_flight_gateway]: NAVIGATE: 
+[INFO] [1791384131.205866275] [px4_flight_gateway]: PAUSING: 
+[INFO] [1791384134.438653830] [px4_flight_gateway]: HOLD_HANDOFF: 
+[INFO] [1791384134.498622683] [px4_flight_gateway]: PAUSED: 
+[INFO] [1791384137.503414174] [px4_flight_gateway]: NAVIGATE: 
+[INFO] [1791384147.798695551] [px4_flight_gateway]: HOVER: 
+[INFO] [1791384179.818695737] [px4_flight_gateway]: NAVIGATE: 
+[INFO] [1791384197.418685635] [px4_flight_gateway]: RETURN: 
+[INFO] [1791384208.558620534] [px4_flight_gateway]: HOVER: 
+[INFO] [1791384213.578837562] [px4_flight_gateway]: LAND_REQUEST: 
+[INFO] [1791384213.618556911] [px4_flight_gateway]: LANDING: 
+[INFO] [1791384222.218618342] [px4_flight_gateway]: COMPLETE: 
+{
+  "passed": true,
+  "scenario": "pause-resume",
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        12.121987643929282,
+        -1.0783027863984596,
+        2.330165433883667
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 30.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        7.425124079692385,
+        -2.7927918236757163,
+        2.330165433883667
+      ]
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "recipe_sha256": "8ec8a848d47e9a37ce195239dd6a49d89176a5b672338d8bffd41b3887853ddc",
+  "pause_resume": {
+    "passed": true,
+    "pause_drift_m": 0.07619796354578448,
+    "new_child": true
+  },
+  "outputs_at_action_result": 4963,
+  "landing_cancel_rejected": true,
+  "action_status": 4,
+  "result": {
+    "code": "SUCCEEDED",
+    "reason": "LANDED_AND_DISARMED",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "mission_uuid": "f5d76704-7967-455d-a671-5cf2b7b41b2a",
+  "home_enu": [
+    -0.004819141700863838,
+    0.016937727108597755,
+    0.030165433883666992
+  ],
+  "home_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "NAVIGATE",
+    "PAUSING",
+    "HOLD_HANDOFF",
+    "PAUSED",
+    "NAVIGATE",
+    "HOVER",
+    "NAVIGATE",
+    "RETURN",
+    "HOVER",
+    "LAND_REQUEST",
+    "LANDING",
+    "COMPLETE"
+  ],
+  "max_truth_displacement_m": 4.193139569038043,
+  "hovers": [
+    {
+      "duration_s": 32.01999446099944,
+      "samples": 1601,
+      "max_drift_m": 0.09576530526061809
+    },
+    {
+      "duration_s": 5.02015600499908,
+      "samples": 251,
+      "max_drift_m": 0.045050009396826324
+    }
+  ],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        -3.469446951953614e-18,
+        0.0,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        -0.01677842847722681,
+        -0.03548399430864466,
+        1.9052216913917053
+      ],
+      "error_m": 0.09070992840210484
+    },
+    {
+      "phase": "NAVIGATE",
+      "expected_world": [
+        3.000000000000001,
+        1.9999999999999991,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        3.039568426428805,
+        2.0312918343421345,
+        1.9804661146943778
+      ],
+      "error_m": 0.0508677551486779
+    },
+    {
+      "phase": "NAVIGATE",
+      "expected_world": [
+        -2.000000000000001,
+        2.0,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        -2.031737393397318,
+        1.9980231596084224,
+        1.9970215112328487
+      ],
+      "error_m": 0.03334073216446646
+    },
+    {
+      "phase": "RETURN",
+      "expected_world": [
+        -3.469446951953614e-18,
+        0.0,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        -0.002705496556136017,
+        -0.02604675478210452,
+        2.0125679743723293
+      ],
+      "error_m": 0.03659896023258093
+    }
+  ],
+  "source_sha256": {
+    "src/uav_mission/uav_mission/px4_flight.py": "0dd38e4d9c9dafd009ca00e72afc340e165aad0f8065f7d301b37828bd3d9c7b",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "93f92db0e162cc10d304ccaa5358c4ce633b9bf033c9440405b54e944a037564",
+    "scripts/run_px4_sitl_smoke.py": "4dd14f351ca11ef70dc3ca55f0288e6bd69ceaf5d5b9024066b6c7b870bbe837"
+  },
+  "final_truth": [
+    0.02246764548570279,
+    0.030810425739022835,
+    -0.013000114684681735
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "outputs_at_end": 4963
+}

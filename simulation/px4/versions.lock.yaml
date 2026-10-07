@@ -1,6 +1,6 @@
 schema: 1
-scope: 'S0 local baseline: PX4 v1.16.2, Agent v2.4.3 and matching messages built;
-  disarmed x500 DDS/clock/QGC smoke passed; Jetson deferred'
+scope: 'Local PX4 v1.16.2 baseline: disarmed DDS/clock/QGC smoke and W0 real
+  flight, pause/resume, cancel/hold/land and clock-loss fallback passed; Jetson deferred'
 host:
   architecture: x86_64
   os_id: ubuntu
@@ -77,8 +77,8 @@ vio:
   arm_status: 'DEFERRED: optional later Jetson stage, outside current local simulation
     scope'
 pending:
-  px4_control: S3 coordinates/state/time fault checks and W0 safe region, then S4
-    control flight acceptance; smoke alone is not flight acceptance
+  px4_control: W0 known-region flight baseline passed; remaining formal S3/S4
+    matrix, perception/VIO navigation and BehaviorTree integration are pending
   vio_samples: S0 local VIO/nvblox fixed sample validation and simulation VIO clock
     config
 deferred:
