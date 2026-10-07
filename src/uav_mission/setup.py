@@ -6,4 +6,5 @@ setup(name='uav_mission', version='0.1.0', packages=['uav_mission'],
       install_requires=['setuptools'], zip_safe=True,
       entry_points={'console_scripts': [
           'aircraft_state = uav_mission.aircraft_state_node:main',
-          'mission_protocol_mock = uav_mission.mock_server:main']})
+          'mission_protocol_mock = uav_mission.mock_server:main',
+          'px4_flight_gateway = uav_mission.px4_flight:main']})

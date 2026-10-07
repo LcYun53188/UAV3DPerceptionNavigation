@@ -1,0 +1,11 @@
+{
+  "steps": [
+    {"type": "TAKEOFF", "height_m": 2.0},
+    {"type": "NAVIGATE", "offset_enu": [3.0, 2.0, 2.0]},
+    {"type": "HOVER", "duration_s": 30.0},
+    {"type": "NAVIGATE", "offset_enu": [-2.0, 2.0, 2.0]},
+    {"type": "RETURN"},
+    {"type": "HOVER", "duration_s": 3.0},
+    {"type": "LAND"}
+  ]
+}
