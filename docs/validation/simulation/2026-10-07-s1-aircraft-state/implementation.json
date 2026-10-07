@@ -1,0 +1,7 @@
+{
+  "scripts/run_px4_sitl_smoke.py": "0fe940da6fe7d94b244832e290116483983e142bfae01c99ff82e886dc6ecddc",
+  "src/uav_mission/uav_mission/aircraft_state.py": "38a56b6dcf4c5e07c94af79c147a2f291eb0aa85703a03ad5fe8865485ee92bc",
+  "src/uav_mission/uav_mission/aircraft_state_node.py": "93839ed053007a8d9e96ffc9762104b47f0c6875b977e73687d331cd80d853ff",
+  "src/uav_nav_interfaces/msg/AircraftState.msg": "5ebd28d60971d514093e9ad5984347c91045dcc4798d57d2fe8a5381d8960bf5",
+  "src/uav_nav_interfaces/msg/StateDimension.msg": "2d86765b8b367e5d643635d5f7b85bc6000d5c0380d63031fc1264a08724e0f6"
+}

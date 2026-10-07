@@ -4,7 +4,7 @@
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行仍待验证。
 
-本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 状态协议与 S3/S4 飞行门槛仍待实现。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
+本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 首批只读 AircraftState 聚合与源/时钟丢失验证已完成，见 [S1 首批记录](validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)；任务协议、FlightSession 与 S3/S4 飞行门槛仍待实现。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
 
 当前执行范围（2026-10-07 用户调整）：暂不使用 Jetson，Gazebo、PX4 SITL、感知、导航、BT 与测试全部在本机执行。S0/S6 不再依赖 ARM 样例，S7 改为本机集成负载与稳定性验收；Jetson/跨机联调移到本机主线交付后的可选阶段。既有 Jetson 未验证结果保留为历史证据，不再阻塞本机开发。见 [本机范围调整与回归记录](validation/simulation/2026-10-07-local-s0/REPORT.md)。
 

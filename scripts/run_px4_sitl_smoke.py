@@ -13,6 +13,7 @@ from pathlib import Path
 import signal
 import socket
 import subprocess
+import sys
 import time
 import uuid
 
@@ -49,6 +50,8 @@ def free_port(port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration', type=float, default=45)
+    parser.add_argument('--aircraft-state', action='store_true',
+                        help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
     if not 10 <= args.duration <= 180:
         parser.error('duration must be within [10, 180] seconds')
@@ -90,7 +93,7 @@ def main():
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
                     model_sha256=file_hash(models / 'x500/model.sdf'), processes={})
     write_json(run_dir / 'manifest.json', manifest)
-    processes, logs = [], []
+    processes, logs, managed = [], [], {}
 
     def launch(name, command, process_env=env):
         log = (run_dir / f'{name}.log').open('w')
@@ -98,6 +101,7 @@ def main():
         process = subprocess.Popen(command, cwd=run_dir, env=process_env, stdout=log,
                                    stderr=subprocess.STDOUT, start_new_session=True)
         processes.append(process)
+        managed[name] = process
         manifest['processes'][name] = dict(pid=process.pid, command=[str(v) for v in command])
         write_json(run_dir / 'manifest.json', manifest)
         return process
@@ -124,6 +128,9 @@ def main():
         name = f'/px4_{instance}/fmu/out/{topic}' + (f'_v{version}' if version else '')
         node.create_subscription(kind, name, callback(topic), qos_profile_sensor_data)
     node.create_subscription(Clock, '/clock', callback('clock'), qos_profile_sensor_data)
+    if args.aircraft_state:
+        from uav_nav_interfaces.msg import AircraftState
+        node.create_subscription(AircraftState, '/aircraft_state', callback('aircraft_state'), 10)
     first_clock = None
     failure = None
     try:
@@ -139,6 +146,10 @@ def main():
                        XDG_CACHE_HOME=str(run_dir / 'qgc-cache'), QT_QPA_PLATFORM='offscreen')
         launch('qgc', [lock['artifacts']['qgc']['path'], '--allow-multiple', '--log-output',
                        '--logging', 'Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'], qgc_env)
+        if args.aircraft_state:
+            launch('aircraft_state', [sys.executable, '-c',
+                   'from uav_mission.aircraft_state_node import main; main()',
+                   '--ros-args', '-p', 'use_sim_time:=true', '-p', 'px4_namespace:=/px4_7'])
         deadline = time.monotonic() + args.duration
         while time.monotonic() < deadline:
             rclpy.spin_once(node, timeout_sec=.1)
@@ -173,6 +184,48 @@ def main():
             and writers.get('/clock') == 1 and all(v == 1 for v in writers.values())
             and all(v < 1 for v in result['receive_age_s'].values()))
         result['passed'] = result['dds_clock_passed'] and qgc_connected and source_age is not None and math.isfinite(source_age) and abs(source_age) < .5
+        if args.aircraft_state:
+            def current_state():
+                msg = last.get('aircraft_state')
+                if msg is None:
+                    return None
+                return {key: dict(value=getattr(msg, key).value, valid=getattr(msg, key).valid,
+                                  reason=getattr(msg, key).reason)
+                        for key in ('arming', 'ground', 'mode', 'localization', 'navigation', 'link')}
+
+            fresh_state = current_state()
+            # Collect evidence at a fresh detector window; default detector rate is 1 Hz
+            # while the configured freshness limit remains 0.5 s.
+            until = time.monotonic() + 3
+            while time.monotonic() < until:
+                rclpy.spin_once(node, timeout_sec=.05)
+                candidate = current_state()
+                if candidate and candidate['arming']['valid'] and candidate['ground']['valid']:
+                    fresh_state = candidate
+                    break
+            stop(managed['px4'])
+            until = time.monotonic() + 1.8
+            while time.monotonic() < until:
+                rclpy.spin_once(node, timeout_sec=.05)
+            source_lost = current_state()
+            stop(managed['clock_bridge'])
+            until = time.monotonic() + 1.2
+            while time.monotonic() < until:
+                rclpy.spin_once(node, timeout_sec=.05)
+            clock_lost = current_state()
+            observer_passed = bool(fresh_state and source_lost and clock_lost
+                and fresh_state['arming']['value'] == 'DISARMED'
+                and fresh_state['ground']['value'] == 'ON_GROUND'
+                and fresh_state['arming']['valid'] and fresh_state['ground']['valid']
+                and not fresh_state['navigation']['valid']
+                and not source_lost['arming']['valid']
+                and source_lost['arming']['reason'] == 'STALE_SAMPLE'
+                and not clock_lost['arming']['valid']
+                and clock_lost['arming']['reason'] == 'ROS_TIME_STALLED'
+                and time.monotonic() - received.get('aircraft_state', 0) < .5)
+            result['aircraft_state'] = dict(fresh=fresh_state, source_lost=source_lost,
+                                            clock_lost=clock_lost, passed=observer_passed)
+            result['passed'] = result['passed'] and observer_passed
         write_json(run_dir / 'observation.json', result)
     except Exception as exc:
         failure = str(exc)
