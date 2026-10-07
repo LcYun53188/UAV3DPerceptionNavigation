@@ -64,3 +64,7 @@ Pure fault-boundary regression:
 PYTHONPATH=src/uav_mission PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 SKIP_WS_SETUP=true \
   ./scripts/with_venv.sh python -m pytest -q src/uav_mission/test
 ```
+
+The next S1 increment adds [task/FlightSession protocols and ROS mock](PROTOCOL.md).
+Use its separate mock smoke for Action/service validation; it does not change the
+read-only AircraftState observer or authorize a real vehicle.
