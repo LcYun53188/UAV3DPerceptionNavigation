@@ -1,0 +1,7 @@
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+unique_identifier_msgs/UUID request_id
+---
+bool accepted
+string reason
+string phase

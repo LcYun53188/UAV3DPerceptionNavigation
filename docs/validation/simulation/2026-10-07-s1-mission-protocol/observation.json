@@ -1,0 +1,109 @@
+{
+  "scope": "S1 mock protocol ONLY; no motion/localization/BT validation",
+  "passed": true,
+  "checks": [
+    {
+      "name": "Action and service discovery",
+      "passed": true
+    },
+    {
+      "name": "Real backend rejected by mock fixture",
+      "passed": true
+    },
+    {
+      "name": "Root accepted",
+      "passed": true
+    },
+    {
+      "name": "BUSY rejects second root",
+      "passed": true
+    },
+    {
+      "name": "Pause accepted before stop confirmation",
+      "passed": true
+    },
+    {
+      "name": "Pause keeps parent active and retires child",
+      "passed": true
+    },
+    {
+      "name": "Pause preserves parent beyond synthetic motion budget",
+      "passed": true
+    },
+    {
+      "name": "Pause request idempotency",
+      "passed": true
+    },
+    {
+      "name": "Old instance rejected",
+      "passed": true
+    },
+    {
+      "name": "Resume accepted",
+      "passed": true
+    },
+    {
+      "name": "Resume creates new child and generation",
+      "passed": true
+    },
+    {
+      "name": "Cancel accepted",
+      "passed": true
+    },
+    {
+      "name": "CANCELED only after confirmed mock handoff",
+      "passed": true
+    },
+    {
+      "name": "Hold session survives parent result",
+      "passed": true
+    },
+    {
+      "name": "Explicit new root takes over final hold",
+      "passed": true
+    },
+    {
+      "name": "Old root cannot pause new root",
+      "passed": true
+    },
+    {
+      "name": "Late old cancel cannot cancel new root",
+      "passed": true
+    },
+    {
+      "name": "Synthetic success after cleanup",
+      "passed": true
+    },
+    {
+      "name": "Handoff fault fixture accepted",
+      "passed": true
+    },
+    {
+      "name": "Fault fixture cancel accepted",
+      "passed": true
+    },
+    {
+      "name": "Failed handoff ABORTED without safe-cancel claim",
+      "passed": true
+    },
+    {
+      "name": "Navigate Action ordinary client accepted",
+      "passed": true
+    },
+    {
+      "name": "Navigate synthetic protocol result",
+      "passed": true
+    },
+    {
+      "name": "Every published status marked mock",
+      "passed": true
+    }
+  ],
+  "server_exit_code": 0,
+  "status_samples": 294,
+  "source_sha256": {
+    "scripts/run_mission_protocol_smoke.py": "c3d68eaa51964da83a064b763d550fb9dbe0fba13fc43e73f0216d94e9996616",
+    "src/uav_mission/uav_mission/protocol.py": "934d7f4438606192aa6980c102918e37e379b78f7af04194abb46e92912432e3",
+    "src/uav_mission/uav_mission/mock_server.py": "8d3b46bdee0814e42e5cef2efba6a925e7083ae59de0a26f80b0f9656efeb469"
+  }
+}

@@ -1,0 +1,35 @@
+  102 |       .topic_name = OUTPUT_TOPIC_NAME,
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:103:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  103 |       .frame_id_source_key = INPUT_COMPONENT_KEY
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:108:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  108 |       .type = nitros::NitrosPublisherSubscriberType::NEGOTIATED,
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:109:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  109 |       .qos = rclcpp::QoS(10),
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:110:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  110 |       .compatible_data_format = OUTPUT_DEFAULT_CAM_INFO_FORMAT,
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:111:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  111 |       .topic_name = OUTPUT_CAM_TOPIC_NAME,
+      |       ^
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/crop_node.cpp:112:7: warning: C++ designated initializers only available with ‘-std=c++20’ or ‘-std=gnu++20’ [-Wc++20-extensions]
+  112 |       .frame_id_source_key = INPUT_CAM_COMPONENT_KEY,
+      |       ^
+In file included from /home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/src/pad_node.cpp:18:
+/home/nuc/Program/uav_nav_ws/src/isaac_ros_image_pipeline/isaac_ros_image_proc/include/isaac_ros_image_proc/pad_node.hpp:32:10: fatal error: nvcv/Tensor.hpp: No such file or directory
+   32 | #include "nvcv/Tensor.hpp"
+      |          ^~~~~~~~~~~~~~~~~
+compilation terminated.
+gmake[2]: *** [CMakeFiles/pad_node.dir/build.make:76: CMakeFiles/pad_node.dir/src/pad_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:324: CMakeFiles/pad_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2
+---
+Failed   <<< isaac_ros_image_proc [1min 40s, exited with code 2]
+
+Summary: 26 packages finished [2min 38s]
+  1 package failed: isaac_ros_image_proc
+  21 packages had stderr output: gxf_isaac_atlas gxf_isaac_camera_utils gxf_isaac_gems gxf_isaac_gxf_helpers gxf_isaac_image_flip gxf_isaac_message_compositor gxf_isaac_messages gxf_isaac_optimizer gxf_isaac_sight gxf_isaac_tensorops isaac_common isaac_ros_common isaac_ros_gxf isaac_ros_image_proc isaac_ros_managed_nitros isaac_ros_nitros isaac_ros_nitros_camera_info_type isaac_ros_nitros_image_type isaac_ros_nitros_tensor_list_type isaac_ros_tensor_list_interfaces isaac_ros_vpi_utils
+  1 package not processed
