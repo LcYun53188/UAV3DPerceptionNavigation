@@ -47,7 +47,7 @@ PX4 v1.16.2 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`，Agent v2.4.3，�
 - `cancel/`：`f49a0143-1926-484f-a807-146a61e5279d`。
 - `clock-fault/`：`3d912d2e-dbd1-40e5-949e-a7026d6fe4e4`。
 
-每个目录含 manifest、地面 observation、flight-observation、事件、命令、PX4 状态历史、诊断、清理记录及客户端日志；控制轨迹和独立真值保存为 JSON gzip。汇总数值见 [metrics.json](metrics.json)。各次 flight-observation 的 `source_sha256` 在开始时记录运行源码哈希；归档时均与最终网关、几何转换、里程计转换、客户端及 supervisor 源码核对一致。manifest 保留运行当时版本锁快照；后续版本锁仅更新完成范围描述，不改依赖 pin。
+每个目录含 manifest、地面 observation、flight-observation、事件、命令、PX4 状态历史、诊断、清理记录及客户端日志；控制轨迹和独立真值保存为 JSON gzip，原始客户端日志压缩为 flight_tasks.log.gz，保留原始空白。汇总数值见 [metrics.json](metrics.json)。各次 flight-observation 的 `source_sha256` 在开始时记录运行源码哈希；归档时均与最终网关、几何转换、里程计转换、客户端及 supervisor 源码核对一致。manifest 保留运行当时版本锁快照；后续版本锁仅更新完成范围描述，不改依赖 pin。
 
 三包独立构建通过。以下针对任务、桥接、仿真工具的回归合计 **161 passed**：
 
