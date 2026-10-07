@@ -45,3 +45,21 @@ health faults and session changes discard both the active and queued trajectory.
 `/uav/navigation/state` is the overall task result; planner status and
 `LOCAL_GOAL_REACHED` refer only to one segment. A new map does not automatically
 resume a terminal BLOCKED, STOPPED, or CANCELLED task.
+
+`AircraftState` and `StateDimension` are the first S1 read-only aircraft facts.
+Every dimension has its own validity, source/receive ages and reason. UNKNOWN or
+invalid values cannot authorize motion; stale ARMED/ON_GROUND values are not kept
+as current facts. The instance UUID and sequence identify observer restart/events,
+not a mission or control session. See [observer contract](../uav_mission/README.md)
+for supported values and remaining providers. These messages do not change the
+algorithm trajectory/frame contracts above.
+
+S1 task interfaces now include `ExecuteMission`, `NavigateToPose3D`, `TaskStatus`,
+`ControlSession`, `ControlStatus` and `PauseMission`/`ResumeMission`. The root task
+identity is the ExecuteMission ROS goal UUID; child UUIDs and control generations
+are separate. Deadlines are monotonic budgets; header stamps remain ROS time.
+Each root/child result must be identity-scoped and cleanup-confirmed before a safe
+terminal claim. Unknown physical facts remain unavailable in the explicitly marked
+mock backend. See [protocol/field semantics](../uav_mission/PROTOCOL.md). These are
+minimum S1 interfaces; the mock endpoint does not implement the production nested
+navigation backend or change legacy algorithm executor tokens.

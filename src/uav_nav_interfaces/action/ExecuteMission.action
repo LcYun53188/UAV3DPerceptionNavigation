@@ -1,0 +1,15 @@
+# ROS Action goal UUID is the root mission UUID; clients must not invent another.
+string mission_type
+string parameters_json
+string backend
+# Monotonic total budget includes pause and cleanup.
+float64 timeout_s
+---
+string result_code
+string reason
+bool cleanup_confirmed
+bool mock
+---
+TaskStatus status
+string tree_node
+string fault

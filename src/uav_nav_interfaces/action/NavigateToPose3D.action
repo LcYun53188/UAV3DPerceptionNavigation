@@ -1,0 +1,18 @@
+geometry_msgs/PoseStamped goal
+float64 position_tolerance_m
+float64 stopped_speed_mps
+float64 stable_duration_s
+float64 timeout_s
+ControlSession control_session
+string map_session
+---
+string result_code
+string reason
+bool cleanup_confirmed
+bool mock
+---
+TaskStatus status
+geometry_msgs/PoseStamped current_pose
+float64 remaining_distance_m
+string local_stage
+uint32 segment_count
