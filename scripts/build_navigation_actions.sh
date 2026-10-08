@@ -5,5 +5,5 @@ WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$WS_DIR"
 SKIP_WS_SETUP=true ./scripts/with_venv.sh colcon build \
   --build-base build_uav --install-base install_uav --symlink-install \
-  --base-paths src/uav_nav_interfaces src/uav_nav_sim \
-  --packages-select uav_nav_interfaces uav_nav_sim "$@"
+  --base-paths src/uav_nav_interfaces src/uav_nav_sim src/uav_bt \
+  --packages-select uav_nav_interfaces uav_nav_sim uav_bt "$@"
