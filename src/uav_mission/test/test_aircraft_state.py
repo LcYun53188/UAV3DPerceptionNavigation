@@ -11,7 +11,7 @@ def fresh():
     a.observe('land', 10., dict(landed=False), 10., 1.)
     a.observe('local', 10., dict(x=0., y=0., z=-1., xy_valid=True, z_valid=True,
                                 eph=.1, epv=.2, dead_reckoning=False,
-                                xy_reset_counter=0, z_reset_counter=0,
+                                xy_reset_counter=0, z_reset_counter=0, vxy_reset_counter=0, vz_reset_counter=0,
                                 heading_reset_counter=0), 10., 1.)
     return a
 
@@ -142,3 +142,11 @@ def test_lost_link_cannot_keep_armed_fact():
     s = fresh().snapshot(12., 3.)
     assert s['link'].value == 'LOST' and not s['link'].valid
     assert s['arming'].value == 'UNKNOWN' and not s['arming'].valid
+
+
+@pytest.mark.parametrize('field', ['vxy_reset_counter', 'vz_reset_counter'])
+def test_velocity_reset_invalidates_observer_localization(field):
+    a = fresh()
+    local = dict(a.samples['local'][2]);local[field] = 1
+    assert not a.observe('local', 10.1, local, 10.1, 1.1)
+    assert a.source_faults['local'] == 'LOCAL_POSITION_RESET'

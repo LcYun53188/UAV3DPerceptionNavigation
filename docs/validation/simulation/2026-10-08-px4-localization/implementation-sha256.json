@@ -1,0 +1,9 @@
+{
+  "src/uav_mission/uav_mission/px4_flight.py": "638a0f71511b5ed9ef22f17d784790404b91f50f5746a3e3aca3d656d2bb707b",
+  "src/uav_mission/uav_mission/aircraft_state.py": "38ccc052956dca1ac3ad851f830d5ef23f2e05315b03f16d00e70b68be9f3bcd",
+  "src/uav_mission/uav_mission/aircraft_state_node.py": "ed5a9c4a0199f6ef584c62ff47e9169908443c6e7c8d876744db4b2cf754a242",
+  "src/uav_mission/test/test_flight_gateway.py": "219d42285d38ccd48712e868137fd328602155b0e7fafe3ddb1f39632b3301eb",
+  "src/uav_mission/test/test_aircraft_state.py": "ff538d70edd039087a4d649c801e65c27f77c222230fe54613a4cb595a454ed6",
+  "scripts/run_px4_flight_tasks.py": "f3bf6190b21ff61cf0dc867d879d32b151c4c0fc35de4635f7b411be64fce4be",
+  "scripts/run_px4_sitl_smoke.py": "3cb02470c2b82756ab23e6d41694a33b798d8897564a7c703710e76b6d7fe944"
+}

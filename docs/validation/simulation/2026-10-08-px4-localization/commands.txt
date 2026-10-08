@@ -1,0 +1,10 @@
+./scripts/build_px4_flight.sh
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_mission/test src/px4_comm_bridge/test scripts/test_px4_flight_audit.py --junit-xml=.cache/simulation/localization-pytest.xml'
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario full
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario odometry-stale
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario odometry-reset
+fuser /dev/ttyACM0
+./scripts/sim.sh status
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego
+git diff --check

@@ -200,3 +200,105 @@ def test_observed_clock_reset_latches_and_fresh_data_cannot_clear_it():
     assert f.clock_fault_latched
     FlightServer.update_clock_watchdog(f,.02,21.)
     assert f.clock_fault_latched
+
+
+def localization_fixture():
+    from px4_msgs.msg import VehicleLocalPosition, VehicleOdometry
+    f = SimpleNamespace(lock=threading.RLock(), samples=dict(
+        vehicle_local_position=VehicleLocalPosition(),
+        vehicle_odometry=VehicleOdometry()), active_goal=object(), result=None,
+        owner='TASK', localization_fault_latched=False, odom_valid=True,
+        diagnostics=[], faults=[], generation=1, segment=object(), changes=[],
+        received={}, status_history=[])
+    f.fault=lambda reason:f.faults.append(reason)
+    f.change=lambda phase,reason:f.changes.append((phase,reason))
+    f.resets=lambda:FlightServer.resets(f)
+    f.reset_baseline=f.resets()
+    f.check_localization_reset=lambda:FlightServer.check_localization_reset(f)
+    return f
+
+
+@pytest.mark.parametrize('source,field', [
+    ('vehicle_local_position', 'xy_reset_counter'),
+    ('vehicle_local_position', 'z_reset_counter'),
+    ('vehicle_local_position', 'vxy_reset_counter'),
+    ('vehicle_local_position', 'vz_reset_counter'),
+    ('vehicle_local_position', 'heading_reset_counter'),
+    ('vehicle_odometry', 'reset_counter')])
+def test_every_reset_retires_localization_before_publishing_tf(source,field):
+    from copy import deepcopy
+    f=localization_fixture()
+    # A counter wrapping from 255 to 0 is also a reset event.
+    setattr(f.samples[source],field,255)
+    f.reset_baseline=f.resets()
+    msg=deepcopy(f.samples[source]);msg.timestamp=10;setattr(msg,field,0)
+    FlightServer.callback(f,source)(msg)
+    assert f.faults==['LOCALIZATION_RESET'] and f.localization_fault_latched
+    assert not f.odom_valid and len(f.diagnostics)==1
+    f.check_localization_reset()
+    assert len(f.faults)==1  # Recovery samples do not clear or repeat the fault.
+
+
+def test_reset_of_final_hold_revokes_owner_without_rewriting_root_result():
+    f=localization_fixture();f.active_goal=None
+    f.result=('CANCELED','STOPPED_AND_HOLDING',True);f.owner='HOLD_CONTROLLER'
+    f.samples['vehicle_odometry'].reset_counter=1
+    f.check_localization_reset()
+    assert f.owner=='NONE' and f.segment is None and f.generation==2
+    assert f.result==('CANCELED','STOPPED_AND_HOLDING',True)
+    assert f.changes==[('FAULT','FINAL_HOLD_LOCALIZATION_RESET')]
+
+
+def test_unowned_startup_reset_can_establish_a_new_mission_baseline():
+    f=localization_fixture();f.active_goal=None;f.owner='NONE'
+    f.samples['vehicle_odometry'].reset_counter=1;f.check_localization_reset()
+    assert not f.localization_fault_latched
+    f.reset_baseline=f.resets();f.active_goal=object();f.owner='TASK'
+    f.check_localization_reset()
+    assert not f.faults
+
+
+@pytest.mark.parametrize('bad', ['missing', 'receive_age', 'publish_age', 'sample_age', 'future_sample', 'zero_sample', 'invalid_pose', 'reset_latch'])
+def test_fresh_local_position_does_not_mask_invalid_odometry(bad):
+    from px4_msgs.msg import VehicleLocalPosition, VehicleOdometry, VehicleStatus, BatteryStatus
+    import time
+    local=VehicleLocalPosition(heading_good_for_control=True,xy_valid=True,z_valid=True,
+        v_xy_valid=True,v_z_valid=True,eph=.1,epv=.1)
+    odom=VehicleOdometry(timestamp=10_000_000,timestamp_sample=10_000_000)
+    f=SimpleNamespace(config=dict(status_max_age_s=.75,local_max_age_s=.1,land_max_age_s=1.2),
+        localization_fault_latched=False,odom_valid=True,samples=dict(vehicle_local_position=local,
+        vehicle_odometry=odom,vehicle_status=VehicleStatus(system_id=8,component_id=1),
+        battery_status=BatteryStatus(connected=True,remaining=.9)),received={})
+    f.get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000))
+    for name,msg in f.samples.items():
+        msg.timestamp=10_000_000;f.received[name]=time.monotonic()
+    f.fresh=lambda name,age:FlightServer.fresh(f,name,age)
+    assert FlightServer.healthy(f)
+    if bad=='missing':del f.samples['vehicle_odometry']
+    elif bad=='receive_age':f.received['vehicle_odometry']-=.2
+    elif bad=='publish_age':odom.timestamp-=200_000
+    elif bad=='sample_age':odom.timestamp_sample-=200_000
+    elif bad=='future_sample':odom.timestamp_sample+=100_000
+    elif bad=='zero_sample':odom.timestamp_sample=0
+    elif bad=='invalid_pose':f.odom_valid=False
+    elif bad=='reset_latch':f.localization_fault_latched=True
+    assert not FlightServer.healthy(f)
+
+
+def test_invalid_odometry_cannot_retain_previous_tf_health():
+    from px4_msgs.msg import VehicleOdometry
+    f=localization_fixture()
+    message=VehicleOdometry(timestamp=10)  # Unknown pose/velocity frame.
+    FlightServer.callback(f,'vehicle_odometry')(message)
+    assert not f.odom_valid and f.faults==['INVALID_ODOMETRY_FRAME']
+
+
+def test_localization_fault_removes_reference_owner_and_aborts_root():
+    f=localization_fixture()
+    f.phase='NAVIGATE'
+    f.get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=1_000_000))
+    f.received={name:0. for name in f.samples}
+    FlightServer.fault(f,'LOCALIZATION_RESET')
+    assert f.owner=='NONE' and f.segment is None and f.generation==2
+    assert f.result==('ABORTED','LOCALIZATION_RESET',False)
+    assert f.changes==[('FAULT','LOCALIZATION_RESET')]
