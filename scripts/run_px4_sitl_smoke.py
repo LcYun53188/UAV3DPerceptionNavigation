@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Owned, disarmed x500 smoke session. Run with scripts/with_px4_sim.sh.
 
-Checks DDS samples/clock and QGC log evidence. Never sends motion commands.
+Checks DDS samples/clock and QGC log evidence. --flight explicitly enables tasks.
 """
 import argparse
 import fcntl
@@ -51,11 +51,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration', type=float, default=45)
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
-    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault'], default='full')
+    parser.add_argument('--bt', action='store_true', help='Execute flight through BehaviorTree.CPP runner')
+    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall'], default='full')
     parser.add_argument('--flight', action='store_true', help='Run real known-region flight mission after disarmed smoke')
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.bt and not args.flight:
+        parser.error('--bt requires --flight')
+    if args.flight_scenario in ('runner-exit','runner-stall') and not args.bt:
+        parser.error('Runner fault scenarios require --bt')
     if not 10 <= args.duration <= 180:
         parser.error('duration must be within [10, 180] seconds')
     lock = read(ROOT / 'simulation/px4/versions.lock.yaml')
@@ -90,7 +95,8 @@ def main():
     if args.flight:
         env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()), UAV_WORKSPACE=str(ROOT),
                    UAV_FLIGHT_MISSION_FILE=str(args.mission_file.resolve()) if args.mission_file else '',
-                   UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario, PX4_PARAM_COM_RC_IN_MODE='4',
+                   UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
+                   UAV_FLIGHT_BT='1' if args.bt else '0', PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
     manifest = dict(run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
                     domain=domain, partition=env['GZ_PARTITION'], instance=instance,

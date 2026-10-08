@@ -1,0 +1,7 @@
+<root BTCPP_format="4" main_tree_to_execute="Px4Flight">
+  <BehaviorTree ID="Px4Flight">
+    <Sequence>
+      <ExecuteFlightMission/>
+    </Sequence>
+  </BehaviorTree>
+</root>

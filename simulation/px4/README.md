@@ -92,3 +92,15 @@ land_detected 约 1 Hz，采用 1.2 s 上限。它们与 S1 只读观察器的 0
 Pose_V 真值、参考/速度和故障诊断；真值只用于验收，不注入控制定位。QGC 默认
 offscreen，终端输出阶段；结束后只清理本次进程组。详情及已测限制见
 [真实飞行验证报告](../../docs/validation/simulation/2026-10-07-px4-flight/REPORT.md)。
+
+## BT 执行与进展租约
+
+构建入口现包含 `uav_bt`。运行 `./scripts/sim.sh px4-flight --bt` 经 BT.CPP XML
+及真实 ROS Action 调用同一飞行后端；可加 `--flight-scenario pause-resume` 或 `cancel`。
+`--flight-scenario runner-exit` / `runner-stall` 仅可配合 `--bt`，分别注入 Runner
+强制退出和 tick 停滞。握手阶段最多 5 s 且禁止解锁；首个有效 tick 后冻结 0.5 s
+进展期限。失效后退役航线、制动确认、保持最多 30 s，再原生降落。
+原生降落不被 Runner 消失打断；细节见 [BT 包说明](../../src/uav_bt/README.md)。
+
+BT 首批 XML 包装整条 ExecuteMission，尚未将各飞行步骤拆成独立 BT Action；
+EGO/algorithm 任务树仍待实现。验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。

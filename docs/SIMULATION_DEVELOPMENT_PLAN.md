@@ -1,6 +1,11 @@
 # UAV 全链路仿真开发计划
 
-日期：2026-10-07。状态：S0 基础链路与 S1 首批接口/mock 已交付；S0 感知样例及实际任务/控制接入继续开发；已交付离线依赖审计、验收 schema、主机回归运行器，以及本机 PX4/Agent/消息包独立构建与未解锁 x500 冒烟链路；W0 已知区域的真实起飞/航点/悬停/返航/原生降落后端已实现；感知、EGO 任务适配与 BT 集成仍待推进。详见 [S0 开发与验证记录](validation/simulation/2026-10-07-s0/REPORT.md)。
+日期：2026-10-07。状态：S0 基础链路与 S1 首批接口/mock 已交付；S0 感知样例及实际任务/控制接入继续开发；已交付离线依赖审计、验收 schema、主机回归运行器，以及本机 PX4/Agent/消息包独立构建与未解锁 x500 冒烟链路；W0 已知区域的真实起飞/航点/悬停/返航/原生降落后端已实现；最小 BT XML/Runner 已接入 W0；感知、EGO 任务适配与完整 BT 编排仍待推进。详见 [S0 开发与验证记录](validation/simulation/2026-10-07-s0/REPORT.md)。
+
+2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
+进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
+这是 S2 的首批真实 PX4 接入，逐步骤 BT/EGO Navigate 适配及 algorithm 两航点树仍待完成，
+不代表 S2 或 S3/S4 全部验收通过。验证证据见 [BT/PX4 记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
