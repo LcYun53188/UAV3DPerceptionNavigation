@@ -32,6 +32,11 @@ S2 算法闭环首批已实现，更多地图/clock 故障与逐步骤 PX4 BT、
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
+2026-10-08 定位门控补充：PX4 网关增加 VehicleOdometry 接收/发布/采样三重年龄检查，
+覆盖位置、速度、航向与里程计重置计数；重置撤销参考并锁存，最终保持期间独立撤权。
+实现与测试入口见 [定位输入门控](PX4_LOCALIZATION_GATES.md)。这只是 S3 首批门控，
+地图规划、动态对齐与 EGO/PX4 接线尚未完成。
+
 本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 首批只读 AircraftState 聚合与源/时钟丢失验证已完成，见 [S1 首批记录](validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)；最小任务接口、暂停/恢复与 FlightSession mock 已验证，见 [S1 协议记录](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；W0 真实状态/授权/坐标与任务后端已验证，见 [飞行验证](validation/simulation/2026-10-07-px4-flight/REPORT.md)；S2 BT、EGO 接入及 S3/S4 全部正式门槛仍待补齐。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
 
 当前执行范围（2026-10-07 用户调整）：暂不使用 Jetson，Gazebo、PX4 SITL、感知、导航、BT 与测试全部在本机执行。S0/S6 不再依赖 ARM 样例，S7 改为本机集成负载与稳定性验收；Jetson/跨机联调移到本机主线交付后的可选阶段。既有 Jetson 未验证结果保留为历史证据，不再阻塞本机开发。见 [本机范围调整与回归记录](validation/simulation/2026-10-07-local-s0/REPORT.md)。

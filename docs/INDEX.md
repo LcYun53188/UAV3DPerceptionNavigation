@@ -32,3 +32,5 @@
 - [达妙 USB IMU 与视觉里程计融合](DAMIAO_IMU_USB.md)：可选 USB 驱动、三维 EKF、单位与外参验证。
 
 - [DM-FC01 USB 台架只接收检查](PX4_USB_BENCH.md)
+
+- [PX4 定位输入门控与重置回归](PX4_LOCALIZATION_GATES.md)
