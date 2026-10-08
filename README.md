@@ -4,6 +4,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
 算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、外部 VIO 及实机飞行仍待验证。
 
+当前按 **BT 飞行验证 → VIO 定点悬停 → 导航与避障** 三阶段推进，验收条件见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
+
 本机 PX4/BT 入口：首次执行 `./scripts/build_px4_sim.sh --jobs 4` 和 `./scripts/build_px4_flight.sh`，随后运行 `./scripts/sim.sh px4-flight --bt --ui`，显示 Gazebo/QGC 并执行逐步骤飞行 BT。任务完成后确认着陆解除武装并自动清理本次会话。详见 [PX4 运行说明](simulation/px4/README.md) 与 [BT 生命周期](src/uav_bt/README.md)。
 
 相机实机型号为 **OAK-D Pro W**。`./scripts/sim.sh px4-depth --ui` 单独验收 PX4 深度传感器到 ROS 的数据链路，使用上游 OakD-Lite 参考模型，不能作为 Pro W 的视场、标定或 VIO 验证。它全程保持未解锁，不与 W0 飞行模式混用。详见 [相机仿真说明](simulation/px4/README.md#深度相机参考链路)。

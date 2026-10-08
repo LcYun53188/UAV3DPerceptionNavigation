@@ -34,7 +34,7 @@ PX4 采用 `UXRCE_DDS_SYNCT=0`；ROS `/clock` 从同一 Gazebo 单向桥接。�
 已提供 `known_region_control` 后端：真实重力/旋翼动力学、PX4 EKF 回读与唯一
 Offboard 网关，支持起飞、三维定点导航、定时悬停、返回记录起点、原生降落。
 默认任务还会确认实际停稳、触地和解除武装。此后端使用显式已知空旷区域，
-感知避障、VIO 和 BT 集成属于后续工作。
+感知避障与 VIO 飞行集成属于后续工作；逐步骤 BT 已接入。
 
 ```bash
 # PX4/Agent 已构建后，构建任务接口、桥接和执行后端
@@ -102,8 +102,8 @@ offscreen，终端输出阶段；结束后只清理本次进程组。详情及�
 进展期限。失效后退役航线、制动确认、保持最多 30 s，再原生降落。
 原生降落不被 Runner 消失打断；细节见 [BT 包说明](../../src/uav_bt/README.md)。
 
-BT 首批 XML 包装整条 ExecuteMission，尚未将各飞行步骤拆成独立 BT Action；
-EGO/algorithm 任务树仍待实现。验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。
+早期 XML 包装整条 ExecuteMission；当前默认按 recipe 生成逐步骤 BT，通过服务逐次
+授权同一根任务中的步骤，尚非独立步骤 Actions。早期验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 逐步骤 BT 与可视化运行：`./scripts/sim.sh px4-flight --bt --ui`；协议与范围见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
 
@@ -158,3 +158,5 @@ FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector �
 全程未解锁，不运行 FlightServer；GNSS/磁/光流辅助关闭，气压高度辅助保留。
 不能作为相机 VIO、动态悬停或实机验收。详细边界和证据见
 [VIO 悬停说明](../../docs/VIO_HOVER.md)。
+
+当前开发顺序及阶段门槛见 [三阶段集成路线](../../docs/PX4_INTEGRATION_ROADMAP.md)。

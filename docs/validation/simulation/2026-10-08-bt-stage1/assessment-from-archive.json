@@ -1,0 +1,121 @@
+{
+  "scope": "W0 BT/SITL stage 1 only; no VIO or obstacle avoidance acceptance",
+  "cases": {
+    "full": {
+      "passed": true,
+      "checks": {
+        "supervisor_passed": true,
+        "real_backend": true,
+        "scenario_matches": true,
+        "baseline_profile": true,
+        "flight_audit_passed": true,
+        "cleanup_confirmed": true,
+        "one_root": true,
+        "landed_disarmed": true,
+        "real_success": true,
+        "tree_success": true,
+        "exact_step_sequence": true,
+        "native_land_not_cancelled": true,
+        "frozen_w0": true
+      },
+      "run_id": "9b5c56a6-b6b8-41e9-9c34-c5f1ae8b62a3",
+      "evidence_directory": "docs/validation/simulation/2026-10-08-bt-stage1/full",
+      "evidence_sha256": {
+        "manifest.json": "1e32702ab516135041b9483462207c53b411b7f6411d40cf278f089e5cd6065b",
+        "observation.json": "033f4e41cb5877e20e15efb360490087d61df6aea046e5dce7c3470ad7136d2e",
+        "flight-observation.json": "126443be00ccc655fb0b0d99e0d46e19491f68f0add94a69b4762b020ecff982",
+        "bt-runner.log": "367be8358bf041e939e8d25a00dd8b3f310fa389d1be8fc01f08f269c6a15db7",
+        "flight-truth.json": "28697ef649b0d4ae63ee75c9f8ef9bce6d0352d28d4835aaa0b493789214144e"
+      }
+    },
+    "pause-resume": {
+      "passed": true,
+      "checks": {
+        "supervisor_passed": true,
+        "real_backend": true,
+        "scenario_matches": true,
+        "baseline_profile": true,
+        "flight_audit_passed": true,
+        "cleanup_confirmed": true,
+        "one_root": true,
+        "landed_disarmed": true,
+        "real_success": true,
+        "tree_success": true,
+        "exact_step_sequence": true,
+        "native_land_not_cancelled": true,
+        "pause_stillness": true,
+        "frozen_w0": true
+      },
+      "run_id": "8405dc6a-cb44-4ee6-9396-037e73ddbd2c",
+      "evidence_directory": "docs/validation/simulation/2026-10-08-bt-stage1/pause-resume",
+      "evidence_sha256": {
+        "manifest.json": "5ad62743447aad051a929740413403af5635f36b8fc7d6cb87bf1c062c883f7b",
+        "observation.json": "ee249abec1ec6f2274520e3c7c46942571044b2e676ba783458ef8a480e70f6c",
+        "flight-observation.json": "6dc8f41495d005a9fb80a18400bff027231e5c656dbbb4173784a23c7db262ae",
+        "bt-runner.log": "271d5f4063780f46fbf80214a858a4bf47e2c02a33676e1fb2efb217d45304f6",
+        "flight-truth.json": "a72224b7e056a5d0f5ad84ba053f6a1c73fc55cb76f95afac671250cf821322c"
+      }
+    },
+    "cancel": {
+      "passed": true,
+      "checks": {
+        "supervisor_passed": true,
+        "real_backend": true,
+        "scenario_matches": true,
+        "baseline_profile": true,
+        "flight_audit_passed": true,
+        "cleanup_confirmed": true,
+        "one_root": true,
+        "landed_disarmed": true,
+        "stopped_before_next_step": true,
+        "bounded_hold": true,
+        "fallback_landed": true,
+        "tree_not_success": true,
+        "cancel_result": true,
+        "frozen_w0": true
+      },
+      "run_id": "969804f2-f736-46de-b5a8-86e7d81d8b53",
+      "evidence_directory": "docs/validation/simulation/2026-10-08-bt-stage1/cancel",
+      "evidence_sha256": {
+        "manifest.json": "c97a81932851b6eb19eae9d7ec67e63409db94e2f94e8f6d9aa71fbf51fab48b",
+        "observation.json": "5ace2194bc4a3f118d22cb4a51c424699373d17945d5f23d9516259442307a6a",
+        "flight-observation.json": "35762dc34e87612835798fd54a98e85c81d26dd840a852f125858cc710175ad0",
+        "bt-runner.log": "dd4c77d2d9cd1018e31182b1aa5304fc8239dc6736be6943f3b3909573bfeaa5",
+        "flight-truth.json": "451f2c08293cc2a7d95d6c41e7e825bcce9beedaf1a2c0fbd1c0c4b8920f9bbd"
+      }
+    },
+    "runner-stall": {
+      "passed": true,
+      "checks": {
+        "supervisor_passed": true,
+        "real_backend": true,
+        "scenario_matches": true,
+        "baseline_profile": true,
+        "flight_audit_passed": true,
+        "cleanup_confirmed": true,
+        "one_root": true,
+        "landed_disarmed": true,
+        "stopped_before_next_step": true,
+        "bounded_hold": true,
+        "fallback_landed": true,
+        "tree_not_success": true,
+        "progress_timeout": true,
+        "brake_latency": true,
+        "frozen_w0": true
+      },
+      "run_id": "46bb7c4e-143f-42ea-87bb-53ef17bd8345",
+      "evidence_directory": "docs/validation/simulation/2026-10-08-bt-stage1/runner-stall",
+      "evidence_sha256": {
+        "manifest.json": "b271ef84a4751452dc7897faa4f8a73faa33e40ac6b06182055de3b726aff691",
+        "observation.json": "b52498dcb525aafecbf99fcb7a8f0b4a6b20e2054d65c67b5ae4a9958df015c0",
+        "flight-observation.json": "971934a1a2b10d797ba7dec662ed804d4bb9f76dda3fcb2d1078d7ee8348d3ca",
+        "bt-runner.log": "e5568b8465786a78e68b76873143b08bd4e7ce24b62d10f160b0f91a5ec96749",
+        "flight-truth.json": "9388ebf0ca108d7b1e6424de313a6909d0a082f58dd11f4f0b7a72ec3d9f641d"
+      }
+    }
+  },
+  "distinct_runs": true,
+  "same_implementation": true,
+  "current_implementation": true,
+  "passed": true
+}

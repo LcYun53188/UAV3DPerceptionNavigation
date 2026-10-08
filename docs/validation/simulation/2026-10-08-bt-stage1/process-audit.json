@@ -1,0 +1,61 @@
+{
+  "checked_at": "2026-10-08T13:05:19.014903+00:00",
+  "cases": {
+    "full": {
+      "run_id": "9b5c56a6-b6b8-41e9-9c34-c5f1ae8b62a3",
+      "root_pids": [
+        42303,
+        42304,
+        42305,
+        42306,
+        42307,
+        42308,
+        43274
+      ],
+      "remaining_processes": [],
+      "passed": true
+    },
+    "pause-resume": {
+      "run_id": "8405dc6a-cb44-4ee6-9396-037e73ddbd2c",
+      "root_pids": [
+        44510,
+        44511,
+        44512,
+        44513,
+        44514,
+        44515,
+        45298
+      ],
+      "remaining_processes": [],
+      "passed": true
+    },
+    "cancel": {
+      "run_id": "969804f2-f736-46de-b5a8-86e7d81d8b53",
+      "root_pids": [
+        45864,
+        45865,
+        45866,
+        45867,
+        45868,
+        45875,
+        47122
+      ],
+      "remaining_processes": [],
+      "passed": true
+    },
+    "runner-stall": {
+      "run_id": "46bb7c4e-143f-42ea-87bb-53ef17bd8345",
+      "root_pids": [
+        47590,
+        47591,
+        47592,
+        47593,
+        47594,
+        47595,
+        48354
+      ],
+      "remaining_processes": [],
+      "passed": true
+    }
+  }
+}
