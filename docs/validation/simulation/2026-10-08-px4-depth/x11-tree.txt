@@ -150,4 +150,3 @@ xwininfo: Window id: 0x65f (the root window) (has no name)
      0x400001 "GNOME Shell": ()  1x1+-100+-100  +-100+-100
      0x20000a (has no name): ()  1x1+-100+-100  +-100+-100
      0x400007 "mutter guard window": ()  2560x2680+0+0  +0+0
-
