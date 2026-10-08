@@ -2,6 +2,9 @@
 
 `scripts/sim.sh` 管理 Gazebo + EGO + nvblox 导航仿真。它负责选择场景、统一两个终端的环境、记录启动进程与日志，以及调用初始化和地图服务。底层算法、碰撞检查和探索预算不变。
 
+两航点 BT、父任务暂停恢复与 UUID 取消见 [算法任务说明](ALGORITHM_MISSIONS.md)。
+父任务占用期间，本手册的旧 goal/cancel/explore 入口会拒绝接管；通过父 Action/服务控制任务。
+
 ## 1. 准备与适用范围
 
 先按 [安装指南](INSTALLATION.md) 安装依赖，再在工作区执行一次：

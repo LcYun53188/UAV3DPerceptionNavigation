@@ -1,0 +1,8 @@
+# Algorithm executor reservation, distinct from PX4 flight authorization.
+# ACQUIRE is idempotent for the exact active session. RELEASE requires stop proof.
+string operation
+ControlSession control_session
+string map_session
+---
+bool accepted
+string reason
