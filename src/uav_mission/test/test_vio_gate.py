@@ -129,3 +129,25 @@ def test_primary_estimator_switch_latches():
     update(gate,12.02)
     assert not gate.ready(12.02,12.02,WRITERS)
     assert gate.fault == 'VIO_EKF_INSTANCE_CHANGED'
+
+
+@pytest.mark.parametrize('stream', ['flags', 'selector'])
+def test_one_hz_status_does_not_break_continuous_readiness(stream):
+    gate = VioGate(CAL)
+    previous_selector = None
+    previous_receive = None
+    for index in range(26):
+        now = 10. + index*.1
+        update(gate,now)
+        if index % 10:
+            gate.samples[stream] = previous_selector
+            gate.received[stream] = previous_receive
+        else:
+            previous_selector = gate.samples[stream]
+            previous_receive = now
+        ready = gate.ready(now,now,WRITERS)
+        if index >= 20:
+            assert ready
+    gate.received[stream] = 10.
+    assert not gate.ready(12.5,12.5,WRITERS)
+    assert gate.reason == 'VIO_TELEMETRY_STALE:'+stream

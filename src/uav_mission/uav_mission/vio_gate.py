@@ -65,7 +65,9 @@ class VioGate:
         for name in self.required:
             message = self.samples[name]
             stamp = self.stamp(message.header.stamp) if name == 'source' else message.timestamp/1e6
-            if not (0 <= now-self.received[name] <= .5 and stamp > 0 and -.05 <= ros-stamp <= .5):
+            # Flags and selector publish at ~1 Hz or on changes in pinned PX4 1.16.2.
+            max_age = 1.5 if name in ('flags', 'selector') else .5
+            if not (0 <= now-self.received[name] <= max_age and stamp > 0 and -.05 <= ros-stamp <= max_age):
                 return self.fail('VIO_TELEMETRY_STALE:'+name)
         if (not source.valid or source.header.frame_id != 'odom' or not source.localization_session
                 or source.calibration_id != self.calibration_id or not self.calibration_id
