@@ -4,8 +4,14 @@
 
 2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
 进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
-这是 S2 的首批真实 PX4 接入，逐步骤 BT/EGO Navigate 适配及 algorithm 两航点树仍待完成，
+这是 S2 的首批真实 PX4 接入，逐步骤飞行 BT、algorithm MissionServer/两航点树与暂停恢复仍待完成，
 不代表 S2 或 S3/S4 全部验收通过。验证证据见 [BT/PX4 记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)。
+
+2026-10-08 导航补充：EGO 已在原 Executor 内提供真实 `NavigateToPose3D` Action，
+含 UUID 取消、任务反馈、地图/时间校验、旧入口互斥与停稳确认。普通客户端的两航点和
+运动中取消验证见 [导航 Action 记录](validation/simulation/2026-10-08-navigation-action/REPORT.md)，
+接口与复现命令见 [运行说明](NAVIGATION_ACTION.md)。algorithm 父 MissionServer、
+两航点 BT 与暂停恢复仍待实现，S2 继续开发。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
@@ -38,13 +44,13 @@
 | 已有内容 | 当前边界 | 需要开发 |
 | --- | --- | --- |
 | `uav_ego_nvblox.launch.py` | Gazebo 真值定位与速度模型，不包含 PX4 | 新增任务启动和独立 SITL 启动入口 |
-| `GoalManager` | 最终目标、局部观察、重试、移动接续；与执行器共享所有权 | 最终任务 UUID、Action 生命周期、结构化事件 |
+| `GoalManager` | 最终目标、局部观察、重试、移动接续；已提供 Navigate Action/UUID/反馈/停稳取消 | 父任务、跨子任务所有权、暂停恢复与全局结构化事件 |
 | `AutonomousExplorer` | 自主选点、扫描、预算与故障锁止 | 有界探索 Action，区分正常完成与故障退出 |
 | `uav_ego_adapter` | 快照规划、B-spline、安全种子与独立检查 | 保留算法；按需增加结构化错误分类 |
 | `MapSnapshot/TimedTrajectory/PlannerStatus/TrajectoryRequest` | 已有 epoch、版本、局部 token 与父轨迹 ID | 补任务接口，不把局部 token 当最终任务 UUID |
 | Gazebo `Executor` | 50 Hz 稳态定时器，向 Gazebo 发布机体系 `Twist` | 分离公共执行逻辑与后端，补真实制动与悬停 |
-| `/uav/navigation/state` | 全局字符串，无最终任务身份 | 增加结构化任务状态；保留字符串供人工观察 |
-| `/uav/cancel` | 全局 Trigger | 按 UUID 取消，防迟到取消误伤新任务 |
+| `/uav/navigation/state` | 全局字符串；Navigate Action 另有 TaskStatus 反馈 | 父任务结构化状态；保留字符串供人工观察 |
+| `/uav/cancel` | 旧目标使用 Trigger；Action 占用期间拒绝，改用 UUID 取消 | 父任务取消与会话清理 |
 | `px4_comm_bridge` | ENU/NED 速度桥、反馈驱动状态机、ACK、应急动作 | 显式控制会话、飞行 Action、轨迹执行后端、着陆反馈 |
 | 现有 PX4 状态机 | `auto_arm=false` 默认，MANUAL/FAULT/LANDED 锁定 | 将自动解锁与任务授权分离；保留显式恢复语义 |
 | PX4 数据桥 | 读回 PX4 数据，部分默认 topic 为 `/px4/*` | 与固定固件的实际 DDS topic、QoS、版本逐项核验 |

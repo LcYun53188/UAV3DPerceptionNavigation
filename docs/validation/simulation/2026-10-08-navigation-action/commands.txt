@@ -1,0 +1,12 @@
+./scripts/build_navigation_actions.sh
+./scripts/with_venv.sh bash -c 'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_nav_sim/test scripts/test_sim_control.py scripts/test_sim_validation.py'
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego
+./scripts/sim.sh start --layout lab --view none --background
+./scripts/sim.sh init
+# Wait for init exit code 0 before submitting an Action.
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_navigation_action.py --output .cache/sim/navigation-action-accepted-two-waypoints
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_navigation_action.py --cancel --waypoint -2.2 0.6 1.2 --output .cache/sim/navigation-action-accepted-cancel
+# Negative operation-lock probe, executed while init held the lock; expected exit 1, no goal/output:
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_navigation_action.py --output .cache/sim/navigation-action-locked-probe
+./scripts/sim.sh status

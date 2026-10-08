@@ -6,6 +6,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D / MID360 感知、VIO / LIO、�
 
 本机 PX4/BT 入口：首次执行 `./scripts/build_px4_sim.sh --jobs 4` 和 `./scripts/build_px4_flight.sh`，随后运行 `./scripts/sim.sh px4-flight --bt`。任务完成后确认着陆解除武装并自动清理本次会话。详见 [PX4 运行说明](simulation/px4/README.md) 与 [BT 生命周期](src/uav_bt/README.md)。
 
+算法导航新增带反馈和确认停稳取消的 `/uav/algorithm/navigate` Action；增量构建、普通客户端两航点回归及当前边界见 [导航 Action 说明](docs/NAVIGATION_ACTION.md)。
+
 ## 选择运行方式
 
 | 使用方式 | 入口 / 参数 | 是否更新地图 | 启动后做什么 |

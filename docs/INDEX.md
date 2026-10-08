@@ -11,6 +11,8 @@
 - [UAV 全链路仿真开发计划](SIMULATION_DEVELOPMENT_PLAN.md)：算法回归、PX4 动力学、室内 VIO、本机稳定性、场景矩阵和故障验收；Jetson 联调延期。
 - [本机 PX4/BT 运行说明](../src/uav_bt/README.md)：真实飞行任务树、进展租约、取消清理与 Runner 故障注入。
 - [PX4/BT 验证记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)：S2 首批真实后端集成及适用边界。
+- [算法导航 Action](NAVIGATION_ACTION.md)：请求契约、UUID 取消、停稳确认与普通客户端回归。
+- [导航 Action 验证记录](validation/simulation/2026-10-08-navigation-action/REPORT.md)：Gazebo 两航点与运动中取消。
 - [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)
 - [安装与构建](INSTALLATION.md)
 - [CUDA 构建环境](CUDA_TOOLKIT_13_2_INSTALLATION.md)
