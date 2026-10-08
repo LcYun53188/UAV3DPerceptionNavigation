@@ -230,7 +230,7 @@ class Executor(Node):
         action = getattr(self, 'navigation_action', None)
         if action is not None and action.busy:
             response.success = False
-            response.message = 'Use the active Navigation Action goal UUID to cancel'
+            response.message = 'Use the owning mission or Navigation Action UUID to cancel'
             return response
         self.stop('CANCELLED')
         response.success = True

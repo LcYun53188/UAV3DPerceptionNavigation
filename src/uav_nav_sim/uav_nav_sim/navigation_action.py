@@ -13,6 +13,7 @@ from rclpy.task import Future
 from uav_nav_interfaces.action import NavigateToPose3D
 
 from .navigation import stamp_key
+from .control_reservation import ControlReservation
 
 
 def map_session(node):
@@ -54,6 +55,7 @@ class NavigationAction:
         self.stamp_advanced = 0.
         self.sequence = 0
         self.internal_stop = False
+        self.parent = ControlReservation(node, self)
         self.server = ActionServer(
             node, NavigateToPose3D, '/uav/algorithm/navigate', self.execute,
             goal_callback=self.accept, cancel_callback=self.cancel,
@@ -62,15 +64,17 @@ class NavigationAction:
 
     @property
     def busy(self):
-        return self.reserved or self.fault_latched
+        return self.reserved or self.fault_latched or self.parent.session is not None
 
     def accept(self, request):
         reason = request_error(request)
         nav = self.node.navigation
         if not reason and self.fault_latched:
             reason = 'STOP_UNCONFIRMED_RESTART_REQUIRED'
-        if not reason and (self.busy or nav.goal is not None or nav.autonomous.enabled):
+        if not reason and (self.reserved or nav.goal is not None or nav.autonomous.enabled):
             reason = 'BUSY'
+        if not reason and not self.parent.permits(request.control_session):
+            reason = 'CONTROL_SESSION_NOT_AUTHORIZED'
         if not reason and (not self.node.ready() or request.map_session != map_session(self.node)):
             reason = 'MAP_OR_ODOMETRY_NOT_READY'
         if reason:
@@ -107,6 +111,7 @@ class NavigationAction:
                     if handle.is_cancel_requested:
                         self.finish('CANCELED', 'CANCEL_REQUESTED')
                     elif (not self.node.ready() or
+                          not self.parent.permits(handle.request.control_session) or
                           handle.request.map_session != map_session(self.node)):
                         self.finish('ABORTED', 'MAP_OR_ODOMETRY_NOT_READY')
                     else:
@@ -176,6 +181,7 @@ class NavigationAction:
         return math.hypot(p.x-g.x, p.y-g.y, p.z-g.z)
 
     def tick(self):
+        self.parent.tick()
         if self.active_goal is None or (not self.dispatched and self.terminal is None):
             return
         now = time.monotonic()
