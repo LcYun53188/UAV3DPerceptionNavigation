@@ -1,0 +1,240 @@
+{
+  "full": {
+    "passed": true,
+    "result": {
+      "code": "SUCCEEDED",
+      "reason": "LANDED_AND_DISARMED",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "bt_progress": {
+      "samples": 1045,
+      "max_gap_s": 0.10586387500006822,
+      "handshake_s": 0.1015249289998792,
+      "loss_to_brake_s": null
+    },
+    "bt_dispatch_count": 1,
+    "bt_exit_code": 0,
+    "hovers": [
+      {
+        "duration_s": 32.040009330999965,
+        "samples": 1602,
+        "max_drift_m": 0.11199239556826354
+      },
+      {
+        "duration_s": 5.0400232499998765,
+        "samples": 252,
+        "max_drift_m": 0.13597430332338714
+      }
+    ],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          -0.00203207973390818,
+          -0.0014586187899112701,
+          1.977762704969488
+        ],
+        "actual_world": [
+          0.04433074541393431,
+          -0.04007602605253082,
+          1.932987959350998
+        ],
+        "error_m": 0.07513716486917058
+      },
+      {
+        "phase": "NAVIGATE",
+        "expected_world": [
+          2.9999999999999996,
+          1.9999999999999998,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          3.0794500402934397,
+          1.9656524916629432,
+          1.99565182422725
+        ],
+        "error_m": 0.08698803070050345
+      },
+      {
+        "phase": "NAVIGATE",
+        "expected_world": [
+          -1.9999999999999996,
+          1.9999999999999996,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          -1.9610481436530927,
+          2.0407632783395275,
+          1.9886822526735546
+        ],
+        "error_m": 0.05640675995317689
+      },
+      {
+        "phase": "RETURN",
+        "expected_world": [
+          -0.00203207973390818,
+          -0.0014586187899112701,
+          1.9869998155842645
+        ],
+        "actual_world": [
+          0.03987749295376895,
+          -0.05040998245700632,
+          1.9828657795915736
+        ],
+        "error_m": 0.06457351269151114
+      }
+    ],
+    "pause_resume": {
+      "passed": true,
+      "pause_drift_m": 0.06181863040089007,
+      "new_child": true
+    },
+    "cancel_hold": null,
+    "final_arming": 1,
+    "final_land": true,
+    "run_id": "147bc70e-7ef4-4e37-a76d-e2b6bb1df546",
+    "max_control_trace_gap_s": 0.02032165399987207,
+    "landing_xy_error_m": 0.07226333003664946
+  },
+  "cancel": {
+    "passed": true,
+    "result": {
+      "code": "CANCELED",
+      "reason": "STOPPED_AND_HOLDING",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "bt_progress": {
+      "samples": 163,
+      "max_gap_s": 0.10553287200013983,
+      "handshake_s": 0.10274217999995017,
+      "loss_to_brake_s": null
+    },
+    "bt_dispatch_count": 1,
+    "bt_exit_code": 130,
+    "hovers": [],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          0.010287160053849217,
+          -0.0009704707190394397,
+          1.9851594029675348
+        ],
+        "actual_world": [
+          -0.003491647649838023,
+          -0.027957435573732446,
+          1.9250054417166722
+        ],
+        "error_m": 0.06735466478258134
+      }
+    ],
+    "pause_resume": null,
+    "cancel_hold": {
+      "duration_s": 29.991852470999902,
+      "samples": 1501,
+      "max_drift_m": 0.09240275073568971,
+      "final_landed_disarmed": true
+    },
+    "final_arming": 1,
+    "final_land": true,
+    "run_id": "e9674113-9d71-40ad-96ef-3cec9039a384",
+    "max_control_trace_gap_s": 0.020237417000089408,
+    "brake_to_confirmed_result_s": 3.339175374999968
+  },
+  "runner-exit": {
+    "passed": true,
+    "result": {
+      "code": "ABORTED",
+      "reason": "BT_PROGRESS_TIMEOUT",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "bt_progress": {
+      "samples": 165,
+      "max_gap_s": 0.1053030470000067,
+      "handshake_s": 0.10298714800001108,
+      "loss_to_brake_s": 0.5192781349999223
+    },
+    "bt_dispatch_count": 1,
+    "bt_exit_code": -9,
+    "hovers": [],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          0.010994028765708205,
+          0.008769430685788393,
+          1.9687729983340128
+        ],
+        "actual_world": [
+          0.020373422918103786,
+          -0.013466568972582926,
+          1.92765084493233
+        ],
+        "error_m": 0.04768064823242878
+      }
+    ],
+    "pause_resume": null,
+    "cancel_hold": {
+      "duration_s": 29.99681141400015,
+      "samples": 1501,
+      "max_drift_m": 0.10592289376900432,
+      "final_landed_disarmed": true
+    },
+    "final_arming": 1,
+    "final_land": true,
+    "run_id": "ab188dcd-df49-464e-9321-d39c73fe59d2",
+    "max_control_trace_gap_s": 0.020439787999976033,
+    "brake_to_confirmed_result_s": 3.2802493819999654,
+    "injection_to_brake_s": 0.4391569700001128
+  },
+  "runner-stall": {
+    "passed": true,
+    "result": {
+      "code": "ABORTED",
+      "reason": "BT_PROGRESS_TIMEOUT",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "bt_progress": {
+      "samples": 163,
+      "max_gap_s": 0.10537892700017437,
+      "handshake_s": 0.10281573699990076,
+      "loss_to_brake_s": 0.5145064999999249
+    },
+    "bt_dispatch_count": 1,
+    "bt_exit_code": null,
+    "hovers": [],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          -0.005630961619317535,
+          0.0058151669800281525,
+          1.9898272811184747
+        ],
+        "actual_world": [
+          0.00024552369733432704,
+          -0.026968487222031576,
+          1.8610416363413094
+        ],
+        "error_m": 0.1330227174703151
+      }
+    ],
+    "pause_resume": null,
+    "cancel_hold": {
+      "duration_s": 29.980606768000143,
+      "samples": 1500,
+      "max_drift_m": 0.09439844642272155,
+      "final_landed_disarmed": true
+    },
+    "final_arming": 1,
+    "final_land": true,
+    "run_id": "f29f0cd1-980a-4aa2-a8c6-ad4f58125ed9",
+    "max_control_trace_gap_s": 0.020199230999878637,
+    "brake_to_confirmed_result_s": 3.3400389599999016,
+    "injection_to_brake_s": 0.4678169960000105
+  }
+}
