@@ -27,7 +27,7 @@ class AircraftStateNode(Node):
               'horizontal_movement', 'rotational_movement')),
             ('local', 'vehicle_local_position', VehicleLocalPosition,
              ('xy_valid', 'z_valid', 'x', 'y', 'z', 'dead_reckoning', 'eph', 'epv',
-              'xy_reset_counter', 'z_reset_counter', 'heading_reset_counter')))
+              'xy_reset_counter', 'z_reset_counter', 'vxy_reset_counter', 'vz_reset_counter', 'heading_reset_counter')))
         for source, topic, kind, fields in sources:
             suffix = f'_v{kind.MESSAGE_VERSION}' if kind.MESSAGE_VERSION else ''
             self.create_subscription(kind, f'{prefix}/fmu/out/{topic}{suffix}',

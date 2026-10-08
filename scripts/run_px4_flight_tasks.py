@@ -8,6 +8,7 @@ import threading
 import subprocess
 import signal
 import re
+from copy import deepcopy
 import time
 
 import rclpy
@@ -146,6 +147,21 @@ def main():
                                         '--reptype','gz.msgs.Boolean','--timeout','2000','--req','pause: '+value],
                                        check=True,stdout=subprocess.DEVNULL,timeout=5)
                         time.sleep(delay)
+                elif scenario == 'odometry-stale':
+                    # Drop only the gateway reader; PX4 and the independent observer keep running.
+                    node.destroy_subscription(node.input_subscriptions.pop('vehicle_odometry'))
+                    result['localization_injection'] = dict(kind='gateway_odometry_subscription_removed',
+                        mono=time.monotonic())
+                elif scenario == 'odometry-reset':
+                    # Receiver contract injection, not an actual EKF reset or FMU command.
+                    with node.lock:
+                        message = deepcopy(node.samples['vehicle_odometry'])
+                        previous = message.reset_counter
+                        message.timestamp += 1
+                        message.reset_counter = (previous+1) % 256
+                        result['localization_injection'] = dict(kind='gateway_reset_sample',
+                            mono=time.monotonic(), previous=previous, current=message.reset_counter)
+                        node.callback('vehicle_odometry')(message)
                 elif scenario in ('runner-exit','runner-stall'):
                     bt.process.send_signal(signal.SIGKILL if scenario=='runner-exit' else signal.SIGSTOP)
                     result['runner_fault_injected_mono']=time.monotonic()
@@ -207,10 +223,21 @@ def main():
             result['passed']=(terminal.status==6 and terminal.result.reason=='BT_PROGRESS_TIMEOUT'
                               and terminal.result.cleanup_confirmed and result['cancel_hold']['final_landed_disarmed']
                               and result['cancel_hold']['max_drift_m']<=.15)
+        if scenario in ('odometry-stale', 'odometry-reset'):
+            reason = 'LOCALIZATION_RESET' if scenario == 'odometry-reset' else 'STALE_OR_INVALID_AIRCRAFT_STATE'
+            result['passed'] = (injected and terminal.status == 6 and
+                terminal.result.result_code == 'ABORTED' and terminal.result.reason == reason and
+                not terminal.result.cleanup_confirmed and not terminal.result.mock)
+            result['localization_fault_latched'] = node.localization_fault_latched
+            result['localization_fault_latency_s'] = next((e['mono']-result['localization_injection']['mono']
+                for e in node.events if e['phase'] == 'FAULT'), None)
+            result['passed'] &= (result['localization_fault_latency_s'] is not None and
+                0 <= result['localization_fault_latency_s'] <= .5 and
+                node.localization_fault_latched == (scenario == 'odometry-reset'))
         if bt:
             if scenario not in ('runner-exit','runner-stall'):
                 bt.process.wait(timeout=5)
-                expected_exit=130 if scenario=='cancel' else 1 if scenario=='clock-fault' else 0
+                expected_exit=130 if scenario=='cancel' else 1 if scenario in ('clock-fault','odometry-stale','odometry-reset') else 0
                 result['passed']=result['passed'] and bt.process.returncode==expected_exit
             result['bt_exit_code']=bt.process.poll()
             log=(out/'bt-runner.log').read_text()
@@ -237,7 +264,7 @@ def main():
     except Exception as exc:
         result['error']=str(exc)
     finally:
-        if (not result['passed'] or scenario=='clock-fault') and node.samples.get('vehicle_status') and node.samples['vehicle_status'].arming_state==2:
+        if (not result['passed'] or scenario in ('clock-fault','odometry-stale','odometry-reset')) and node.samples.get('vehicle_status') and node.samples['vehicle_status'].arming_state==2:
             until=time.monotonic()+40
             while time.monotonic()<until:
                 if node.samples['vehicle_status'].arming_state==1 and node.samples.get('vehicle_land_detected') and node.samples['vehicle_land_detected'].landed:break
@@ -250,6 +277,9 @@ def main():
         if scenario=='clock-fault':result['passed']=result['passed'] and result.get('outputs_at_action_result')==node.output_count
         if scenario=='clock-fault':result['clock_fault_latched']=node.clock_fault_latched
         if scenario=='clock-fault':result['passed']=result['passed'] and result.get('fallback_landed_disarmed',False)
+        if scenario in ('odometry-stale','odometry-reset'):
+            result['passed'] = (result['passed'] and result.get('fallback_landed_disarmed', False) and
+                result.get('outputs_at_action_result') == node.output_count and result.get('bt_step_accepts', [0,1]) == [0,1])
         write_json(out/'flight-observation.json',result)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)
