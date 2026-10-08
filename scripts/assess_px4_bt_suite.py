@@ -2,6 +2,7 @@
 """Read-only acceptance of four owned BT/SITL runs; never starts flight or writes FMU."""
 import argparse
 import hashlib
+import gzip
 import json
 import math
 from pathlib import Path
@@ -77,7 +78,8 @@ def main():
     for case in CASES:
         directory = getattr(args, case.replace('-', '_'))
         names = ('manifest.json', 'observation.json', 'flight-observation.json', 'bt-runner.log', 'flight-truth.json')
-        payloads = {n:(directory/n).read_bytes() for n in names}
+        payloads = {n:((directory/n).read_bytes() if (directory/n).is_file()
+                       else gzip.decompress((directory/(n+'.gz')).read_bytes())) for n in names}
         manifest = json.loads(payloads['manifest.json'])
         flight = json.loads(payloads['flight-observation.json'])
         outcome = assess_case(case, json.loads(payloads['observation.json']), flight,

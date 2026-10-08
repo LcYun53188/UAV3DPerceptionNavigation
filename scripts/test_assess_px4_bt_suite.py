@@ -69,7 +69,8 @@ def test_runner_loss_cannot_pass_on_aborted_alone(fault):
 
 
 @pytest.mark.parametrize('fault', [None, 'different_source', 'source_drift', 'same_run'])
-def test_suite_requires_four_distinct_runs_of_current_frozen_implementation(tmp_path, monkeypatch, fault):
+@pytest.mark.parametrize('compressed', [False, True])
+def test_suite_requires_four_distinct_runs_of_current_frozen_implementation(tmp_path, monkeypatch, fault, compressed):
     import hashlib
     import json
     import assess_px4_bt_suite as suite
@@ -91,6 +92,11 @@ def test_suite_requires_four_distinct_runs_of_current_frozen_implementation(tmp_
                            ('flight-observation.json',flight),('flight-truth.json',truth)]:
             (path/name).write_text(json.dumps(value))
         (path/'bt-runner.log').write_text(log)
+        if compressed:
+            import gzip
+            for name in ('bt-runner.log','flight-truth.json'):
+                (path/(name+'.gz')).write_bytes(gzip.compress((path/name).read_bytes()))
+                (path/name).unlink()
         argv.extend(['--'+case,str(path)])
     if fault == 'source_drift': (tmp_path/'control.py').write_text('changed')
     output = tmp_path/'assessment.json'
