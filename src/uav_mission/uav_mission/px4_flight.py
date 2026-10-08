@@ -7,6 +7,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import threading
 import time
@@ -22,15 +23,17 @@ from rclpy.task import Future
 from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
                           BatteryStatus, VehicleCommandAck, OffboardControlMode,
-                          TrajectorySetpoint, VehicleCommand, VehicleOdometry)
+                          TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
+                          EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus)
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry
+from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus
 from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
+from .vio_gate import VioGate
 from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_region
 
 
@@ -94,6 +97,33 @@ class FlightServer(Node):
             suffix = f'_v{kind.MESSAGE_VERSION}' if kind.MESSAGE_VERSION else ''
             self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
                                      qos_profile_sensor_data, callback_group=self.state_group)
+        self.vio_gate = None
+        self.vio_topics = {}
+        self.vio_writers = {}
+        self.vio_graph_checked = 0.
+        if os.environ.get('UAV_REQUIRE_VIO') == '1':
+            calibration = os.environ.get('UAV_VIO_CALIBRATION_ID', '')
+            if not re.fullmatch('[0-9a-f]{64}', calibration):
+                raise RuntimeError('VIO mission requires reviewed calibration/config SHA256')
+            self.vio_gate = VioGate(calibration)
+            inputs = [('source', '/uav/vio/status', VioStatus),
+                      ('flags', '/px4_7/fmu/out/estimator_status_flags', EstimatorStatusFlags),
+                      ('selector', '/px4_7/fmu/out/estimator_selector_status', EstimatorSelectorStatus),
+                      ('ev_pos', '/px4_7/fmu/out/estimator_aid_src_ev_pos', EstimatorAidSource2d),
+                      ('ev_hgt', '/px4_7/fmu/out/estimator_aid_src_ev_hgt', EstimatorAidSource1d),
+                      ('ev_vel', '/px4_7/fmu/out/estimator_aid_src_ev_vel', EstimatorAidSource3d),
+                      ('ev_yaw', '/px4_7/fmu/out/estimator_aid_src_ev_yaw', EstimatorAidSource1d)]
+            for name, topic, kind in inputs:
+                version = getattr(kind, 'MESSAGE_VERSION', 0)
+                topic += f'_v{version}' if version else ''
+                self.vio_topics[name] = topic
+                def receiver(key):
+                    def receive(message):
+                        self.vio_gate.receive(key, message, time.monotonic())
+                    return receive
+                self.input_subscriptions['vio_'+name] = self.create_subscription(
+                    kind, topic, receiver(name),
+                    qos_profile_sensor_data, callback_group=self.state_group)
         self.mode_pub = self.create_publisher(OffboardControlMode, '/px4_7/fmu/in/offboard_control_mode', 10)
         self.setpoint_pub = self.create_publisher(TrajectorySetpoint, '/px4_7/fmu/in/trajectory_setpoint', 10)
         self.command_pub = self.create_publisher(VehicleCommand, '/px4_7/fmu/in/vehicle_command', 10)
@@ -176,7 +206,20 @@ class FlightServer(Node):
         ros = self.get_clock().now().nanoseconds/1e9
         return bool(msg and now-self.received[name] <= age and -.05 <= ros-msg.timestamp/1e6 <= age)
 
+    def vio_healthy(self):
+        gate = getattr(self, 'vio_gate', None)
+        if gate is None:
+            return True
+        now = time.monotonic()
+        if now-self.vio_graph_checked >= .1:
+            self.vio_writers = {name: len(self.get_publishers_info_by_topic(topic))
+                               for name, topic in self.vio_topics.items()}
+            self.vio_graph_checked = now
+        return gate.ready(now, self.get_clock().now().nanoseconds/1e9, self.vio_writers)
+
     def healthy(self, ground=False):
+        if not FlightServer.vio_healthy(self):
+            return False
         c = self.config
         required = [('vehicle_status', c['status_max_age_s']),
                     ('vehicle_local_position', c['local_max_age_s']),
@@ -575,7 +618,7 @@ class FlightServer(Node):
             if now >= self.deadline:
                 self.fault('MISSION_TIMEOUT');return
             if not self.healthy(ground=self.phase=='LANDING'):
-                self.fault('STALE_OR_INVALID_AIRCRAFT_STATE');return
+                self.fault('VIO_HEALTH_LOST:'+self.vio_gate.reason if getattr(self, 'vio_gate', None) is not None and self.vio_gate.reason != 'READY' else 'STALE_OR_INVALID_AIRCRAFT_STATE');return
             if self.resets()!=self.reset_baseline:
                 self.fault('LOCALIZATION_RESET');return
             status=self.samples['vehicle_status'];phase=self.phase

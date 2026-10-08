@@ -3,6 +3,10 @@
 使用 BehaviorTree.CPP 4.9 与 rclcpp_action，调用真实 PX4 ExecuteMission 后端。
 `--bt` 现在生成逐步骤树，通过绑定根/控制世代的服务依次授权起飞、航点、悬停、返航和降落；
 网关仍拥有唯一 PX4 输出与物理停止。接口、UI 和边界见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
+可选 `--require-vio --vio-calibration-id <SHA256>` 由后端在根任务准入及运行中
+检查 VIO 源和实际 EKF 融合，复用本任务树；不满足时不解锁，运行中失效则撤销输出。
+当前缺少完整 VIO 仿真/融合遥测，不能将普通 W0 悬停称为 Pro W 悬停。
+见 [VIO 实现与门槛](../../docs/VIO_HOVER.md)。
 旧 `trees/px4_flight.xml` 整段异步节点保留作兼容模式，独立逐步骤 ROS Actions 尚待开发。
 algorithm 另有 `algorithm_mission_server`，
 使用 `algorithm_waypoints.xml` 的 ExecuteWaypoints 异步节点调用 EGO Navigate Action，
