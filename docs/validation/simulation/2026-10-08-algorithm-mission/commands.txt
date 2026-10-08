@@ -1,0 +1,16 @@
+# Final source: see per-scenario source_hashes and binary_sha256.
+./scripts/build_navigation_actions.sh
+# Result: 3 packages built successfully (11.7 s).
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh python -m pytest -q src/uav_nav_sim/test src/uav_bt/test scripts/test_sim_control.py scripts/test_sim_validation.py
+# Result: 288 passed in 57.36 s.
+./scripts/with_venv.sh colcon test --build-base build_uav --packages-select uav_bt --event-handlers console_direct+
+# Result: 2 CTests passed, 13 algorithm + 9 PX4 wrapper DDS contract cases.
+# Run sequentially; each creates and cleans its owned C++ server, retains Gazebo/map.
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_algorithm_mission.py --scenario runner-stall --output .cache/sim/s2-accepted-runner-stall
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_algorithm_mission.py --scenario pause-resume --output .cache/sim/s2-accepted-pause-resume
+ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh python scripts/check_gazebo_algorithm_mission.py --scenario cancel-pausing --output .cache/sim/s2-accepted-cancel-pausing
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego
+git diff --check
+# Initial colcon test invocation without --build-base build_uav failed to find the package build directory;
+# the corrected command above passed. It was not a test failure.

@@ -1,0 +1,2 @@
+[WARN] [1791432971.368634059] [algorithm_mission_server.rclcpp_action]: Failed to send goal response 3ac1de31-05a9-406d-b168-3f323964b90e (timeout): client will not receive response, at ./src/rmw_response.cpp:153, at ./src/rcl/service.c:400
+[INFO] [1791432977.542081337] [algorithm_mission_server]: MISSION_RESULT ABORTED MAP_SESSION_CHANGED cleanup=1 waypoint=0 ticks=36

@@ -1,0 +1,161 @@
+{
+  "pause-resume": {
+    "counts": {
+      "truth": 1044,
+      "discovery_probe": 1,
+      "service_response": 6,
+      "server_identity": 1,
+      "root_feedback": 191,
+      "odom": 1027,
+      "control": 179,
+      "bt_progress": 186,
+      "executor_event": 13,
+      "trajectory": 5,
+      "child_result": 3,
+      "root_result": 1
+    },
+    "phases": [
+      "ACQUIRING",
+      "RUNNING",
+      "PAUSING",
+      "PAUSED",
+      "STOPPING"
+    ],
+    "result_preceding_0_6s_odom": [
+      {
+        "kind": "child_result",
+        "uuid": "b27c6a857c4ec425852b163fa0b716e0",
+        "t": 4.58512224199967,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.01762370943438579,
+        "max_angular_speed_rad_s": 0.0326678936835663
+      },
+      {
+        "kind": "child_result",
+        "uuid": "faab4eed4e8b646a9252f381380ecc9c",
+        "t": 12.305167714999698,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.0004677290260182331,
+        "max_angular_speed_rad_s": 1.657122360422884e-12
+      },
+      {
+        "kind": "child_result",
+        "uuid": "6df4b16eed51695d616b7b6acb80da36",
+        "t": 19.765352007999354,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.000644010106656202,
+        "max_angular_speed_rad_s": 0.00010718483035769112
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 19.94907811399935,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 2.9659026249426876e-06,
+        "max_angular_speed_rad_s": 0.00010701897365433329
+      }
+    ],
+    "current_child_uuids": [
+      "6df4b16eed51695d616b7b6acb80da36",
+      "b27c6a857c4ec425852b163fa0b716e0",
+      "faab4eed4e8b646a9252f381380ecc9c"
+    ],
+    "note": "Raw DDS observations can include retained prior terminal goals; only the root-bound children above are acceptance evidence."
+  },
+  "cancel-pausing": {
+    "counts": {
+      "truth": 328,
+      "odom": 328,
+      "discovery_probe": 1,
+      "service_response": 2,
+      "server_identity": 1,
+      "root_feedback": 41,
+      "control": 40,
+      "bt_progress": 40,
+      "executor_event": 3,
+      "trajectory": 1,
+      "child_result": 1,
+      "root_result": 1
+    },
+    "phases": [
+      "ACQUIRING",
+      "RUNNING",
+      "STOPPING"
+    ],
+    "result_preceding_0_6s_odom": [
+      {
+        "kind": "child_result",
+        "uuid": "5441d1efb86c1c2f3b8a61a709cab1e5",
+        "t": 5.529455058000167,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.019807361451058353,
+        "max_angular_speed_rad_s": 0.03266773231082702
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 5.5974746729998515,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.0018124973687605678,
+        "max_angular_speed_rad_s": 0.002989301689445924
+      }
+    ],
+    "current_child_uuids": [
+      "5441d1efb86c1c2f3b8a61a709cab1e5"
+    ],
+    "note": "Raw DDS observations can include retained prior terminal goals; only the root-bound children above are acceptance evidence."
+  },
+  "runner-stall": {
+    "counts": {
+      "truth": 351,
+      "odom": 351,
+      "child_result": 5,
+      "discovery_probe": 1,
+      "service_response": 1,
+      "server_identity": 1,
+      "root_feedback": 38,
+      "control": 47,
+      "bt_progress": 37,
+      "executor_event": 3,
+      "trajectory": 1,
+      "runner_stop": 1,
+      "runner_continue": 1,
+      "root_result": 1
+    },
+    "phases": [
+      "ACQUIRING",
+      "RUNNING",
+      "STOPPING"
+    ],
+    "result_preceding_0_6s_odom": [
+      {
+        "kind": "child_result",
+        "uuid": "17de99418b9268da6c86d29172cafee6",
+        "t": 5.282985877999636,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.021453322910780483,
+        "max_angular_speed_rad_s": 0.026120459922456436
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 6.093504140999357,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 4.850812376676975e-13,
+        "max_angular_speed_rad_s": 0.00010749512193720773
+      }
+    ],
+    "current_child_uuids": [
+      "17de99418b9268da6c86d29172cafee6"
+    ],
+    "note": "Raw DDS observations can include retained prior terminal goals; only the root-bound children above are acceptance evidence."
+  },
+  "excluded-discovery-response": {
+    "counts": {
+      "truth": 263,
+      "child_result": 3,
+      "odom": 229
+    },
+    "accepted_for_validation": false
+  }
+}

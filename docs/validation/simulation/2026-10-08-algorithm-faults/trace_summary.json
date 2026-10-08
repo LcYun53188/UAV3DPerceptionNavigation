@@ -1,0 +1,138 @@
+{
+  "clock-stall": {
+    "counts": {
+      "odom": 336,
+      "velocity_command": 412,
+      "truth": 304,
+      "discovery_probe": 1,
+      "service_response": 1,
+      "server_identity": 1,
+      "root_feedback": 60,
+      "control": 49,
+      "bt_progress": 50,
+      "executor_event": 3,
+      "trajectory": 1,
+      "world_pause": 2,
+      "child_result": 1,
+      "root_result": 1
+    },
+    "current_child_uuids": [
+      "0d36586aeb3e11d9aae2a7391e3a4d0a"
+    ],
+    "terminal_stop_windows": [
+      {
+        "kind": "child_result",
+        "uuid": "0d36586aeb3e11d9aae2a7391e3a4d0a",
+        "t": 7.285152784999809,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.021727137886063907,
+        "max_angular_speed_rad_s": 0.02883841061160491
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 7.293552610000006,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.011949925837335151,
+        "max_angular_speed_rad_s": 0.015861007600682826
+      }
+    ],
+    "pause_ack_to_received_fault_s": 0.39072340300026553,
+    "world_paused_wall_s": 1.3557038110002395,
+    "truth_samples_after_fault_before_unpause": 0
+  },
+  "paused-map-change": {
+    "counts": {
+      "truth": 518,
+      "odom": 517,
+      "velocity_command": 507,
+      "discovery_probe": 2,
+      "service_response": 3,
+      "server_identity": 1,
+      "root_feedback": 37,
+      "control": 36,
+      "bt_progress": 36,
+      "executor_event": 5,
+      "trajectory": 1,
+      "child_result": 1,
+      "root_result": 1
+    },
+    "current_child_uuids": [
+      "70b2977f54fcdea2613f3fdf49a5a49b"
+    ],
+    "terminal_stop_windows": [
+      {
+        "kind": "child_result",
+        "uuid": "70b2977f54fcdea2613f3fdf49a5a49b",
+        "t": 7.825303263000023,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.020338083432782223,
+        "max_angular_speed_rad_s": 0.03266788565592653
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 9.899861118000445,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 3.6784685099525287e-29,
+        "max_angular_speed_rad_s": 8.972628576303108e-18
+      }
+    ]
+  },
+  "recovery-waypoints": {
+    "counts": {
+      "velocity_command": 1125,
+      "child_result": 14,
+      "odom": 1091,
+      "truth": 1041,
+      "discovery_probe": 1,
+      "service_response": 6,
+      "server_identity": 1,
+      "root_feedback": 190,
+      "control": 182,
+      "bt_progress": 189,
+      "executor_event": 13,
+      "trajectory": 5,
+      "root_result": 1
+    },
+    "current_child_uuids": [
+      "a211674a9eeb1077a0377c0d9a9b6682",
+      "dfacfbf33228bb8b64e0478b3159b44a",
+      "e4fce2d77de6da4d324ed741176fe903"
+    ],
+    "terminal_stop_windows": [
+      {
+        "kind": "child_result",
+        "uuid": "a211674a9eeb1077a0377c0d9a9b6682",
+        "t": 6.445275439999932,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.025800481523290137,
+        "max_angular_speed_rad_s": 0.00454424685636235
+      },
+      {
+        "kind": "child_result",
+        "uuid": "dfacfbf33228bb8b64e0478b3159b44a",
+        "t": 13.945003787000132,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.00018425200477212517,
+        "max_angular_speed_rad_s": 7.674612005675105e-16
+      },
+      {
+        "kind": "child_result",
+        "uuid": "e4fce2d77de6da4d324ed741176fe903",
+        "t": 21.405026241000087,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 0.0005191552452267056,
+        "max_angular_speed_rad_s": 0.0001076808677025333
+      },
+      {
+        "kind": "root_result",
+        "uuid": null,
+        "t": 21.529204860999926,
+        "sample_count": 30,
+        "max_linear_speed_m_s": 1.4370549771704193e-05,
+        "max_angular_speed_rad_s": 0.0001076808677025333
+      }
+    ]
+  }
+}

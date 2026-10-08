@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "map_id": "624b051f-1491-4723-8f0c-9421a3208601",
+  "scene_id": "3f1ddad4a109b4c7152eee1aaa92e923b18d060d4b38e121cf8db12270975c04",
+  "build_id": "b3412634a6d786c8661f984c638dfda85886346aeeacfa22e21c21ef4b394899",
+  "frame_id": "map",
+  "localization": "gazebo_world_identity",
+  "resolution": 0.1,
+  "sha256": "f8d20f253076c7635fb359e3e6d1c8fd8f3b9bb55f3d61c94679eb2bdd14fad1",
+  "created_unix": 1791432979.4148543,
+  "nvblox_commit": "6362295e581ef243773c8a348ac46711e4a1fca4",
+  "ego_commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9",
+  "aabb_min": [
+    -5.0,
+    -5.0,
+    0.0
+  ],
+  "aabb_size": [
+    10.0,
+    10.0,
+    4.0
+  ]
+}

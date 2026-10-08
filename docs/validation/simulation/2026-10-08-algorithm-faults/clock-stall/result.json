@@ -1,0 +1,71 @@
+{
+  "profile": "algorithm",
+  "scenario": "clock-stall",
+  "passed": true,
+  "mock": false,
+  "source_hashes": {
+    "scripts/check_gazebo_algorithm_mission.py": "c70dfdc42ba986d0c59d61cfdc89cdc31a05230e92a492a452ca9eb9cec929bd",
+    "src/uav_bt/src/algorithm_mission_server.cpp": "0d9c8d6c039677fd5609154e36dea4616797e1a6ffc8e96490e36a36f806b933",
+    "src/uav_bt/trees/algorithm_waypoints.xml": "b5f1f6a1d87a1cbb1b39ff21086e465a837176d05360408e0f9b32c08ee4d1c5",
+    "src/uav_nav_sim/uav_nav_sim/control_reservation.py": "48a7ca7352c285c57b846d07b49fcf63ef4a3d9c98c4cb600d8afcbe0dc9a0bb",
+    "src/uav_nav_sim/uav_nav_sim/navigation_action.py": "02d7700a7f96f35fe64d27fbe55eea9d2aa0af4474ea1884c2c2da0b02f2bfd5",
+    "src/uav_nav_sim/uav_nav_sim/executor.py": "b4ccee818f28d86f122afc5dd584a65f5a3f6284fc0e537968fe3a67a75e7d2f",
+    "src/uav_nav_sim/uav_nav_sim/navigation.py": "b169359612e4d828e270170979dba2a4ac7e95dbd69388af2bf6ecf0bcf38f8e",
+    "src/uav_nav_sim/uav_nav_sim/autonomous.py": "0532ea6c21307417a9d8b2ba25242cc35101482eb5ae8ba3a608b4a93aadc466"
+  },
+  "binary_sha256": "0b414b70629d8043826c311efb50075b76093dd20b5ccae1c240eab2c5d97de5",
+  "world_sha256": "343d0cef432f45b0bbd854af71104a8908ee534de5c2bcb96eeef3dfc34f0424",
+  "managed_session": {
+    "layout": "lab",
+    "mode": "mapping",
+    "domain": 68,
+    "partition": "uav_ego_lab",
+    "view": "none",
+    "pid": 82166,
+    "identity": [
+      "b2302a02-e2a3-443c-8ee1-3d2fb74d55af",
+      "492598"
+    ],
+    "log": "/home/nuc/Program/uav_nav_ws/.cache/sim/launch-1791432152322254197.log"
+  },
+  "command_publishers": [
+    "gazebo_trajectory_executor"
+  ],
+  "initial_truth": [
+    -3.0081709711769173,
+    -0.365944702325294,
+    1.200000449752003
+  ],
+  "terminal_while_clock_stalled": false,
+  "stalled_zero_command_samples": 30,
+  "root_result": {
+    "status": 6,
+    "code": "ABORTED",
+    "reason": "ODOMETRY_OR_CLOCK_FAULT",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "post_result_hold_drift_m": 1.8041124150158794e-16,
+  "final_truth": [
+    -2.7617773556366503,
+    -0.06878238066312074,
+    1.2000006688101887
+  ],
+  "displacement_m": 0.38602494633729584,
+  "min_truth_clearance_m": 0.9000004470457803,
+  "children": {
+    "0d36586aeb3e11d9aae2a7391e3a4d0a": {
+      "t": 7.285152784999809,
+      "kind": "child_result",
+      "uuid": "0d36586aeb3e11d9aae2a7391e3a4d0a",
+      "status": 6,
+      "result_code": "ABORTED",
+      "reason": "ODOMETRY_OR_CLOCK_FAULT",
+      "cleanup_confirmed": true,
+      "mock": false
+    }
+  },
+  "waypoint_errors_m": {},
+  "obsolete_goal_rejections": 0,
+  "server_exit_code": 0
+}

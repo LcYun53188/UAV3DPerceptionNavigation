@@ -1,0 +1,71 @@
+{
+  "profile": "algorithm",
+  "client": "ordinary_action_client",
+  "mock": false,
+  "cancel": false,
+  "waypoints": [
+    [
+      -2.2,
+      0.6,
+      1.2
+    ],
+    [
+      -3.2,
+      -0.6,
+      1.2
+    ]
+  ],
+  "passed": false,
+  "managed_session": {
+    "layout": "lab",
+    "mode": "mapping",
+    "domain": 68,
+    "partition": "uav_ego_lab",
+    "view": "none",
+    "pid": 42761,
+    "identity": [
+      "b2302a02-e2a3-443c-8ee1-3d2fb74d55af",
+      "288557"
+    ],
+    "log": "/home/nuc/Program/uav_nav_ws/.cache/sim/launch-1791430111916805749.log"
+  },
+  "world_sha256": "343d0cef432f45b0bbd854af71104a8908ee534de5c2bcb96eeef3dfc34f0424",
+  "command_publishers": [
+    "/gazebo_trajectory_executor"
+  ],
+  "initial_truth": [
+    -3.0,
+    -0.7999999999999998,
+    1.7
+  ],
+  "min_truth_clearance_m": 0.8999999999644763,
+  "results": [
+    {
+      "t": 6.9530949720001445,
+      "kind": "result",
+      "uuid": "c4e41e97887f499ca0e1ecd1c185eee3",
+      "status": 6,
+      "result_code": "ABORTED",
+      "reason": "MAP_INVALID",
+      "cleanup_confirmed": true,
+      "mock": false,
+      "truth_position": [
+        -2.8377358911742454,
+        0.12273677841619637,
+        1.2000002187561654
+      ],
+      "goal_error_m": 0.7965470793169777,
+      "displacement_m": 1.5999999594717271,
+      "post_result_hold_drift_m": 0.0,
+      "passed": false
+    }
+  ],
+  "feedback_count": 53,
+  "source_hashes": {
+    "scripts/check_gazebo_navigation_action.py": "619e644020763eae35db75f305a30eb65988304a8703bda484d720b9bb4ad00c",
+    "src/uav_nav_sim/uav_nav_sim/navigation_action.py": "7d4d213eaf6e782115f9beb5a50fcf20c8c4fd3eb4f94e6b683bbc5c721ca35d",
+    "src/uav_nav_sim/uav_nav_sim/executor.py": "6b9cc123453cf77ebe1d06cd3fe4e05f894a40c8b7a18e971156e3d8c7b38d95",
+    "src/uav_nav_sim/uav_nav_sim/navigation.py": "b169359612e4d828e270170979dba2a4ac7e95dbd69388af2bf6ecf0bcf38f8e",
+    "src/uav_nav_sim/uav_nav_sim/autonomous.py": "0532ea6c21307417a9d8b2ba25242cc35101482eb5ae8ba3a608b4a93aadc466"
+  }
+}

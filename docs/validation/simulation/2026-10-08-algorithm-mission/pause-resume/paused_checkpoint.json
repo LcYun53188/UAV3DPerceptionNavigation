@@ -1,0 +1,28 @@
+{
+  "control_generation": 1,
+  "coordinator_instance": "algorithm-1935177866-1327825991",
+  "definition": {
+    "coordinator_instance": "algorithm-1935177866-1327825991",
+    "map_session": "624b051f-1491-4723-8f0c-9421a3208601:1791432153284311087",
+    "navigation_timeout_s": 90.0,
+    "waypoints": [
+      [
+        -2.2,
+        0.6,
+        1.2
+      ],
+      [
+        -3.2,
+        -0.6,
+        1.2
+      ]
+    ]
+  },
+  "definition_sha256": "7d1dbb635d9f1f0a1f4f52e551c9cd99f0692d26adde5a0ba50b8cfca2806c3d",
+  "mission_uuid": "d5311ed2-1e37-4ae5-9a7a-5c1f339cf37b",
+  "phase": "PAUSED",
+  "remaining_navigation_s": 86.870067306,
+  "remaining_total_s": 116.135004666,
+  "restart_resume_supported": false,
+  "waypoint_index": 0
+}

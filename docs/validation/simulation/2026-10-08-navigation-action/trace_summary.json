@@ -1,0 +1,36 @@
+{
+  "two-waypoints": [
+    {
+      "uuid": "92dc43f091394e35a55818b3b7695068",
+      "preceding_0_6s_odom_samples": 30,
+      "preceding_0_6s_max_speed_mps": 0.0009428519678926928,
+      "preceding_0_6s_max_angular_speed_rps": 7.803296705690064e-10,
+      "cancel_to_terminal_s": null
+    },
+    {
+      "uuid": "6aac3cba902a4789a029e93debbbe1a5",
+      "preceding_0_6s_odom_samples": 30,
+      "preceding_0_6s_max_speed_mps": 0.0006108344839379041,
+      "preceding_0_6s_max_angular_speed_rps": 0.00010500826196339677,
+      "cancel_to_terminal_s": null
+    }
+  ],
+  "cancel": [
+    {
+      "uuid": "18513df8313f47cdbb24b375b33224c5",
+      "preceding_0_6s_odom_samples": 30,
+      "preceding_0_6s_max_speed_mps": 0.021195181398013945,
+      "preceding_0_6s_max_angular_speed_rps": 0.032667732310427626,
+      "cancel_to_terminal_s": 0.684639314999913
+    }
+  ],
+  "invalid-init-overlap": [
+    {
+      "uuid": "c4e41e97887f499ca0e1ecd1c185eee3",
+      "preceding_0_6s_odom_samples": 30,
+      "preceding_0_6s_max_speed_mps": 0.023301572577056055,
+      "preceding_0_6s_max_angular_speed_rps": 0.019745239528104,
+      "cancel_to_terminal_s": null
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "profile": "algorithm",
+  "scenario": "cancel-pausing",
+  "passed": false,
+  "mock": false,
+  "source_hashes": {
+    "scripts/check_gazebo_algorithm_mission.py": "9726ca07238e1bf079311bccb2aff786a29fc4567c041996ba1b6a1374134ddd",
+    "src/uav_bt/src/algorithm_mission_server.cpp": "b7d8469a6965bbfc2e784fcd234256a3ca561857acaf1045b8ffc35664e31c6f",
+    "src/uav_bt/trees/algorithm_waypoints.xml": "b5f1f6a1d87a1cbb1b39ff21086e465a837176d05360408e0f9b32c08ee4d1c5",
+    "src/uav_nav_sim/uav_nav_sim/control_reservation.py": "d829d241bbd1612c8691624876fa1b99acc74d51a7296754129300c372cbbcf2",
+    "src/uav_nav_sim/uav_nav_sim/navigation_action.py": "02d7700a7f96f35fe64d27fbe55eea9d2aa0af4474ea1884c2c2da0b02f2bfd5",
+    "src/uav_nav_sim/uav_nav_sim/executor.py": "b4ccee818f28d86f122afc5dd584a65f5a3f6284fc0e537968fe3a67a75e7d2f",
+    "src/uav_nav_sim/uav_nav_sim/navigation.py": "b169359612e4d828e270170979dba2a4ac7e95dbd69388af2bf6ecf0bcf38f8e",
+    "src/uav_nav_sim/uav_nav_sim/autonomous.py": "0532ea6c21307417a9d8b2ba25242cc35101482eb5ae8ba3a608b4a93aadc466"
+  },
+  "binary_sha256": "d722018388c55cb3728e3e2be56e23164d030580b54a96ceb1345f970e9dc98e",
+  "world_sha256": "343d0cef432f45b0bbd854af71104a8908ee534de5c2bcb96eeef3dfc34f0424",
+  "managed_session": {
+    "layout": "lab",
+    "mode": "mapping",
+    "domain": 68,
+    "partition": "uav_ego_lab",
+    "view": "none",
+    "pid": 68841,
+    "identity": [
+      "b2302a02-e2a3-443c-8ee1-3d2fb74d55af",
+      "433959"
+    ],
+    "log": "/home/nuc/Program/uav_nav_ws/.cache/sim/launch-1791431565937838076.log"
+  },
+  "command_publishers": [
+    "gazebo_trajectory_executor"
+  ],
+  "initial_truth": [
+    -3.200638786356283,
+    -0.6007627618529,
+    1.200000049386159
+  ],
+  "error": "Timed out waiting for mission state",
+  "server_exit_code": 0
+}
