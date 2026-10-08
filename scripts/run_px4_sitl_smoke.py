@@ -49,6 +49,8 @@ def free_port(port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
+    parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
     parser.add_argument('--depth-camera', action='store_true', help='Audit pinned x500_depth camera, disarmed only')
     parser.add_argument('--duration', type=float, default=45)
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
@@ -59,6 +61,10 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.require_vio and (not args.flight or not re.fullmatch('[0-9a-f]{64}', args.vio_calibration_id)):
+        parser.error('--require-vio needs --flight and --vio-calibration-id SHA256')
+    if args.vio_calibration_id and not args.require_vio:
+        parser.error('--vio-calibration-id requires --require-vio')
     if args.depth_camera and (args.flight or args.bt or args.mission_file or args.flight_scenario != 'full'):
         parser.error('--depth-camera is a disarmed profile and cannot use flight options')
     if args.bt and not args.flight:
@@ -98,7 +104,9 @@ def main():
                GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
                GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
     if args.flight:
-        env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()), UAV_WORKSPACE=str(ROOT),
+        env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),
+                   UAV_REQUIRE_VIO='1' if args.require_vio else '0',
+                   UAV_VIO_CALIBRATION_ID=args.vio_calibration_id, UAV_WORKSPACE=str(ROOT),
                    UAV_FLIGHT_MISSION_FILE=str(args.mission_file.resolve()) if args.mission_file else '',
                    UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
                    UAV_FLIGHT_BT='1' if args.bt else '0', PX4_PARAM_COM_RC_IN_MODE='4',
@@ -114,7 +122,8 @@ def main():
                     world_sha256=file_hash(worlds / 'default.sdf'),
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
                     model_sha256=file_hash(models / f'{model_name}/model.sdf'),
-                    hardware_camera='OAK-D Pro W',
+                    hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
+                    vio_calibration_id=args.vio_calibration_id or None,
                     sensor_profile='px4-reference-oakd-lite-disarmed' if args.depth_camera else None,
                     sensor_topics={'depth': '/depth_camera', 'camera_info': '/camera_info'} if args.depth_camera else {},
                     model_dependencies_sha256={name: file_hash(models / name / 'model.sdf')

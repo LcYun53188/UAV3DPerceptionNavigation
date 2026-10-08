@@ -45,7 +45,9 @@ def main():
     use_bt=os.environ.get('UAV_FLIGHT_BT')=='1'
     bt=None
     implementation_hashes={str(path.relative_to(ROOT)):file_hash(path) for path in
-      [ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
+      [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
+       ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
+       ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
@@ -81,7 +83,7 @@ def main():
     executor=SingleThreadedExecutor();executor.add_node(node)
     thread=threading.Thread(target=executor.spin,daemon=True);thread.start()
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
-    result=dict(passed=False,scenario=scenario,profile='known_region_control',scope='real x500 takeoff/navigation/hover/return/native landing',mock=False)
+    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile='known_region_control',scope='real x500 takeoff/navigation/hover/return/native landing',mock=False)
     try:
         until=time.monotonic()+20
         while time.monotonic()<until:
@@ -92,6 +94,7 @@ def main():
         if not ready or not truth:
             result['truth_frames']=sorted(frames)
             result['preflight_healthy']=ready
+            result['vio_gate_reason']=node.vio_gate.reason if node.vio_gate else None
             result['preflight_fields']={n:{f:getattr(m,f) for f in fields} for n,fields in [('vehicle_status',['arming_state','nav_state','system_id','pre_flight_checks_pass','failsafe']),('battery_status',['connected','remaining','warning']),('vehicle_local_position',['xy_valid','z_valid','v_xy_valid','v_z_valid','eph','epv'])] if (m:=node.samples.get(n)) is not None}
             raise RuntimeError('Preflight/truth unavailable: '+str(list(node.samples)))
         home=node.position();home_truth=truth[-1]['position']
