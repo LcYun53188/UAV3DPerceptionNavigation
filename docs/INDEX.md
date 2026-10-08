@@ -36,4 +36,5 @@
 - [PX4 定位输入门控与重置回归](PX4_LOCALIZATION_GATES.md)
 
 - [非 identity 坐标与会话绑定的 EGO 影子规划](PLANNING_CONTEXT.md)
+- [OAK-D Pro W VIO 悬停](VIO_HOVER.md)：源适配与实际融合门控首批实现，完整闭环待验收。
 - [PX4 参考深度相机验证](validation/simulation/2026-10-08-px4-depth/REPORT.md)：目标硬件 OAK-D Pro W，当前只验收 OakD-Lite 参考传感器链路。

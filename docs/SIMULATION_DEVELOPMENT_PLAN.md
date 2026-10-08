@@ -42,6 +42,12 @@ ContextTrajectory，提供显式 SE(3) 里程计适配、会话/世代绑定与�
 map 规划模式并保留默认 identity 模式；独立影子链路仅发布已复检轨迹，不写飞控。
 范围与证据见 [规划上下文](PLANNING_CONTEXT.md)，S3/S5 与 PX4 感知执行仍未整体验收。
 
+VIO 悬停首批实现（2026-10-08）：新增 `VioStatus`、cuVSLAM 源适配和
+`FlightServer` 可选 VIO 门控；同时检查原始源、标定/会话、EKF selector、状态标志
+与实际 EV aid source。`--require-vio` 缺少证据时拒绝预检，不启动 BT 飞行。
+默认 PX4 DDS 尚未导出全部门控遥测，真实双目/IMU→VIO→融合→悬停仍未验收；
+单纯定点悬停优先完成最小 VIO 闭环，不以 nvblox/EGO 为前提。见 [实现范围](VIO_HOVER.md)。
+
 相机型号确认（2026-10-08）：实机为 **OAK-D Pro W**。新增
 `./scripts/sim.sh px4-depth` 未解锁传感器链路验收入口，使用 PX4 上游
 OakD-Lite 参考模型；它只用于 Gazebo→ROS 深度与 CameraInfo 审计，不代表

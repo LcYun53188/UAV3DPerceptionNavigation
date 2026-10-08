@@ -136,3 +136,10 @@ Gazebo 实际深度话题 `/depth_camera` 和标定话题 `/camera_info` 分别�
 已有 PlanningContext；这些完成前不授权 EGO 曲线控制 PX4。
 
 本批实测与失败证据见 [深度相机验证报告](../../docs/validation/simulation/2026-10-08-px4-depth/REPORT.md)。
+
+## 可选 VIO 悬停门控
+
+已新增 VIO 源适配与 `--require-vio --vio-calibration-id <SHA256>`，复用现有 BT 和
+FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector 与四类 EV aid source，
+开启该门控会在没有实际融合证据时拒绝预检；尚未实现真实 VIO 悬停。
+输入、时间映射限制与后续冻结步骤见 [VIO 悬停](../../docs/VIO_HOVER.md)。

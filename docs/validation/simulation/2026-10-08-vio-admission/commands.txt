@@ -1,0 +1,8 @@
+./scripts/build_px4_flight.sh
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/px4_comm_bridge/test src/uav_mission/test src/uav_bt/test scripts/test_px4_flight_audit.py scripts/test_px4_depth_audit.py --junit-xml=.cache/simulation/vio-unit-final.xml'
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; source install_uav/isaac_ros_visual_slam_interfaces/share/isaac_ros_visual_slam_interfaces/local_setup.bash; python scripts/run_vio_transport_smoke.py'
+./scripts/sim.sh px4-flight --bt --require-vio --vio-calibration-id aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  # expected flight exit 1; independently audited negative PASS
+./scripts/sim.sh px4-flight --bt --ui  # separate W0 regression; not VIO
+./scripts/run_vio_monitor.sh --ros-args -p calibration_id:=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -p emit_px4:=true  # expected refusal outside owned SITL
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego

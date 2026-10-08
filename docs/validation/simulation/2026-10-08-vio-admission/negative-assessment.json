@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "scope": "VIO preflight refusal only; raw flight attempt correctly failed",
+  "checks": {
+    "vio_required": true,
+    "dds_clock_qgc": true,
+    "flight_refused": true,
+    "vio_reason": true,
+    "zero_outputs": true,
+    "zero_commands": true,
+    "disarmed_throughout": true,
+    "landed_disarmed": true,
+    "no_bt_steps": true,
+    "no_flight_events": true
+  }
+}
