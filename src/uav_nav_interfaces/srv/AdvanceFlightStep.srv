@@ -1,0 +1,10 @@
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+ControlSession control_session
+unique_identifier_msgs/UUID request_id
+uint32 step_index
+string step_type
+---
+bool accepted
+string reason
+string phase
