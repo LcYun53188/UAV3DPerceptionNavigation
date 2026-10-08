@@ -2,6 +2,12 @@
 
 日期：2026-10-07。状态：S0 基础链路与 S1 首批接口/mock 已交付；S0 感知样例及实际任务/控制接入继续开发；已交付离线依赖审计、验收 schema、主机回归运行器，以及本机 PX4/Agent/消息包独立构建与未解锁 x500 冒烟链路；W0 已知区域的真实起飞/航点/悬停/返航/原生降落后端已实现；最小 BT XML/Runner 已接入 W0；感知、EGO 任务适配与完整 BT 编排仍待推进。详见 [S0 开发与验证记录](validation/simulation/2026-10-07-s0/REPORT.md)。
 
+2026-10-08 VIO 遥测补充：新增独立 PX4 1.16.2 构建，保留原 W0 二进制/版本锁，
+只扩展 selector 与四类 EV aid DDS 遥测。未解锁合成外部视觉已通过实际 EKF 融合、
+连续准入和停更拒绝审计；GNSS/磁/光流辅助关闭，气压高度辅助保留。
+该结果不代表双目/IMU VIO 或室内飞行通过 S6，详见
+[VIO 遥测验证](validation/simulation/2026-10-08-vio-telemetry/REPORT.md)。
+
 2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
 进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
 这是 S2 的首批真实 PX4 接入，独立逐步骤飞行 Actions 与完整阶段验收仍待完成，

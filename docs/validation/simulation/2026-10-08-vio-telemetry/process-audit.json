@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-10-08T12:46:53.218676+00:00",
+  "runs": {
+    "final": {
+      "run_id": "ef1ae637-90fc-4285-8413-c4406286370e",
+      "root_process_ids": [
+        37160,
+        37161,
+        37162,
+        37163,
+        37164
+      ],
+      "remaining_group_processes": [],
+      "passed": true
+    },
+    "baseline": {
+      "run_id": "2b6c4413-460a-430a-91ee-1ccb74ba1704",
+      "root_process_ids": [
+        38860,
+        38861,
+        38862,
+        38863,
+        38864
+      ],
+      "remaining_group_processes": [],
+      "passed": true
+    },
+    "failed-flags-cadence": {
+      "run_id": "6039c5ef-56e6-47ba-98f1-aefcc8490746",
+      "root_process_ids": [
+        35023,
+        35024,
+        35025,
+        35026,
+        35027
+      ],
+      "remaining_group_processes": [],
+      "passed": true
+    },
+    "failed-nan-encoding": {
+      "run_id": "fc1ba78a-8210-4742-b760-1a2a0d5a9095",
+      "root_process_ids": [
+        33790,
+        33791,
+        33792,
+        33793,
+        33794,
+        33795
+      ],
+      "remaining_group_processes": [],
+      "passed": true
+    }
+  }
+}

@@ -1,12 +1,12 @@
-# OAK-D Pro W 辅助室内悬停：首批实现
+# OAK-D Pro W 辅助室内悬停
 
 目标是相机双目/IMU产生连续 VIO，经 PX4 EKF 外部视觉融合，再由现有 BT 调度
 位置 Offboard 起飞、悬停和降落。VIO 计算不放在行为树节点内，飞控输出仍由
 FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
 
-**目前已实现输入适配与拒绝门控，尚未完成真实 VIO 悬停闭环。** 当前工作站 USB
-枚举未发现 OAK-D Pro W；首批 DDS 测试使用明确标注的合成输入，不能算相机/VIO 验证。
-PX4 固定构建尚未导出门控需要的全部 EKF 遥测；保持未就绪是预期行为。
+**已实现输入适配、拒绝门控，以及独立 PX4 构建的实际 EKF 融合审计；尚未完成真实 VIO 悬停闭环。**
+合成输入审计仅验证外部视觉到 EKF 的融合与输入停更检测，不能算相机/VIO 验证。
+原 W0 构建保持不变；新增遥测仅由单独的 VIO 审计构建提供。
 
 ## 输入适配
 
@@ -69,7 +69,9 @@ CameraInfo、双目/IMU外参和 base_link 安装外参；现有旧相机参数�
 | `estimator_selector_status` | 当前 primary_instance=0、实例健康，无 IMU 故障；当前实现只接受实例 0 |
 | `estimator_aid_src_ev_pos/hgt/vel/yaw` | 实例 0、fused=true、未拒绝、有限 test_ratio∈[0,1)，原始观测与 last_fuse ≤0.5 s，观测与当前 VIO 时间差 ≤0.2 s |
 
-所有遥测接收与源年龄 ≤0.5 s、未来容忍 0.05 s。`cs_ev_*` 表示融合意图，不能单独
+`estimator_status_flags` 和 selector 在固定 PX4 1.16.2 中约 1 Hz 或变化时发布，
+两者接收与源年龄要求 ≤1.5 s；其余遥测 ≤0.5 s，未来容忍均为 0.05 s。
+实际 VIO 原始采样仍要求 ≤0.2 s，四类融合样本/最后融合时间仍要求 ≤0.5 s。`cs_ev_*` 表示融合意图，不能单独
 证明观测已融合。VIO 会话/reset/标定变化、已绑定后的 tracking invalid、主 EKF 切换
 在接收回调中锁存，后续健康消息不能擦除。ROS 时钟回退或停滞也锁存；启动前替换
 未绑定的源会重新开始 2 s 稳定窗口。
@@ -87,15 +89,37 @@ CameraInfo、双目/IMU外参和 base_link 安装外参；现有旧相机参数�
 ./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; source install_uav/isaac_ros_visual_slam_interfaces/share/isaac_ros_visual_slam_interfaces/local_setup.bash; python scripts/run_vio_transport_smoke.py'
 ```
 
+独立的未解锁实际 EKF 融合审计：
+
+```bash
+./scripts/build_px4_vio.sh --jobs 4
+./scripts/build_px4_vio.sh --check
+./scripts/sim.sh px4-vision-audit --duration 35
+# 可追加 --ui 显示 Gazebo；QGC 由受管入口启动。
+```
+
+构建输出 `.deps/px4-vio-build`，使用锁定 PX4 上游 DDS 生成器，保留原发布/订阅，
+只新增 selector 与四类 EV aid 遥测；构建前后验证原 W0/Agent 二进制 hash。
+构建清单绑定配置、生成器、模板、工具、生成头文件与二进制，运行前再次检查。
+不修改上游源码、原 W0 构建或版本锁。需要先完成基础 PX4 和任务消息构建。
+
+审计采用独立固定零位姿/速度的合成输入，共用 Gazebo 时钟，经正式坐标转换发布
+30 Hz external vision；不读取 PX4 估计或 Gazebo 真值生成观测。使用合成标定 ID，
+不运行相机、cuVSLAM、BT 或 FlightServer，不发布解锁、模式、轨迹或 Offboard 心跳。
+参数为 EV_CTRL=15、GPS_CTRL=0、MAG_TYPE=5、HGT_REF=3、SENS_IMU_MODE=0、
+MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 fused 样本、
+门控连续健康 2 s 后就绪，以及全程未解锁。停止输入后观测 6 s：先排空 1 s，
+随后要求四类 last_fuse 不再推进，并且门控因源过期拒绝。归档同时核对 ULog 生效参数。
+这不验证运动中的定位误差、飞行控制或失定位降落，也不是无气压辅助的纯视觉高度验证。
+
 后续按最小闭环推进：
 
-1. 单独冻结 VIO 仿真传感器/标定与 PX4 配置，补充真实双目/IMU输入；上游 OakD-Lite
-   深度模型不能代表 Pro W 双目/IMU，也不能拿 Gazebo 真值替代 VIO 输出。
-2. 为单独的 PX4 VIO 构建导出 selector 与四个 EV aid source。默认固定 DDS 配置
-   缺失这些 topic，本批不修改原 W0 构建/版本锁，也不伪造融合反馈补齐门控。
-3. 在新的固定配置中验证坐标、时间、实际 EV 融合、定位 reset 与初始安全体积，明确
-   GNSS/其他定位辅助来源，防止由隐藏定位源承担悬停。
-4. 完成本机真实 VIO 的定点悬停、漂移与故障验收；有相机后进行未解锁台架测量，
-   最后再进入独立的实机受控飞行阶段。
+1. 冻结 VIO 仿真双目/IMU传感器、内外参、时间与安装配置；上游 OakD-Lite 深度
+   模型不能代表 Pro W 双目/IMU，也不能拿 Gazebo 真值替代 VIO 输出。
+2. 接入本机真实 VIO 算法，并完成源 reset 代理与轴向/时间/漂移验证。
+3. 在独立飞行配置中接入现有 BT，验证无隐藏定位辅助的起飞、定点悬停、返航、
+   降落与定位退化处置；当前合成静止输入不得用于飞行。
+4. 有相机后进行未解锁台架标定和时间映射测量，最后进入独立实机受控飞行阶段。
 
-首批结果与适用边界见 [验证报告](validation/simulation/2026-10-08-vio-admission/REPORT.md)。
+输入首批结果见 [准入验证报告](validation/simulation/2026-10-08-vio-admission/REPORT.md)。
+实际 EKF 融合结果见 [遥测审计报告](validation/simulation/2026-10-08-vio-telemetry/REPORT.md)。

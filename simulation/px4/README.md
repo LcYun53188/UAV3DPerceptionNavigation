@@ -143,3 +143,18 @@ Gazebo 实际深度话题 `/depth_camera` 和标定话题 `/camera_info` 分别�
 FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector 与四类 EV aid source，
 开启该门控会在没有实际融合证据时拒绝预检；尚未实现真实 VIO 悬停。
 输入、时间映射限制与后续冻结步骤见 [VIO 悬停](../../docs/VIO_HOVER.md)。
+
+
+## 独立 VIO 遥测构建与未解锁审计
+
+```bash
+./scripts/build_px4_vio.sh --jobs 4
+./scripts/build_px4_vio.sh --check
+./scripts/sim.sh px4-vision-audit --duration 35
+```
+
+该入口使用独立构建导出 selector 与四类真实 EV aid 遥测，保留原 W0 二进制及版本锁。
+合成静止外部视觉输入经 PX4 实际 EKF 融合，验证连续就绪与停更后拒绝/停止融合。
+全程未解锁，不运行 FlightServer；GNSS/磁/光流辅助关闭，气压高度辅助保留。
+不能作为相机 VIO、动态悬停或实机验收。详细边界和证据见
+[VIO 悬停说明](../../docs/VIO_HOVER.md)。

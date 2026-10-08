@@ -1,0 +1,31 @@
+{
+  "scope": "separate read-only telemetry SITL build; not VIO flight acceptance",
+  "px4_commit": "54f0455ffcd755534539a7cf33a09a20bf71d29d",
+  "inputs": {
+    "simulation/px4/versions.lock.yaml": "16d488fcdb5dc2b9205830e3afe4ca28387a64af42921e22b8576cd367005937",
+    "simulation/px4/vio/dds_topics.yaml": "0212f8566d39d4cbfbe0d746356511b9253b7ee357ba0a5bb91be8516f16a7fe",
+    "scripts/build_px4_vio.py": "3e2e7bd79cac48debbad358380dbb08f346dc9e646ab4b62e41c6934c2052971",
+    "requirements/px4-sim.txt": "f61f441f0fdc1d4e8558184e3147771be3f6c65f94aac92a113d53648f46419b",
+    ".deps/PX4-Autopilot/src/modules/uxrce_dds_client/generate_dds_topics.py": "b7411190ad3d465a30b6d0c5e59c4c9eaf63cf05ac0850a94a857a1f1a94c191",
+    ".deps/PX4-Autopilot/src/modules/uxrce_dds_client/dds_topics.h.em": "f8b38272adca5dc526d928be158a342f4fb3a990872484f7e5042aa0dc68e329",
+    ".deps/PX4-Autopilot/src/modules/uxrce_dds_client/dds_topics.yaml": "8b2999386e0d8a384fdf014106273c3cf8fa310c98746148e3f205c9b5ffb7fe"
+  },
+  "artifacts": {
+    ".deps/px4-vio-build/bin/px4": "dbb21fcb3f94de4c863e7b17c2c3972668924cd3f6612aa06d4e5e4c27e15ffd",
+    ".deps/px4-vio-build/src/modules/uxrce_dds_client/dds_topics.h": "485693158b27bf9be335a323c37651313d2729890eba12038d5958641a6d7517",
+    ".deps/px4-vio-build/src/modules/simulation/gz_plugins/libMovingPlatformController.so": "c85dbe3cc37a4ba23dfe1d45ad3a7609138c3a4a336ed558c4008f0c5416d3ac",
+    ".deps/px4-vio-build/src/modules/simulation/gz_plugins/libOpticalFlowSystem.so": "dcbed89457d79f77b57f18b6c55ac703933059c605543e044f0c4de84e5f0aba",
+    ".deps/px4-vio-build/src/modules/simulation/gz_plugins/libTemplatePlugin.so": "0c03d4eaf1c87b7e329d67974bdaa192fc64448ddfe7757c1947324563fb5008"
+  },
+  "added_publications": {
+    "estimator_selector_status": "EstimatorSelectorStatus",
+    "estimator_aid_src_ev_pos": "EstimatorAidSource2d",
+    "estimator_aid_src_ev_hgt": "EstimatorAidSource1d",
+    "estimator_aid_src_ev_vel": "EstimatorAidSource3d",
+    "estimator_aid_src_ev_yaw": "EstimatorAidSource1d"
+  },
+  "baseline_artifacts": {
+    ".deps/PX4-Autopilot/build/px4_sitl_default/bin/px4": "5525e3edf3413d57039f374be8b934bbf53390de41edc54eb6ced15ed0aa72da",
+    ".deps/microxrce-install/bin/MicroXRCEAgent": "c38c5e77dff741e61cfed1d24efe1915807f35e37da085288e5a4588a4620962"
+  }
+}
