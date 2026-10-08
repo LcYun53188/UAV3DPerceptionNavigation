@@ -1,0 +1,116 @@
+{
+  "result": "OBSERVED",
+  "device": "/dev/ttyACM0",
+  "receive_only": true,
+  "transmitted_bytes": 0,
+  "duration_s": 10.001351215000795,
+  "raw_bytes": 206421,
+  "message_counts": {
+    "ATTITUDE": 973,
+    "HIGHRES_IMU": 486,
+    "ATTITUDE_QUATERNION": 486,
+    "LOCAL_POSITION_NED": 292,
+    "ODOMETRY": 292,
+    "BATTERY_STATUS": 6,
+    "UNKNOWN_436": 6,
+    "ESTIMATOR_STATUS": 10,
+    "OPEN_DRONE_ID_LOCATION": 10,
+    "SCALED_PRESSURE": 10,
+    "SYSTEM_TIME": 10,
+    "VIBRATION": 6,
+    "TIMESYNC": 98,
+    "ALTITUDE": 98,
+    "ATTITUDE_TARGET": 98,
+    "POSITION_TARGET_LOCAL_NED": 97,
+    "VFR_HUD": 98,
+    "EXTENDED_SYS_STATE": 49,
+    "SYS_STATUS": 48,
+    "HEARTBEAT": 12,
+    "MISSION_CURRENT": 11,
+    "UNKNOWN_8": 11,
+    "UNKNOWN_410": 10,
+    "UNKNOWN_411": 4,
+    "PING": 10,
+    "UNKNOWN_380": 5
+  },
+  "autopilots": [
+    {
+      "source": "1:1",
+      "armed": false,
+      "system_status": 0,
+      "custom_mode": 50593792
+    }
+  ],
+  "latest": {
+    "1:1": {
+      "BATTERY_STATUS": {
+        "mavpackettype": "BATTERY_STATUS",
+        "id": 0,
+        "battery_function": 1,
+        "type": 1,
+        "temperature": 32767,
+        "voltages": [
+          65535,
+          65535,
+          65535,
+          65535,
+          65535,
+          65535,
+          65535,
+          65535,
+          65535,
+          65535
+        ],
+        "current_battery": -1,
+        "current_consumed": -1,
+        "energy_consumed": -1,
+        "battery_remaining": -1,
+        "time_remaining": 0,
+        "charge_state": 1,
+        "voltages_ext": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "mode": 0,
+        "fault_bitmask": 0
+      },
+      "EXTENDED_SYS_STATE": {
+        "mavpackettype": "EXTENDED_SYS_STATE",
+        "vtol_state": 0,
+        "landed_state": 1
+      },
+      "SYS_STATUS": {
+        "mavpackettype": "SYS_STATUS",
+        "onboard_control_sensors_present": 16395,
+        "onboard_control_sensors_enabled": 81931,
+        "onboard_control_sensors_health": 52463679,
+        "load": 690,
+        "voltage_battery": 65535,
+        "current_battery": -1,
+        "battery_remaining": -1,
+        "drop_rate_comm": 0,
+        "errors_comm": 0,
+        "errors_count1": 0,
+        "errors_count2": 0,
+        "errors_count3": 0,
+        "errors_count4": 0,
+        "onboard_control_sensors_present_extended": 0,
+        "onboard_control_sensors_enabled_extended": 0,
+        "onboard_control_sensors_health_extended": 1
+      },
+      "HEARTBEAT": {
+        "mavpackettype": "HEARTBEAT",
+        "type": 2,
+        "autopilot": 12,
+        "base_mode": 29,
+        "custom_mode": 50593792,
+        "system_status": 0,
+        "mavlink_version": 3
+      }
+    }
+  },
+  "status_text": [],
+  "scope": "Passive telemetry only; no parameter changes or hardware flight validation"
+}

@@ -30,3 +30,5 @@
 策略与状态机设计文档记录设计意图；当前实现的限制以项目评估为准。
 
 - [达妙 USB IMU 与视觉里程计融合](DAMIAO_IMU_USB.md)：可选 USB 驱动、三维 EKF、单位与外参验证。
+
+- [DM-FC01 USB 台架只接收检查](PX4_USB_BENCH.md)
