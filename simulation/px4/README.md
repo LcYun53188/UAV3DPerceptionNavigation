@@ -179,3 +179,10 @@ FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector �
 cuVSLAM 原始 Odometry 的滑窗协方差不能直接用于 PX4：现有适配器改为订阅标准
 `/uav/vio/odometry`，默认拒绝未经审核的源契约。后续归一化和 reset/运动验证
 完成后再进入飞行。见 [传感器报告](../../docs/validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
+
+可追加 `--normalize` 检查 SDK 位姿协方差归一化，或使用
+`--normalize --reset-source --ui --duration 40` 实际 reset SDK 并验证旧源永久撤销。
+节点仅发布 `/uav/vio/pose` 与 `/uav/vio/pose_status`，没有速度观测或 PX4 EV 输出。
+当前 90 s 持续检查出现协方差超限并正确停发，尚未达到飞行条件。
+配置指纹、短时通过与持续失败的原始证据见
+[位姿与 reset 报告](../../docs/validation/simulation/2026-10-08-vio-pose/REPORT.md)。

@@ -10,6 +10,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 真实 VIO 传感器前置验证：构建 `./scripts/build_vio_node.sh` 后运行 `./scripts/sim.sh px4-vio-sensors --ui --duration 35`，检查 Gazebo 双目／IMU 经实际 cuVSLAM 的静止跟踪。全程未解锁，不发布外部视觉或飞行控制；参考模型尚非 OAK-D Pro W 标定模型，也尚未完成 VIO 悬停。见 [VIO 验证](docs/VIO_HOVER.md)。
 
+运行 `./scripts/sim.sh px4-vio-sensors --normalize --reset-source --ui --duration 40` 可审计 SDK 位姿协方差归一化与实际 reset 后旧源撤销。短时验证已通过，但 90 秒检查中 SDK 协方差超限，源已锁存停止输出；尚未达到 VIO 飞行准入条件。见 [位姿与 reset 记录](docs/validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+
 相机实机型号为 **OAK-D Pro W**。`./scripts/sim.sh px4-depth --ui` 单独验收 PX4 深度传感器到 ROS 的数据链路，使用上游 OakD-Lite 参考模型，不能作为 Pro W 的视场、标定或 VIO 验证。它全程保持未解锁，不与 W0 飞行模式混用。详见 [相机仿真说明](simulation/px4/README.md#深度相机参考链路)。
 
 OAK-D Pro W 室内悬停已开始实现：新增 VIO 输入适配、源连续性检查及 PX4 实际融合健康门控，缺失定位/融合证据时拒绝起飞。独立 PX4 遥测构建已通过未解锁的合成外部视觉实际 EKF 融合与停更审计。当前尚未完成真实 VIO 悬停闭环；监视、审计入口与剩余条件见 [VIO 悬停说明](docs/VIO_HOVER.md)。
