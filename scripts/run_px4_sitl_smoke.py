@@ -49,6 +49,7 @@ def free_port(port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--vision-fusion-smoke', action='store_true', help='Separate disarmed build: synthetic EV input and actual EKF fusion telemetry')
     parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
     parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
     parser.add_argument('--depth-camera', action='store_true', help='Audit pinned x500_depth camera, disarmed only')
@@ -61,6 +62,8 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.vision_fusion_smoke and (args.flight or args.bt or args.depth_camera or args.aircraft_state or args.mission_file or args.flight_scenario != 'full'):
+        parser.error('--vision-fusion-smoke is an independent disarmed audit')
     if args.require_vio and (not args.flight or not re.fullmatch('[0-9a-f]{64}', args.vio_calibration_id)):
         parser.error('--require-vio needs --flight and --vio-calibration-id SHA256')
     if args.vio_calibration_id and not args.require_vio:
@@ -92,6 +95,10 @@ def main():
     (run_dir / 'rootfs').mkdir()
     px4 = ROOT / lock['sitl']['path']
     build = px4 / 'build/px4_sitl_default'
+    if args.vision_fusion_smoke:
+        from build_px4_vio import BUILD, verify
+        vio_build = verify(lock)
+        build = BUILD
     models = px4 / 'Tools/simulation/gz/models'
     worlds = px4 / 'Tools/simulation/gz/worlds'
     model_name = 'x500_depth' if args.depth_camera else 'x500'
@@ -103,6 +110,11 @@ def main():
                GZ_SIM_RESOURCE_PATH=f"{models}:{worlds}:" + os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
                GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
                GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
+    if args.vision_fusion_smoke:
+        env.update(PX4_PARAM_EKF2_EV_CTRL='15', PX4_PARAM_EKF2_GPS_CTRL='0',
+                   PX4_PARAM_EKF2_MAG_TYPE='5', PX4_PARAM_EKF2_HGT_REF='3',
+                   PX4_PARAM_SENS_IMU_MODE='0', PX4_PARAM_EKF2_MULTI_IMU='1',
+                   PX4_PARAM_EKF2_MULTI_MAG='0')
     if args.flight:
         env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),
                    UAV_REQUIRE_VIO='1' if args.require_vio else '0',
@@ -123,6 +135,10 @@ def main():
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
                     model_sha256=file_hash(models / f'{model_name}/model.sdf'),
                     hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
+                    vision_fusion_smoke=args.vision_fusion_smoke,
+                    vio_build=vio_build if args.vision_fusion_smoke else None,
+                    vision_audit_sha256=file_hash(ROOT/'scripts/px4_vision_audit.py') if args.vision_fusion_smoke else None,
+                    vio_gate_sha256=file_hash(ROOT/'src/uav_mission/uav_mission/vio_gate.py') if args.vision_fusion_smoke else None,
                     vio_calibration_id=args.vio_calibration_id or None,
                     sensor_profile='px4-reference-oakd-lite-disarmed' if args.depth_camera else None,
                     sensor_topics={'depth': '/depth_camera', 'camera_info': '/camera_info'} if args.depth_camera else {},
@@ -178,6 +194,10 @@ def main():
                                  lambda m: depth_audit.image(m, time.monotonic()), qos_profile_sensor_data)
         node.create_subscription(CameraInfo, '/px4_depth/camera_info',
                                  lambda m: depth_audit.info(m, time.monotonic()), qos_profile_sensor_data)
+    vision_audit = None
+    if args.vision_fusion_smoke:
+        from px4_vision_audit import VisionFusionAudit
+        vision_audit = VisionFusionAudit(node)
     first_clock = None
     failure = None
     try:
@@ -209,6 +229,8 @@ def main():
         deadline = time.monotonic() + args.duration
         while time.monotonic() < deadline:
             rclpy.spin_once(node, timeout_sec=.1)
+            if vision_audit is not None:
+                vision_audit.tick(last['clock'].clock if 'clock' in last else None)
             if first_clock is None and 'clock' in last:
                 c = last['clock'].clock
                 first_clock = c.sec + c.nanosec / 1e9
@@ -247,6 +269,17 @@ def main():
             write_json(run_dir / 'depth-camera.json', depth_result)
             result['depth_camera_passed'] = depth_result['passed']
             result['passed'] = result['passed'] and depth_result['passed']
+        if vision_audit is not None:
+            vision_audit.stop_input()
+            until = time.monotonic()+6
+            while time.monotonic()<until:
+                rclpy.spin_once(node,timeout_sec=.05)
+                vision_audit.tick(last['clock'].clock if 'clock' in last else None)
+            vision_result = vision_audit.result()
+            write_json(run_dir / 'vision-fusion.json', vision_result)
+            result['vision_fusion_passed'] = vision_result['passed']
+            result['arming_states'] = sorted(arming_states)
+            result['passed'] = result['passed'] and vision_result['passed'] and arming_states == {VehicleStatus.ARMING_STATE_DISARMED}
         if args.flight and result['passed']:
             flight = launch('flight_tasks', [sys.executable, ROOT / 'scripts/run_px4_flight_tasks.py'])
             until = time.monotonic() + 245
