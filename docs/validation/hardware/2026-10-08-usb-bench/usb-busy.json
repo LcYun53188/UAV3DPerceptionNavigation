@@ -1,0 +1,6 @@
+{
+  "result": "ERROR",
+  "receive_only": true,
+  "transmitted_bytes": 0,
+  "error": "/dev/ttyACM0 already open by PID 149409; close QGC/serial readers"
+}
