@@ -4,14 +4,20 @@
 
 2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
 进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
-这是 S2 的首批真实 PX4 接入，逐步骤飞行 BT、algorithm MissionServer/两航点树与暂停恢复仍待完成，
+这是 S2 的首批真实 PX4 接入，逐步骤 PX4 飞行 BT 与完整阶段验收仍待完成，
 不代表 S2 或 S3/S4 全部验收通过。验证证据见 [BT/PX4 记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 2026-10-08 导航补充：EGO 已在原 Executor 内提供真实 `NavigateToPose3D` Action，
 含 UUID 取消、任务反馈、地图/时间校验、旧入口互斥与停稳确认。普通客户端的两航点和
 运动中取消验证见 [导航 Action 记录](validation/simulation/2026-10-08-navigation-action/REPORT.md)，
-接口与复现命令见 [运行说明](NAVIGATION_ACTION.md)。algorithm 父 MissionServer、
-两航点 BT 与暂停恢复仍待实现，S2 继续开发。
+接口与复现命令见 [运行说明](NAVIGATION_ACTION.md)。
+
+2026-10-08 任务补充：algorithm MissionServer 与 ExecuteWaypoints BT 已接入，父任务覆盖
+两航点和暂停期的会话预约/进展租约，支持确认停稳后暂停、检查点和新子 UUID 恢复。
+请求幂等、旧世代与旧轨迹拒绝、暂停中取消及 Runner 停滞处置已有契约/实景回归。
+见 [任务说明](ALGORITHM_MISSIONS.md) 与
+[任务验证记录](validation/simulation/2026-10-08-algorithm-mission/REPORT.md)。
+S2 算法闭环首批已实现，更多地图/clock 故障与逐步骤 PX4 BT、后续坐标/感知门槛仍待推进。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
@@ -46,7 +52,7 @@
 | `uav_ego_lab/expanded.sdf` | 障碍布局、场景资产、目标测试 | 新增有重力的动力学场景，不覆盖零重力基线 |
 | `uav_quad_mid360/model.sdf` | 传感器/几何组织参考 | 当前 VelocityControl 不作为真实飞行动力学，另建 PX4 模型 |
 | `uav_ego_nvblox.launch.py` | nvblox、地图、EGO、执行组合 | 新入口按后端选择组件，禁止双重执行和重复 TF |
-| GoalManager/AutonomousExplorer | 分段观察、探索、重试、接续；Navigate Action 与 UUID 取消已接入 | 父 MissionServer、探索 Action、暂停恢复和跨子任务所有权 |
+| GoalManager/AutonomousExplorer | 分段观察、探索、重试、接续；Navigate Action 与 UUID 取消已接入 | 探索 Action、更多故障回归和后续坐标/定位适配 |
 | `MapSnapshot/TimedTrajectory` | 地图会话、样条、token、父轨迹契约 | 从 identity map/odom 仿真契约扩展至经过验证的坐标适配 |
 | `px4_comm_bridge` | 速度参考转换、状态/ACK、模式状态机框架 | 修复里程计转换，显式授权/模式进入、状态聚合、制动、飞行 Action |
 | OAK-D VIO-only 配置 | 双目/IMU 到连续里程计的候选路线 | 仿真双目和标定一致性、实际平台兼容性 |

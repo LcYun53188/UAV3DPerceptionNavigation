@@ -1,0 +1,29 @@
+{
+  "child_uuid": "5441d1ef-b86c-1c2f-3b8a-61a709cab1e5",
+  "control_generation": 1,
+  "coordinator_instance": "algorithm-2465498028-3513716141",
+  "definition": {
+    "coordinator_instance": "algorithm-2465498028-3513716141",
+    "map_session": "624b051f-1491-4723-8f0c-9421a3208601:1791432153284311087",
+    "navigation_timeout_s": 90.0,
+    "waypoints": [
+      [
+        -2.2,
+        0.6,
+        1.2
+      ],
+      [
+        -3.2,
+        -0.6,
+        1.2
+      ]
+    ]
+  },
+  "definition_sha256": "60a2e445df60022d631505b99cb544a9a3281003fe3c8424e2f610f07e305877",
+  "mission_uuid": "e1730727-5266-4bb6-9a2e-35dc72dbc948",
+  "phase": "CANCELED",
+  "remaining_navigation_s": 90.0,
+  "remaining_total_s": 115.895753249,
+  "restart_resume_supported": false,
+  "waypoint_index": 0
+}

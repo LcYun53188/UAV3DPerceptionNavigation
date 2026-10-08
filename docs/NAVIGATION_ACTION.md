@@ -21,8 +21,9 @@
 10 Hz 反馈包含本 Action UUID、owner、递增事件序号、地图会话、当前位置、最终目标距离、
 局部阶段和已完成分段数。局部观察点到达不会结束最终目标 Action。
 
-当前 ControlSession 是单目标身份与反馈上下文，尚未提供跨子任务的父会话预约、
-世代转移或 BT 进展租约。两个普通客户端目标之间不会自动保留父任务控制权。
+独立 Action 的 ControlSession 是单目标身份上下文；使用父 MissionServer 时，执行器额外
+预约跨子任务会话并验证 BT 进展租约，暂停/航点间隙仍阻止其他客户端接管，见
+[算法任务说明](ALGORITHM_MISSIONS.md)。两个普通客户端目标之间不保留父任务控制权。
 
 ## 结束与取消
 
@@ -44,7 +45,7 @@ Action 占用期间，RViz `/uav/goal`、自主探索启停和旧 `/uav/cancel` 
 
 ## 构建与回归
 
-完整算法栈已构建后，可只增量构建接口和执行器，不重编 CUDA 感知包：
+完整算法栈已构建后，可增量构建接口、执行器和 BT，不重编 CUDA 感知包：
 
 ```bash
 ./scripts/build_navigation_actions.sh
@@ -69,6 +70,6 @@ ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
 发送取消。输出 `result.json` 和 `trace.jsonl`，记录源文件 hash、UUID、反馈、过滤里程计和
 原始 Gazebo 位姿；同时检查终态、实际位移、独立几何净空及结果后 1 s 保持漂移。
 
-这些是普通 Action 客户端回归。algorithm MissionServer、两航点 BT、父任务暂停检查点/
-恢复以及跨子任务控制权仍待实现；不能据此标记 S2 全部通过。
+这些仍是普通 Action 客户端回归；已实现的父 MissionServer、两航点 BT、暂停恢复与
+跨子任务控制权另见 [算法任务说明](ALGORITHM_MISSIONS.md)，证据独立归档。
 验证证据见 [导航 Action 报告](validation/simulation/2026-10-08-navigation-action/REPORT.md)。
