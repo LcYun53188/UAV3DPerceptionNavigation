@@ -45,7 +45,7 @@ def main():
     use_bt=os.environ.get('UAV_FLIGHT_BT')=='1'
     bt=None
     implementation_hashes={str(path.relative_to(ROOT)):file_hash(path) for path in
-      [ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
+      [ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
@@ -54,6 +54,14 @@ def main():
             implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
+    localized_samples=[]
+    from uav_nav_interfaces.msg import LocalizedOdometry
+    def localized_receive(message):
+        localized_samples.append(dict(session=message.localization_session,
+            counters=list(map(int,message.reset_counters)),frame=message.header.frame_id,
+            stamp_matches=message.header==message.odometry.header,
+            child=message.odometry.child_frame_id))
+    node.create_subscription(LocalizedOdometry,'/uav/px4/localized_odometry',localized_receive,10)
     truth=[]
     frames=set()
     truth_process=subprocess.Popen(['gz','topic','-e','-t','/world/default/pose/info','--json-output'],
@@ -280,6 +288,12 @@ def main():
         if scenario in ('odometry-stale','odometry-reset'):
             result['passed'] = (result['passed'] and result.get('fallback_landed_disarmed', False) and
                 result.get('outputs_at_action_result') == node.output_count and result.get('bt_step_accepts', [0,1]) == [0,1])
+        result['localized_odometry']=dict(samples=len(localized_samples),
+            sessions=sorted({s['session'] for s in localized_samples}),
+            valid=bool(localized_samples) and all(s['session']==node.instance and s['frame']=='odom' and
+                s['child']=='base_link' and s['stamp_matches'] for s in localized_samples))
+        result['passed'] = result['passed'] and result['localized_odometry']['valid']
+        write_json(out/'localized-odometry.json',localized_samples)
         write_json(out/'flight-observation.json',result)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)

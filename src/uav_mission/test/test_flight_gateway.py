@@ -302,3 +302,15 @@ def test_localization_fault_removes_reference_owner_and_aborts_root():
     assert f.owner=='NONE' and f.segment is None and f.generation==2
     assert f.result==('ABORTED','LOCALIZATION_RESET',False)
     assert f.changes==[('FAULT','LOCALIZATION_RESET')]
+
+
+def test_localized_odometry_carries_source_session_counters_and_sample_stamp():
+    from nav_msgs.msg import Odometry
+    f=localization_fixture();f.instance='unique-gateway-instance'
+    f.samples['vehicle_local_position'].vxy_reset_counter=9
+    f.samples['vehicle_odometry'].reset_counter=255
+    o=Odometry();o.header.frame_id='odom';o.header.stamp.sec=12;o.child_frame_id='base_link'
+    result=FlightServer.localized_odometry(f,o)
+    assert result.localization_session==f.instance
+    assert list(result.reset_counters)==[0,0,9,0,0,255]
+    assert result.header==result.odometry.header==o.header

@@ -1,0 +1,17 @@
+{
+  "passed": false,
+  "scope": "Synthetic ESDF, real EGO/DDS; shadow planning only",
+  "domain": 91,
+  "error": "Timed out; latest context: uav_nav_interfaces.msg.PlanningContext(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1791453314, nanosec=631976293), frame_id='map'), context_id='2d3aeb5f6b3405db8b49d4f7e7c701f55f606433f989a929e7ab6019ab1fa648', map_id='synthetic-obstacle', map_epoch=1, map_version=118, localization_session='synthetic-ekf', alignment_id='explicit-nonidentity', alignment_generation=1, reset_counters=array([0, 0, 0, 0, 0, 0], dtype=uint8), valid=True, reason='READY')",
+  "cleanup_exit_codes": [
+    0,
+    0
+  ],
+  "source_sha256": {
+    "src/uav_nav_sim/uav_nav_sim/planning_context.py": "a31bc0554cbaca4b3066248250a05cd48051b7b31510d15168d4d6f111ea65a3",
+    "src/uav_nav_sim/uav_nav_sim/planning_context_node.py": "570c85ad07eeacf54cdd782829e85fd91f0e2acbc53d6346566f509035e165c4",
+    "src/uav_ego_adapter/src/planner.cpp": "6eda7b9ef91bf5fd1d4869ef7182fe30168d8e79050dd662a276fee2e2245f7c",
+    "scripts/run_planning_context_smoke.py": "b49524a574684c3e5ff306fd0b1efbb120ece7b369ff764060d32c5074c56621",
+    "install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner": "d5edc3222700982e7926d8137d26d3400036bce7576c354b0ee6249d0faddf08"
+  }
+}

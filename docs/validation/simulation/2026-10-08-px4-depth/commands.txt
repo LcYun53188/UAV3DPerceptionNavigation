@@ -1,0 +1,7 @@
+./scripts/with_venv.sh bash -c 'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q scripts/test_px4_depth_audit.py --junit-xml=.cache/simulation/depth-camera-pytest.xml'
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_mission/test src/px4_comm_bridge/test scripts/test_px4_flight_audit.py --junit-xml=.cache/simulation/depth-flight-regression.xml'
+./scripts/sim.sh px4-depth --ui --duration 45
+./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py --duration 20
+./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py --depth-camera --flight  # expected argparse exit 2
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego

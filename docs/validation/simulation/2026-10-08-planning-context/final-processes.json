@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-08T09:58:25.033040+00:00",
+  "px4_cleaned": true,
+  "active": [
+    {
+      "pid": 147589,
+      "command": [
+        "gz sim -r /home/nuc/Program/uav_nav_ws/src/uav_bringup/gazebo/worlds/uav_ego_lab.sdf"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 147605,
+      "command": [
+        "/opt/ros/jazzy/lib/rviz2/rviz2",
+        "-d",
+        "/home/nuc/Program/uav_nav_ws/install_uav/uav_bringup/share/uav_bringup/rviz/uav_navigation.rviz",
+        "--ros-args",
+        "--params-file",
+        "/tmp/launch_params_jwc9ffym"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 147850,
+      "command": [
+        "gz sim server"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 147851,
+      "command": [
+        "gz sim gui"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 464425,
+      "command": [
+        "/tmp/.mount_QGrounkcoINd/usr/bin/QGroundControl"
+      ],
+      "domain": null,
+      "partition": null
+    }
+  ]
+}

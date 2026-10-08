@@ -9,6 +9,7 @@
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <chrono>
+#include <stdexcept>
 #include "safe_seed.hpp"
 #include "swept_segment.hpp"
 #include "free_volume.hpp"
@@ -22,6 +23,10 @@ class Planner : public rclcpp::Node {
  public:
   Planner() : Node("ego_nvblox_planner") {}
   void init() {
+    coordinate_frame_ = declare_parameter<std::string>("coordinate_frame", "odom");
+    if(coordinate_frame_ != "odom" && coordinate_frame_ != "map") {
+      throw std::runtime_error("coordinate_frame must be odom (legacy identity) or map");
+    }
     radius_ = declare_parameter("body_radius", 0.3);
     vmax_ = declare_parameter("max_velocity", 0.5);
     amax_ = declare_parameter("max_acceleration", 1.0);
@@ -114,7 +119,7 @@ class Planner : public rclcpp::Node {
         std::chrono::duration<double>(std::chrono::steady_clock::now()-map_received_).count()>map_timeout_) {
       report("WAIT_MAP_OR_ODOMETRY"); return;
     }
-    if(odom_->header.frame_id!="odom") { report("REJECT_ODOM_FRAME"); return; }
+    if(odom_->header.frame_id!=coordinate_frame_ || odom_->child_frame_id!="base_link") { report("REJECT_ODOM_FRAME"); return; }
     V start_velocity=V::Zero(), start_acceleration=V::Zero();
     if(moving_) {
       const auto& v=moving_->start_velocity; const auto& a=moving_->start_acceleration;
@@ -228,7 +233,7 @@ class Planner : public rclcpp::Node {
     if(moving_ && (rclcpp::Time(moving_->start_time)-now()).seconds()<0.1) {
       report("HANDOVER_EXPIRED");return;
     }
-    out.header.stamp=now();out.header.frame_id="odom";
+    out.header.stamp=now();out.header.frame_id=coordinate_frame_;
     out.goal_stamp=goal_stamp_;
     out.map_id=s->map_id;out.epoch=s->epoch;out.map_version=s->version;out.trajectory_id=++id_;
     out.start_time=moving_ ? moving_->start_time : static_cast<builtin_interfaces::msg::Time>(now()+rclcpp::Duration::from_seconds(0.5));
@@ -245,7 +250,7 @@ class Planner : public rclcpp::Node {
     path_pub_->publish(path);pending_=false;report("TRAJECTORY_PUBLISHED");
   }
   FreeVolume free_volume_;
-  std::string last_status_;
+  std::string last_status_,coordinate_frame_;
   double radius_,vmax_,amax_,jmax_,map_timeout_;
   bool managed_=false,continuous_=true;
   builtin_interfaces::msg::Time goal_stamp_;

@@ -1,0 +1,22 @@
+{
+  "managed_groups": [
+    485929,
+    485930,
+    485931,
+    485932,
+    485933,
+    485934,
+    485935,
+    488119,
+    488120,
+    488121,
+    488122,
+    488123
+  ],
+  "survivors": [],
+  "restored_qgc": [
+    " 489642  489642 /tmp/.mount_QGrounlKdjCo/usr/bin/QGroundControl --allow-multiple",
+    " 489647  489647 /home/nuc/Program/QGC/QGroundControl-x86_64.AppImage --allow-multiple",
+    " 490024  490024 /bin/bash -c python3 - <<'PY' from pathlib import Path import subprocess,json out=Path('docs/validation/simulation/2026-10-08-px4-depth') cases=[] for options in [['--flight'],['--bt'],['--mission-file','simulation/missions/W0_flight_sequence.json'],['--flight-scenario','cancel']]:  cmd=['./scripts/with_px4_sim.sh','python','scripts/run_px4_sitl_smoke.py','--depth-camera']+options  r=subprocess.run(cmd,capture_output=True,text=True,timeout=15)  assert r.returncode==2 and 'disarmed profile' in r.stderr  cases.append(dict(command=cmd,exit_code=r.returncode,stderr=r.stderr)) (out/'cli-validation.json').write_text(json.dumps(cases,indent=2)+'\\n') known=[] for p in [out/'manifest.json',out/'baseline-x500/manifest.json']:  m=json.loads(p.read_text());known.extend(v['pid'] for v in m['processes'].values()) rows=subprocess.check_output(['ps','-eo','pid,pgid,args'],text=True).splitlines()[1:] survivors=[row for row in rows if int(row.split(None,2)[1]) in known] assert not survivors,survivors qgc=[row for row in rows if 'QGroundControl' in row and ('/usr/bin/QGroundControl' in row or row.split(None,2)[2].startswith('/home/nuc/Program/QGC/'))] (out/'process-audit.json').write_text(json.dumps(dict(managed_groups=known,survivors=survivors,restored_qgc=qgc),indent=2)+'\\n') print('Four invalid profile combinations rejected; no managed groups remain; QGC restored') PY"
+  ]
+}

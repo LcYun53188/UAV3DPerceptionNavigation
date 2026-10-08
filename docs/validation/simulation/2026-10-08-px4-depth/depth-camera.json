@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "images": 707,
+  "infos": 1143,
+  "valid_images": 707,
+  "valid_infos": 1143,
+  "errors": [],
+  "regressions": 0,
+  "image": {
+    "stamp": 40.988,
+    "frame": "x500_depth_7/camera_link/StereoOV7251",
+    "width": 640,
+    "height": 480,
+    "encoding": "32FC1",
+    "finite_pixels": 149626,
+    "finite_fraction": 0.48706380208333333,
+    "min_m": 0.44744884967803955,
+    "max_m": 16.488637924194336
+  },
+  "camera_info": {
+    "stamp": 40.988,
+    "frame": "x500_depth_7/camera_link/StereoOV7251",
+    "width": 640,
+    "height": 480,
+    "k": [
+      432.496042035043,
+      0.0,
+      320.0,
+      0.0,
+      432.496042035043,
+      240.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "p": [
+      432.496042035043,
+      0.0,
+      320.0,
+      -0.0,
+      0.0,
+      432.496042035043,
+      240.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    "r": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "d": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "receive_age_s": {
+    "image": 0.0021572100013145246,
+    "camera_info": 0.012508879000961315
+  },
+  "image_source_age_s": 0.012000000000000455,
+  "matching": true,
+  "writers": {
+    "/px4_depth/image": 1,
+    "/px4_depth/camera_info": 1
+  },
+  "scope": "disarmed sensor transport only; no TF, fusion, alignment or flight validation"
+}
