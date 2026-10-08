@@ -53,7 +53,7 @@ def main():
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
     parser.add_argument('--bt', action='store_true', help='Execute flight through BehaviorTree.CPP runner')
     parser.add_argument('--ui', action='store_true', help='Show the owned Gazebo and QGC windows')
-    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall'], default='full')
+    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall','odometry-stale','odometry-reset'], default='full')
     parser.add_argument('--flight', action='store_true', help='Run real known-region flight mission after disarmed smoke')
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
