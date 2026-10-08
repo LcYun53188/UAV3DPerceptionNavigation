@@ -99,6 +99,12 @@ ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
 ```
 
 另外两个场景为 `--scenario cancel-pausing`、`--scenario runner-stall`，使用新的输出目录。
+故障回归还支持 `--scenario clock-stall` 和 `--scenario paused-map-change`：前者通过
+Gazebo 世界控制服务暂停/恢复真实时钟，验证停更期间持续零命令且不误报清理；后者在
+PAUSED 时调用真实地图保存服务，保留 `map-bundle/` 并使 epoch 变化，验证父任务撤销。
+时钟暂停在异常清理中也会尝试恢复。故障恢复不会自动续跑旧任务；先确认实际清理结果，
+再提交绑定当前地图的新根任务。持续里程计缺失不能确认清理时，服务端/执行器锁止，
+新鲜数据恢复不会自动解除该锁止。
 每轮由客户端拥有并清理其 MissionServer 进程，保留 Gazebo 与地图；拒绝重复启动服务端。
 操作锁避免与初始化/扫描并发。发送有效根任务前，用必定被拒绝的 DISCOVERY_PROBE
 检查 SendGoal 双向响应通道；服务发现本身不视作响应就绪。接受回调长期未确认时，
@@ -119,3 +125,5 @@ ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
 
 回归脚本拒绝接管这个常驻服务端；使用回归入口前先正常退出它。
 验证记录见 [MissionServer/BT 报告](validation/simulation/2026-10-08-algorithm-mission/REPORT.md)。
+
+新增地图/时钟故障与恢复证据见 [故障回归报告](validation/simulation/2026-10-08-algorithm-faults/REPORT.md)。

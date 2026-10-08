@@ -13,6 +13,7 @@
 - [PX4/BT 验证记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)：S2 首批真实后端集成及适用边界。
 - [算法 MissionServer 与两航点 BT](ALGORITHM_MISSIONS.md)：父会话、进展租约、暂停检查点与恢复。
 - [算法任务验证记录](validation/simulation/2026-10-08-algorithm-mission/REPORT.md)：Gazebo 暂停恢复、取消竞态及 Runner 停滞。
+- [算法任务故障回归](validation/simulation/2026-10-08-algorithm-faults/REPORT.md)：真实时钟暂停、地图 epoch 变化和故障后的新根任务。
 - [算法导航 Action](NAVIGATION_ACTION.md)：请求契约、UUID 取消、停稳确认与普通客户端回归。
 - [导航 Action 验证记录](validation/simulation/2026-10-08-navigation-action/REPORT.md)：Gazebo 两航点与运动中取消。
 - [Isaac 系列保留范围](ISAAC_ROS_COMPONENTS.md)

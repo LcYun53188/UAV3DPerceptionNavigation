@@ -1,0 +1,99 @@
+{
+  "profile": "algorithm",
+  "scenario": "pause-resume",
+  "passed": true,
+  "mock": false,
+  "source_hashes": {
+    "scripts/check_gazebo_algorithm_mission.py": "c70dfdc42ba986d0c59d61cfdc89cdc31a05230e92a492a452ca9eb9cec929bd",
+    "src/uav_bt/src/algorithm_mission_server.cpp": "0d9c8d6c039677fd5609154e36dea4616797e1a6ffc8e96490e36a36f806b933",
+    "src/uav_bt/trees/algorithm_waypoints.xml": "b5f1f6a1d87a1cbb1b39ff21086e465a837176d05360408e0f9b32c08ee4d1c5",
+    "src/uav_nav_sim/uav_nav_sim/control_reservation.py": "48a7ca7352c285c57b846d07b49fcf63ef4a3d9c98c4cb600d8afcbe0dc9a0bb",
+    "src/uav_nav_sim/uav_nav_sim/navigation_action.py": "02d7700a7f96f35fe64d27fbe55eea9d2aa0af4474ea1884c2c2da0b02f2bfd5",
+    "src/uav_nav_sim/uav_nav_sim/executor.py": "b4ccee818f28d86f122afc5dd584a65f5a3f6284fc0e537968fe3a67a75e7d2f",
+    "src/uav_nav_sim/uav_nav_sim/navigation.py": "b169359612e4d828e270170979dba2a4ac7e95dbd69388af2bf6ecf0bcf38f8e",
+    "src/uav_nav_sim/uav_nav_sim/autonomous.py": "0532ea6c21307417a9d8b2ba25242cc35101482eb5ae8ba3a608b4a93aadc466"
+  },
+  "binary_sha256": "0b414b70629d8043826c311efb50075b76093dd20b5ccae1c240eab2c5d97de5",
+  "world_sha256": "343d0cef432f45b0bbd854af71104a8908ee534de5c2bcb96eeef3dfc34f0424",
+  "managed_session": {
+    "layout": "lab",
+    "mode": "mapping",
+    "domain": 68,
+    "partition": "uav_ego_lab",
+    "view": "none",
+    "pid": 82166,
+    "identity": [
+      "b2302a02-e2a3-443c-8ee1-3d2fb74d55af",
+      "492598"
+    ],
+    "log": "/home/nuc/Program/uav_nav_ws/.cache/sim/launch-1791432152322254197.log"
+  },
+  "command_publishers": [
+    "gazebo_trajectory_executor"
+  ],
+  "initial_truth": [
+    -2.5667387805468524,
+    0.16507499946242862,
+    1.2000007730958522
+  ],
+  "pause_drift_m": 0.0,
+  "pause_rotation_rad": 2.063689783485512e-06,
+  "resume_t": 8.502684838000278,
+  "root_result": {
+    "status": 4,
+    "code": "SUCCEEDED",
+    "reason": "WAYPOINTS_COMPLETE",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "post_result_hold_drift_m": 0.0,
+  "final_truth": [
+    -3.2006182632861755,
+    -0.6004827624885207,
+    1.200000091008323
+  ],
+  "displacement_m": 0.9940660926751187,
+  "min_truth_clearance_m": 0.8999999994277761,
+  "children": {
+    "dfacfbf33228bb8b64e0478b3159b44a": {
+      "t": 13.945003787000132,
+      "kind": "child_result",
+      "uuid": "dfacfbf33228bb8b64e0478b3159b44a",
+      "status": 4,
+      "result_code": "SUCCEEDED",
+      "reason": "GOAL_REACHED",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "a211674a9eeb1077a0377c0d9a9b6682": {
+      "t": 6.445275439999932,
+      "kind": "child_result",
+      "uuid": "a211674a9eeb1077a0377c0d9a9b6682",
+      "status": 5,
+      "result_code": "CANCELED",
+      "reason": "CANCEL_REQUESTED",
+      "cleanup_confirmed": true,
+      "mock": false
+    },
+    "e4fce2d77de6da4d324ed741176fe903": {
+      "t": 21.405026241000087,
+      "kind": "child_result",
+      "uuid": "e4fce2d77de6da4d324ed741176fe903",
+      "status": 4,
+      "result_code": "SUCCEEDED",
+      "reason": "GOAL_REACHED",
+      "cleanup_confirmed": true,
+      "mock": false
+    }
+  },
+  "waypoint_errors_m": {
+    "0": 0.0003298327368539663,
+    "1": 0.0007844164197908908
+  },
+  "obsolete_goal_rejections": 2,
+  "fresh_resume_tokens": [
+    863060000000,
+    868420000000
+  ],
+  "server_exit_code": 0
+}
