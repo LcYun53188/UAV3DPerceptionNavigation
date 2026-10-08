@@ -5,4 +5,8 @@ if [[ "${1:-}" == "px4-flight" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_flight.sh" "$@"
 fi
+if [[ "${1:-}" == "px4-depth" ]]; then
+  shift
+  exec "$SCRIPT_DIR/with_px4_sim.sh" python "$SCRIPT_DIR/run_px4_sitl_smoke.py" --depth-camera "$@"
+fi
 exec python3 "$SCRIPT_DIR/sim_control.py" "$@"
