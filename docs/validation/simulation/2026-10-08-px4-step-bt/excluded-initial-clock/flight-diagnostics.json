@@ -1,0 +1,30 @@
+[
+  {
+    "admission": {
+      "reason": "CLOCK_BUSY_OR_HEALTH",
+      "clock_fault_latched": true,
+      "ages": {
+        "vehicle_local_position": {
+          "receive": 0.000938595000661735,
+          "source": 0.004000000000001336
+        },
+        "vehicle_odometry": {
+          "receive": 0.000858598000377242,
+          "source": 0.004000000000001336
+        },
+        "battery_status": {
+          "receive": 0.004691222000474227,
+          "source": 0.004000000000001336
+        },
+        "vehicle_status": {
+          "receive": 0.3808391680004206,
+          "source": 0.38000000000000256
+        },
+        "vehicle_land_detected": {
+          "receive": 0.020026821000101336,
+          "source": 0.019999999999999574
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,207 @@
+{
+  "passed": true,
+  "scenario": "full",
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        12.122151327737017,
+        -1.0464699464362142,
+        2.306220519542694
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 30.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        7.425287763500123,
+        -2.7609589837134703,
+        2.306220519542694
+      ]
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "recipe_sha256": "8ec8a848d47e9a37ce195239dd6a49d89176a5b672338d8bffd41b3887853ddc",
+  "outputs_at_action_result": 4566,
+  "landing_cancel_rejected": true,
+  "action_status": 4,
+  "result": {
+    "code": "SUCCEEDED",
+    "reason": "LANDED_AND_DISARMED",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "mission_uuid": "ef1b7928-eeeb-0f8d-0ea5-2d6017cd4057",
+  "home_enu": [
+    0.006250029429793358,
+    0.046784501522779465,
+    0.006220519542694092
+  ],
+  "home_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "AWAIT_STEP",
+    "NAVIGATE",
+    "AWAIT_STEP",
+    "HOVER",
+    "AWAIT_STEP",
+    "NAVIGATE",
+    "AWAIT_STEP",
+    "RETURN",
+    "AWAIT_STEP",
+    "HOVER",
+    "AWAIT_STEP",
+    "LAND_REQUEST",
+    "LANDING",
+    "COMPLETE"
+  ],
+  "max_truth_displacement_m": 4.199207408794517,
+  "hovers": [
+    {
+      "duration_s": 32.02918704000058,
+      "samples": 1602,
+      "max_drift_m": 0.06834316287620637
+    },
+    {
+      "duration_s": 5.019261028000074,
+      "samples": 251,
+      "max_drift_m": 0.027161120492230312
+    }
+  ],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        -0.00230325618758798,
+        -0.0017459802329540253,
+        1.9860489277850015
+      ],
+      "actual_world": [
+        0.03041027025287435,
+        0.03423073868576575,
+        1.8586788015046216
+      ],
+      "error_m": 0.13633652549851533
+    },
+    {
+      "phase": "NAVIGATE",
+      "expected_world": [
+        2.999999999999999,
+        2.0000000000000004,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        3.0138906611835985,
+        2.0275098717612243,
+        1.9882445460932212
+      ],
+      "error_m": 0.030843035947786743
+    },
+    {
+      "phase": "NAVIGATE",
+      "expected_world": [
+        -2.0,
+        2.000000000000001,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        -1.9853694159639728,
+        2.030104520955488,
+        1.9434602786944284
+      ],
+      "error_m": 0.05491837073125925
+    },
+    {
+      "phase": "RETURN",
+      "expected_world": [
+        -0.00230325618758798,
+        -0.0017459802329540253,
+        1.9869998155842645
+      ],
+      "actual_world": [
+        0.01785470757969809,
+        0.019349711398700904,
+        1.9783850049115324
+      ],
+      "error_m": 0.030423455944190724
+    }
+  ],
+  "source_sha256": {
+    "src/uav_mission/uav_mission/px4_flight.py": "b99745dca592fc3e4dc87e048d244e89015d28431b2b7ed35f4d82cf9ea7b2aa",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "afcd07e194e61a805d2a2013c10eaf459b4a90be66e9b9efa7efe324cbffb6da",
+    "scripts/run_px4_sitl_smoke.py": "dc4ce92b08da569c1565bb140866a63f65cb2cbec9f851e3b118c3c23ca21704",
+    "src/uav_bt/src/mission_runner.cpp": "41ea5b5d39f01c7eadd0841cdb09d0c87bace44902d2293445f6b63e4010429a",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "7337a78eebd3c607259aea027a01e82c1004843f6b5f5d35fb02819d23fefdb3"
+  },
+  "final_truth": [
+    0.019684146469153903,
+    0.005593432055811423,
+    -0.013000127508439735
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "bt_exit_code": 0,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "bt_step_completes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "bt_progress": {
+    "samples": 973,
+    "max_gap_s": 0.10584170600031939,
+    "handshake_s": 0.10184424599992781,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 4566
+}

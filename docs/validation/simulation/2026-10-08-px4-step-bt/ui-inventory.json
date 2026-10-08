@@ -1,0 +1,49 @@
+{
+  "checked_at": "2026-10-08T04:44:16.556862+00:00",
+  "processes": [
+    {
+      "pid": 82197,
+      "argv": [
+        "gz sim -r -s --headless-rendering /home/nuc/Program/uav_nav_ws/src/uav_bringup/gazebo/worlds/uav_ego_lab.sdf"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 112661,
+      "argv": [
+        "gz sim -g"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 112724,
+      "argv": [
+        "/opt/ros/jazzy/lib/rviz2/rviz2",
+        "-d",
+        "/home/nuc/Program/uav_nav_ws/install_uav/uav_bringup/share/uav_bringup/rviz/uav_navigation.rviz",
+        "--ros-args",
+        "--params-file",
+        "/tmp/launch_params_owfopxey"
+      ],
+      "domain": "68",
+      "partition": "uav_ego_lab"
+    },
+    {
+      "pid": 143978,
+      "argv": [
+        "/tmp/.mount_QGrounLEGIFa/usr/bin/QGroundControl"
+      ],
+      "domain": null,
+      "partition": null
+    }
+  ],
+  "conclusion": "One active algorithm Gazebo server and attached GUI, one RViz. No residual PX4 Gazebo instances.",
+  "algorithm_state": {
+    "ready": true,
+    "executor": "HOLD",
+    "map_valid": true
+  },
+  "qgc": "Standalone visible; PX4 regression sessions ended"
+}
