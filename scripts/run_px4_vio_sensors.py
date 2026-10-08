@@ -16,13 +16,18 @@ from prepare_px4_sim import ensure_source,check_external
 from run_px4_sitl_smoke import stop,free_port
 from prepare_vio_sensor_assets import assets,PROFILE
 from px4_vio_sensor_audit import SensorAudit
+from px4_vio_pose_audit import PoseAudit
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration',type=float,default=45.)
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; no EV output')
+    parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.reset_source and (not args.normalize or args.duration < 35):
+        parser.error('--reset-source requires --normalize and duration >=35 s')
     if not 20 <= args.duration <= 120: parser.error('duration must be within [20,120] s')
     lock = read(ROOT/'simulation/px4/versions.lock.yaml')
     for key in ('sitl','agent','px4_msgs'): ensure_source(lock[key])
@@ -55,6 +60,8 @@ def main():
         enable_localization_n_mapping=False,rectified_images=True,
         sync_matching_threshold_ms=1.,image_jitter_threshold_ms=60.,imu_jitter_threshold_ms=12.,
         calibration_frequency=float(profile['imu_rate_hz']),image_buffer_size=100,imu_buffer_size=400,
+        gyro_noise_density=.000244,gyro_random_walk=.000019393,
+        accel_noise_density=.001862,accel_random_walk=.003,
         base_frame='base_link',odom_frame='odom',map_frame='map',imu_frame='vio_imu',
         camera_optical_frames=['vio_left_optical','vio_right_optical'],
         publish_map_to_odom_tf=False,publish_odom_to_base_tf=False)
@@ -67,8 +74,31 @@ def main():
               out/'vio-params.yaml',ROOT/'simulation/px4/server_control.config',binary,
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so',
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libcuvslam.so']
+    if args.normalize:
+        reviewed = ROOT/'simulation/px4/vio/pose_contract.json'
+        approved = read(reviewed)
+        if approved['schema'] != 1 or approved['contract'] != 'cuvslam15_right_tangent_base_link_v1':
+            raise RuntimeError('Unsupported SDK pose contract')
+        for name,digest in approved['expected_sha256'].items():
+            if file_hash(ROOT/name) != digest:
+                raise RuntimeError('Reviewed SDK pose contract drift: '+name)
+        inputs.append(reviewed)
+        inputs += [ROOT/'src/px4_comm_bridge/px4_comm_bridge/cuvslam_pose.py',
+            ROOT/'src/px4_comm_bridge/px4_comm_bridge/cuvslam_pose_node.py',ROOT/'scripts/px4_vio_pose_audit.py',
+            ROOT/'src/isaac_ros_nitros/isaac_ros_nitros/lib/cuvslam/include/cuvslam/cuvslam2.h',
+            ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/cuvslam_ros_conversion.cpp',
+            ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp']
+    write_json(out/'calibration.json',dict(schema=1,profile=profile,frames=frames,parameters=params,
+        source_contract='cuvslam15_right_tangent_base_link_v1',
+        native_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs
+                       if 'libvisual_slam_node.so' in str(p) or 'libcuvslam.so' in str(p)
+                       or 'cuvslam2.h' in str(p) or str(p).endswith('cuvslam_ros_conversion.cpp')
+                       or str(p).endswith('visual_slam_impl.cpp')}))
+    calibration = file_hash(out/'calibration.json')
+    inputs.append(out/'calibration.json')
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model']+'_7',versions=lock,profile=profile,
+        normalize=args.normalize,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
     def launch(name,command,environment=env):
@@ -81,6 +111,7 @@ def main():
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node = rclpy.create_node('vio_sensor_observer')
     audit = SensorAudit(node,profile,frames)
+    pose_audit = PoseAudit(node) if args.normalize else None
     result = dict(passed=False)
     try:
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
@@ -93,10 +124,15 @@ def main():
             '/vio/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             '/vio/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             '/vio/imu@sensor_msgs/msg/Imu[gz.msgs.IMU'])
+        reset_remap = ['-r','visual_slam/reset:=/visual_slam/internal/reset'] if args.normalize else []
         launch('vio',[binary,'--ros-args','--params-file',out/'vio-params.yaml',
             '-r','visual_slam/image_0:=/vio/left/image','-r','visual_slam/image_1:=/vio/right/image',
             '-r','visual_slam/camera_info_0:=/vio/left/camera_info','-r','visual_slam/camera_info_1:=/vio/right/camera_info',
-            '-r','visual_slam/imu:=/vio/imu'])
+            '-r','visual_slam/imu:=/vio/imu']+reset_remap)
+        if args.normalize:
+            launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
+                '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
+                '-p','source_contract:=cuvslam15_right_tangent_base_link_v1'])
         launch('px4',[build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
         config = out/'qgc-config/QGroundControl';config.mkdir(parents=True)
         (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
@@ -105,14 +141,23 @@ def main():
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
         until = time.monotonic()+args.duration
+        before_reset = None
         while time.monotonic()<until:
             rclpy.spin_once(node,timeout_sec=.05)
-        result = audit.result()
+            if args.reset_source and pose_audit.reset_time is None and time.monotonic() > until-8.:
+                before_reset = audit.result()
+                before_reset['normalized_pose'] = pose_audit.result(calibration)
+                result = before_reset
+                if not before_reset['passed'] or not before_reset['normalized_pose']['passed']:
+                    raise RuntimeError('Sensor/normalized source not ready before reset')
+                pose_audit.request_reset()
+        result = before_reset or audit.result()
+        if pose_audit is not None:
+            result['normalized_pose'] = pose_audit.result(calibration)
+            result['passed'] &= result['normalized_pose']['passed']
         result['qgc_connected'] = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2',
                                                      (out/'qgc.log').read_text(errors='replace')))
         result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes)
-        write_json(out/'odometry.json',list(audit.records))
-        write_json(out/'samples.json',{k:list(v) for k,v in audit.samples.items()})
         for side in ('left','right'):
             image = audit.last.get(side)
             if image is not None and image.encoding == 'rgb8' and len(image.data) == image.step*image.height:
@@ -122,9 +167,20 @@ def main():
     except Exception as exc:
         result.update(passed=False,error=str(exc))
     finally:
-        node.destroy_node();rclpy.shutdown()
+        node.destroy_node();rclpy.try_shutdown()
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
+        try:
+            write_json(out/'odometry.json',list(audit.records))
+            write_json(out/'samples.json',{k:list(v) for k,v in audit.samples.items()})
+            if pose_audit is not None:
+                write_json(out/'normalized-poses.json',list(pose_audit.poses))
+                write_json(out/'normalized-status.json',list(pose_audit.statuses))
+                write_json(out/'sdk-poses.json',[dict(stamp=t,covariance=list(m.pose.covariance),
+                    quaternion=[m.pose.pose.orientation.x,m.pose.pose.orientation.y,m.pose.pose.orientation.z,m.pose.pose.orientation.w])
+                    for t,m in pose_audit.raw.items()])
+        except Exception as exc:
+            result.update(passed=False,evidence_error=str(exc))
         result['root_exit_codes'] = {name:p.returncode for name,p in zip(manifest['processes'],processes)}
         groups = {p.pid for p in processes}
         live = []
@@ -134,6 +190,8 @@ def main():
                 stat = (entry/'stat').read_text().rsplit(')',1)[1].split()
                 if int(stat[2]) in groups and stat[0] != 'Z': live.append(int(entry.name))
             except (OSError,ValueError): continue
+        if args.normalize:
+            result['passed'] &= result['root_exit_codes'].get('normalizer') == 0
         result['remaining_owned_processes'] = live
         result['cleanup_confirmed'] = not live and all(p.poll() is not None for p in processes)
         result['passed'] &= result['cleanup_confirmed']
