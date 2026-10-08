@@ -27,7 +27,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress
+from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry
 from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
@@ -106,6 +106,7 @@ class FlightServer(Node):
         self.static_tf_pub.sendTransform(t)
         self.child=UUID()
         self.odom_pub = self.create_publisher(Odometry, '/uav/px4/odometry', 10)
+        self.localized_odom_pub = self.create_publisher(LocalizedOdometry, '/uav/px4/localized_odometry', 10)
         self.control_pub=self.create_publisher(ControlStatus,'/uav/px4/control_status',10)
         self.status_pub = self.create_publisher(TaskStatus, '/uav/px4/task_status', 10)
         self.server = ActionServer(self, ExecuteMission, '/uav/px4/execute_mission',
@@ -137,6 +138,8 @@ class FlightServer(Node):
                         odom=vehicle_odometry_to_ros(msg)
                         self.odom_valid = True
                         self.odom_pub.publish(odom)
+                        if 'vehicle_local_position' in self.samples:
+                            self.localized_odom_pub.publish(self.localized_odometry(odom))
                         t=TransformStamped();t.header=odom.header;t.child_frame_id=odom.child_frame_id
                         t.transform.translation.x=odom.pose.pose.position.x
                         t.transform.translation.y=odom.pose.pose.position.y
@@ -147,6 +150,10 @@ class FlightServer(Node):
                         if self.active_goal:
                             self.fault('INVALID_ODOMETRY_FRAME')
         return receive
+
+    def localized_odometry(self, odometry):
+        return LocalizedOdometry(header=odometry.header,localization_session=self.instance,
+            reset_counters=list(self.resets()),odometry=odometry)
 
     def change(self, phase, reason=''):
         self.phase, self.reason = phase, reason

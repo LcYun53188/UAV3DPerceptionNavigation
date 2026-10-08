@@ -1,0 +1,11 @@
+std_msgs/Header header
+string context_id
+string map_id
+uint64 map_epoch
+uint64 map_version
+string localization_session
+string alignment_id
+uint64 alignment_generation
+uint8[6] reset_counters
+bool valid
+string reason
