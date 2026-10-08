@@ -1,0 +1,30 @@
+[
+  {
+    "phase": "PRESTREAM",
+    "reason": "",
+    "mono": 795.122282986,
+    "ros": 15.676,
+    "generation": 1,
+    "step_index": -1,
+    "position_enu": [
+      0.013300551101565361,
+      0.0018263435922563076,
+      0.038574203848838806
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "FAULT",
+    "reason": "BT_PROGRESS_TIMEOUT",
+    "mono": 800.131666826,
+    "ros": 20.684,
+    "generation": 2,
+    "step_index": -1,
+    "position_enu": [
+      -0.011400834657251835,
+      0.01326204463839531,
+      0.010741189122200012
+    ],
+    "target_enu": null
+  }
+]

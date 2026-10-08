@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>uav_bt</name><version>0.1.0</version>
+  <description>Asynchronous BehaviorTree runner for owned local PX4 missions.</description>
+  <maintainer email="dev@example.com">UAV developers</maintainer><license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend><depend>rclcpp_action</depend>
+  <depend>behaviortree_cpp</depend><depend>ament_index_cpp</depend>
+  <depend>uav_nav_interfaces</depend>
+  <depend>nlohmann_json</depend>
+  <test_depend>python3-pytest</test_depend><test_depend>rclpy</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

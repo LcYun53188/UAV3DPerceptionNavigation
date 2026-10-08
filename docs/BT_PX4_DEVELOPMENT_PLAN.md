@@ -1,6 +1,11 @@
 # BehaviorTree 与 PX4 协同开发计划
 
-日期：2026-10-07。状态：开发中；最小任务 Action/暂停协议与 FlightSession mock 已交付，W0 真实飞行任务后端已实现；BT XML、EGO 实际任务后端与复杂场景仍待开发。
+日期：2026-10-07。状态：开发中；最小任务 Action/暂停协议与 FlightSession mock 已交付，W0 真实飞行任务后端已实现；最小 BT XML/Runner 已接入 W0；逐步骤编排、EGO 实际任务后端与复杂场景仍待开发。
+
+2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
+进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
+这是 S2 的首批真实 PX4 接入，逐步骤 BT/EGO Navigate 适配及 algorithm 两航点树仍待完成，
+不代表 S2 或 S3/S4 全部验收通过。验证证据见 [BT/PX4 记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 

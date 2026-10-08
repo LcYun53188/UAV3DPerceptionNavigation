@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import threading
 import subprocess
+import signal
 import time
 
 import rclpy
@@ -22,12 +23,32 @@ from uav_mission.flight_geometry import distance
 from sim_validation import write_json,ROOT,file_hash
 
 
+def completed_waypoint_truth(events, truth, home, home_truth):
+    """Audit only motion followed by an accepted next recipe step, never a stop."""
+    reached=[]
+    for event,next_event in zip(events,events[1:]):
+        if (event['phase'] in ('TAKEOFF','NAVIGATE','RETURN') and event.get('target_enu')
+                and next_event['phase'] in ('NAVIGATE','HOVER','RETURN','LAND_REQUEST')):
+            points=[t for t in truth if event['mono']<=t['mono']<=next_event['mono']]
+            if points:
+                expected=[home_truth[i]+event['target_enu'][i]-home[i] for i in range(3)]
+                reached.append(dict(phase=event['phase'],expected_world=expected,
+                                    actual_world=points[-1]['position'],error_m=distance(expected,points[-1]['position'])))
+    return reached
+
+
 def main():
     out=Path(os.environ['UAV_FLIGHT_EVIDENCE'])
     scenario=os.environ.get('UAV_FLIGHT_SCENARIO','full')
+    use_bt=os.environ.get('UAV_FLIGHT_BT')=='1'
+    bt=None
     implementation_hashes={str(path.relative_to(ROOT)):file_hash(path) for path in
       [ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+    if use_bt:
+        for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
+                     'scripts/bt_flight_client.py','.deps/mission-install/uav_bt/lib/uav_bt/mission_runner'):
+            implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
     truth=[]
@@ -82,7 +103,12 @@ def main():
             if not f.done():raise TimeoutError('Action deadline exceeded')
             return f.result()
         if not client.wait_for_server(timeout_sec=5):raise RuntimeError('Action discovery failed')
-        handle=wait(client.send_goal_async(request),5)
+        if use_bt:
+            from bt_flight_client import BtFlightClient
+            bt=BtFlightClient(node,request,out,ROOT)
+            handle=bt.wait_accepted()
+        else:
+            handle=wait(client.send_goal_async(request),5)
         if not handle.accepted:raise RuntimeError('Mission rejected')
         terminal_future=handle.get_result_async()
         injected=False
@@ -118,6 +144,9 @@ def main():
                                         '--reptype','gz.msgs.Boolean','--timeout','2000','--req','pause: '+value],
                                        check=True,stdout=subprocess.DEVNULL,timeout=5)
                         time.sleep(delay)
+                elif scenario in ('runner-exit','runner-stall'):
+                    bt.process.send_signal(signal.SIGKILL if scenario=='runner-exit' else signal.SIGSTOP)
+                    result['runner_fault_injected_mono']=time.monotonic()
                 injected=True
             if phase in ('LAND_REQUEST','LANDING') and not landing_cancel_rejected:
                 response=wait(handle.cancel_goal_async(),5)
@@ -127,7 +156,7 @@ def main():
         terminal=wait(terminal_future,1)
         result['outputs_at_action_result']=node.output_count
         result['landing_cancel_rejected']=landing_cancel_rejected
-        if scenario=='cancel':
+        if scenario in ('cancel','runner-exit','runner-stall'):
             hold_start=time.monotonic();hold_position=truth[-1]['position']
             until=time.monotonic()+45
             while time.monotonic()<until:
@@ -154,14 +183,7 @@ def main():
                     hovers.append(dict(duration_s=next_e['mono']-e['mono'],samples=len(points),
                                        max_drift_m=max(distance(t['position'],start) for t in points)))
         result['hovers']=hovers
-        waypoint_truth=[]
-        for event,next_event in zip(node.events,node.events[1:]):
-            if event['phase'] in ('TAKEOFF','NAVIGATE','RETURN') and event.get('target_enu') and next_event['phase'] not in ('PAUSING','CANCEL_BRAKE','FAULT'):
-                points=[t for t in truth if event['mono']<=t['mono']<=next_event['mono']]
-                if points:
-                    expected=[home_truth[i]+event['target_enu'][i]-home[i] for i in range(3)]
-                    waypoint_truth.append(dict(phase=event['phase'],expected_world=expected,
-                                               actual_world=points[-1]['position'],error_m=distance(expected,points[-1]['position'])))
+        waypoint_truth=completed_waypoint_truth(node.events,truth,home,home_truth)
         result['waypoint_truth']=waypoint_truth
         result['source_sha256']=implementation_hashes
         result['final_truth']=truth[-1]['position']
@@ -179,6 +201,25 @@ def main():
                           and all(w['error_m']<=.3 for w in waypoint_truth))
         if scenario=='pause-resume':result['passed']=result['passed'] and result.get('pause_resume',{}).get('passed',False)
         if scenario=='cancel':result['passed']=(terminal.status==5 and terminal.result.cleanup_confirmed and result['cancel_hold']['final_landed_disarmed'] and result['cancel_hold']['max_drift_m']<=.15)
+        if scenario in ('runner-exit','runner-stall'):
+            result['passed']=(terminal.status==6 and terminal.result.reason=='BT_PROGRESS_TIMEOUT'
+                              and terminal.result.cleanup_confirmed and result['cancel_hold']['final_landed_disarmed']
+                              and result['cancel_hold']['max_drift_m']<=.15)
+        if bt:
+            if scenario not in ('runner-exit','runner-stall'):
+                bt.process.wait(timeout=5)
+                expected_exit=130 if scenario=='cancel' else 1 if scenario=='clock-fault' else 0
+                result['passed']=result['passed'] and bt.process.returncode==expected_exit
+            result['bt_exit_code']=bt.process.poll()
+            log=(out/'bt-runner.log').read_text()
+            result['bt_dispatch_count']=log.count('Dispatched root mission once')
+            result['passed']=result['passed'] and result['bt_dispatch_count']==1
+            ticks=node.runner_progress_log
+            result['bt_progress']=dict(samples=len(ticks),
+                max_gap_s=max((b['mono']-a['mono'] for a,b in zip(ticks,ticks[1:])),default=None),
+                handshake_s=ticks[0]['mono']-node.events[0]['mono'] if ticks else None,
+                loss_to_brake_s=next((e['mono']-ticks[-1]['mono'] for e in node.events
+                                      if e['phase']=='LEASE_BRAKE'),None) if ticks else None)
         result['outputs_at_end']=node.output_count
         if truth:result['final_truth']=truth[-1]['position']
         if 'vehicle_status' in node.samples:result['final_arming']=node.samples['vehicle_status'].arming_state
@@ -209,6 +250,8 @@ def main():
         write_json(out/'flight-commands.json',node.commands)
         write_json(out/'flight-trace.json',node.trace)
         write_json(out/'flight-truth.json',truth)
+        write_json(out/'bt-progress.json',node.runner_progress_log)
+        if bt:bt.close()
         truth_process.terminate()
         truth_process.wait(timeout=5);truth_thread.join(timeout=2)
         client.destroy();executor.shutdown();node.destroy_node();rclpy.shutdown();thread.join(timeout=3)

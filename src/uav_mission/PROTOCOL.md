@@ -98,3 +98,9 @@ S1 mock protocols are covered here; full S1 readiness still requires independent
 state providers and the reset/re-authorize contract noted in the AircraftState report.
 
 The real W0 flight backend is now available in [the local SITL guide](../../simulation/px4/README.md#w0-真实飞行任务). The mock contracts above remain synthetic; they do not establish the real backend's physical performance.
+
+真实 W0 后端支持可选 `runner_progress_required=true` 与当前 `coordinator_instance`，
+要求 `/uav/px4/mission_progress` 的根 UUID/实例/递增序列匹配。首次握手只在地面等待
+最多 5 s，之后进展年龄不得超过 0.5 s。超时终态为 ABORTED/BT_PROGRESS_TIMEOUT；
+cleanup_confirmed=true 仅在实际停稳与保持交接已确认时成立。最终保持仍有独立固定
+期限，原生降落不因租约超时打断。旧直接客户端不声明此项，保留已有任务预算。

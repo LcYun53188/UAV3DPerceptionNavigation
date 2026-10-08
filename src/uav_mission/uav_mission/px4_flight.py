@@ -27,7 +27,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus
+from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress
 from uav_nav_interfaces.srv import PauseMission, ResumeMission
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
@@ -74,6 +74,13 @@ class FlightServer(Node):
         self.land_committed = False
         self.output_count = 0
         self.last_graph_check=0.
+        self.runner_required = False
+        self.runner_last_tick = 0.
+        self.runner_sequence = 0
+        self.runner_lost = False
+        self.runner_progress_log = []
+        self.create_subscription(MissionProgress, '/uav/px4/mission_progress', self.runner_progress,
+                                 10, callback_group=self.state_group)
         for name, kind in [('vehicle_status', VehicleStatus), ('vehicle_local_position', VehicleLocalPosition),
                            ('vehicle_land_detected', VehicleLandDetected), ('battery_status', BatteryStatus),
                            ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry)]:
@@ -188,6 +195,10 @@ class FlightServer(Node):
         if not isinstance(params,dict):raise ValueError('Mission parameters must be an object')
         if params.get('authorization') != self.nonce:
             raise ValueError('Missing fresh supervisor authorization')
+        if not isinstance(params.get('runner_progress_required', False), bool):
+            raise ValueError('Invalid runner progress flag')
+        if params.get('runner_progress_required') and params.get('coordinator_instance') != self.instance:
+            raise ValueError('Stale runner coordinator')
         steps = params['steps']
         if not isinstance(steps,list) or not 2 <= len(steps) <= 20:
             raise ValueError('Invalid steps')
@@ -241,6 +252,11 @@ class FlightServer(Node):
     def accept(self, handle):
         with self.lock:
             self.steps = self.parse(handle.request)
+            self.runner_required = json.loads(handle.request.parameters_json).get('runner_progress_required', False)
+            self.runner_last_tick = time.monotonic()
+            self.runner_sequence = 0
+            self.runner_lost = False
+            self.runner_progress_log.clear()
             self.active_goal, self.reserved = handle, False
             self.done_future=Future()
             self.home = self.position()
@@ -309,6 +325,30 @@ class FlightServer(Node):
 
     def pause(self,r,s): return self.service('pause',r,s)
     def resume(self,r,s): return self.service('resume',r,s)
+
+    def runner_progress(self, msg):
+        with self.lock:
+            if (not self.active_goal or not self.runner_required or self.runner_lost or self.result
+                    or msg.coordinator_instance != self.instance
+                    or bytes(msg.mission_uuid.uuid) != bytes(self.active_goal.goal_id.uuid)
+                    or msg.tick_sequence <= self.runner_sequence):
+                return
+            self.runner_sequence = msg.tick_sequence
+            self.runner_last_tick = time.monotonic()
+            self.runner_progress_log.append(dict(mono=self.runner_last_tick, sequence=self.runner_sequence))
+
+    def check_runner_progress(self, now):
+        # Final hold is separately bounded. Never interrupt committed native landing.
+        if (not self.runner_required or self.runner_lost or self.land_committed
+                or self.canceling or now-self.runner_last_tick <= self.config[
+                    'runner_handshake_timeout_s' if self.runner_sequence == 0 else 'runner_progress_max_age_s']):
+            return
+        self.runner_lost = True
+        if self.samples['vehicle_status'].arming_state != 2:
+            self.fault('BT_PROGRESS_TIMEOUT')
+        else:
+            self.canceling = True
+            self.begin_stop('LEASE_BRAKE')
 
     def begin_stop(self, phase):
         self.segment = None  # Retire old reference timeline before braking.
@@ -433,7 +473,10 @@ class FlightServer(Node):
                 self.fault('UNEXPECTED_DISARM');return
             if phase=='LANDING' and status.arming_state==1 and (not self.samples['vehicle_land_detected'].landed or self.speed()>.1):
                 self.fault('UNEXPECTED_DISARM_DURING_LANDING');return
-            if phase=='PRESTREAM' and now-self.phase_started >= 1.5:
+            self.check_runner_progress(now)
+            if self.result:return
+            phase=self.phase
+            if phase=='PRESTREAM' and now-self.phase_started >= 1.5 and (not self.runner_required or self.runner_sequence > 0):
                 self.command(176,1,6);self.change('OFFBOARD_REQUEST')
             elif phase=='OFFBOARD_REQUEST':
                 if status.nav_state==14:
@@ -452,7 +495,7 @@ class FlightServer(Node):
             elif phase=='HOVER':
                 if distance(self.position(),self.target) > .4:self.fault('HOVER_DRIFT')
                 elif now >= self.hover_until and self.stable(self.target,now):self.next_step()
-            elif phase in ('PAUSING','CANCEL_BRAKE'):
+            elif phase in ('PAUSING','CANCEL_BRAKE','LEASE_BRAKE'):
                 if self.stable(self.reference,now):
                     self.owner='HOLD_CONTROLLER';self.generation+=1
                     self.hold_ack_count=self.output_count+3
@@ -462,7 +505,8 @@ class FlightServer(Node):
                 # Gateway is the only owner; acknowledge only after fresh stream cycles.
                 if self.canceling:
                     self.final_hold_until=now+30.
-                    self.result=('CANCELED','STOPPED_AND_HOLDING',True)
+                    self.result=(('ABORTED','BT_PROGRESS_TIMEOUT',True) if self.runner_lost
+                                 else ('CANCELED','STOPPED_AND_HOLDING',True))
                     self.change('COMPLETE')
                 else:
                     self.pause_until=min(now+60.,self.deadline-8.)
@@ -492,9 +536,11 @@ class FlightServer(Node):
         if self.fresh('vehicle_status',.75):
             raw=self.samples['vehicle_status'].nav_state
             mode='OFFBOARD' if raw==14 else 'AUTO_LAND' if raw in (18,20) else 'OTHER'
+        remaining=(max(0.,self.config['runner_progress_max_age_s']-(now-self.runner_last_tick))
+                   if self.runner_required and self.runner_sequence > 0 and self.owner=='TASK' else .1)
         status=ControlStatus(coordinator_instance=self.instance,
                              session=ControlSession(session_id=self.session,generation=self.generation,owner=self.owner),
-                             lease_remaining_s=.1 if self.owner in ('TASK','HOLD_CONTROLLER') else 0.,
+                             lease_remaining_s=remaining if self.owner in ('TASK','HOLD_CONTROLLER') else 0.,
                              final_hold_remaining_s=max(0.,getattr(self,'final_hold_until',now)-now),
                              actual_flight_mode=mode,reason=self.reason,mock=False)
         status.header.stamp=self.get_clock().now().to_msg()
