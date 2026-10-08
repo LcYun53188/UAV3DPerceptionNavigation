@@ -1,0 +1,137 @@
+{
+  "passed": true,
+  "domain": 92,
+  "scope": "synthetic DDS contracts only, no camera or actual EKF fusion",
+  "states": 326,
+  "checks": {
+    "fresh": [
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      }
+    ],
+    "tracking_lost": [
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      }
+    ],
+    "recovered": [
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      }
+    ],
+    "replacement_latched": [
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "182765d7-6ef3-4727-a088-0d8af4656167"
+      }
+    ]
+  },
+  "fmu_input_publishers": {}
+}

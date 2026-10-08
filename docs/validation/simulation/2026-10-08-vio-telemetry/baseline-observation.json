@@ -1,0 +1,63 @@
+{
+  "qgc_connected": true,
+  "arming_states": [
+    1
+  ],
+  "odom_source_age_s": 0.012000000000000455,
+  "scope": "disarmed x500/DDS/clock/QGC smoke only",
+  "samples": {
+    "clock": 4433,
+    "vehicle_local_position": 1334,
+    "vehicle_odometry": 1334,
+    "vehicle_status": 28,
+    "vehicle_land_detected": 16
+  },
+  "receive_age_s": {
+    "clock": 0.0014914499997757957,
+    "vehicle_local_position": 0.009180306999951426,
+    "vehicle_odometry": 0.0092995550003252,
+    "vehicle_status": 0.013343104000341555,
+    "vehicle_land_detected": 0.1252320060002603
+  },
+  "writers": {
+    "/clock": 1,
+    "/px4_7/fmu/out/airspeed_validated": 1,
+    "/px4_7/fmu/out/arming_check_request": 1,
+    "/px4_7/fmu/out/battery_status": 1,
+    "/px4_7/fmu/out/collision_constraints": 1,
+    "/px4_7/fmu/out/estimator_status_flags": 1,
+    "/px4_7/fmu/out/failsafe_flags": 1,
+    "/px4_7/fmu/out/home_position": 1,
+    "/px4_7/fmu/out/manual_control_setpoint": 1,
+    "/px4_7/fmu/out/message_format_response": 1,
+    "/px4_7/fmu/out/mode_completed": 1,
+    "/px4_7/fmu/out/position_setpoint_triplet": 1,
+    "/px4_7/fmu/out/register_ext_component_reply": 1,
+    "/px4_7/fmu/out/sensor_combined": 1,
+    "/px4_7/fmu/out/timesync_status": 1,
+    "/px4_7/fmu/out/vehicle_attitude": 1,
+    "/px4_7/fmu/out/vehicle_command_ack": 1,
+    "/px4_7/fmu/out/vehicle_control_mode": 1,
+    "/px4_7/fmu/out/vehicle_global_position": 1,
+    "/px4_7/fmu/out/vehicle_gps_position": 1,
+    "/px4_7/fmu/out/vehicle_land_detected": 1,
+    "/px4_7/fmu/out/vehicle_local_position": 1,
+    "/px4_7/fmu/out/vehicle_odometry": 1,
+    "/px4_7/fmu/out/vehicle_status_v1": 1,
+    "/px4_7/fmu/out/vtol_vehicle_status": 1
+  },
+  "arming_state": 1,
+  "nav_state": 4,
+  "landed": true,
+  "xy_valid": true,
+  "z_valid": true,
+  "clock_start": 0.008,
+  "clock_end": 17.736,
+  "position_ned": [
+    0.014162706211209297,
+    0.003700914094224572,
+    0.032019421458244324
+  ],
+  "dds_clock_passed": true,
+  "passed": true
+}

@@ -1,0 +1,77 @@
+{
+  "passed": false,
+  "scenario": "full",
+  "vio_required": true,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "truth_frames": [
+    "5010_motor_base_0",
+    "5010_motor_base_1",
+    "5010_motor_base_2",
+    "5010_motor_base_3",
+    "NXP_FMUK66_FRONT",
+    "NXP_FMUK66_TOP",
+    "RDDRONE_FMUK66_TOP",
+    "base_link",
+    "base_link_visual",
+    "ground_plane",
+    "link",
+    "rotor_0",
+    "rotor_0_visual",
+    "rotor_0_visual_motor_bell",
+    "rotor_1",
+    "rotor_1_visual",
+    "rotor_1_visual_motor_top",
+    "rotor_2",
+    "rotor_2_visual",
+    "rotor_2_visual_motor_top",
+    "rotor_3",
+    "rotor_3_visual",
+    "rotor_3_visual_motor_top",
+    "sunUTC",
+    "sunUTCVisual",
+    "visual",
+    "x500_7"
+  ],
+  "preflight_healthy": false,
+  "vio_gate_reason": "VIO_TELEMETRY_WRITER_COUNT",
+  "preflight_fields": {
+    "vehicle_status": {
+      "arming_state": 1,
+      "nav_state": 4,
+      "system_id": 8,
+      "pre_flight_checks_pass": true,
+      "failsafe": false
+    },
+    "battery_status": {
+      "connected": true,
+      "remaining": 0.9999465942382812,
+      "warning": 0
+    },
+    "vehicle_local_position": {
+      "xy_valid": true,
+      "z_valid": true,
+      "v_xy_valid": true,
+      "v_z_valid": true,
+      "eph": 0.1510542631149292,
+      "epv": 0.16839194297790527
+    }
+  },
+  "error": "Preflight/truth unavailable: ['vehicle_local_position', 'vehicle_odometry', 'battery_status', 'vehicle_status', 'vehicle_land_detected']",
+  "outputs_at_end": 0,
+  "final_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "final_arming": 1,
+  "final_land": true,
+  "localized_odometry": {
+    "samples": 1993,
+    "sessions": [
+      "13f7d10e-5256-408e-8a32-19cbfb8aa56c"
+    ],
+    "valid": true
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "passed": true,
+  "scope": "synthetic external vision -> actual PX4 EKF, disarmed; NOT camera/VIO acceptance",
+  "other_aiding_before_stop": {
+    "cs_gnss_pos": false,
+    "cs_gnss_vel": false,
+    "cs_gnss_yaw": false,
+    "cs_gps_hgt": false,
+    "cs_mag_hdg": false,
+    "cs_mag_3d": false,
+    "cs_mag": false,
+    "cs_opt_flow": false,
+    "cs_baro_hgt": true,
+    "cs_ev_pos": true,
+    "cs_ev_hgt": true,
+    "cs_ev_vel": true,
+    "cs_ev_yaw": true
+  },
+  "nonfinite_telemetry_encoding": "null",
+  "input_count": 913,
+  "received": {
+    "source": 913,
+    "ev_pos": 709,
+    "ev_hgt": 709,
+    "ev_yaw": 709,
+    "flags": 34,
+    "ev_vel": 707,
+    "selector": 31
+  },
+  "fused_samples": {
+    "ev_pos": 707,
+    "ev_hgt": 707,
+    "ev_vel": 707,
+    "ev_yaw": 707
+  },
+  "ready_count": 13357,
+  "reasons": {
+    "VIO_TELEMETRY_WRITER_COUNT": 2027,
+    "VIO_TELEMETRY_MISSING": 559,
+    "VIO_STABILIZING": 1190,
+    "READY": 13466,
+    "VIO_SOURCE_INVALID": 135,
+    "VIO_TELEMETRY_STALE:source": 2508
+  },
+  "final_gate_reason": "VIO_TELEMETRY_STALE:source",
+  "ready_before_stop": true,
+  "last_fuse_at_stop": {
+    "ev_pos": 32556000,
+    "ev_hgt": 32556000,
+    "ev_vel": 32556000,
+    "ev_yaw": 32556000
+  },
+  "last_fuse_after_drain": {
+    "ev_pos": 32740000,
+    "ev_hgt": 32740000,
+    "ev_vel": 32740000,
+    "ev_yaw": 32740000
+  },
+  "last_fuse_at_end": {
+    "ev_pos": 32740000,
+    "ev_hgt": 32740000,
+    "ev_vel": 32740000,
+    "ev_yaw": 32740000
+  },
+  "fusion_stopped": true,
+  "writers": {
+    "source": 1,
+    "flags": 1,
+    "selector": 1,
+    "ev_pos": 1,
+    "ev_hgt": 1,
+    "ev_vel": 1,
+    "ev_yaw": 1
+  },
+  "control_publishers": {
+    "vehicle_command": 0,
+    "trajectory_setpoint": 0,
+    "offboard_control_mode": 0
+  },
+  "last_messages": {
+    "source": {
+      "header": {
+        "stamp": {
+          "sec": 32,
+          "nanosec": 740000000
+        },
+        "frame_id": "odom"
+      },
+      "sample_stamp": {
+        "sec": 32,
+        "nanosec": 740000000
+      },
+      "localization_session": "synthetic-ev:9c006c65-f774-43dd-9a2b-10ed05b4cf93",
+      "calibration_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reset_counter": 0,
+      "valid": true,
+      "reason": ""
+    },
+    "ev_pos": {
+      "timestamp": 32892000,
+      "timestamp_sample": 32736000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32740000,
+      "observation": [
+        0.0,
+        0.0
+      ],
+      "observation_variance": [
+        0.010000000707805157,
+        0.010000000707805157
+      ],
+      "innovation": [
+        -7.500605715904385e-05,
+        -1.250338868885592e-06
+      ],
+      "innovation_filtered": [
+        -5.9465568483574316e-05,
+        -8.99540555110434e-06
+      ],
+      "innovation_variance": [
+        0.010350950993597507,
+        0.010350950993597507
+      ],
+      "test_ratio": [
+        2.174064483995153e-08,
+        6.041367059395064e-12
+      ],
+      "test_ratio_filtered": [
+        -1.5285284149513245e-08,
+        -4.3095316204500023e-10
+      ],
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "ev_hgt": {
+      "timestamp": 32892000,
+      "timestamp_sample": 32736000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32740000,
+      "observation": -0.0,
+      "observation_variance": 0.010000000707805157,
+      "innovation": 0.000698339194059372,
+      "innovation_filtered": 0.0007120607187971473,
+      "innovation_variance": 0.010338781401515007,
+      "test_ratio": 1.8867897324525984e-06,
+      "test_ratio_filtered": 1.962529950105818e-06,
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "ev_yaw": {
+      "timestamp": 32892000,
+      "timestamp_sample": 32736000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32740000,
+      "observation": 1.5707963705062866,
+      "observation_variance": 0.10000000149011612,
+      "innovation": 0.00027108192443847656,
+      "innovation_filtered": 0.0002545650349929929,
+      "innovation_variance": 0.10031157732009888,
+      "test_ratio": 1.083685887692809e-07,
+      "test_ratio_filtered": 9.718909410594279e-08,
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "flags": {
+      "timestamp": 38300000,
+      "timestamp_sample": 38148000,
+      "control_status_changes": 8,
+      "cs_tilt_align": true,
+      "cs_yaw_align": true,
+      "cs_gnss_pos": false,
+      "cs_opt_flow": false,
+      "cs_mag_hdg": false,
+      "cs_mag_3d": false,
+      "cs_mag_dec": false,
+      "cs_in_air": false,
+      "cs_wind": false,
+      "cs_baro_hgt": true,
+      "cs_rng_hgt": false,
+      "cs_gps_hgt": false,
+      "cs_ev_pos": false,
+      "cs_ev_yaw": false,
+      "cs_ev_hgt": false,
+      "cs_fuse_beta": false,
+      "cs_mag_field_disturbed": false,
+      "cs_fixed_wing": false,
+      "cs_mag_fault": false,
+      "cs_fuse_aspd": false,
+      "cs_gnd_effect": false,
+      "cs_rng_stuck": false,
+      "cs_gnss_yaw": false,
+      "cs_mag_aligned_in_flight": false,
+      "cs_ev_vel": false,
+      "cs_synthetic_mag_z": false,
+      "cs_vehicle_at_rest": true,
+      "cs_gnss_yaw_fault": false,
+      "cs_rng_fault": false,
+      "cs_inertial_dead_reckoning": true,
+      "cs_wind_dead_reckoning": false,
+      "cs_rng_kin_consistent": false,
+      "cs_fake_pos": false,
+      "cs_fake_hgt": false,
+      "cs_gravity_vector": true,
+      "cs_mag": false,
+      "cs_ev_yaw_fault": false,
+      "cs_mag_heading_consistent": false,
+      "cs_aux_gpos": false,
+      "cs_rng_terrain": false,
+      "cs_opt_flow_terrain": false,
+      "cs_valid_fake_pos": true,
+      "cs_constant_pos": false,
+      "cs_baro_fault": false,
+      "cs_gnss_vel": false,
+      "fault_status_changes": 0,
+      "fs_bad_mag_x": false,
+      "fs_bad_mag_y": false,
+      "fs_bad_mag_z": false,
+      "fs_bad_hdg": false,
+      "fs_bad_mag_decl": false,
+      "fs_bad_airspeed": false,
+      "fs_bad_sideslip": false,
+      "fs_bad_optflow_x": false,
+      "fs_bad_optflow_y": false,
+      "fs_bad_acc_vertical": false,
+      "fs_bad_acc_clipping": false,
+      "innovation_fault_status_changes": 0,
+      "reject_hor_vel": false,
+      "reject_ver_vel": false,
+      "reject_hor_pos": false,
+      "reject_ver_pos": false,
+      "reject_yaw": false,
+      "reject_airspeed": false,
+      "reject_sideslip": false,
+      "reject_hagl": false,
+      "reject_optflow_x": false,
+      "reject_optflow_y": false
+    },
+    "ev_vel": {
+      "timestamp": 32892000,
+      "timestamp_sample": 32736000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32740000,
+      "observation": [
+        0.0,
+        -0.0,
+        -0.0
+      ],
+      "observation_variance": [
+        0.010000000707805157,
+        0.010000000707805157,
+        0.010000000707805157
+      ],
+      "innovation": [
+        0.00022915568843018264,
+        0.0004133017500862479,
+        0.0019910114351660013
+      ],
+      "innovation_filtered": [
+        4.262380025465973e-05,
+        0.0003712952311616391,
+        0.0018618226749822497
+      ],
+      "innovation_variance": [
+        0.010732161812484264,
+        0.010732161812484264,
+        0.010584015399217606
+      ],
+      "test_ratio": [
+        5.436652372736717e-07,
+        1.768498577803257e-06,
+        4.161543256486766e-05
+      ],
+      "test_ratio_filtered": [
+        9.47783505012012e-08,
+        1.5440605238836724e-06,
+        3.648360871011391e-05
+      ],
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "selector": {
+      "timestamp": 38500000,
+      "primary_instance": 0,
+      "instances_available": 1,
+      "instance_changed_count": 1,
+      "last_instance_change": 4240000,
+      "accel_device_id": 1310988,
+      "baro_device_id": 6619404,
+      "gyro_device_id": 1310988,
+      "mag_device_id": 197388,
+      "combined_test_ratio": [
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "relative_test_ratio": [
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "healthy": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "accumulated_gyro_error": [
+        0.0,
+        null,
+        null,
+        null
+      ],
+      "accumulated_accel_error": [
+        0.0,
+        null,
+        null,
+        null
+      ],
+      "gyro_fault_detected": false,
+      "accel_fault_detected": false
+    }
+  }
+}
