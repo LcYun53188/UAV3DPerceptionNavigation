@@ -1,0 +1,5 @@
+<root BTCPP_format="4" main_tree_to_execute="AlgorithmWaypoints">
+  <BehaviorTree ID="AlgorithmWaypoints">
+    <ExecuteWaypoints/>
+  </BehaviorTree>
+</root>
