@@ -15,8 +15,9 @@ import uuid
 
 from action_msgs.msg import GoalStatusArray
 from ament_index_python.packages import get_package_prefix
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry
+from nvblox_msgs.srv import FilePath
 from rcl_interfaces.srv import GetParameters
 import rclpy
 from rclpy.action import ActionClient
@@ -33,7 +34,8 @@ from sim_control import CACHE, lock, read_session
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scenario', choices=['pause-resume', 'cancel-pausing', 'runner-stall'], default='pause-resume')
+    parser.add_argument('--scenario', choices=['pause-resume', 'cancel-pausing', 'runner-stall',
+                                              'clock-stall', 'paused-map-change'], default='pause-resume')
     parser.add_argument('--timeout', type=float, default=120.)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
@@ -68,6 +70,7 @@ def main():
     state = {'truth': None, 'map': None, 'feedback': None, 'trajectory': None, 'control': None}
     samples, children, child_results, tokens, controls, progress = [], set(), {}, [], [], []
     process = handle = None
+    gazebo_paused = False
     waypoint_errors = {}
     report = {'profile': 'algorithm', 'scenario': args.scenario, 'passed': False, 'mock': False,
               'source_hashes': hashes, 'binary_sha256': binary_hash, 'world_sha256': world_hash,
@@ -89,6 +92,13 @@ def main():
         v, w = msg.twist.twist.linear, msg.twist.twist.angular
         record('odom', {'position': xyz(msg), 'speed': math.hypot(v.x, v.y, v.z),
                         'angular_speed': math.hypot(w.x, w.y, w.z)})
+
+    commands = []
+
+    def velocity(msg):
+        commands.append(record('velocity_command', {
+            'linear': [msg.linear.x, msg.linear.y, msg.linear.z],
+            'angular': [msg.angular.x, msg.angular.y, msg.angular.z]}))
 
     def feedback(msg):
         f = msg.feedback
@@ -141,6 +151,7 @@ def main():
 
     node.create_subscription(Odometry, '/visual_slam/tracking/odometry', truth, qos_profile_sensor_data)
     node.create_subscription(Odometry, '/uav/localization/odometry', odom, qos_profile_sensor_data)
+    node.create_subscription(Twist, '/cmd_vel', velocity, 10)
     node.create_subscription(MapSnapshot, '/uav/map/snapshot', lambda m: state.update(map=m),
         QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
     node.create_subscription(TimedTrajectory, '/uav/trajectory', trajectory, 10)
@@ -181,6 +192,17 @@ def main():
         request.coordinator_instance = state['feedback'].status.coordinator_instance
         request.request_id.uuid = list(uuid.uuid4().bytes)
         return request
+
+    def world_pause(paused):
+        # This is a real Gazebo transport request, not a competing /clock publisher.
+        result = subprocess.run(['gz', 'service', '-s', '/world/uav_ego_lab/control',
+            '--reqtype', 'gz.msgs.WorldControl', '--reptype', 'gz.msgs.Boolean',
+            '--timeout', '2000', '--req', 'pause: '+str(paused).lower()],
+            capture_output=True, text=True, timeout=4.)
+        record('world_pause', {'pause': paused, 'returncode': result.returncode,
+                              'response': result.stdout.strip(), 'stderr': result.stderr.strip()})
+        if result.returncode or 'data: true' not in result.stdout:
+            raise RuntimeError('Gazebo pause request not confirmed')
 
     try:
         if client.wait_for_server(timeout_sec=.3):
@@ -239,6 +261,21 @@ def main():
             until(lambda: first_child in child_results, 3.)
             process.send_signal(signal.SIGCONT)
             record('runner_continue', {})
+        elif args.scenario == 'clock-stall':
+            gazebo_paused = True  # Always attempt restoration, even after a lost response.
+            world_pause(True)
+            until(lambda: any(c['reason'] == 'ODOMETRY_OR_CLOCK_FAULT' for c in controls), 2.)
+            fault = next(c for c in controls if c['reason'] == 'ODOMETRY_OR_CLOCK_FAULT')
+            until(lambda: time.monotonic()-begun-fault['t'] >= .7, 2.)
+            report['terminal_while_clock_stalled'] = root_result.done()
+            if root_result.done():
+                raise RuntimeError('Frozen odometry was incorrectly accepted as a stop proof')
+            after_fault = [c for c in commands if c['t'] >= fault['t']+.1]
+            report['stalled_zero_command_samples'] = len(after_fault)
+            if not after_fault or any(any(abs(v) > 1e-9 for v in c['linear']+c['angular']) for c in after_fault):
+                raise RuntimeError('Clock fault did not maintain zero commands')
+            world_pause(False)
+            gazebo_paused = False
         else:
             request = pause_request()
             accepted = rpc(pause_client, request)
@@ -249,6 +286,17 @@ def main():
                 until(cancel.done)
                 if not cancel.result().goals_canceling:
                     raise RuntimeError('Root cancellation rejected during PAUSING')
+            elif args.scenario == 'paused-map-change':
+                until(lambda: state['feedback'].status.phase == 'PAUSED')
+                old_map = (state['map'].map_id, state['map'].epoch)
+                report['map_before'] = list(old_map)
+                save = node.create_client(FilePath, '/uav/map/save')
+                bundle = (args.output/'map-bundle').resolve()
+                if not rpc(save, FilePath.Request(file_path=str(bundle))).success:
+                    raise RuntimeError('Map save fault injection failed')
+                until(lambda: (state['map'].map_id, state['map'].epoch) != old_map)
+                report['map_after'] = [state['map'].map_id, state['map'].epoch]
+                report['saved_map_bundle'] = str(bundle)
             else:
                 until(lambda: state['feedback'].status.phase == 'PAUSED')
                 if root_result.done():
@@ -308,7 +356,8 @@ def main():
         report['waypoint_errors_m'] = waypoint_errors
         report['obsolete_goal_rejections'] = sum(e['event'] == 'REJECTED:OBSOLETE_GOAL' for e in events)
         expected = {'pause-resume': ('SUCCEEDED', 4), 'cancel-pausing': ('CANCELED', 5),
-                    'runner-stall': ('ABORTED', 6)}[args.scenario]
+                    'runner-stall': ('ABORTED', 6), 'clock-stall': ('ABORTED', 6),
+                    'paused-map-change': ('ABORTED', 6)}[args.scenario]
         passed = (value.result_code == expected[0] and wrapped.status == expected[1] and
             value.cleanup_confirmed and not value.mock and report['post_result_hold_drift_m'] < .02 and
             report['min_truth_clearance_m'] > 0. and report['displacement_m'] >= .3 and
@@ -327,10 +376,19 @@ def main():
             previous = [p for p in progress if p['t'] <= fault['t'] and p['uuid'] == bytes(handle.goal_id.uuid).hex()]
             report['last_tick_to_fault_s'] = fault['t']-previous[-1]['t']
             passed &= report['last_tick_to_fault_s'] < .8
+        if args.scenario in ('clock-stall', 'paused-map-change'):
+            expected_reason = ('ODOMETRY_OR_CLOCK_FAULT' if args.scenario == 'clock-stall'
+                               else 'MAP_SESSION_CHANGED')
+            passed &= value.reason == expected_reason and len(children) == 1
         report['passed'] = bool(passed)
     except Exception as error:
         report['error'] = str(error)
     finally:
+        if gazebo_paused:
+            try:
+                world_pause(False)
+            except Exception as error:
+                report['clock_restore_error'] = str(error)
         if process is not None and process.poll() is None:
             process.send_signal(signal.SIGCONT)
         if handle is not None and handle.accepted:
