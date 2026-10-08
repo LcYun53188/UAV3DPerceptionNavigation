@@ -112,6 +112,11 @@ MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 
 随后要求四类 last_fuse 不再推进，并且门控因源过期拒绝。归档同时核对 ULog 生效参数。
 这不验证运动中的定位误差、飞行控制或失定位降落，也不是无气压辅助的纯视觉高度验证。
 
+本机 cuVSLAM 节点已通过独立构建与 CUDA 加载检查，尚无传感器/跟踪证据。
+可用 `./scripts/build_vio_node.sh` 构建节点，再通过 domain 94 的
+`scripts/run_vio_node_smoke.py` 验证加载。该入口不构建可选图像预处理包，
+不代表其 CV-CUDA 依赖已修复。见 [节点加载报告](validation/simulation/2026-10-08-vio-node-load/REPORT.md)。
+
 后续按最小闭环推进：
 
 1. 冻结 VIO 仿真双目/IMU传感器、内外参、时间与安装配置；上游 OakD-Lite 深度

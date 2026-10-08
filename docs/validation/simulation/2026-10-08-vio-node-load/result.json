@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "scope": "cuVSLAM executable/CUDA and DDS subscriptions only; no sensor, tracking or flight acceptance",
+  "subscriptions": [
+    "/clock",
+    "/parameter_events",
+    "/visual_slam/camera_info_0",
+    "/visual_slam/camera_info_1",
+    "/visual_slam/image_0",
+    "/visual_slam/image_0/nitros",
+    "/visual_slam/image_1",
+    "/visual_slam/image_1/nitros",
+    "/visual_slam/imu",
+    "/visual_slam/initial_pose"
+  ],
+  "fmu_input_publishers": [],
+  "executable_alive": true,
+  "cuvslam_version": "15.0.0+74f0e317-modified",
+  "cuda_warmup": true,
+  "tracking_mode_vio": true,
+  "hashes": {
+    "install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam": "0915b3deb02f7346fcf15747a18719c583fd9764fe88a07fa58d0b1ae0b1699c",
+    "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": "9b5306b842b233fcf84aa84ee7803b387f41b03b3b0d3b0cc671fd49549cc853",
+    "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": "d870759dc6d78b9fe55dbb842cac3b6cd6d804bde04dd8b546b5f2c466834f5e",
+    "scripts/run_vio_node_smoke.py": "105e542db18977329bcefeaf02f0a0779cd9195655c2f1641cb1aab32dba71fd",
+    "scripts/build_vio_node.sh": "d70ece12a924594a022670881cad141dd11d9cc26842dcb62fcfcc3deb6e7914",
+    "simulation/px4/versions.lock.yaml": "16d488fcdb5dc2b9205830e3afe4ca28387a64af42921e22b8576cd367005937"
+  },
+  "source_commits": {
+    "src/isaac_ros_visual_slam": "04bf49a2daf7710d2ba2390d1772435a1baeb48d",
+    "src/isaac_ros_nitros": "a22f10d4918662c485b0a1323e2fe1d8c21407a9"
+  },
+  "exit_code": 0,
+  "cleanup_confirmed": true
+}

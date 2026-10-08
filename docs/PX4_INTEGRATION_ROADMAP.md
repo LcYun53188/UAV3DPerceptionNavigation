@@ -37,6 +37,9 @@ StartFlight → FlightStep[0..6] → AwaitFlightResult。根 Action 只提交一
 使用 PX4 位置 Offboard 控制，继续由唯一 FlightServer 输出。原生 Position 模式的
 手动悬停可后续单独验证；Stabilized 模式本身不提供自动位置保持。
 
+本机 VIO 节点已通过构建与 CUDA 加载前置检查，尚未输入传感器，见
+[节点加载报告](validation/simulation/2026-10-08-vio-node-load/REPORT.md)。
+
 1. 固定模拟双目和 IMU、CameraInfo、内外参、安装 TF、采样率与共同仿真时钟。
    Pro W 是目标硬件；参考模型必须标明与真实广角/基线/IMU 的差异。
 2. 运行本机真实 VIO 算法，原始 odom 进入现有适配器；补齐 reset 服务代理、
