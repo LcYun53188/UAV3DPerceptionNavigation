@@ -7,6 +7,7 @@ from pathlib import Path
 import threading
 import subprocess
 import signal
+import re
 import time
 
 import rclpy
@@ -28,7 +29,7 @@ def completed_waypoint_truth(events, truth, home, home_truth):
     reached=[]
     for event,next_event in zip(events,events[1:]):
         if (event['phase'] in ('TAKEOFF','NAVIGATE','RETURN') and event.get('target_enu')
-                and next_event['phase'] in ('NAVIGATE','HOVER','RETURN','LAND_REQUEST')):
+                and next_event['phase'] in ('NAVIGATE','HOVER','RETURN','LAND_REQUEST','AWAIT_STEP')):
             points=[t for t in truth if event['mono']<=t['mono']<=next_event['mono']]
             if points:
                 expected=[home_truth[i]+event['target_enu'][i]-home[i] for i in range(3)]
@@ -47,6 +48,7 @@ def main():
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
+                     'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',
                      'scripts/bt_flight_client.py','.deps/mission-install/uav_bt/lib/uav_bt/mission_runner'):
             implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
@@ -214,6 +216,11 @@ def main():
             log=(out/'bt-runner.log').read_text()
             result['bt_dispatch_count']=log.count('Dispatched root mission once')
             result['passed']=result['passed'] and result['bt_dispatch_count']==1
+            result['bt_step_accepts'] = [int(i) for i in re.findall(r'BT_STEP_ACCEPTED index=(\d+)', log)]
+            result['bt_step_completes'] = [int(i) for i in re.findall(r'BT_STEP_COMPLETE index=(\d+)', log)]
+            if scenario in ('full', 'pause-resume'):
+                result['passed'] &= (result['bt_step_accepts'] == list(range(len(steps))) and
+                                     result['bt_step_completes'] == list(range(len(steps))))
             ticks=node.runner_progress_log
             result['bt_progress']=dict(samples=len(ticks),
                 max_gap_s=max((b['mono']-a['mono'] for a,b in zip(ticks,ticks[1:])),default=None),

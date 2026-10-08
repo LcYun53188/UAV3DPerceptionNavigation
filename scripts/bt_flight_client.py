@@ -15,7 +15,7 @@ class BtFlightClient:
         self.node = node
         self.parameters_file = out/'bt-parameters.private.json'
         params = json.loads(request.parameters_json)
-        params.update(runner_progress_required=True, coordinator_instance=node.instance)
+        params.update(runner_progress_required=True, coordinator_instance=node.instance, step_controlled=True)
         # Authorization is never placed in a command line or archived evidence.
         fd = os.open(self.parameters_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, 'w') as stream:
@@ -24,7 +24,8 @@ class BtFlightClient:
         binary = root/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner'
         self.process = subprocess.Popen([
             str(binary), '--ros-args', '-p', f'parameters_file:={self.parameters_file}',
-            '-p', f'coordinator_instance:={node.instance}', '-p', f'timeout_s:={request.timeout_s}'],
+            '-p', f'coordinator_instance:={node.instance}', '-p', f'timeout_s:={request.timeout_s}',
+            '-p', f'tree_output_file:={out/"bt-flight-tree.xml"}'],
             stdout=self.log, stderr=subprocess.STDOUT)
         self.result_client = node.create_client(
             ExecuteMission.Impl.GetResultService, '/uav/px4/execute_mission/_action/get_result')
