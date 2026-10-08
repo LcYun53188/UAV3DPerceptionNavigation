@@ -34,3 +34,5 @@
 - [DM-FC01 USB 台架只接收检查](PX4_USB_BENCH.md)
 
 - [PX4 定位输入门控与重置回归](PX4_LOCALIZATION_GATES.md)
+
+- [非 identity 坐标与会话绑定的 EGO 影子规划](PLANNING_CONTEXT.md)

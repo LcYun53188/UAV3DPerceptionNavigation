@@ -41,3 +41,8 @@ safe observation positions in live mapping mode, and owns finite retries and
 terminal task states. `PlannerStatus` and `TimedTrajectory.goal_stamp` echo the
 local goal stamp so cancelled or replaced work cannot restart execution.
 Standalone unmanaged planner behavior remains available with the parameter off.
+
+The opt-in `coordinate_frame:=map` profile consumes already transformed map/base_link
+odometry and emits map trajectories. The default `odom` profile retains the identity
+assumption. See [planning contexts](../../docs/PLANNING_CONTEXT.md) for session binding
+and independent validation; the shadow bridge does not control PX4.

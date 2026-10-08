@@ -1,0 +1,10 @@
+./scripts/with_venv.sh colcon build --build-base build_uav --install-base install_uav --symlink-install --base-paths src/uav_nav_interfaces src/uav_nav_sim src/uav_ego_adapter --packages-select uav_nav_interfaces uav_nav_sim uav_ego_adapter --parallel-workers 1
+./scripts/build_px4_flight.sh
+./scripts/with_venv.sh bash -c 'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_nav_sim/test --junit-xml=.cache/simulation/planning-context-pytest.xml'
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_mission/test src/px4_comm_bridge/test scripts/test_px4_flight_audit.py --junit-xml=.cache/simulation/context-flight-pytest.xml'
+./scripts/with_venv.sh python scripts/run_planning_context_smoke.py --output .cache/simulation/planning-context-verified
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario full
+./scripts/sim.sh status
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego
+git diff --check

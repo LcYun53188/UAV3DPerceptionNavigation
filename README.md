@@ -6,6 +6,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D / MID360 感知、VIO / LIO、�
 
 本机 PX4/BT 入口：首次执行 `./scripts/build_px4_sim.sh --jobs 4` 和 `./scripts/build_px4_flight.sh`，随后运行 `./scripts/sim.sh px4-flight --bt --ui`，显示 Gazebo/QGC 并执行逐步骤飞行 BT。任务完成后确认着陆解除武装并自动清理本次会话。详见 [PX4 运行说明](simulation/px4/README.md) 与 [BT 生命周期](src/uav_bt/README.md)。
 
+已新增带定位/地图会话绑定的 EGO 影子规划：非 identity 坐标转换、真实 EGO 绕障规划与独立曲线复检已接入，输出尚不控制 PX4。详见 [规划上下文](docs/PLANNING_CONTEXT.md)。
+
 PX4 里程计新鲜度、定位重置锁存及故障回归见 [定位输入门控](docs/PX4_LOCALIZATION_GATES.md)。
 
 DM-FC01 USB 台架只接收诊断与无遥控器供电条件说明见 [USB 台架检查](docs/PX4_USB_BENCH.md)。

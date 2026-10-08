@@ -37,6 +37,11 @@ S2 算法闭环首批已实现，更多地图/clock 故障与逐步骤 PX4 BT、
 实现与测试入口见 [定位输入门控](PX4_LOCALIZATION_GATES.md)。这只是 S3 首批门控，
 地图规划、动态对齐与 EGO/PX4 接线尚未完成。
 
+2026-10-08 规划上下文补充：新增 LocalizedOdometry/LocalizationAlignment/PlanningContext/
+ContextTrajectory，提供显式 SE(3) 里程计适配、会话/世代绑定与迟到结果拒绝。EGO 支持
+map 规划模式并保留默认 identity 模式；独立影子链路仅发布已复检轨迹，不写飞控。
+范围与证据见 [规划上下文](PLANNING_CONTEXT.md)，S3/S5 与 PX4 感知执行仍未整体验收。
+
 本机 SITL 版本选择（2026-10-07）：按用户要求采用 PX4 1.16 系列最新稳定发布 **v1.16.2**，固定 commit `54f0455ffcd755534539a7cf33a09a20bf71d29d`；官方 release 与远端 tag 已核验。使用精确 commit 构建，后续升级显式更新版本锁。源码/SITL 子模块与构建已验证；Agent v2.4.3 及 px4_msgs v1.16.2 接口对应已验证。未解锁 x500 的 DDS/clock/QGC 冒烟通过，见 [构建与基础链路记录](validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。S1 首批只读 AircraftState 聚合与源/时钟丢失验证已完成，见 [S1 首批记录](validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)；最小任务接口、暂停/恢复与 FlightSession mock 已验证，见 [S1 协议记录](validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)；W0 真实状态/授权/坐标与任务后端已验证，见 [飞行验证](validation/simulation/2026-10-07-px4-flight/REPORT.md)；S2 BT、EGO 接入及 S3/S4 全部正式门槛仍待补齐。详见 [SITL 版本冻结记录](validation/simulation/2026-10-07-px4-sitl-version/REPORT.md)。
 
 当前执行范围（2026-10-07 用户调整）：暂不使用 Jetson，Gazebo、PX4 SITL、感知、导航、BT 与测试全部在本机执行。S0/S6 不再依赖 ARM 样例，S7 改为本机集成负载与稳定性验收；Jetson/跨机联调移到本机主线交付后的可选阶段。既有 Jetson 未验证结果保留为历史证据，不再阻塞本机开发。见 [本机范围调整与回归记录](validation/simulation/2026-10-07-local-s0/REPORT.md)。

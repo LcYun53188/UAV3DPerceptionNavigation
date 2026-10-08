@@ -1,0 +1,15 @@
+{
+  "src/uav_nav_interfaces/CMakeLists.txt": "b88d422a1dfc46b359318394ce3d99f18527bdbe468f524a05e438c7700e7336",
+  "src/uav_nav_interfaces/package.xml": "89a6a1e9bee04acf301b9795c07b7427e5a6628d4bc5a0ded432b1e62804cd5e",
+  "src/uav_nav_sim/uav_nav_sim/planning_context.py": "a31bc0554cbaca4b3066248250a05cd48051b7b31510d15168d4d6f111ea65a3",
+  "src/uav_nav_sim/uav_nav_sim/planning_context_node.py": "0bb6f4efc601d4dfeafb1075280970991180a19fd50b8b5bf46b94c1325e63c5",
+  "src/uav_nav_sim/test/test_planning_context.py": "041d96a92a00e237c63ea2973da80168593953be82975d46d91a934c6cf6815f",
+  "src/uav_ego_adapter/src/planner.cpp": "6eda7b9ef91bf5fd1d4869ef7182fe30168d8e79050dd662a276fee2e2245f7c",
+  "src/uav_mission/uav_mission/px4_flight.py": "b2184e251bc99d93110366ad0c09621a44cfcadcb5d3fa23688cb209697bec71",
+  "scripts/run_px4_flight_tasks.py": "e53a58ae01505bc8dc18d0a7d2b9aeee184762f6d9a475800285e2c1d8105d93",
+  "scripts/run_planning_context_smoke.py": "1b0c32288aa4b2d92d37669bb7df788862029ce9cd626c64c38ee9d840c40f44",
+  "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+  "src/uav_nav_interfaces/msg/LocalizationAlignment.msg": "d465ba9dfb48157d5152a69aea3c753c4d8b43f7075a1871bac5fcea2982d97e",
+  "src/uav_nav_interfaces/msg/PlanningContext.msg": "b43236a4ed8275df05a54a735a6e9d060610643d8f4c941021c3356670697400",
+  "src/uav_nav_interfaces/msg/ContextTrajectory.msg": "27535e29f91e7a481d3b4ca4971fab7277b619f6d60c969901532f0f85e6f63d"
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "command": 176,
+    "param1": 1,
+    "param2": 6,
+    "ros": 20.912,
+    "phase": "PRESTREAM"
+  },
+  {
+    "command": 400,
+    "param1": 1,
+    "param2": 0.0,
+    "ros": 20.952,
+    "phase": "OFFBOARD_REQUEST"
+  },
+  {
+    "command": 21,
+    "param1": 0.0,
+    "param2": 0.0,
+    "ros": 110.576,
+    "phase": "AWAIT_STEP"
+  }
+]
