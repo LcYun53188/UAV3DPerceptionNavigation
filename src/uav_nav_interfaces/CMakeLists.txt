@@ -11,7 +11,7 @@ rosidl_generate_interfaces(${PROJECT_NAME} "msg/StateDimension.msg" "msg/Aircraf
 
   "msg/ControlSession.msg" "msg/ControlStatus.msg" "msg/TaskStatus.msg" "msg/MissionProgress.msg"
   "action/ExecuteMission.action" "action/NavigateToPose3D.action"
-  "srv/PauseMission.srv" "srv/ResumeMission.srv" "srv/ManageControlSession.srv"
+  "srv/PauseMission.srv" "srv/ResumeMission.srv" "srv/ManageControlSession.srv" "srv/AdvanceFlightStep.srv"
   DEPENDENCIES std_msgs geometry_msgs builtin_interfaces unique_identifier_msgs action_msgs)
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()

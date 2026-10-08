@@ -1,0 +1,13 @@
+# Final source checks and physical runs (local SITL only)
+./scripts/build_px4_flight.sh
+./scripts/build_navigation_actions.sh
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q src/uav_mission/test src/px4_comm_bridge/test src/uav_bt/test/test_runner_integration.py --junit-xml=.cache/simulation/step-flight-pytest.xml'
+ctest --test-dir build_uav/uav_bt --output-on-failure
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario pause-resume
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario cancel
+./scripts/sim.sh px4-flight --bt --ui --flight-scenario runner-stall
+./scripts/apply_vendor_patches.sh --check
+python3 scripts/vendor_patches.py --check --ego
+./scripts/sim.sh status
+xwininfo -root -tree
+git diff --check

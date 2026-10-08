@@ -1,16 +1,17 @@
 # uav_bt：PX4 与 algorithm 任务树
 
-使用已安装的 BehaviorTree.CPP 4.9 与 rclcpp_action，调用现有真实 PX4 ExecuteMission 后端。
-默认 XML `trees/px4_flight.xml` 包含一个异步 `ExecuteFlightMission` 节点，后端继续拥有
-起飞、航点、悬停、返航、原生降落的阶段状态机及唯一 PX4 输出。
-PX4 逐步骤飞行 Action/BT 节点仍待细分。algorithm 另有 `algorithm_mission_server`，
+使用 BehaviorTree.CPP 4.9 与 rclcpp_action，调用真实 PX4 ExecuteMission 后端。
+`--bt` 现在生成逐步骤树，通过绑定根/控制世代的服务依次授权起飞、航点、悬停、返航和降落；
+网关仍拥有唯一 PX4 输出与物理停止。接口、UI 和边界见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
+旧 `trees/px4_flight.xml` 整段异步节点保留作兼容模式，独立逐步骤 ROS Actions 尚待开发。
+algorithm 另有 `algorithm_mission_server`，
 使用 `algorithm_waypoints.xml` 的 ExecuteWaypoints 异步节点调用 EGO Navigate Action，
 实现父会话、两航点、暂停检查点/恢复及进展租约；运行和边界见
 [算法任务说明](../../docs/ALGORITHM_MISSIONS.md)。两种后端使用独立入口，不能混开控制。
 
 ```bash
 ./scripts/build_px4_flight.sh
-./scripts/sim.sh px4-flight --bt
+./scripts/sim.sh px4-flight --bt --ui
 ./scripts/sim.sh px4-flight --bt --flight-scenario pause-resume
 ./scripts/sim.sh px4-flight --bt --flight-scenario cancel
 ./scripts/sim.sh px4-flight --bt --flight-scenario runner-exit

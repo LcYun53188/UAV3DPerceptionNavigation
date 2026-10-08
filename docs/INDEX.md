@@ -11,6 +11,7 @@
 - [UAV 全链路仿真开发计划](SIMULATION_DEVELOPMENT_PLAN.md)：算法回归、PX4 动力学、室内 VIO、本机稳定性、场景矩阵和故障验收；Jetson 联调延期。
 - [本机 PX4/BT 运行说明](../src/uav_bt/README.md)：真实飞行任务树、进展租约、取消清理与 Runner 故障注入。
 - [PX4/BT 验证记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)：S2 首批真实后端集成及适用边界。
+- [PX4 逐步骤 BT](PX4_STEP_BT.md)：按根/控制世代绑定步骤授权，支持可视化 SITL 回归。
 - [算法 MissionServer 与两航点 BT](ALGORITHM_MISSIONS.md)：父会话、进展租约、暂停检查点与恢复。
 - [算法任务验证记录](validation/simulation/2026-10-08-algorithm-mission/REPORT.md)：Gazebo 暂停恢复、取消竞态及 Runner 停滞。
 - [算法任务故障回归](validation/simulation/2026-10-08-algorithm-faults/REPORT.md)：真实时钟暂停、地图 epoch 变化和故障后的新根任务。

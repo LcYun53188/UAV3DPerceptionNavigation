@@ -4,7 +4,7 @@
 
 2026-10-08 开发补充：新增 `uav_bt` 最小 XML/异步 Action Runner 与 UUID/实例绑定的 BT
 进展租约，复用 W0 飞行后端；运行入口为 `./scripts/sim.sh px4-flight --bt`。
-这是 S2 的首批真实 PX4 接入，逐步骤 PX4 飞行 BT 与完整阶段验收仍待完成，
+这是 S2 的首批真实 PX4 接入，独立逐步骤飞行 Actions 与完整阶段验收仍待完成，
 不代表 S2 或 S3/S4 全部验收通过。验证证据见 [BT/PX4 记录](validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 2026-10-08 导航补充：EGO 已在原 Executor 内提供真实 `NavigateToPose3D` Action，
@@ -24,6 +24,11 @@ S2 算法闭环首批已实现，更多地图/clock 故障与逐步骤 PX4 BT、
 随后新根两航点回归通过。持续观测缺失的停止未确认锁止也有契约覆盖。见
 [故障回归记录](validation/simulation/2026-10-08-algorithm-faults/REPORT.md)。
 这些用例不覆盖全部故障矩阵；ROS 时钟回跳的整栈现场处置、非 identity 定位和逐步骤 PX4 BT 仍待实现/验收。
+
+2026-10-08 步骤控制补充：PX4 Runner 已生成显式的起飞/航点/悬停/返航/降落 BT 叶节点，
+通过父任务绑定的 AdvanceFlightStep 服务逐次授权，步骤完成停稳后等待下一步。
+现有唯一飞行网关保留物理执行、取消、保持和原生降落；独立逐步骤 ROS Actions 仍未实现。
+新增 `--ui` 显示本轮 PX4 Gazebo/QGC。接口与证据见 [逐步骤 BT](PX4_STEP_BT.md)。
 
 2026-10-07 版本核验补充：本机 QGC AppImage 为 v5.1.5；用户提供的 DM-FC01 固件已下载并解析，内嵌构建身份为 `v1.16.0-7-g78a512995e`，完整 hash 为 `78a512995e73dad88051707b5bee3df07eed4d78`，board_id=7140。文件 SHA-256、来源和证据见 [版本核验记录](validation/simulation/2026-10-07-artifact-versions/REPORT.md)。这些是文件元数据；厂商源码对应关系及飞控当前运行构建未核验，主机 SITL 基线已独立选定 v1.16.2，构建与运行证据见下文。
 
