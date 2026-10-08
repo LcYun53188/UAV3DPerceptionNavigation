@@ -37,13 +37,23 @@ StartFlight → FlightStep[0..6] → AwaitFlightResult。根 Action 只提交一
 使用 PX4 位置 Offboard 控制，继续由唯一 FlightServer 输出。原生 Position 模式的
 手动悬停可后续单独验证；Stabilized 模式本身不提供自动位置保持。
 
+本机 VIO 节点已通过构建、CUDA 加载，以及真实 Gazebo 双目／IMU静止跟踪前置检查，见
+[传感器跟踪报告](validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
+原始 cuVSLAM Odometry 的滑窗协方差不作为 EKF 观测不确定性；当前禁止直接适配。
+SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 reset 撤销验证通过；
+90 s 检查因 SDK 协方差超限失败，旧源按设计锁存失效。尚无标准速度观测及 PX4
+初始化对齐，也未进行独立运动误差或 VIO 飞行验收，见
+[位姿与 reset 记录](validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+
 1. 固定模拟双目和 IMU、CameraInfo、内外参、安装 TF、采样率与共同仿真时钟。
    Pro W 是目标硬件；参考模型必须标明与真实广角/基线/IMU 的差异。
-2. 运行本机真实 VIO 算法，原始 odom 进入现有适配器；补齐 reset 服务代理、
+2. 运行本机真实 VIO 算法，将核验后的标准 odom 进入现有适配器；补齐 reset 服务代理、
    源会话撤销、轴向/速度/协方差和时间检查。不能用真值或旧位姿重发代替算法输出。
 3. 使用独立 VIO PX4 构建导出的 selector 和四类 EV aid；实际 fused、创新、
    最后融合时间和源健康连续 2 s 才准入，源年龄 ≤0.2 s。
    flags/selector 约 1 Hz，接收/源年龄 ≤1.5 s；其余融合遥测 ≤0.5 s。
+   若选择仅融合 SDK 位姿，需另行实现显式位姿融合配置及对应门控，核验实际位置/
+   高度/航向融合与 PX4 估计速度；保留当前四类门控的默认要求，不伪造速度观测。
 4. 冻结 GNSS、磁、光流等辅助的启用状态，并在实际 EKF 中核对。气压高度若保留，
    明确报告；不能将 GNSS 悬停称为 VIO 悬停。
 5. 静止、三轴移动、旋转和 reset 先未解锁验收，再执行 BT 起飞/30 s 悬停/降落。

@@ -1,7 +1,7 @@
 import math
 import pytest
 from nav_msgs.msg import Odometry
-from px4_comm_bridge.vio_input import convert_vio, SourceContinuity
+from px4_comm_bridge.vio_input import convert_vio, SourceContinuity, validate_source_contract
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
 
 
@@ -18,6 +18,21 @@ def odometry(stamp=10.):
         m.pose.covariance[7*i] = .01*(i+1)
         m.twist.covariance[7*i] = .01*(i+1)
     return m
+
+
+@pytest.mark.parametrize('topic,contract', [
+    ('/uav/vio/odometry', 'unverified'),
+    ('/uav/vio/odometry', 'cuvslam_raw'),
+    ('/visual_slam/tracking/odometry', 'standard_enu_flu_odometry_v1'),
+    ('/visual_slam/tracking/odometry/', 'standard_enu_flu_odometry_v1'),
+])
+def test_raw_or_undeclared_covariance_contract_rejected(topic, contract):
+    with pytest.raises(ValueError, match='VIO_SOURCE_CONTRACT_UNVERIFIED'):
+        validate_source_contract(topic, contract)
+
+
+def test_explicit_standard_source_contract():
+    validate_source_contract('/uav/vio/odometry', 'standard_enu_flu_odometry_v1')
 
 
 @pytest.mark.parametrize('q', [(1.,0.,0.,0.), (.5,.5,.5,.5),

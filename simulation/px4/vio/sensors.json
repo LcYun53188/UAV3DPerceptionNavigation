@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "scope": "ideal pinhole stereo/IMU reference; NOT calibrated OAK-D Pro W hardware",
+  "model": "x500_vio_ref",
+  "width": 640,
+  "height": 400,
+  "horizontal_fov_rad": 1.21,
+  "baseline_m": 0.075,
+  "rig_position_flu_m": [0.12, 0.0, 0.242],
+  "image_rate_hz": 25,
+  "imu_rate_hz": 250,
+  "near_m": 0.1,
+  "far_m": 20.0
+}

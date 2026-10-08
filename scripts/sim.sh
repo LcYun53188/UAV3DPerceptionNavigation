@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "${1:-}" == "px4-vio-sensors" ]]; then
+  shift
+  exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" "$@"
+fi
 if [[ "${1:-}" == "px4-flight" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_flight.sh" "$@"

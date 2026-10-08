@@ -10,8 +10,18 @@ FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
 
 ## 输入适配
 
-`px4_comm_bridge/vio_input_node` 订阅原始 `/visual_slam/tracking/odometry` 与
-`/visual_slam/status`，要求原始 odom/base_link ENU/FLU 输入和 vo_state=1。
+`px4_comm_bridge/vio_input_node` 订阅标准输入 `/uav/vio/odometry` 与
+`/visual_slam/status`，要求 odom/base_link ENU/FLU 输入和 vo_state=1。
+`source_contract` 默认 `unverified`，有数据也拒绝就绪；只有核验源的机体速度、
+观测协方差和坐标约定后才可显式声明 `standard_enu_flu_odometry_v1`。
+声明是受信任本机配置契约，不是自动完成标定或语义验证。
+明确拒绝将 `/visual_slam/tracking/odometry` 作为输入：本机上游版本的 pose/twist
+协方差是滑窗样本统计，静止时可为零、也可为很小的正值，通过数值检查不证明
+观测精度；速度来自旧窗口机体系的相对位姿差，不等同于当前机体系瞬时速度。
+SDK 位姿协方差另外发布在 `/visual_slam/tracking/vo_pose_covariance`。已针对锁定版本
+完成右扰动到世界固定轴的位姿协方差归一化；SDK rig 由 base_link 外参定义，参考点
+即 base_link。尚无经过核验的速度观测协方差或完整标准 Odometry 发布者，
+真实 VIO 不会据此获准飞行。
 不用重发旧位姿的 hold 输出作为 VIO 输入，也不能把 PX4 回读里程计回灌到自身 EKF。
 
 - 原始采样年龄 ≤0.2 s，未来容忍 0.05 s；跟踪接收/源年龄 ≤0.2 s，图像定位与
@@ -36,6 +46,7 @@ FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
 ```bash
 ./scripts/build_px4_flight.sh
 # 与 VIO 源使用相同 ROS_DOMAIN_ID；传入审核过的设备标定/安装/配置清单 SHA256。
+# 默认 unverified 仅作拒绝检查；标准化源完成审核后才显式声明 source_contract。
 ./scripts/run_vio_monitor.sh --ros-args -p calibration_id:=<64位SHA256>
 ```
 
@@ -112,6 +123,26 @@ MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 
 随后要求四类 last_fuse 不再推进，并且门控因源过期拒绝。归档同时核对 ULog 生效参数。
 这不验证运动中的定位误差、飞行控制或失定位降落，也不是无气压辅助的纯视觉高度验证。
 
+本机 cuVSLAM 节点已通过独立构建、CUDA 加载及模拟双目／IMU静止跟踪检查。
+可用 `./scripts/build_vio_node.sh` 构建节点，再通过 domain 94 的
+`scripts/run_vio_node_smoke.py` 验证加载。该入口不构建可选图像预处理包，
+不代表其 CV-CUDA 依赖已修复。见 [节点加载报告](validation/simulation/2026-10-08-vio-node-load/REPORT.md)。
+
+```bash
+./scripts/sim.sh px4-vio-sensors --ui --duration 35
+```
+
+新入口在独立 partition/domain 78、PX4 instance 7 中运行 PX4、Gazebo、QGC、
+双目／IMU桥接与实际 cuVSLAM；不启动 FlightServer，不发布 FMU 输入。
+模型和有纹理场景按固定配置生成到本次缓存，不改上游 x500 或 W0 构建。
+参考配置为理想针孔 640×400、FOV 1.21 rad、基线 0.075 m、25 Hz，理想 IMU
+250 Hz，安装点 FLU (0.12,0,0.242) m。没有 Pro W 广角畸变、噪声、曝光、
+USB 延迟或硬件时间映射；cuVSLAM 默认 IMU 噪声参数是算法假设，非该相机实测。
+验收覆盖最近 5 s 的采样率、间隔、双目配对、CameraInfo、TF 配置、IMU 重力方向、
+持续跟踪、漂移、源新鲜度、唯一发布者、未解锁着地与进程清理。
+结果中的 raw_odometry_numeric_conversion 仅演示原始数值检查，不能用于飞行准入。
+详见 [实际传感器跟踪证据](validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
+
 后续按最小闭环推进：
 
 1. 冻结 VIO 仿真双目/IMU传感器、内外参、时间与安装配置；上游 OakD-Lite 深度
@@ -123,3 +154,45 @@ MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 
 
 输入首批结果见 [准入验证报告](validation/simulation/2026-10-08-vio-admission/REPORT.md)。
 实际 EKF 融合结果见 [遥测审计报告](validation/simulation/2026-10-08-vio-telemetry/REPORT.md)。
+
+## SDK 位姿归一化与 reset 代理
+
+```bash
+./scripts/build_px4_flight.sh
+./scripts/sim.sh px4-vio-sensors --normalize --ui --duration 35
+./scripts/sim.sh px4-vio-sensors --normalize --reset-source --ui --duration 40
+```
+
+`cuvslam_pose_node` 使用 SDK 位姿协方差，不读取原始 Odometry 的滑窗统计。
+对右扰动协方差使用 diag(R,R) C diag(R,R)ᵀ，保留完整位置/姿态交叉项；
+发布 `/uav/vio/pose`（PoseWithCovarianceStamped）与 `/uav/vio/pose_status`（VioStatus）。
+保留 SDK 原始采样时间和位姿，不推导速度，不发布 FMU 输入，也不接入现有飞行门控。
+这里的 odom 仍为 SDK 初始局部坐标系，尚未实现对 PX4 的初始化对齐或实机时间映射。
+
+须显式声明 `cuvslam15_right_tangent_base_link_v1`；受管入口另外核对
+`simulation/px4/vio/pose_contract.json` 的 SDK/header/上游转换及节点二进制指纹。
+节点查询并核对原生 base_frame、odom_frame、VIO-only、无地面约束及不覆盖采样时间。
+calibration.json 绑定参考传感器、TF、算法参数及原生实现 hash，摘要作为配置 ID；
+这不是 Pro W 标定证明。
+
+位姿/状态按原始时间戳配对，缓存不续写旧时间，0.2 s 内缺失配对就拒绝。
+首次绑定要求连续健康 2 s，初始化的零/单位协方差会拒绝并重新计时；绑定后不自动恢复。
+姿态/位置/时间跳变、发布者变化、源过期、tracking invalid 或协方差超限均锁存失效。
+同一源内恢复健康也不能复活原授权。
+
+原生 reset 服务由受管入口重映射至 `/visual_slam/internal/reset`；公开入口
+`/uav/vio/reset` 先递增代理计数、立即失效旧源，再转发实际 SDK reset。
+服务失败、缺失或 5 s 超时也不恢复源；期限与源接收时效使用单调时钟，暂停仿真时钟
+不会阻止超时。SDK 后续输出恢复也不再发布旧源位姿；重建须启动新适配器会话。
+该重映射是受信任本机运行约定，不是 ROS 访问控制；计数只统计代理请求，
+不承诺检测全部 SDK 内部小幅 reset。
+
+35 s 静止与 40 s 实际 reset 前置审计通过；90 s 稳定性检查失败：SDK 在约 48 s
+将竖直位置方差给到约 0.375 m²，超过 0.25 m² 门限，适配器按设计永久停止输出。
+尚未确认 SDK 质量变化的根因；静止初始化缺少激励、场景特征与算法噪声假设仍需
+通过独立运动数据评估，不能当成已证实原因。保持全部门限，不宣布 S6 或 VIO 悬停通过。
+完整数据见 [位姿与 reset 验证](validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+
+下一步先冻结独立运动验证配置与初始对齐，仅将真值用于审计三轴/旋转误差。
+再实现显式位姿融合配置：速度观测缺失时不伪造速度或协方差，不能直接使用现有要求
+四类 EV 融合的门控；必须分别核验已提供观测的真实融合及 PX4 估计速度，再进入 BT 飞行。

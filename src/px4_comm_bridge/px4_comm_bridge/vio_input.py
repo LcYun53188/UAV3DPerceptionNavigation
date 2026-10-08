@@ -4,6 +4,13 @@ import numpy as np
 from px4_msgs.msg import VehicleOdometry
 
 
+def validate_source_contract(topic, contract):
+    """Numerical covariance checks cannot establish an estimator's semantics."""
+    if (contract != 'standard_enu_flu_odometry_v1'
+            or topic.rstrip('/') == '/visual_slam/tracking/odometry'):
+        raise ValueError('VIO_SOURCE_CONTRACT_UNVERIFIED')
+
+
 def stamp_s(stamp):
     return stamp.sec + stamp.nanosec / 1e9
 
