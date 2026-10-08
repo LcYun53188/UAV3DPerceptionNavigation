@@ -51,6 +51,9 @@ class FlightServer(Node):
         self.lock, self.group = threading.RLock(), ReentrantCallbackGroup()
         self.state_group = MutuallyExclusiveCallbackGroup()
         self.samples, self.received = {}, {}
+        self.odom_valid = False
+        self.localization_fault_latched = False
+        self.input_subscriptions = {}
         self.instance = str(uuid.uuid4())
         self.active_goal = None
         self.reserved = False
@@ -89,7 +92,7 @@ class FlightServer(Node):
                            ('vehicle_land_detected', VehicleLandDetected), ('battery_status', BatteryStatus),
                            ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry)]:
             suffix = f'_v{kind.MESSAGE_VERSION}' if kind.MESSAGE_VERSION else ''
-            self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
+            self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
                                      qos_profile_sensor_data, callback_group=self.state_group)
         self.mode_pub = self.create_publisher(OffboardControlMode, '/px4_7/fmu/in/offboard_control_mode', 10)
         self.setpoint_pub = self.create_publisher(TrajectorySetpoint, '/px4_7/fmu/in/trajectory_setpoint', 10)
@@ -123,10 +126,16 @@ class FlightServer(Node):
                         self.fault('SOURCE_TIME_RESET')
                     return
                 self.samples[name], self.received[name] = msg, time.monotonic()
+                if name in ('vehicle_local_position', 'vehicle_odometry'):
+                    self.check_localization_reset()
                 if name=='vehicle_status':self.status_history.append(dict(mono=time.monotonic(),ros=msg.timestamp/1e6,nav_state=msg.nav_state,arming_state=msg.arming_state,failsafe=msg.failsafe))
                 if name == 'vehicle_odometry':
+                    self.odom_valid = False
+                    if self.localization_fault_latched:
+                        return
                     try:
                         odom=vehicle_odometry_to_ros(msg)
+                        self.odom_valid = True
                         self.odom_pub.publish(odom)
                         t=TransformStamped();t.header=odom.header;t.child_frame_id=odom.child_frame_id
                         t.transform.translation.x=odom.pose.pose.position.x
@@ -163,10 +172,16 @@ class FlightServer(Node):
     def healthy(self, ground=False):
         c = self.config
         required = [('vehicle_status', c['status_max_age_s']),
-                    ('vehicle_local_position', c['local_max_age_s']), ('battery_status', 1.5)]
+                    ('vehicle_local_position', c['local_max_age_s']),
+                    ('vehicle_odometry', c['local_max_age_s']), ('battery_status', 1.5)]
         if ground:
             required.append(('vehicle_land_detected', c['land_max_age_s']))
-        if not all(self.fresh(n, a) for n, a in required):
+        if (self.localization_fault_latched or not self.odom_valid or
+                not all(self.fresh(n, a) for n, a in required)):
+            return False
+        odometry = self.samples['vehicle_odometry']
+        sample_age = self.get_clock().now().nanoseconds/1e9 - odometry.timestamp_sample/1e6
+        if odometry.timestamp_sample <= 0 or not -.05 <= sample_age <= c['local_max_age_s']:
             return False
         s, p, b = (self.samples[n] for n in ('vehicle_status', 'vehicle_local_position', 'battery_status'))
         return (s.system_id == 8 and s.component_id == 1 and not s.failsafe and not s.failure_detector_status
@@ -184,7 +199,28 @@ class FlightServer(Node):
 
     def resets(self):
         p = self.samples['vehicle_local_position']
-        return p.xy_reset_counter,p.z_reset_counter,p.heading_reset_counter
+        o = self.samples['vehicle_odometry']
+        return (p.xy_reset_counter, p.z_reset_counter, p.vxy_reset_counter,
+                p.vz_reset_counter, p.heading_reset_counter, o.reset_counter)
+
+    def check_localization_reset(self):
+        # Bind only when a mission/hold owns the established local coordinate frame.
+        protected = (self.active_goal and not self.result) or self.owner == 'HOLD_CONTROLLER'
+        if not protected or self.localization_fault_latched:
+            return
+        current = self.resets()
+        if current == self.reset_baseline:
+            return
+        self.localization_fault_latched = True
+        self.odom_valid = False
+        self.diagnostics.append(dict(localization_reset=dict(
+            expected=list(self.reset_baseline), observed=list(current))))
+        if self.owner == 'HOLD_CONTROLLER' and self.result:
+            # The completed root result is immutable; revoke its separate hold owner.
+            self.owner = 'NONE'; self.generation += 1; self.segment = None
+            self.change('FAULT', 'FINAL_HOLD_LOCALIZATION_RESET')
+        else:
+            self.fault('LOCALIZATION_RESET')
 
     def region(self, point):
         c = self.config

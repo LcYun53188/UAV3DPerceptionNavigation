@@ -70,7 +70,7 @@ class AircraftStateAggregator:
             return False  # Replaying one sample cannot renew receive freshness.
         if source == 'local' and previous and any(
                 previous[2].get(k) != data.get(k) for k in
-                ('xy_reset_counter', 'z_reset_counter', 'heading_reset_counter')):
+                ('xy_reset_counter', 'z_reset_counter', 'vxy_reset_counter', 'vz_reset_counter', 'heading_reset_counter')):
             self.source_faults[source] = 'LOCAL_POSITION_RESET'
             return False
         if not -self.future_tolerance <= ros_s - timestamp_s <= self.max_age:
