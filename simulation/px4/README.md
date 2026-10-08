@@ -104,3 +104,5 @@ offscreen，终端输出阶段；结束后只清理本次进程组。详情及�
 
 BT 首批 XML 包装整条 ExecuteMission，尚未将各飞行步骤拆成独立 BT Action；
 EGO/algorithm 任务树仍待实现。验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。
+
+逐步骤 BT 与可视化运行：`./scripts/sim.sh px4-flight --bt --ui`；协议与范围见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。

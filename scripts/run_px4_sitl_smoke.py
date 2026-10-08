@@ -52,6 +52,7 @@ def main():
     parser.add_argument('--duration', type=float, default=45)
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
     parser.add_argument('--bt', action='store_true', help='Execute flight through BehaviorTree.CPP runner')
+    parser.add_argument('--ui', action='store_true', help='Show the owned Gazebo and QGC windows')
     parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall'], default='full')
     parser.add_argument('--flight', action='store_true', help='Run real known-region flight mission after disarmed smoke')
     parser.add_argument('--aircraft-state', action='store_true',
@@ -153,6 +154,8 @@ def main():
     try:
         launch('agent', [ROOT / '.deps/microxrce-install/bin/MicroXRCEAgent', 'udp4', '-p', str(xrce_port)])
         launch('gazebo', ['gz', 'sim', '-r', '-s', worlds / 'default.sdf'])
+        if args.ui:
+            launch('gazebo_gui', ['gz', 'sim', '-g'])
         launch('clock_bridge', ['ros2', 'run', 'ros_gz_bridge', 'parameter_bridge',
                                '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'])
         launch('px4', [build / 'bin/px4', '-d', '-i', str(instance), '-w', run_dir / 'rootfs', build / 'etc'])
@@ -160,7 +163,8 @@ def main():
         config.mkdir(parents=True)
         (config / 'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
         qgc_env = dict(env, XDG_CONFIG_HOME=str(run_dir / 'qgc-config'),
-                       XDG_CACHE_HOME=str(run_dir / 'qgc-cache'), QT_QPA_PLATFORM='offscreen')
+                       XDG_CACHE_HOME=str(run_dir / 'qgc-cache'),
+                       QT_QPA_PLATFORM=os.environ.get('QT_QPA_PLATFORM', 'xcb') if args.ui else 'offscreen')
         launch('qgc', [lock['artifacts']['qgc']['path'], '--allow-multiple', '--log-output',
                        '--logging', 'Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'], qgc_env)
         if args.aircraft_state:

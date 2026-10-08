@@ -28,7 +28,7 @@ from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
 from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress
-from uav_nav_interfaces.srv import PauseMission, ResumeMission
+from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
 from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_region
@@ -65,6 +65,7 @@ class FlightServer(Node):
         self.requests = {}
         self.owner = 'NONE'
         self.clock_last, self.clock_advance = None, time.monotonic()
+        self.clock_observed = False
         self.clock_fault_latched=False
         self.last_command = 0.
         self.stable_since = None
@@ -75,6 +76,9 @@ class FlightServer(Node):
         self.output_count = 0
         self.last_graph_check=0.
         self.runner_required = False
+        self.step_controlled = False
+        self.step_grant = None
+        self.step_requests = {}
         self.runner_last_tick = 0.
         self.runner_sequence = 0
         self.runner_lost = False
@@ -107,6 +111,7 @@ class FlightServer(Node):
                                   callback_group=self.group)
         self.create_service(PauseMission, '/uav/px4/pause', self.pause, callback_group=self.group)
         self.create_service(ResumeMission, '/uav/px4/resume', self.resume, callback_group=self.group)
+        self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
         self.create_timer(.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME), callback_group=self.state_group)
 
     def callback(self, name):
@@ -199,6 +204,10 @@ class FlightServer(Node):
             raise ValueError('Invalid runner progress flag')
         if params.get('runner_progress_required') and params.get('coordinator_instance') != self.instance:
             raise ValueError('Stale runner coordinator')
+        if not isinstance(params.get('step_controlled', False), bool):
+            raise ValueError('Invalid step control flag')
+        if params.get('step_controlled') and not params.get('runner_progress_required'):
+            raise ValueError('Step control requires bound runner progress')
         steps = params['steps']
         if not isinstance(steps,list) or not 2 <= len(steps) <= 20:
             raise ValueError('Invalid steps')
@@ -233,26 +242,41 @@ class FlightServer(Node):
     def goal(self, request):
         with self.lock:
             if self.clock_fault_latched or self.active_goal or self.reserved or self.owner != 'NONE' or not self.healthy(ground=True):
-                return GoalResponse.REJECT
+                return FlightServer.reject_goal(self, 'CLOCK_BUSY_OR_HEALTH')
             status, land = self.samples['vehicle_status'], self.samples['vehicle_land_detected']
             if status.arming_state != 1 or not land.landed or not status.pre_flight_checks_pass or self.speed() > .1:
-                return GoalResponse.REJECT
+                return FlightServer.reject_goal(self, 'GROUND_PREFLIGHT_NOT_READY')
             try:
                 self.parse(request)
                 if not self.region(self.position()):
-                    return GoalResponse.REJECT
+                    return FlightServer.reject_goal(self, 'START_OUTSIDE_W0')
                 for topic in ('offboard_control_mode','trajectory_setpoint','vehicle_command'):
                     if len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic)) != 1:
-                        return GoalResponse.REJECT
-            except (ValueError,TypeError,KeyError):
-                return GoalResponse.REJECT
+                        return FlightServer.reject_goal(self, 'NON_UNIQUE_CONTROL_PUBLISHER')
+            except (ValueError,TypeError,KeyError) as error:
+                return FlightServer.reject_goal(self, 'INVALID_REQUEST:'+str(error))
             self.reserved = True
             return GoalResponse.ACCEPT
+
+    def reject_goal(self, reason):
+        # Record admission failures before any outputs; never log authorization.
+        if hasattr(self, 'get_logger'):
+            now = time.monotonic()
+            ros = self.get_clock().now().nanoseconds/1e9
+            detail = dict(reason=reason, clock_fault_latched=self.clock_fault_latched,
+                ages={n: dict(receive=now-self.received[n], source=ros-m.timestamp/1e6)
+                      for n,m in self.samples.items()})
+            self.diagnostics.append(dict(admission=detail))
+            self.get_logger().warning('GOAL_REJECTED: '+json.dumps(detail, sort_keys=True))
+        return GoalResponse.REJECT
 
     def accept(self, handle):
         with self.lock:
             self.steps = self.parse(handle.request)
             self.runner_required = json.loads(handle.request.parameters_json).get('runner_progress_required', False)
+            self.step_controlled = json.loads(handle.request.parameters_json).get('step_controlled', False)
+            self.step_grant = None
+            self.step_requests.clear()
             self.runner_last_tick = time.monotonic()
             self.runner_sequence = 0
             self.runner_lost = False
@@ -315,7 +339,7 @@ class FlightServer(Node):
             elif verb == 'resume' and self.phase=='PAUSED' and now < self.pause_until and self.healthy():
                 self.owner='TASK';self.generation+=1
                 self.step_index=self.saved_step-1
-                self.next_step()
+                self.next_step(resuming=True)
                 if self.saved_hover is not None:
                     self.hover_until=now+self.saved_hover
                 accepted=True;reason='ACCEPTED'
@@ -325,6 +349,47 @@ class FlightServer(Node):
 
     def pause(self,r,s): return self.service('pause',r,s)
     def resume(self,r,s): return self.service('resume',r,s)
+
+    def advance_step(self, request, response):
+        with self.lock:
+            response.phase = self.phase
+            if (not self.active_goal or request.coordinator_instance != self.instance or
+                    request.mission_uuid != self.active_goal.goal_id):
+                response.reason = 'STALE_IDENTITY'; return response
+            key = bytes(request.request_id.uuid)
+            signature = (request.step_index, request.step_type, bytes(request.control_session.session_id.uuid),
+                         request.control_session.generation, request.control_session.owner)
+            if not any(key):
+                response.reason = 'INVALID_REQUEST_ID'; return response
+            if key in self.step_requests:
+                old, decision = self.step_requests[key]
+                if old != signature:
+                    response.reason = 'REQUEST_ID_CONFLICT'; return response
+                response.accepted, response.reason, response.phase = decision
+                return response
+            if len(self.step_requests) >= 256:
+                response.reason = 'REQUEST_LIMIT'; return response
+            current = ControlSession(session_id=self.session, generation=self.generation, owner=self.owner)
+            if (not self.step_controlled or not self.runner_required or self.runner_lost or
+                    self.canceling or self.result or self.land_committed):
+                response.reason = 'MISSION_STOPPING_OR_NOT_STEP_CONTROLLED'
+            elif request.control_session != current or self.owner != 'TASK':
+                response.reason = 'CONTROL_SESSION_MISMATCH'
+            elif (not self.healthy() or self.clock_fault_latched or
+                  time.monotonic()-self.runner_last_tick > self.config['runner_progress_max_age_s']):
+                response.reason = 'HEALTH_OR_PROGRESS_INVALID'
+            elif (request.step_index != self.step_index+1 or request.step_index >= len(self.steps) or
+                  request.step_type != self.steps[request.step_index]['type'] or
+                  self.step_grant is not None or self.phase not in ('PRESTREAM','AWAIT_STEP')):
+                response.reason = 'STEP_ORDER_OR_PHASE_MISMATCH'
+            else:
+                self.step_grant = request.step_index
+                response.accepted = True
+                if self.phase == 'AWAIT_STEP':
+                    self.next_step()
+                response.phase = self.phase
+            self.step_requests[key] = (signature, (response.accepted, response.reason, response.phase))
+            return response
 
     def runner_progress(self, msg):
         with self.lock:
@@ -362,7 +427,14 @@ class FlightServer(Node):
         self.stop_until=time.monotonic()+8.
         self.change(phase)
 
-    def next_step(self):
+    def next_step(self, resuming=False):
+        if self.step_controlled and not resuming:
+            if self.step_grant != self.step_index+1:
+                self.segment = None
+                self.child = UUID()
+                self.change('AWAIT_STEP')
+                return
+            self.step_grant = None
         self.step_index+=1
         self.child=UUID(uuid=list(uuid.uuid4().bytes))
         step=self.steps[self.step_index]
@@ -419,13 +491,24 @@ class FlightServer(Node):
         self.stable_since=None
         return False
 
+    def update_clock_watchdog(self, now, ros):
+        if self.clock_last is None or ros > self.clock_last:
+            self.clock_advance = now
+        backwards = self.clock_last is not None and ros < self.clock_last
+        self.clock_last = ros
+        # ROS time starts at zero before discovery delivers the first /clock.
+        # Health already forbids admission without fresh timestamped PX4 state.
+        # Only a clock actually observed running may subsequently stall/reset.
+        if ros > 0.:
+            self.clock_observed = True
+        if self.clock_observed and (backwards or now-self.clock_advance > .5):
+            self.clock_fault_latched = True
+        return backwards
+
     def tick(self):
         with self.lock:
             now=time.monotonic();ros=self.get_clock().now().nanoseconds/1e9
-            if self.clock_last is None or ros > self.clock_last:self.clock_advance=now
-            backwards=self.clock_last is not None and ros < self.clock_last
-            self.clock_last=ros
-            if backwards or now-self.clock_advance>.5:self.clock_fault_latched=True
+            backwards = self.update_clock_watchdog(now, ros)
             self.publish_control(now)
             if not self.active_goal or self.result:
                 if self.owner=='HOLD_CONTROLLER' and hasattr(self,'final_hold_until'):
@@ -476,7 +559,9 @@ class FlightServer(Node):
             self.check_runner_progress(now)
             if self.result:return
             phase=self.phase
-            if phase=='PRESTREAM' and now-self.phase_started >= 1.5 and (not self.runner_required or self.runner_sequence > 0):
+            if (phase=='PRESTREAM' and now-self.phase_started >= 1.5 and
+                    (not self.runner_required or self.runner_sequence > 0) and
+                    (not self.step_controlled or self.step_grant == 0)):
                 self.command(176,1,6);self.change('OFFBOARD_REQUEST')
             elif phase=='OFFBOARD_REQUEST':
                 if status.nav_state==14:
@@ -555,7 +640,8 @@ class FlightServer(Node):
                      map_session=self.config['alignment_id'],total_remaining_s=max(0.,self.deadline-time.monotonic()),mock=False)
         s.header.stamp=self.get_clock().now().to_msg()
         self.status_pub.publish(s)
-        if not self.result:self.active_goal.publish_feedback(ExecuteMission.Feedback(status=s,tree_node='PX4_FLIGHT_SEQUENCE',fault=self.reason))
+        if not self.result:self.active_goal.publish_feedback(ExecuteMission.Feedback(status=s,
+            tree_node=f'PX4_STEP[{self.step_index}]' if self.step_controlled else 'PX4_FLIGHT_SEQUENCE',fault=self.reason))
 
     async def execute(self,handle):
         code,reason,confirmed=await self.done_future

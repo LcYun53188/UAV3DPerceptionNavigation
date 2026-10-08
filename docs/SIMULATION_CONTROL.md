@@ -302,3 +302,6 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=180 ./scripts/with_venv.sh \
 修复后初次实测已接受轨迹并移动，但后续被独立的地图查询时效故障中断：回复往返约 2.0–2.53 s，而 nvblox 内部服务处理最长约 31 ms。现场套接字使用默认 212 KiB 接收缓存并记录到丢包。仅扩大缓存的试验仍有秒级延迟，不能认定缓存大小是全部原因。使用 UDP 专用客户端读取相同 7.3 MB ESDF 的 20 秒高频诊断中，1186 次查询最长 41 ms；该试验不是同频率吞吐对照。地图转发节点因此使用专用 UDP 配置 [fastdds_map_service.xml](../src/uav_bringup/config/fastdds_map_service.xml)，其余节点默认仅增大缓冲 [fastdds_large_maps.xml](../src/uav_bringup/config/fastdds_large_maps.xml)。配置方法依据 [Fast DDS 大消息文档](https://fast-dds.docs.eprosima.com/en/2.x/fastdds/use_cases/large_data/large_data.html)。Linux `net.core.rmem_max` 需允许 8 MiB，`wmem_max` 需允许 1 MiB，本机均为 10 MiB；未修改全局内核设置。已有外部 Fast DDS 配置优先保留；原始 launch 的 `map_transport_profile:=''` 可关闭地图专用配置，或指定自己的 XML 路径。
 
 保持 Gazebo、RViz 和 nvblox 已有地图，仅重启规划、执行和地图转发客户端后的复测，从 `(-2.550, 2.449, 1.151)` 到原目标 `(0.014, 8.640, 1.2)` 成功：22.704 s、1 段执行、最小采样真值净空 0.186 m、终点误差 0.001519 m、3 秒悬停漂移 0.000019 m；26 条诊断无查询错误，最长往返 28 ms、回复时源数据年龄最大 0.186 s。2 秒时效阈值不变。期间手动目标曾使位置改变，因此此到达试验不等于在最初卡住位置进行相同状态的计时对照；冻结现场回归另验证了原问题。地图保存至 `.cache/maps/stuck_repair_verified`。当前会话的修复节点由临时监督进程随受管 launch 退出而清理；以后正常启动直接加载上述代码与配置。
+
+PX4 可视化逐步骤任务：`./scripts/sim.sh px4-flight --bt --ui`。本轮拥有 Gazebo/QGC，
+完成落地解除武装后清理；原有算法会话保持独立。见 [步骤控制说明](PX4_STEP_BT.md)。
