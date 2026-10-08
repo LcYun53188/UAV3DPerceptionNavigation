@@ -24,6 +24,7 @@ from rclpy.action import ActionClient
 from rclpy.context import Context
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
+from rclpy.clock import Clock, ClockType
 from uav_nav_interfaces.action import ExecuteMission, NavigateToPose3D
 from uav_nav_interfaces.msg import MissionProgress
 from uav_nav_interfaces.srv import PauseMission, ResumeMission, ManageControlSession
@@ -52,6 +53,8 @@ class Backend(Node):
         self.odom.pose.pose.orientation.w = 1.
         self.odom_wall = time.monotonic()
         self.delay = .4
+        self.health_ready = True
+        self.odom_mode = 'live'
         self.corrupt_cancel = self.mock_result = False
         self.dispatches = []
         self.navigation = NS(goal=None, autonomous=NS(enabled=False), state='IDLE',
@@ -59,10 +62,10 @@ class Backend(Node):
         self.navigation.goal_cb = self.dispatch
         self.navigation.report = lambda state, reason: vars(self.navigation).update(state=state, reason=reason)
         self.navigation_action = ContractAction(self)
-        self.create_timer(.02, self.tick)
+        self.create_timer(.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
 
     def ready(self):
-        return True
+        return self.health_ready
 
     def dispatch(self, pose, controlled=False):
         assert controlled
@@ -81,8 +84,10 @@ class Backend(Node):
         self.navigation_action.on_stop(reason)
 
     def tick(self):
-        self.odom.header.stamp = self.get_clock().now().to_msg()
-        self.odom_wall = time.monotonic()
+        if self.odom_mode != 'frozen':
+            self.odom.header.stamp = self.get_clock().now().to_msg()
+        if self.odom_mode != 'missing':
+            self.odom_wall = time.monotonic()
         if self.navigation.goal is not None:
             self.odom.twist.twist.linear.x = .4
             if time.monotonic()-self.dispatched_at >= self.delay:
@@ -408,3 +413,85 @@ def test_server_exit_waits_for_confirmed_stop_and_aborts_root(system):
     assert node.navigation_action.parent.session is None
     until(lambda: process.poll() is not None)
     assert process.returncode == 0
+
+
+@pytest.mark.parametrize('phase', ['RUNNING', 'PAUSED'])
+@pytest.mark.parametrize('fault,reason', [
+    ('map', 'MAP_SESSION_CHANGED'),
+    ('health', 'MAP_OR_ODOMETRY_NOT_READY'),
+    ('frozen', 'ODOMETRY_OR_CLOCK_FAULT'),
+    ('missing', 'ODOMETRY_OR_CLOCK_FAULT'),
+    ('rewind', 'CLOCK_RESET'),
+])
+def test_fault_revokes_parent_and_recovery_requires_new_root(system, phase, fault, reason):
+    node, until, send, command, feedback, checkpoint, _ = system
+    node.delay = 8.
+    root = send()
+    result = root.get_result_async()
+    until(lambda: feedback and feedback[-1].status.has_child and node.navigation.goal is not None)
+    old_session = node.navigation_action.parent.session
+    old_child = bytes(feedback[-1].status.child_uuid.uuid)
+    if phase == 'PAUSED':
+        assert command(root).accepted
+        until(lambda: feedback[-1].status.phase == 'PAUSED')
+    if fault == 'map':
+        node.session = ('contract-map', 2)
+    elif fault == 'health':
+        node.health_ready = False
+    elif fault in ('frozen', 'missing'):
+        node.odom_mode = fault
+    else:
+        node.odom_mode = 'frozen'
+        node.odom.header.stamp.sec -= 1
+    reservation = node.navigation_action.parent
+    until(lambda: reservation.fault == reason, 2.)
+    assert not reservation.permits(old_session)
+    assert node.navigation.goal is None
+    if phase == 'PAUSED':
+        # Before the fault status crosses DDS a resume ACK can use the previous
+        # fresh status. The backend must still reject authorization atomically.
+        decision = command(root, pause_request=False)
+        assert not decision.accepted or decision.phase == 'RESUMING'
+    # A fault cannot clear itself or dispatch the old child after fresh input returns.
+    node.odom_mode, node.health_ready = 'live', True
+    until(result.done, 5.)
+    value = result.result()
+    assert value.status == GoalStatus.STATUS_ABORTED
+    assert value.result.reason == reason and value.result.cleanup_confirmed and not value.result.mock
+    assert reservation.session is None and not reservation.permits(old_session)
+    assert len(node.dispatches) == 1
+    # Rebind explicitly to the recovered map; only a fresh root/generation may move.
+    node.delay = .4
+    definition = json.loads(checkpoint.read_text())['definition']
+    definition['map_session'] = f'{node.session[0]}:{node.session[1]}'
+    successor = send(parameters_json=json.dumps(definition))
+    assert successor.accepted and successor.goal_id != root.goal_id
+    next_result = successor.get_result_async()
+    until(next_result.done, 7.)
+    assert next_result.result().status == GoalStatus.STATUS_SUCCEEDED
+    assert len(node.dispatches) == 3
+    assert all(bytes(f.status.child_uuid.uuid) != old_child for f in feedback
+               if f.status.mission_uuid == successor.goal_id and f.status.has_child)
+
+
+def test_persistent_odometry_loss_cannot_claim_cleanup_or_accept_successor(system):
+    node, until, send, _, feedback, _, _ = system
+    node.delay = 20.
+    root = send()
+    until(lambda: feedback and feedback[-1].status.has_child and node.navigation.goal is not None)
+    session = node.navigation_action.parent.session
+    node.odom_mode = 'missing'
+    result = root.get_result_async()
+    until(result.done, 9.)
+    value = result.result()
+    assert value.status == GoalStatus.STATUS_ABORTED
+    assert value.result.reason == 'CHILD_STOP_UNCONFIRMED'
+    assert not value.result.cleanup_confirmed and not value.result.mock
+    assert node.navigation_action.fault_latched
+    assert node.navigation_action.parent.matches(session)
+    assert node.navigation.goal is None
+    # Returning data must not clear either the backend or MissionServer latch.
+    node.odom_mode = 'live'
+    assert not send().accepted
+    assert not node.navigation_action.parent.permits(session)
+    assert len(node.dispatches) == 1

@@ -23,7 +23,7 @@ install(TARGETS mission_runner algorithm_mission_server DESTINATION lib/${PROJEC
 install(DIRECTORY trees DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(bt_algorithm_contract test/test_algorithm_mission.py TIMEOUT 120
+  ament_add_pytest_test(bt_algorithm_contract test/test_algorithm_mission.py TIMEOUT 180
     ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
   ament_add_pytest_test(bt_ros_contract test/test_runner_integration.py TIMEOUT 90
     ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
