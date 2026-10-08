@@ -10,8 +10,16 @@ FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
 
 ## 输入适配
 
-`px4_comm_bridge/vio_input_node` 订阅原始 `/visual_slam/tracking/odometry` 与
-`/visual_slam/status`，要求原始 odom/base_link ENU/FLU 输入和 vo_state=1。
+`px4_comm_bridge/vio_input_node` 订阅标准输入 `/uav/vio/odometry` 与
+`/visual_slam/status`，要求 odom/base_link ENU/FLU 输入和 vo_state=1。
+`source_contract` 默认 `unverified`，有数据也拒绝就绪；只有核验源的机体速度、
+观测协方差和坐标约定后才可显式声明 `standard_enu_flu_odometry_v1`。
+声明是受信任本机配置契约，不是自动完成标定或语义验证。
+明确拒绝将 `/visual_slam/tracking/odometry` 作为输入：本机上游版本的 pose/twist
+协方差是滑窗样本统计，静止时可为零、也可为很小的正值，通过数值检查不证明
+观测精度；速度来自旧窗口机体系的相对位姿差，不等同于当前机体系瞬时速度。
+SDK 位姿协方差另外发布在 `/visual_slam/tracking/vo_pose_covariance`，尚需核对
+坐标、参考点与速度协方差传播。当前没有标准化发布者，真实 VIO 不会据此获准飞行。
 不用重发旧位姿的 hold 输出作为 VIO 输入，也不能把 PX4 回读里程计回灌到自身 EKF。
 
 - 原始采样年龄 ≤0.2 s，未来容忍 0.05 s；跟踪接收/源年龄 ≤0.2 s，图像定位与
@@ -36,6 +44,7 @@ FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
 ```bash
 ./scripts/build_px4_flight.sh
 # 与 VIO 源使用相同 ROS_DOMAIN_ID；传入审核过的设备标定/安装/配置清单 SHA256。
+# 默认 unverified 仅作拒绝检查；标准化源完成审核后才显式声明 source_contract。
 ./scripts/run_vio_monitor.sh --ros-args -p calibration_id:=<64位SHA256>
 ```
 
@@ -112,10 +121,25 @@ MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 
 随后要求四类 last_fuse 不再推进，并且门控因源过期拒绝。归档同时核对 ULog 生效参数。
 这不验证运动中的定位误差、飞行控制或失定位降落，也不是无气压辅助的纯视觉高度验证。
 
-本机 cuVSLAM 节点已通过独立构建与 CUDA 加载检查，尚无传感器/跟踪证据。
+本机 cuVSLAM 节点已通过独立构建、CUDA 加载及模拟双目／IMU静止跟踪检查。
 可用 `./scripts/build_vio_node.sh` 构建节点，再通过 domain 94 的
 `scripts/run_vio_node_smoke.py` 验证加载。该入口不构建可选图像预处理包，
 不代表其 CV-CUDA 依赖已修复。见 [节点加载报告](validation/simulation/2026-10-08-vio-node-load/REPORT.md)。
+
+```bash
+./scripts/sim.sh px4-vio-sensors --ui --duration 35
+```
+
+新入口在独立 partition/domain 78、PX4 instance 7 中运行 PX4、Gazebo、QGC、
+双目／IMU桥接与实际 cuVSLAM；不启动 FlightServer，不发布 FMU 输入。
+模型和有纹理场景按固定配置生成到本次缓存，不改上游 x500 或 W0 构建。
+参考配置为理想针孔 640×400、FOV 1.21 rad、基线 0.075 m、25 Hz，理想 IMU
+250 Hz，安装点 FLU (0.12,0,0.242) m。没有 Pro W 广角畸变、噪声、曝光、
+USB 延迟或硬件时间映射；cuVSLAM 默认 IMU 噪声参数是算法假设，非该相机实测。
+验收覆盖最近 5 s 的采样率、间隔、双目配对、CameraInfo、TF 配置、IMU 重力方向、
+持续跟踪、漂移、源新鲜度、唯一发布者、未解锁着地与进程清理。
+结果中的 raw_odometry_numeric_conversion 仅演示原始数值检查，不能用于飞行准入。
+详见 [实际传感器跟踪证据](validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
 
 后续按最小闭环推进：
 

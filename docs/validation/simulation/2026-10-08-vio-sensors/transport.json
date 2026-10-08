@@ -1,0 +1,169 @@
+{
+  "passed": true,
+  "domain": 92,
+  "scope": "synthetic DDS contracts only, no camera or actual EKF fusion",
+  "states": 362,
+  "checks": {
+    "unverified_contract": [
+      {
+        "phase": "unverified_contract",
+        "valid": false,
+        "reason": "VIO_SOURCE_CONTRACT_UNVERIFIED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "unverified_contract",
+        "valid": false,
+        "reason": "VIO_SOURCE_CONTRACT_UNVERIFIED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "unverified_contract",
+        "valid": false,
+        "reason": "VIO_SOURCE_CONTRACT_UNVERIFIED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "unverified_contract",
+        "valid": false,
+        "reason": "VIO_SOURCE_CONTRACT_UNVERIFIED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "unverified_contract",
+        "valid": false,
+        "reason": "VIO_SOURCE_CONTRACT_UNVERIFIED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      }
+    ],
+    "fresh": [
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "fresh",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      }
+    ],
+    "tracking_lost": [
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "tracking_lost",
+        "valid": false,
+        "reason": "VIO_TRACKING_INVALID",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      }
+    ],
+    "recovered": [
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "recovered",
+        "valid": true,
+        "reason": "",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      }
+    ],
+    "replacement_latched": [
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      },
+      {
+        "phase": "replacement_latched",
+        "valid": false,
+        "reason": "VIO_PUBLISHER_CHANGED",
+        "session": "8c577242-1d98-4152-9647-b1bb63767930"
+      }
+    ]
+  },
+  "fmu_input_publishers": {}
+}

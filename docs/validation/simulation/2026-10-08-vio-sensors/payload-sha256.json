@@ -1,0 +1,282 @@
+{
+  "initial-agent-failure/result.json": {
+    "payload_sha256": "e9cfbf793b87b8edeb1221faeb380bd6fbe7ada60025a42570aea3a7b392ffd6",
+    "original_bytes": 3935
+  },
+  "initial-agent-failure/manifest.json": {
+    "payload_sha256": "653926b67747d778c36e1c146df8e2a3b772f2f2a49adead5ffb6011edf6b5c5",
+    "original_bytes": 15268
+  },
+  "initial-agent-failure/vio-params.yaml": {
+    "payload_sha256": "ebac07dfbef0b8ee702bc6b48ee53ee2617779ea2bdc7cda5e5292a1b11db7cc",
+    "original_bytes": 755
+  },
+  "initial-agent-failure/agent.log.gz": {
+    "payload_sha256": "43d2f222b4d62bc41d6984b2f8ce598824b7980f1d6e96e75e9126648fe80fb0",
+    "original_bytes": 199
+  },
+  "initial-agent-failure/gazebo.log.gz": {
+    "payload_sha256": "0a315315f7f5fa356ba7200ebeac997eb9c1e860d5d672e78d3fd34ec75dbdba",
+    "original_bytes": 1590
+  },
+  "initial-agent-failure/sensor_bridge.log.gz": {
+    "payload_sha256": "ad74cc5c7cf889c25718e0a4e696a6fe0116fa45382430c58fbb9661de13b2b5",
+    "original_bytes": 1333
+  },
+  "initial-agent-failure/vio.log.gz": {
+    "payload_sha256": "f8a14125f589e6abe38f2d25b96e963e979c3e18896f3d358a87059778291ffb",
+    "original_bytes": 27215
+  },
+  "initial-agent-failure/px4.log.gz": {
+    "payload_sha256": "8dd6afdd5ed503e19039136224178ee77402d869ca9dc2d880a4c7103de0b5ec",
+    "original_bytes": 2652
+  },
+  "initial-agent-failure/qgc.log.gz": {
+    "payload_sha256": "ab06eb20258691f595d39e6497906ae0f113915321a5d5ea6fab25d2c9e51da4",
+    "original_bytes": 68031
+  },
+  "observer-qos-failure/result.json": {
+    "payload_sha256": "980be6bb94960d064eacd0a53b23076e7d7aca11a02168ab27bb4eccc66c7f32",
+    "original_bytes": 6013
+  },
+  "observer-qos-failure/manifest.json": {
+    "payload_sha256": "12ecfdddf82040a9ec841c241af29896f84bed1a55e9e876394e32a3a2325537",
+    "original_bytes": 15479
+  },
+  "observer-qos-failure/vio-params.yaml": {
+    "payload_sha256": "d957db0bc305b9ad89b9ccb98422edf3a95893dc84bb4902bc9a45ae48649384",
+    "original_bytes": 785
+  },
+  "observer-qos-failure/agent.log.gz": {
+    "payload_sha256": "6af6998b4d3004b8cc6b892f29cffdabea6c3b8c4ab4ac775b86112455a79897",
+    "original_bytes": 32833
+  },
+  "observer-qos-failure/gazebo.log.gz": {
+    "payload_sha256": "4b8c7e3081c9dbfbdb68f80b728c0e705e5baebfd9c7039f2236efce86f1e4e7",
+    "original_bytes": 1590
+  },
+  "observer-qos-failure/sensor_bridge.log.gz": {
+    "payload_sha256": "d8bb874d3aaba585e0d644fd72a15e998d37a0410ac4adfcf395f5fd9c45c424",
+    "original_bytes": 1333
+  },
+  "observer-qos-failure/vio.log.gz": {
+    "payload_sha256": "eb981ce76161c1b78c02dc164b15bf0827a24df41dc27e4f1406da9240477e9f",
+    "original_bytes": 2560
+  },
+  "observer-qos-failure/px4.log.gz": {
+    "payload_sha256": "4a2abec0e14a2a84e8d40de9803f93dd9df56fd32ad0ac1b7aecc8fee8ac9fcc",
+    "original_bytes": 5288
+  },
+  "observer-qos-failure/qgc.log.gz": {
+    "payload_sha256": "e7f0b5ee593e630ef145e328005ca9d6820f125f62035efcd3ff560e98178520",
+    "original_bytes": 68031
+  },
+  "headless/result.json": {
+    "payload_sha256": "64404fdc0a0b67136d1fdb3e2cf0630c42891f1633778ca8436334fe1fb1c1bf",
+    "original_bytes": 7715
+  },
+  "headless/manifest.json": {
+    "payload_sha256": "2b51bdd7f3d1c136e671f697598a5cfa413a4c60515dc4bf3b12701fa386b9bd",
+    "original_bytes": 15516
+  },
+  "headless/vio-params.yaml": {
+    "payload_sha256": "d957db0bc305b9ad89b9ccb98422edf3a95893dc84bb4902bc9a45ae48649384",
+    "original_bytes": 785
+  },
+  "headless/agent.log.gz": {
+    "payload_sha256": "0fd289943a71fb87b34b03892547e58265603dc9f4de90322538862a7ad5cbd9",
+    "original_bytes": 32833
+  },
+  "headless/gazebo.log.gz": {
+    "payload_sha256": "9f1386209787045c573768728bfcd6218bd61111acbd0aef9d6b93a0f9fa4810",
+    "original_bytes": 1590
+  },
+  "headless/sensor_bridge.log.gz": {
+    "payload_sha256": "d3848b81375170ac5bf3611dcfb203b2851eed26a3da274a0cf49347eca3a800",
+    "original_bytes": 1333
+  },
+  "headless/vio.log.gz": {
+    "payload_sha256": "5d5a0bbe221b206da4414c15f34b74cd388d565558d3141f0fe613f26ed95a40",
+    "original_bytes": 2560
+  },
+  "headless/px4.log.gz": {
+    "payload_sha256": "dd7392558a6db1f0c977b907e316e41d26bb9fd918d77376a12c38708f1492c0",
+    "original_bytes": 5288
+  },
+  "headless/qgc.log.gz": {
+    "payload_sha256": "257c988dd95aea221def85f0bd6683482557ce80191c9dddda10b1b8b1f32082",
+    "original_bytes": 68031
+  },
+  "headless/samples.json.gz": {
+    "payload_sha256": "4f4f23cf82314e3f4b3e84460703b58f762e763acd77934bf9a1726389f8c796",
+    "original_bytes": 114893
+  },
+  "headless/odometry.json.gz": {
+    "payload_sha256": "97b7d8b9c66f0a00619a6875953add8e939c54a2bfea93256c50ead7556993d3",
+    "original_bytes": 412363
+  },
+  "headless/assets/frames.json.gz": {
+    "payload_sha256": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761",
+    "original_bytes": 486
+  },
+  "headless/assets/default.sdf.gz": {
+    "payload_sha256": "7451815884616ee3012630c2b6ebbb92d481d310fda4470cf41abfbe7ac56e4f",
+    "original_bytes": 229489
+  },
+  "headless/assets/x500_vio_ref/model.sdf.gz": {
+    "payload_sha256": "386e028d119818a8e6d4fb52e9365d5a31e75b094da7db86fb0915665ec66269",
+    "original_bytes": 2203
+  },
+  "headless/assets/x500_vio_ref/model.config.gz": {
+    "payload_sha256": "1de639e3b0249ab8c81495115c412a891775997cf7f438440d68668544673238",
+    "original_bytes": 94
+  },
+  "ui/result.json": {
+    "payload_sha256": "ffc0d741765cd88f93e5dc603404fd56a93b921ed6795667b66625887b1c0185",
+    "original_bytes": 7723
+  },
+  "ui/manifest.json": {
+    "payload_sha256": "7b01b1ae7ab4bdae1dea386354202e18bd941fe359e2b27aa1c3ebf97cb35a75",
+    "original_bytes": 15631
+  },
+  "ui/vio-params.yaml": {
+    "payload_sha256": "d957db0bc305b9ad89b9ccb98422edf3a95893dc84bb4902bc9a45ae48649384",
+    "original_bytes": 785
+  },
+  "ui/agent.log.gz": {
+    "payload_sha256": "d8fb5d536c652315c0a8b10262a3f1efa69d32aea8ab98974fca4c29be439ba1",
+    "original_bytes": 32832
+  },
+  "ui/gazebo.log.gz": {
+    "payload_sha256": "724b39d47afdf54610739296f6ed4e26c0be764ace960a85dc8e9c8905fd704d",
+    "original_bytes": 1590
+  },
+  "ui/sensor_bridge.log.gz": {
+    "payload_sha256": "e8f29f509d82438119249ebffaec5fc32939ec00a5c8ffd427a7676cce3f141e",
+    "original_bytes": 1333
+  },
+  "ui/vio.log.gz": {
+    "payload_sha256": "a1873f425cfc1bab89f4c419ec95e4d8b21a9cdfee4fb212b4e8676581531c80",
+    "original_bytes": 2560
+  },
+  "ui/px4.log.gz": {
+    "payload_sha256": "71fa1ebe193d43e048f9be90e3d9a1b8b23eb4a5da582730566d4be86a1f7fb7",
+    "original_bytes": 5288
+  },
+  "ui/qgc.log.gz": {
+    "payload_sha256": "66aa3caad602022f118ee44857356416161351c0152557480a2e2fb53ae7ad32",
+    "original_bytes": 70217
+  },
+  "ui/samples.json.gz": {
+    "payload_sha256": "a4412522f5c3016b8a7cfc0b365dd20209de62b2724c1f305dfadbd25b17afeb",
+    "original_bytes": 114639
+  },
+  "ui/odometry.json.gz": {
+    "payload_sha256": "3e8caec61631bc632561be5ea9265716b5f26544390943809474fd38d3596cd3",
+    "original_bytes": 411917
+  },
+  "ui/assets/frames.json.gz": {
+    "payload_sha256": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761",
+    "original_bytes": 486
+  },
+  "ui/assets/default.sdf.gz": {
+    "payload_sha256": "7451815884616ee3012630c2b6ebbb92d481d310fda4470cf41abfbe7ac56e4f",
+    "original_bytes": 229489
+  },
+  "ui/assets/x500_vio_ref/model.sdf.gz": {
+    "payload_sha256": "386e028d119818a8e6d4fb52e9365d5a31e75b094da7db86fb0915665ec66269",
+    "original_bytes": 2203
+  },
+  "ui/assets/x500_vio_ref/model.config.gz": {
+    "payload_sha256": "1de639e3b0249ab8c81495115c412a891775997cf7f438440d68668544673238",
+    "original_bytes": 94
+  },
+  "ui/left.ppm.gz": {
+    "payload_sha256": "fa8cd1a9acdbfb58f31c09bb7f58819c232c76120ab9f4bbf99c1784c113f2f2",
+    "original_bytes": 768015
+  },
+  "ui/left.png": {
+    "payload_sha256": "6fdaea1848a84ec428ff4d6d2a8fce933362a515a144e7a53c4695f44726537b",
+    "original_bytes": 6863
+  },
+  "ui/right.ppm.gz": {
+    "payload_sha256": "acf7631584a54cbe7030c41c0153fc67fd999aa0b37086514ae84434e697e88c",
+    "original_bytes": 768015
+  },
+  "ui/right.png": {
+    "payload_sha256": "725d201e4ab89ce3e4ef7912654df6519bada85857b21e98db07364d70063b37",
+    "original_bytes": 6715
+  },
+  "w0-full/manifest.json": {
+    "payload_sha256": "854d65b79e90cab877402d13f4ac50f6811716f679f2783c08831b3937ea5c39",
+    "original_bytes": 13258
+  },
+  "w0-full/observation.json": {
+    "payload_sha256": "255ae91735821690bc8b4c6febc1a1fd41b0c38424de2564de8ec475d9ef4702",
+    "original_bytes": 2006
+  },
+  "w0-full/flight-observation.json": {
+    "payload_sha256": "8c3047f5ffe86cccfa84bc017b752915b11d063f8a2959dabc54eb4502ba8313",
+    "original_bytes": 5733
+  },
+  "w0-full/cleanup.json": {
+    "payload_sha256": "2a2564acd7d08ca81b9b8279295d3835f1a2d34bfb791760262d8c7fbfb8547b",
+    "original_bytes": 81
+  },
+  "w0-full/bt-flight-tree.xml": {
+    "payload_sha256": "19506bcc0c7d2ababe386c2dc414d8d003374884ccbc94c9d488bf981664ceb0",
+    "original_bytes": 406
+  },
+  "w0-full/flight-events.json.gz": {
+    "payload_sha256": "a275a4c55fbc8300f0329f482829b857136f6d6bd2a8ce7d6428b1d9deef917c",
+    "original_bytes": 6186
+  },
+  "w0-full/flight-truth.json.gz": {
+    "payload_sha256": "d794e547b3e8fe7bf55c649bf594f951371ee78b8f4573c6229fb914118f160c",
+    "original_bytes": 833530
+  },
+  "w0-full/flight-trace.json.gz": {
+    "payload_sha256": "4dc79ab662b2a9becc637a60d7a80ef624b852478a8303be5458c57e0d31790a",
+    "original_bytes": 2014253
+  },
+  "w0-full/flight-status-history.json.gz": {
+    "payload_sha256": "0aa3a8082ce8b94bbcbc589e62a6d9254aacf8f1d06f7b38875abd6892bfb079",
+    "original_bytes": 25593
+  },
+  "w0-full/flight-commands.json.gz": {
+    "payload_sha256": "4d33df0b1d13501d7449c041a4a284229243783ef1bdd46c08edecc68f0cf936",
+    "original_bytes": 338
+  },
+  "w0-full/localized-odometry.json.gz": {
+    "payload_sha256": "4e1d1021ec7aae32e097a07af9b36dec48900671b45c2fcc39754acbede356c2",
+    "original_bytes": 2208603
+  },
+  "w0-full/bt-runner.log.gz": {
+    "payload_sha256": "fafaa02f0d9b01394a75047832f48b5a3c342e7b1561a968f3b7bc6a1098f3b0",
+    "original_bytes": 1074
+  },
+  "w0-full/flight_tasks.log.gz": {
+    "payload_sha256": "860b9870c46cbda064a19515b1035a506766e6b1786c04b0c3952f65fa2d4321",
+    "original_bytes": 7185
+  },
+  "w0-full/px4.log.gz": {
+    "payload_sha256": "155375775f1d413a46b538244394b443ddc579a62f25a9eb5dd396271b09d1c6",
+    "original_bytes": 5870
+  },
+  "w0-full/qgc.log.gz": {
+    "payload_sha256": "edfd1312da328de51b59e0fed0a112edf47bacc3379b387e9f192ff3b3dc0f82",
+    "original_bytes": 74121
+  },
+  "w0-full/gazebo.log.gz": {
+    "payload_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "original_bytes": 0
+  },
+  "w0-full/gazebo_gui.log.gz": {
+    "payload_sha256": "670cc54dde78839fdf770651928c28e623b4d55de3cbb329120f51cde9d90be8",
+    "original_bytes": 452
+  },
+  "transport.json": {
+    "payload_sha256": "9ac5ecbba462351118bb96ff605fd4d28cb12f693ed693e9bfe0705ed17a3bee",
+    "original_bytes": 4542
+  }
+}

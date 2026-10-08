@@ -132,8 +132,8 @@ Gazebo 实际深度话题 `/depth_camera` 和标定话题 `/camera_info` 分别�
 和含模型/依赖 hash 的 `manifest.json`。没有 CameraInfo 即失败，桥接节点存在不算通过。
 
 本阶段不发布相机 TF，不融合 nvblox，不建立地图对齐，也不运行 VIO。
-下一步先明确 Pro W 的仿真参考配置与光学外参，再接入隔离的 nvblox 地图会话和
-已有 PlanningContext；这些完成前不授权 EGO 曲线控制 PX4。
+下一步先明确 Pro W 的仿真参考配置与光学外参并验证真实 VIO 悬停，再接入隔离的
+nvblox 地图会话和已有 PlanningContext；这些完成前不授权 EGO 曲线控制 PX4。
 
 本批实测与失败证据见 [深度相机验证报告](../../docs/validation/simulation/2026-10-08-px4-depth/REPORT.md)。
 
@@ -160,3 +160,22 @@ FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector �
 [VIO 悬停说明](../../docs/VIO_HOVER.md)。
 
 当前开发顺序及阶段门槛见 [三阶段集成路线](../../docs/PX4_INTEGRATION_ROADMAP.md)。
+
+## 真实双目／IMU VIO 静止验证
+
+```bash
+./scripts/build_vio_node.sh
+./scripts/sim.sh px4-vio-sensors --ui --duration 35
+```
+
+在受管 PX4/Gazebo/QGC 会话中生成独立 `x500_vio_ref` 针孔双目／理想 IMU 模型及
+固定有纹理场景，以共同仿真时钟驱动实际 cuVSLAM VIO-only。配置绑定于
+`vio/sensors.json`，运行产物位于 `.cache/simulation/vio-sensors/<run_id>`。
+双目可靠 QoS 避免本机大图传输丢帧；仍检查实际采样率、间隔与源新鲜度。
+
+该入口没有 FlightServer 或任何 FMU 输入，要求全程未解锁、着地，结束后清理所属进程。
+`--ui` 显示 Gazebo 和 QGC；省略时 QGC 使用 offscreen。需先完成基础 SITL 与任务包构建。
+它只验证静止跟踪；不代表 Pro W 标定、运动定位、外部视觉融合或 VIO 悬停。
+cuVSLAM 原始 Odometry 的滑窗协方差不能直接用于 PX4：现有适配器改为订阅标准
+`/uav/vio/odometry`，默认拒绝未经审核的源契约。后续归一化和 reset/运动验证
+完成后再进入飞行。见 [传感器报告](../../docs/validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
