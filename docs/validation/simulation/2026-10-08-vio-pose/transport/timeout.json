@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": {
+    "no_early_output": true,
+    "warmup_span": true,
+    "ready": true,
+    "retired_before_forward": true,
+    "response": true,
+    "forwarded": true,
+    "latched": true,
+    "no_late_pose": true,
+    "one_session": true,
+    "no_fmu": true
+  },
+  "case": "timeout",
+  "upstream": [
+    {
+      "retired": true,
+      "reset": 1
+    }
+  ],
+  "scope": "synthetic DDS pose/reset contracts only, no sensor/EKF/flight"
+}

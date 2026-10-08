@@ -9,13 +9,14 @@ from rclpy.qos import qos_profile_sensor_data
 from nav_msgs.msg import Odometry
 from px4_msgs.msg import VehicleOdometry
 from uav_nav_interfaces.msg import VioStatus
-from .vio_input import convert_vio, SourceContinuity, stamp_s
+from .vio_input import convert_vio, SourceContinuity, stamp_s, validate_source_contract
 
 
 class VioInput(Node):
     def __init__(self):
         super().__init__('vio_input')
-        self.declare_parameter('input_topic', '/visual_slam/tracking/odometry')
+        self.declare_parameter('input_topic', '/uav/vio/odometry')
+        self.declare_parameter('source_contract', 'unverified')
         self.declare_parameter('tracking_topic', '/visual_slam/status')
         self.declare_parameter('calibration_id', '')
         self.declare_parameter('emit_px4', False)
@@ -38,6 +39,7 @@ class VioInput(Node):
         self.last_receive = None
         self.reason = 'VIO_MISSING'
         self.input_topic = str(self.get_parameter('input_topic').value)
+        self.source_contract = str(self.get_parameter('source_contract').value)
         self.tracking_topic = str(self.get_parameter('tracking_topic').value)
         self.status_pub = self.create_publisher(VioStatus, '/uav/vio/status', 10)
         self.output = self.create_publisher(VehicleOdometry, '/px4_7/fmu/in/vehicle_visual_odometry', 10) if self.emit else None
@@ -64,6 +66,7 @@ class VioInput(Node):
 
     def on_odometry(self, message, info):
         try:
+            validate_source_contract(self.input_topic, self.source_contract)
             converted = convert_vio(message, self.get_clock().now().nanoseconds / 1e9)
             # Check continuity even if tracking is not yet discovered.
             gid = info.get('publisher_gid') if isinstance(info, dict) else getattr(info, 'publisher_gid', None)

@@ -1,0 +1,361 @@
+{
+  "run_id": "5f290193-85ac-4496-9965-fd84f08cde77",
+  "scope": "disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight",
+  "partition": "uav_vio_sensors_5f290193-85ac-4496-9965-fd84f08cde77",
+  "domain": 78,
+  "model": "x500_vio_ref_7",
+  "versions": {
+    "schema": 1,
+    "scope": "Local PX4 v1.16.2 baseline: disarmed DDS/clock/QGC smoke and W0 real flight, pause/resume, cancel/hold/land and clock-loss fallback passed; Jetson deferred",
+    "host": {
+      "architecture": "x86_64",
+      "os_id": "ubuntu",
+      "os_version": "24.04",
+      "ros_distro": "jazzy"
+    },
+    "packages": {
+      "ros-jazzy-ros-base": "0.11.0-1noble.20260412.071950",
+      "ros-jazzy-rclpy": "7.1.11-1noble.20260412.041747",
+      "ros-jazzy-gz-sim-vendor": "0.0.10-1noble.20260318.175144",
+      "ros-jazzy-ros-gz-sim": "1.0.22-1noble.20260412.044601",
+      "ros-jazzy-ros-gz-bridge": "1.0.22-1noble.20260412.043437",
+      "ros-jazzy-rmw-fastrtps-cpp": "8.4.3-1noble.20260412.034154",
+      "ros-jazzy-behaviortree-cpp": "4.9.0-1noble.20260412.042652",
+      "cuda-toolkit-13-2": "13.2.1-1"
+    },
+    "sources": [
+      {
+        "path": "src/FAST_LIO_ROS2",
+        "commit": "2fffc570a25d0df172720bac034fbdb6a13d2162"
+      },
+      {
+        "path": "src/FAST_LIO_ROS2/include/ikd-Tree",
+        "commit": "e2e3f4e9d3b95a9e66b1ba83dc98d4a05ed8a3c4"
+      },
+      {
+        "path": "src/isaac_ros_common",
+        "commit": "1ef3b8ba857261a7ecd0eaf41aeaaf24e0815b8e"
+      },
+      {
+        "path": "src/isaac_ros_image_pipeline",
+        "commit": "ab21ed0818e50bd4524a442bc186acbde8de8a56"
+      },
+      {
+        "path": "src/isaac_ros_nitros",
+        "commit": "a22f10d4918662c485b0a1323e2fe1d8c21407a9"
+      },
+      {
+        "path": "src/isaac_ros_nvblox",
+        "commit": "6362295e581ef243773c8a348ac46711e4a1fca4"
+      },
+      {
+        "path": "src/isaac_ros_nvblox/nvblox_ros/nvblox_core",
+        "commit": "3f42b210df9ad7a2099f00fcf324049d97342cb0"
+      },
+      {
+        "path": "src/isaac_ros_visual_slam",
+        "commit": "04bf49a2daf7710d2ba2390d1772435a1baeb48d"
+      },
+      {
+        "path": "src/livox_ros_driver2",
+        "commit": "13eb05e4e6dd7a765b934d0c5fd6236676a57b49"
+      },
+      {
+        "path": "src/magic_enum",
+        "commit": "9f19f78a7d726af84761ecd6d8414613507a95e6"
+      },
+      {
+        "path": "src/negotiated",
+        "commit": "eac198b55dcd052af5988f0f174902913c5f20e7"
+      },
+      {
+        "path": "third_party/Livox-SDK2",
+        "commit": "f5d9375f84efe2b15bc0a052d3e18482ed13adf4"
+      },
+      {
+        "path": ".deps/ego_planner_src",
+        "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9"
+      }
+    ],
+    "files": [
+      {
+        "path": "src/uav_bringup/config/isaac_visual_slam_oakd_vio_only.yaml",
+        "sha256": "7ad1263577c81c89356a94634b46b4674de100338b00d918cb0776a6341ad77a"
+      },
+      {
+        "path": "patches/vendor/sources.json",
+        "sha256": "bbc29100a2c9f55050a35c0f986b4500d5aaa0a5828859af41911391e854d606"
+      },
+      {
+        "path": "patches/vendor/livox_ros_driver2.patch",
+        "sha256": "b79e1eed6acf6df8508b4882af6a6a3694b708a5589eee6a5c7be9079135e6cd"
+      },
+      {
+        "path": "patches/vendor/fast_lio_ros2.patch",
+        "sha256": "8f884a6c4feac53fe668123d1d3d9b748cd191ebc9480221795ff06c5f8acbca"
+      },
+      {
+        "path": "patches/vendor/livox_sdk2.patch",
+        "sha256": "2062417e143db954cf48c61d2b12e433ca8ee0a291ac15c73d84364f326926c1"
+      },
+      {
+        "path": "patches/vendor/isaac_ros_nvblox.patch",
+        "sha256": "765839c6d48e13a822f5ed0994017cbe308e4d578a0b50263d1a70ce637cc380"
+      },
+      {
+        "path": "patches/vendor/magic_enum.patch",
+        "sha256": "cc674f3c6df6b5303504f858d17c7eaa95fa895c43aeb2c39b14db3a0a52d80a"
+      },
+      {
+        "path": "patches/vendor/isaac_ros_nitros.patch",
+        "sha256": "4ab4613793ab8bb97d33a22828a7e72ece2b23a33c2490e4dd480ad93a17acb0"
+      },
+      {
+        "path": "patches/vendor/negotiated.patch",
+        "sha256": "a1c11f87a5e5f4f1cb45f71ad58a47be0e2e6ab54c4af71985158666f92f7816"
+      },
+      {
+        "path": "patches/vendor/nvblox_core.patch",
+        "sha256": "a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d"
+      },
+      {
+        "path": "patches/vendor/ego_planner.patch",
+        "sha256": "67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13"
+      },
+      {
+        "path": "requirements/simulation-validation.txt",
+        "sha256": "2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1"
+      },
+      {
+        "path": "/home/nuc/Program/QGC/QGroundControl-x86_64.AppImage",
+        "sha256": "9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344"
+      }
+    ],
+    "vio": {
+      "algorithm": "Isaac ROS Visual SLAM / cuVSLAM VIO-only",
+      "source": "src/isaac_ros_visual_slam",
+      "config": "src/uav_bringup/config/isaac_visual_slam_oakd_vio_only.yaml",
+      "simulation_config_status": "PENDING: current hardware config uses system time",
+      "arm_status": "DEFERRED: optional later Jetson stage, outside current local simulation scope"
+    },
+    "pending": {
+      "px4_control": "W0 known-region flight baseline passed; remaining formal S3/S4 matrix, perception/VIO navigation and BehaviorTree integration are pending",
+      "vio_samples": "S0 local VIO/nvblox fixed sample validation and simulation VIO clock config"
+    },
+    "deferred": {
+      "jetson": "User deferred Jetson on 2026-10-07; ARM build, component samples and cross-host validation required only when Jetson work resumes"
+    },
+    "artifacts": {
+      "qgc": {
+        "path": "/home/nuc/Program/QGC/QGroundControl-x86_64.AppImage",
+        "version": "5.1.5",
+        "version_evidence": "AppImage embedded AppStream release + binary v5.1.5 string",
+        "sha256": "9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344",
+        "size_bytes": 195332600,
+        "verified_on": "2026-10-07"
+      },
+      "vendor_firmware": {
+        "source_url": "https://gitee.com/kit-miao/dm-fc01/blob/master/%E5%9B%BA%E4%BB%B6/PX4/damiao_dm-fc01_V1.16.px4",
+        "download_url": "https://gitee.com/kit-miao/dm-fc01/raw/master/%E5%9B%BA%E4%BB%B6/PX4/damiao_dm-fc01_V1.16.px4",
+        "filename": "damiao_dm-fc01_V1.16.px4",
+        "sha256": "2b5cc6ec1012a097bdc6779a6bc23afd05c5d8b53d6cc1561f09d8cb0528bba0",
+        "size_bytes": 1663881,
+        "verified_on": "2026-10-07",
+        "metadata": {
+          "board_id": 7140,
+          "magic": "PX4FWv1",
+          "description": "Firmware for the DAMIAO DM-FC01 flight controller",
+          "build_time": 1787190790,
+          "summary": "DM-FC01",
+          "version": "1.0.0",
+          "image_size": 1785596,
+          "image_maxsize": 1835008,
+          "git_identity": "v1.16.0-7-g78a512995e",
+          "board_revision": 1,
+          "git_hash": "78a512995e73dad88051707b5bee3df07eed4d78",
+          "parameter_xml_size": 753269,
+          "mav_autopilot": 12,
+          "airframe_xml_size": 19501
+        },
+        "image_sha256": "071419d812aab50b6c301c206a974833f8f45c68ff7ab8cdd82e5c8fa6b97259",
+        "scope": "DM-FC01 hardware firmware; not a host SITL executable",
+        "source_correspondence": "UNVERIFIED: git hash is embedded metadata; corresponding vendor source tree not obtained",
+        "running_vehicle_build": "UNVERIFIED: user supplied firmware identity; no fresh flight-controller telemetry read"
+      }
+    },
+    "sitl": {
+      "repository": "https://github.com/PX4/PX4-Autopilot.git",
+      "version": "v1.16.2",
+      "commit": "54f0455ffcd755534539a7cf33a09a20bf71d29d",
+      "tag_object": "cec6f597235c27f8d42d900e5c5fc8e4d792dbd6",
+      "selection": "Latest stable release in PX4 1.16.x as verified on 2026-10-07; upgrade only by explicit lock update",
+      "verified_on": "2026-10-07",
+      "release_url": "https://github.com/PX4/PX4-Autopilot/releases/tag/v1.16.2",
+      "path": ".deps/PX4-Autopilot",
+      "checkout_status": "VERIFIED: pinned checkout and SITL-selected submodules prepared; other platforms not fetched",
+      "target": "px4_sitl_default",
+      "initial_model": "gz_x500",
+      "build_status": "VERIFIED: px4_sitl_default compiled locally"
+    },
+    "agent": {
+      "path": ".deps/Micro-XRCE-DDS-Agent",
+      "version": "v2.4.3",
+      "commit": "73622810d984349b80bbac0ef55fc0b694d62222",
+      "repository": "https://github.com/eProsima/Micro-XRCE-DDS-Agent.git",
+      "external_sources": [
+        {
+          "path": ".deps/agent-build/fastcdr/src/fastcdr",
+          "commit": "757d5e422253568c487ad97c22e44680fc1ddbaf",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".deps/agent-build/fastdds/src/fastdds",
+          "commit": "2203e4d20dc9990277821b085bdd2d0eef0e70e6",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".deps/agent-build/spdlog/src/spdlog",
+          "commit": "eb3220622e73a4889eee355ffa37972b3cac3df5",
+          "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "build_status": "VERIFIED: local installation in .deps/microxrce-install"
+    },
+    "px4_msgs": {
+      "path": ".deps/px4_msgs",
+      "version": "v1.16.2",
+      "commit": "392e831c1f659429ca83902e66820d7094591410",
+      "repository": "https://github.com/PX4/px4_msgs.git",
+      "build_status": "VERIFIED: isolated ROS Jazzy install in .deps/px4-msgs-install",
+      "interface_status": "PASS: 46 messages including nested types, 51 exported DDS topic declarations"
+    },
+    "build_artifacts": [
+      {
+        "path": ".deps/PX4-Autopilot/build/px4_sitl_default/bin/px4",
+        "sha256": "5525e3edf3413d57039f374be8b934bbf53390de41edc54eb6ced15ed0aa72da"
+      },
+      {
+        "path": ".deps/microxrce-install/bin/MicroXRCEAgent",
+        "sha256": "c38c5e77dff741e61cfed1d24efe1915807f35e37da085288e5a4588a4620962"
+      }
+    ],
+    "build_python": {
+      "version": "Python 3.11.15",
+      "requirements": "requirements/px4-sim.txt",
+      "requirements_sha256": "f61f441f0fdc1d4e8558184e3147771be3f6c65f94aac92a113d53648f46419b",
+      "ros_python": "3.12 (isolated px4_msgs overlay via with_px4_sim.sh)"
+    }
+  },
+  "profile": {
+    "schema": 1,
+    "scope": "ideal pinhole stereo/IMU reference; NOT calibrated OAK-D Pro W hardware",
+    "model": "x500_vio_ref",
+    "width": 640,
+    "height": 400,
+    "horizontal_fov_rad": 1.21,
+    "baseline_m": 0.075,
+    "rig_position_flu_m": [
+      0.12,
+      0.0,
+      0.242
+    ],
+    "image_rate_hz": 25,
+    "imu_rate_hz": 250,
+    "near_m": 0.1,
+    "far_m": 20.0
+  },
+  "input_sha256": {
+    "scripts/run_px4_vio_sensors.py": "4950437180820560eac807cbf61f6ae365a4518acdb728e5cec62b5451b806dd",
+    "scripts/px4_vio_sensor_audit.py": "cec5afb9a3e5b71ea0c3e679f7ff8c91ff1c01f1a2e6f7775aaa3d32fb870bf3",
+    "scripts/prepare_vio_sensor_assets.py": "7a3d72f7ff887d3e72fb2075b27ab8234cfe7b59b563090d2f3cc85292746083",
+    "simulation/px4/vio/sensors.json": "deb8a7e8bf2323963d6ef729ed460e66c47965a8404f4d27787bcccd0094b696",
+    ".deps/PX4-Autopilot/Tools/simulation/gz/worlds/default.sdf": "457a363a22c437b788a4aaf1e2335aa149efce4e5b988cdc108065663cd879b2",
+    ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500/model.sdf": "76d8668c9c1a10348f9b7011d892203f319e5051dc8c0eb06c62e52db8e6714e",
+    ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500_base/model.sdf": "d97e53de8c50f167b0b3a4f86dc21413236387f7b72cb817549362b63534e83c",
+    ".cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/assets/default.sdf": "7451815884616ee3012630c2b6ebbb92d481d310fda4470cf41abfbe7ac56e4f",
+    ".cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/assets/x500_vio_ref/model.sdf": "386e028d119818a8e6d4fb52e9365d5a31e75b094da7db86fb0915665ec66269",
+    ".cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/assets/frames.json": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761",
+    ".cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/vio-params.yaml": "ebac07dfbef0b8ee702bc6b48ee53ee2617779ea2bdc7cda5e5292a1b11db7cc",
+    "simulation/px4/server_control.config": "a193dfda02d1b20d9ed4e709431eb46680fad23317223435b3dbf695c33b3578",
+    "install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam": "0915b3deb02f7346fcf15747a18719c583fd9764fe88a07fa58d0b1ae0b1699c",
+    "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": "9b5306b842b233fcf84aa84ee7803b387f41b03b3b0d3b0cc671fd49549cc853",
+    "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": "d870759dc6d78b9fe55dbb842cac3b6cd6d804bde04dd8b546b5f2c466834f5e"
+  },
+  "processes": {
+    "agent": {
+      "pid": 51044,
+      "command": [
+        "/home/nuc/Program/uav_nav_ws/.deps/microxrce-install/bin/MicroXRCEAgent",
+        "udp4",
+        "-p",
+        "8898"
+      ]
+    },
+    "gazebo": {
+      "pid": 51045,
+      "command": [
+        "gz",
+        "sim",
+        "-r",
+        "-s",
+        "/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/assets/default.sdf"
+      ]
+    },
+    "sensor_bridge": {
+      "pid": 51046,
+      "command": [
+        "ros2",
+        "run",
+        "ros_gz_bridge",
+        "parameter_bridge",
+        "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+        "/vio/left/image@sensor_msgs/msg/Image[gz.msgs.Image",
+        "/vio/right/image@sensor_msgs/msg/Image[gz.msgs.Image",
+        "/vio/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+        "/vio/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+        "/vio/imu@sensor_msgs/msg/Imu[gz.msgs.IMU"
+      ]
+    },
+    "vio": {
+      "pid": 51047,
+      "command": [
+        "/home/nuc/Program/uav_nav_ws/install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam",
+        "--ros-args",
+        "--params-file",
+        "/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/vio-params.yaml",
+        "-r",
+        "visual_slam/image_0:=/vio/left/image",
+        "-r",
+        "visual_slam/image_1:=/vio/right/image",
+        "-r",
+        "visual_slam/camera_info_0:=/vio/left/camera_info",
+        "-r",
+        "visual_slam/camera_info_1:=/vio/right/camera_info",
+        "-r",
+        "visual_slam/imu:=/vio/imu"
+      ]
+    },
+    "px4": {
+      "pid": 51048,
+      "command": [
+        "/home/nuc/Program/uav_nav_ws/.deps/PX4-Autopilot/build/px4_sitl_default/bin/px4",
+        "-d",
+        "-i",
+        "7",
+        "-w",
+        "/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/5f290193-85ac-4496-9965-fd84f08cde77/rootfs",
+        "/home/nuc/Program/uav_nav_ws/.deps/PX4-Autopilot/build/px4_sitl_default/etc"
+      ]
+    },
+    "qgc": {
+      "pid": 51049,
+      "command": [
+        "/home/nuc/Program/QGC/QGroundControl-x86_64.AppImage",
+        "--allow-multiple",
+        "--log-output",
+        "--logging",
+        "Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager"
+      ]
+    }
+  }
+}

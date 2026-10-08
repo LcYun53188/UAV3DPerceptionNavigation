@@ -1,0 +1,60 @@
+{
+  "checks": {
+    "headless": {
+      "scripts/run_px4_vio_sensors.py": false,
+      "scripts/px4_vio_sensor_audit.py": true,
+      "scripts/prepare_vio_sensor_assets.py": true,
+      "scripts/vio_sensor_quality.py": true,
+      "scripts/run_px4_vio_sensors.sh": true,
+      "simulation/px4/vio/sensors.json": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/worlds/default.sdf": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500/model.sdf": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500_base/model.sdf": true,
+      ".cache/simulation/vio-sensors/0fec16b0-64d1-432b-960d-0eecf1996f19/assets/default.sdf": true,
+      ".cache/simulation/vio-sensors/0fec16b0-64d1-432b-960d-0eecf1996f19/assets/x500_vio_ref/model.sdf": true,
+      ".cache/simulation/vio-sensors/0fec16b0-64d1-432b-960d-0eecf1996f19/assets/frames.json": true,
+      ".cache/simulation/vio-sensors/0fec16b0-64d1-432b-960d-0eecf1996f19/vio-params.yaml": true,
+      "simulation/px4/server_control.config": true,
+      "install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam": true,
+      "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": true,
+      "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": true
+    },
+    "ui": {
+      "scripts/run_px4_vio_sensors.py": true,
+      "scripts/px4_vio_sensor_audit.py": true,
+      "scripts/prepare_vio_sensor_assets.py": true,
+      "scripts/vio_sensor_quality.py": true,
+      "scripts/run_px4_vio_sensors.sh": true,
+      "simulation/px4/vio/sensors.json": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/worlds/default.sdf": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500/model.sdf": true,
+      ".deps/PX4-Autopilot/Tools/simulation/gz/models/x500_base/model.sdf": true,
+      ".cache/simulation/vio-sensors/187826c8-67e3-4dff-8897-a6dc9469f0a2/assets/default.sdf": true,
+      ".cache/simulation/vio-sensors/187826c8-67e3-4dff-8897-a6dc9469f0a2/assets/x500_vio_ref/model.sdf": true,
+      ".cache/simulation/vio-sensors/187826c8-67e3-4dff-8897-a6dc9469f0a2/assets/frames.json": true,
+      ".cache/simulation/vio-sensors/187826c8-67e3-4dff-8897-a6dc9469f0a2/vio-params.yaml": true,
+      "simulation/px4/server_control.config": true,
+      "install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam": true,
+      "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": true,
+      "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": true
+    },
+    "w0_full_current_source": {
+      "src/uav_nav_interfaces/msg/VioStatus.msg": true,
+      "src/uav_mission/uav_mission/vio_gate.py": true,
+      "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": true,
+      "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": true,
+      "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": true,
+      "src/uav_mission/uav_mission/px4_flight.py": true,
+      "src/uav_mission/uav_mission/flight_geometry.py": true,
+      "src/px4_comm_bridge/px4_comm_bridge/converters.py": true,
+      "scripts/run_px4_flight_tasks.py": true,
+      "scripts/run_px4_sitl_smoke.py": true,
+      "src/uav_bt/src/mission_runner.cpp": true,
+      "src/uav_bt/trees/px4_flight.xml": true,
+      "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": true,
+      "scripts/bt_flight_client.py": true,
+      ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": true
+    }
+  },
+  "note": "Headless predates PPM snapshot export; shared sensor audit, quality, profile and binaries match. UI and W0 full bind current sources."
+}
