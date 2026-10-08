@@ -21,6 +21,7 @@ setup(
     license='BSD-3-Clause',
     entry_points={
         'console_scripts': [
+            'cuvslam_pose_node = px4_comm_bridge.cuvslam_pose_node:main',
             'vio_input_node = px4_comm_bridge.vio_input_node:main',
             'px4_bridge_node = px4_comm_bridge.px4_bridge_node:main',
             'px4_mock_node = px4_comm_bridge.px4_mock_node:main',
