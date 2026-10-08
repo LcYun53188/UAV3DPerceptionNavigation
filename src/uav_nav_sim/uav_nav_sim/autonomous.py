@@ -103,6 +103,10 @@ class AutonomousExplorer:
         self.report(reason)
 
     def enable(self, request, response):
+        action = getattr(self.node, 'navigation_action', None)
+        if action is not None and action.busy:
+            response.success, response.message = False, 'Navigation Action owns control'
+            return response
         if not request.data:
             self.disable('DISABLED')
             self.node.stop('CANCELLED')

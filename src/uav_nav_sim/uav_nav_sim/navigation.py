@@ -91,7 +91,11 @@ class GoalManager:
         self.report(state, reason)
         self.autonomous.finished(state, reason)
 
-    def goal_cb(self, msg, autonomous=False):
+    def goal_cb(self, msg, autonomous=False, controlled=False):
+        action = getattr(self.node, 'navigation_action', None)
+        if not controlled and action is not None and action.busy:
+            self.node.get_logger().warning('Rejected legacy goal: Navigation Action owns control')
+            return
         p = msg.pose.position
         goal = np.array([p.x, p.y, p.z])
         if msg.header.frame_id != 'map' or not np.all(np.isfinite(goal)):

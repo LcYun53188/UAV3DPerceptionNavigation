@@ -17,6 +17,7 @@ from uav_nav_interfaces.msg import MapSnapshot, TimedTrajectory
 from .core import grid_from_message, spline, validate_trajectory, validate_handover
 from .navigation import GoalManager
 from .attitude import level_body_rates
+from .navigation_action import NavigationAction
 
 
 class Executor(Node):
@@ -40,6 +41,7 @@ class Executor(Node):
         self.status = self.create_publisher(String, '/uav/executor/state', 10)
         self.event = self.create_publisher(String, '/uav/executor/event', 10)
         self.navigation = GoalManager(self) if self.get_parameter('managed_goals').value else None
+        self.navigation_action = NavigationAction(self) if self.navigation is not None else None
         self.create_subscription(MapSnapshot, '/uav/map/snapshot', self.map_cb,
                                  QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.create_subscription(Odometry, '/uav/localization/odometry', self.odom_cb, qos_profile_sensor_data)
@@ -59,6 +61,9 @@ class Executor(Node):
             if reason == 'GOAL_REACHED' and not self.navigation.local_final:
                 reason = 'LOCAL_GOAL_REACHED'
             self.navigation.on_stop(reason)
+        action = getattr(self, 'navigation_action', None)
+        if action is not None:
+            action.on_stop(reason)
         self.event.publish(String(data=reason))
         if reason not in ('GOAL_REACHED', 'LOCAL_GOAL_REACHED', 'GOAL_REPLACED'):
             self.get_logger().warning(reason)
@@ -222,6 +227,11 @@ class Executor(Node):
                     self.navigation.failed_segment(f'REJECTED:{exc}')
 
     def cancel(self, _, response):
+        action = getattr(self, 'navigation_action', None)
+        if action is not None and action.busy:
+            response.success = False
+            response.message = 'Use the active Navigation Action goal UUID to cancel'
+            return response
         self.stop('CANCELLED')
         response.success = True
         return response
@@ -250,7 +260,12 @@ class Executor(Node):
     def tick(self):
         started = time.monotonic()
         try:
+            action = getattr(self, 'navigation_action', None)
+            if action is not None:
+                action.tick()
             Executor._tick(self)
+            if action is not None:
+                action.tick()
         finally:
             self.last_tick_seconds = time.monotonic()-started
             if self.last_tick_seconds > .25:

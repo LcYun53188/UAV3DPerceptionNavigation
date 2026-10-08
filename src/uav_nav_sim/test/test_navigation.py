@@ -856,3 +856,24 @@ def test_unusable_start_is_reported_separately_through_scan_timeout(task):
     advance(node, now, manager.settings.blocked_timeout+.1)
     manager.tick()
     assert manager.state == 'BLOCKED' and manager.reason == 'START_VOLUME_BLOCKED'
+
+
+@pytest.mark.parametrize('operation', ['goal', 'cancel', 'enable', 'disable'])
+def test_action_ownership_rejects_legacy_mutation(task, operation):
+    manager, node, _ = task
+    begin(manager)
+    manager.tick()
+    original_goal = manager.goal.copy()
+    token = manager.token
+    node.navigation_action = NS(busy=True)
+    if operation == 'goal':
+        begin(manager, x=1.)
+    elif operation == 'cancel':
+        response = Executor.cancel(node, None, NS(success=True, message=''))
+        assert not response.success
+    else:
+        response = manager.autonomous.enable(
+            NS(data=operation == 'enable'), NS(success=True, message=''))
+        assert not response.success
+    assert np.array_equal(manager.goal, original_goal)
+    assert manager.token == token
