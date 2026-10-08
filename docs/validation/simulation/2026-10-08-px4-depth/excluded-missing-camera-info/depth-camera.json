@@ -1,0 +1,32 @@
+{
+  "passed": false,
+  "images": 676,
+  "infos": 0,
+  "valid_images": 676,
+  "valid_infos": 0,
+  "errors": [],
+  "regressions": 0,
+  "image": {
+    "stamp": 41.056,
+    "frame": "x500_depth_7/camera_link/StereoOV7251",
+    "width": 640,
+    "height": 480,
+    "encoding": "32FC1",
+    "finite_pixels": 149626,
+    "finite_fraction": 0.48706380208333333,
+    "min_m": 0.44744884967803955,
+    "max_m": 16.488637924194336
+  },
+  "camera_info": null,
+  "receive_age_s": {
+    "image": 0.14763821399901644,
+    "camera_info": null
+  },
+  "image_source_age_s": 0.1560000000000059,
+  "matching": false,
+  "writers": {
+    "/px4_depth/image": 1,
+    "/px4_depth/camera_info": 1
+  },
+  "scope": "disarmed sensor transport only; no TF, fusion, alignment or flight validation"
+}

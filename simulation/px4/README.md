@@ -106,3 +106,33 @@ BT 首批 XML 包装整条 ExecuteMission，尚未将各飞行步骤拆成独立
 EGO/algorithm 任务树仍待实现。验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
 逐步骤 BT 与可视化运行：`./scripts/sim.sh px4-flight --bt --ui`；协议与范围见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
+
+## 深度相机参考链路
+
+目标硬件是 **OAK-D Pro W**，暂在本机开发。PX4 v1.16.2 自带的
+`x500_depth` 实际包含 `OakD-Lite` 模型：本入口只验证参考传感器数据链路，
+不宣称 Pro W 的广角视场、双目基线、内参、IMU 或安装外参已经匹配。
+实机标定必须从对应 Pro W 设备读取，不能沿用这里的数值。
+
+```bash
+./scripts/sim.sh px4-depth --ui --duration 45
+```
+
+该模式使用独立 domain 78、随机 Gazebo partition 和 instance 7；若 QGC 已占用
+14550，先保存当前状态并关闭已有 QGC。结束后自动清理本次进程，可重新打开实机 QGC。
+隔离 QGC 配置禁用 USB 自动连接；本模式没有 FlightServer、解锁或 setpoint 发布者。
+`--flight`、`--bt`、自定义任务和飞行故障场景不能与此模式组合。
+
+Gazebo 实际深度话题 `/depth_camera` 和标定话题 `/camera_info` 分别桥接到
+`/px4_depth/image`、`/px4_depth/camera_info`。深度为 640×480、32FC1，
+参考模型水平 FOV 1.274 rad、clip 0.2–19.1 m。审计检查布局/大小端、有限深度、
+标定矩阵、非空且一致的 frame、时间戳递增、数据与仿真时钟新鲜度、唯一发布者；
+同时要求 DDS/clock/QGC、定位有效、全程 DISARMED 且着地。
+证据写入 `.cache/simulation/sitl/<run_id>/depth-camera.json`、`observation.json`
+和含模型/依赖 hash 的 `manifest.json`。没有 CameraInfo 即失败，桥接节点存在不算通过。
+
+本阶段不发布相机 TF，不融合 nvblox，不建立地图对齐，也不运行 VIO。
+下一步先明确 Pro W 的仿真参考配置与光学外参，再接入隔离的 nvblox 地图会话和
+已有 PlanningContext；这些完成前不授权 EGO 曲线控制 PX4。
+
+本批实测与失败证据见 [深度相机验证报告](../../docs/validation/simulation/2026-10-08-px4-depth/REPORT.md)。

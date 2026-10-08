@@ -1,0 +1,48 @@
+[
+  {
+    "command": [
+      "./scripts/with_px4_sim.sh",
+      "python",
+      "scripts/run_px4_sitl_smoke.py",
+      "--depth-camera",
+      "--flight"
+    ],
+    "exit_code": 2,
+    "stderr": "usage: run_px4_sitl_smoke.py [-h] [--depth-camera] [--duration DURATION]\n                             [--mission-file MISSION_FILE] [--bt] [--ui]\n                             [--flight-scenario {full,pause-resume,cancel,clock-fault,runner-exit,runner-stall,odometry-stale,odometry-reset}]\n                             [--flight] [--aircraft-state]\nrun_px4_sitl_smoke.py: error: --depth-camera is a disarmed profile and cannot use flight options\n"
+  },
+  {
+    "command": [
+      "./scripts/with_px4_sim.sh",
+      "python",
+      "scripts/run_px4_sitl_smoke.py",
+      "--depth-camera",
+      "--bt"
+    ],
+    "exit_code": 2,
+    "stderr": "usage: run_px4_sitl_smoke.py [-h] [--depth-camera] [--duration DURATION]\n                             [--mission-file MISSION_FILE] [--bt] [--ui]\n                             [--flight-scenario {full,pause-resume,cancel,clock-fault,runner-exit,runner-stall,odometry-stale,odometry-reset}]\n                             [--flight] [--aircraft-state]\nrun_px4_sitl_smoke.py: error: --depth-camera is a disarmed profile and cannot use flight options\n"
+  },
+  {
+    "command": [
+      "./scripts/with_px4_sim.sh",
+      "python",
+      "scripts/run_px4_sitl_smoke.py",
+      "--depth-camera",
+      "--mission-file",
+      "simulation/missions/W0_flight_sequence.json"
+    ],
+    "exit_code": 2,
+    "stderr": "usage: run_px4_sitl_smoke.py [-h] [--depth-camera] [--duration DURATION]\n                             [--mission-file MISSION_FILE] [--bt] [--ui]\n                             [--flight-scenario {full,pause-resume,cancel,clock-fault,runner-exit,runner-stall,odometry-stale,odometry-reset}]\n                             [--flight] [--aircraft-state]\nrun_px4_sitl_smoke.py: error: --depth-camera is a disarmed profile and cannot use flight options\n"
+  },
+  {
+    "command": [
+      "./scripts/with_px4_sim.sh",
+      "python",
+      "scripts/run_px4_sitl_smoke.py",
+      "--depth-camera",
+      "--flight-scenario",
+      "cancel"
+    ],
+    "exit_code": 2,
+    "stderr": "usage: run_px4_sitl_smoke.py [-h] [--depth-camera] [--duration DURATION]\n                             [--mission-file MISSION_FILE] [--bt] [--ui]\n                             [--flight-scenario {full,pause-resume,cancel,clock-fault,runner-exit,runner-stall,odometry-stale,odometry-reset}]\n                             [--flight] [--aircraft-state]\nrun_px4_sitl_smoke.py: error: --depth-camera is a disarmed profile and cannot use flight options\n"
+  }
+]

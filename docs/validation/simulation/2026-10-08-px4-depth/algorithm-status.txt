@@ -1,0 +1,38 @@
+{
+  "layout": "lab",
+  "mode": "mapping",
+  "domain": 68,
+  "partition": "uav_ego_lab",
+  "view": "both",
+  "pid": 147565,
+  "identity": [
+    "b2302a02-e2a3-443c-8ee1-3d2fb74d55af",
+    "753523"
+  ],
+  "log": "/home/nuc/Program/uav_nav_ws/.cache/sim/launch-1791434761578183409.log"
+}
+{
+  "position": [
+    -3.0,
+    0.0,
+    1.2
+  ],
+  "odom_stamp": 19358.22,
+  "executor": "HOLD",
+  "exploration": "DISABLED",
+  "navigation": "CANCELLED:CANCELLED",
+  "map": {
+    "valid": true,
+    "version": 38714,
+    "static": false
+  },
+  "map_stamp": 19358.006,
+  "ready": true,
+  "receive_age_seconds": {
+    "position": 0.02,
+    "executor": 0.01,
+    "exploration": 0.24,
+    "navigation": 0.24,
+    "map": 0.22
+  }
+}
