@@ -20,7 +20,8 @@ from px4_comm_bridge.vio_input_node import VioInput
 def main():
     out = Path('.cache/simulation/vio-transport') / str(uuid.uuid4())
     out.mkdir(parents=True)
-    rclpy.init(args=['--ros-args','-p','calibration_id:='+'a'*64])
+    rclpy.init(args=['--ros-args','-p','calibration_id:='+'a'*64,
+                    '-p','source_contract:=standard_enu_flu_odometry_v1'])
     observer = Node('vio_transport_fixture')
     if any('/visual_slam/' in n or '/uav/vio/' in n for n, _ in observer.get_topic_names_and_types()):
         raise RuntimeError('Domain 92 already contains VIO endpoints')
@@ -28,7 +29,7 @@ def main():
     executor = SingleThreadedExecutor()
     executor.add_node(observer)
     executor.add_node(adapter)
-    publisher = observer.create_publisher(Odometry, '/visual_slam/tracking/odometry', 10)
+    publisher = observer.create_publisher(Odometry, '/uav/vio/odometry', 10)
     tracking = observer.create_publisher(VisualSlamStatus, '/visual_slam/status', 10)
     states = []
     phase = 'discovery'
@@ -60,11 +61,14 @@ def main():
             executor.spin_once(timeout_sec=.002)
 
     try:
+        adapter.source_contract = 'unverified'
+        run_phase('unverified_contract',.7)
+        adapter.source_contract = 'standard_enu_flu_odometry_v1'
         run_phase('fresh',2.)
         run_phase('tracking_lost',1.,2)
         run_phase('recovered',1.)
         old=publisher
-        publisher=observer.create_publisher(Odometry,'/visual_slam/tracking/odometry',10)
+        publisher=observer.create_publisher(Odometry,'/uav/vio/odometry',10)
         observer.destroy_publisher(old)
         run_phase('publisher_replaced',1.5)
         run_phase('replacement_latched',.7)
@@ -72,7 +76,10 @@ def main():
         controls = {n:len(observer.get_publishers_info_by_topic(n))
                     for n,_ in observer.get_topic_names_and_types()
                     if n.startswith('/px4_7/fmu/in/')}
-        passed=(len(check('fresh'))==5 and all(s['valid'] for s in check('fresh'))
+        passed=(len(check('unverified_contract'))==5
+                and all(not s['valid'] and s['reason']=='VIO_SOURCE_CONTRACT_UNVERIFIED'
+                        for s in check('unverified_contract'))
+                and len(check('fresh'))==5 and all(s['valid'] for s in check('fresh'))
                 and all(not s['valid'] for s in check('tracking_lost'))
                 and all(s['valid'] for s in check('recovered'))
                 and all(not s['valid'] and s['reason']=='VIO_PUBLISHER_CHANGED'
@@ -80,7 +87,7 @@ def main():
                 and not any(controls.values()) and len({s['session'] for s in states})==1)
         (out/'result.json').write_text(json.dumps(dict(passed=passed,domain=92,
             scope='synthetic DDS contracts only, no camera or actual EKF fusion',
-            states=len(states),checks={n:check(n) for n in ('fresh','tracking_lost','recovered','replacement_latched')},
+            states=len(states),checks={n:check(n) for n in ('unverified_contract','fresh','tracking_lost','recovered','replacement_latched')},
             fmu_input_publishers=controls),indent=2)+'\n')
         print(out, 'PASS' if passed else 'FAIL',flush=True)
         return 0 if passed else 1
