@@ -29,3 +29,10 @@ def test_no_fusion_fault_is_reported_without_fabricated_failure(tmp_path):
     save(tmp_path,fusion=[record('accepted',.1,.09)],normalizer=[],sensor=[])
     r=diagnose(tmp_path)
     assert r['first_fusion_fault'] is None and 'fault_window_timing' not in r and not r['flight_authorized']
+
+
+def test_controlled_stop_is_not_classified_as_performance_failure(tmp_path):
+    fault=dict(record('watchdog_fault',.204,.203),reason='VIO_WRITER_COUNT')
+    save(tmp_path,fusion=[fault],normalizer=[],sensor=[])
+    (tmp_path/'result.json').write_text(json.dumps(dict(real_pose_fusion=dict(stop_request_mono=100.2))))
+    assert diagnose(tmp_path)['fault_phase']=='controlled_source_stop'

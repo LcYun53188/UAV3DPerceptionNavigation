@@ -15,6 +15,12 @@ def diagnose(folder):
     result=dict(schema=1,flight_authorized=False,first_fusion_fault=fault,
         first_normalizer_retirement=next((r for r in normalizer if r['stage']=='retire'),None),
         scope='Recorded callback chronology only; no resumed source, predicted pose or acceptance change')
+    result_path=folder/'result.json'
+    has_result=result_path.is_file() or Path(str(result_path)+'.gz').is_file()
+    stop=read(folder,'result.json').get('real_pose_fusion',{}).get('stop_request_mono') if has_result else None
+    result['stop_request_mono']=stop
+    result['fault_phase']='none' if fault is None else ('unknown' if stop is None else
+        'observation' if fault['mono']<stop else 'controlled_source_stop')
     if fault is None:return result
     accepted=[r for r in fusion if r['stage']=='accepted' and r['mono']<=fault['mono']]
     last=max(accepted,key=lambda r:r['mono']) if accepted else None
