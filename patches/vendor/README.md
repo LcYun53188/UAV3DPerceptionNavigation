@@ -111,3 +111,8 @@ The source carries GPL-3.0; upstream notices and LICENSE are retained/installed.
 `src/uav_bringup/config/algorithm_versions.json` records dependency commits and
 patch SHA-256 values for map compatibility. Python wheels are pinned separately in
 `requirements/algorithm-sim.txt`; generated maps and dependency sources stay ignored.
+
+`isaac_ros_visual_slam.patch` retains upstream `04bf49a2daf7710d2ba2390d1772435a1baeb48d`
+and converts sequencer jitter parameters from milliseconds to nanoseconds. Rebuild with
+`scripts/build_vio_node.sh`; reviewed binary/source hashes are frozen in
+`simulation/px4/vio/pose_contract.json`. It does not change pose covariance math.
