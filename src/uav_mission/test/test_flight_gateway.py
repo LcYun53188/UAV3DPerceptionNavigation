@@ -348,3 +348,56 @@ def test_paced_land_receipt_keeps_original_ros_age_limit():
         assert not FlightServer.fresh(f,'vehicle_land_detected',1.2)
         f.received['vehicle_land_detected']=98.75;f.config={}
         assert not FlightServer.fresh(f,'vehicle_land_detected',1.2)
+
+
+def test_ego_recipe_is_explicit_and_requires_enabled_live_planning():
+    f=fixture();r=request();p=json.loads(r.parameters_json);p['navigation_backend']='EGO';r.parameters_json=json.dumps(p)
+    with pytest.raises(ValueError,match='not enabled'):FlightServer.parse(f,r)
+    calls=[];f.planned=object();f.planning_ready=lambda:calls.append('checked')
+    assert len(FlightServer.parse(f,r))==2 and calls==['checked']
+    p['navigation_backend']='unknown';r.parameters_json=json.dumps(p)
+    with pytest.raises(ValueError,match='Unsupported navigation'):FlightServer.parse(f,r)
+
+
+def test_planning_writer_identity_cannot_be_replaced_with_single_new_writer():
+    writers={'/planning/source/map':[1],'/planning/source/alignment':[2],'/planning/bound_trajectory':[3]}
+    f=SimpleNamespace(get_publishers_info_by_topic=lambda topic:[SimpleNamespace(endpoint_gid=[value]*16) for value in writers[topic]],
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000)),planned=SimpleNamespace(ready=lambda ros,mono:None))
+    FlightServer.planning_ready(f)
+    writers['/planning/source/map']=[4]
+    with pytest.raises(ValueError,match='WRITER_REPLACED'):FlightServer.planning_ready(f)
+    writers['/planning/source/map']=[]
+    with pytest.raises(ValueError,match='NON_UNIQUE'):FlightServer.planning_ready(f)
+
+
+@pytest.mark.parametrize('kind',['NAVIGATE','RETURN'])
+def test_planned_step_requests_curve_without_creating_direct_segment(kind):
+    from unique_identifier_msgs.msg import UUID
+    from builtin_interfaces.msg import Time
+    calls=[]
+    alignment=Alignment()
+    f=SimpleNamespace(step_controlled=False,step_index=-1,steps=[dict(type=kind,target_map=alignment.to_map((3.,2.,2.)))],
+        navigation_backend='EGO',planned=SimpleNamespace(retire=lambda:None,start=lambda *args:calls.append(args)),
+        home=(0.,0.,0.),reference=(0.,0.,2.),region=in_region,alignment=alignment,
+        instance='instance',active_goal=SimpleNamespace(goal_id=UUID(uuid=[1]*16)),session=UUID(uuid=[2]*16),
+        generation=3,owner='TASK',planning_ready=lambda:None,
+        planning_goal_pub=SimpleNamespace(get_subscription_count=lambda:1,publish=lambda m:calls.append(m)),
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000,to_msg=lambda:Time(sec=10))))
+    f.planning_authorization=lambda:FlightServer.planning_authorization(f)
+    f.change=lambda phase:setattr(f,'phase',phase)
+    f.fault=lambda reason:pytest.fail(reason)
+    FlightServer.next_step(f)
+    assert f.phase=='PLAN_REQUEST' and f.segment is None and len(calls)==2
+    assert calls[0][1]==f.planning_authorization() and any(calls[0][1][5])
+    assert calls[1].header.frame_id=='map'
+    assert f.reference==(0.,0.,2.)
+
+
+def test_begin_stop_revokes_planner_before_child_identity_and_braking():
+    from unique_identifier_msgs.msg import UUID
+    calls=[]
+    f=SimpleNamespace(planned=SimpleNamespace(retire=lambda:calls.append('retired')),segment=object(),child=UUID(uuid=[3]*16),
+        position=lambda:(0.,0.,2.),samples={'vehicle_local_position':SimpleNamespace(vx=.1,vy=0.,vz=0.)},
+        region=in_region,change=lambda phase:calls.append(phase))
+    FlightServer.begin_stop(f,'CANCEL_BRAKE')
+    assert calls==['retired','CANCEL_BRAKE'] and not any(f.child.uuid) and f.segment is None

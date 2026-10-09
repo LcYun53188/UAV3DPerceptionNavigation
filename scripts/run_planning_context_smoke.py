@@ -25,6 +25,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def main():
     cli=argparse.ArgumentParser(description=__doc__)
+    cli.add_argument('--execution-admission',action='store_true',help='Also test the gateway admission/sampler without any FMU output')
     cli.add_argument('--domain',type=int,default=91,choices=range(80,101))
     cli.add_argument('--output',type=Path,default=ROOT/'.cache/simulation'/('planning-context-'+str(time.time_ns())))
     args=cli.parse_args()
@@ -34,7 +35,7 @@ def main():
     os.environ['ROS_AUTOMATIC_DISCOVERY_RANGE']='LOCALHOST'
     rclpy.init();node=rclpy.create_node('planning_context_smoke')
     children=[];logs=[];contexts=[];bound=[];mapped=[]
-    result=dict(passed=False,scope='Synthetic ESDF, real EGO/DDS; shadow planning only',domain=args.domain)
+    result=dict(passed=False,scope='Synthetic ESDF, real EGO/DDS; no FMU or physical tracking',domain=args.domain)
     qos=QoSProfile(depth=1,durability=DurabilityPolicy.TRANSIENT_LOCAL)
     pubs=dict(map=node.create_publisher(MapSnapshot,'/planning/source/map',qos),
               odom=node.create_publisher(LocalizedOdometry,'/planning/source/odometry',qos_profile_sensor_data),
@@ -56,15 +57,19 @@ def main():
     a.header.frame_id='map';a.map_to_odom.translation.x=4.;a.map_to_odom.translation.y=-3.
     a.map_to_odom.translation.z=1.;a.map_to_odom.rotation.z=math.sin(math.pi/4)
     a.map_to_odom.rotation.w=math.cos(math.pi/4)
+    execution=None
+    authorization=('synthetic-ekf',bytes([1]*16),bytes([2]*16),1,'TASK',bytes([3]*16),1)
     flags=dict(alignment=True)
     def publish():
         current=node.get_clock().now().to_msg()
-        m.version+=1;m.header.stamp=current;o.header.stamp=current
+        m.version+=1;m.header.stamp=current;m.source_stamp=current;o.header.stamp=current
         pubs['map'].publish(m);pubs['odom'].publish(LocalizedOdometry(
             header=deepcopy(o.header),localization_session=a.localization_session,
             reset_counters=a.reset_counters,odometry=o))
         if flags['alignment']:
             a.header.stamp=current;pubs['alignment'].publish(a)
+        if execution is not None:
+            for name,value in [('map',m),('odom',LocalizedOdometry(header=deepcopy(o.header),localization_session=a.localization_session,reset_counters=a.reset_counters,odometry=o)),('alignment',a)]:execution.gate.update(name,value,time.monotonic())
     node.create_timer(.1,publish)
     def spin_until(check,timeout=8):
         until=time.monotonic()+timeout
@@ -92,8 +97,19 @@ def main():
         initial=deepcopy(contexts[-1]);goal=PoseStamped()
         goal.header.frame_id='map';goal.header.stamp=node.get_clock().now().to_msg()
         goal.pose.position=Point(x=6.,y=-2.,z=2.);goal.pose.orientation.w=1.
+        if args.execution_admission:
+            from uav_mission.ego_execution import EgoExecution
+            from uav_mission.flight_geometry import Alignment
+            execution=EgoExecution(Alignment((4.,-3.,1.),math.pi/2),lambda p:all(abs(float(x))<8 for x in p),.3,limits=(.5,1.,2.))
+            publish()
+            execution.start(goal,authorization,node.get_clock().now().nanoseconds/1e9,time.monotonic())
         goal_pub.publish(goal);spin_until(lambda:bool(bound))
         accepted=bound[0];t=accepted.trajectory
+        if execution is not None:
+            before=time.monotonic()
+            execution.admit(accepted,authorization,node.get_clock().now().nanoseconds/1e9,before)
+            position,finished=execution.sample(authorization,node.get_clock().now().nanoseconds/1e9,time.monotonic())
+            result['execution_admission']=dict(passed=True,trajectory_id=t.trajectory_id,sample_odom=list(position),finished=finished,validation_wall_s=time.monotonic()-before,scope='actual EGO output admission and sampling only; no FMU or physical tracking')
         assert accepted.context.context_id==initial.context_id and t.header.frame_id=='map'
         assert t.goal_stamp==goal.header.stamp and (t.map_id,t.epoch)==(m.map_id,m.epoch)
         curve=spline([[p.x,p.y,p.z] for p in t.control_points],t.knot_interval)
@@ -179,7 +195,7 @@ def main():
         result['cleanup_exit_codes']=[child.returncode for child in children]
         for log in logs:log.close()
         node.destroy_node();rclpy.shutdown()
-        files=['src/uav_nav_sim/uav_nav_sim/planning_context.py','src/uav_nav_sim/uav_nav_sim/planning_context_node.py',
+        files=['src/uav_mission/uav_mission/ego_execution.py','src/uav_mission/uav_mission/px4_flight.py','src/uav_nav_sim/uav_nav_sim/core.py','src/uav_nav_sim/uav_nav_sim/planning_context.py','src/uav_nav_sim/uav_nav_sim/planning_context_node.py',
                'src/uav_ego_adapter/src/planner.cpp','scripts/run_planning_context_smoke.py',
                'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner']
         result['source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in files}

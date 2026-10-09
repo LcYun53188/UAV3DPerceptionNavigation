@@ -57,6 +57,7 @@ def main():
     parser.add_argument('--depth-camera', action='store_true', help='Audit pinned x500_depth camera, disarmed only')
     parser.add_argument('--duration', type=float, default=45)
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
+    parser.add_argument('--navigation-backend',choices=('DIRECT','EGO'),default='DIRECT',help='Explicit stopped-start EGO execution; requires external live map/alignment/planning sources')
     parser.add_argument('--bt', action='store_true', help='Execute flight through BehaviorTree.CPP runner')
     parser.add_argument('--ui', action='store_true', help='Show the owned Gazebo and QGC windows')
     parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall','odometry-stale','odometry-reset'], default='full')
@@ -82,6 +83,7 @@ def main():
         parser.error('Runner fault scenarios require --bt')
     if not 10 <= args.duration <= 180:
         parser.error('duration must be within [10, 180] seconds')
+    if args.navigation_backend=='EGO' and (not args.flight or not args.bt or args.require_vio):parser.error('EGO development requires --flight --bt without VIO; camera remains fixed 5 degrees')
     lock = read(ROOT / 'simulation/px4/versions.lock.yaml')
     for key in ['sitl', 'agent', 'px4_msgs']:
         ensure_source(lock[key])
@@ -132,7 +134,7 @@ def main():
                    UAV_VIO_CALIBRATION_ID=args.vio_calibration_id, UAV_WORKSPACE=str(ROOT),
                    UAV_FLIGHT_MISSION_FILE=str(args.mission_file.resolve()) if args.mission_file else '',
                    UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
-                   UAV_FLIGHT_BT='1' if args.bt else '0', UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
+                   UAV_FLIGHT_BT='1' if args.bt else '0',UAV_ENABLE_EGO_NAV='1' if args.navigation_backend=='EGO' else '0',UAV_NAVIGATION_BACKEND=args.navigation_backend, UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
     if args.require_vio and args.vio_fusion_profile=='aligned_pose_v1':
         pose_profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
@@ -150,7 +152,7 @@ def main():
                     world_sha256=file_hash(worlds / 'default.sdf'),
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
                     model_sha256=file_hash(models / f'{model_name}/model.sdf'),
-                    hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
+                    navigation_backend=args.navigation_backend,hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
                     vision_fusion_smoke=args.vision_fusion_smoke,
                     vision_fusion_profile=args.vision_fusion_profile,
                     pose_fusion_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'simulation/px4/vio/pose_fusion.json',

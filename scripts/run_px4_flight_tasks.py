@@ -48,7 +48,7 @@ def main():
       [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
        ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
-       ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+       ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
                      'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',
@@ -116,9 +116,10 @@ def main():
                 offset=step.pop('offset_enu')
                 step['target_map']=alignment.to_map(tuple(home[i]+offset[i] for i in range(3)))
         result['steps']=steps
+        result['navigation_backend']=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT')
         result['recipe_sha256']=file_hash(recipe)
         request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=210.,
-                                   parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps)))
+                                   parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps,navigation_backend=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT'))))
         def wait(f,timeout):
             until=time.monotonic()+timeout
             while not f.done() and time.monotonic()<until:time.sleep(.02)
