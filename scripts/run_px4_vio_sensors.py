@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
+    parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit disarmed EKF delayed-horizon comparison; no EV timestamp offset')
     parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion timing comparison')
     parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion')
     parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
@@ -48,6 +49,8 @@ def main():
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
     if args.warehouse_floor_texture and args.scene!='warehouse':
         parser.error('--warehouse-floor-texture requires --scene warehouse')
+    if args.ekf_delay_max_ms is not None and not args.fuse_pose:
+        parser.error('--ekf-delay-max-ms requires --fuse-pose')
     if args.sdk_image_depth is not None and not args.fuse_pose:
         parser.error('--sdk-image-depth requires --fuse-pose')
     if args.headless_rendering and not args.fuse_pose:
@@ -108,6 +111,8 @@ def main():
         if fusion_profile['schema']!=1 or fusion_profile['profile']!='aligned_pose_v1':
             raise RuntimeError('Unsupported pose fusion profile')
         env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion_profile['parameters'].items()})
+    if args.ekf_delay_max_ms is not None:
+        env['PX4_PARAM_EKF2_DELAY_MAX']=str(args.ekf_delay_max_ms)
     os.environ.update({k:env[k] for k in ('ROS_DOMAIN_ID','ROS_LOCALHOST_ONLY','GZ_PARTITION','GZ_IP')})
     params = dict(use_sim_time=True,num_cameras=2,min_num_images=2,tracking_mode=0 if args.diagnostic_visual_only else 1,
         enable_localization_n_mapping=False,rectified_images=True,
@@ -180,7 +185,7 @@ def main():
             build/'bin/px4',build/'vio-build.json']
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
-        render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
+        render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
