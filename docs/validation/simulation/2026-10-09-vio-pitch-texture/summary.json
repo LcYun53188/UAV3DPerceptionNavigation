@@ -1,0 +1,554 @@
+[
+  {
+    "run": "327fc31f-b971-4b19-8036-fead92c54b86",
+    "profile": {
+      "schema": 1,
+      "scope": "ideal pinhole stereo/IMU reference; NOT calibrated OAK-D Pro W hardware",
+      "model": "x500_vio_ref",
+      "width": 640,
+      "height": 400,
+      "horizontal_fov_rad": 1.21,
+      "baseline_m": 0.075,
+      "rig_position_flu_m": [
+        0.12,
+        0.0,
+        0.242
+      ],
+      "image_rate_hz": 25,
+      "imu_rate_hz": 250,
+      "near_m": 0.1,
+      "far_m": 20.0,
+      "camera_pitch_deg": 30,
+      "real_time_factor": 0.8,
+      "scene": "warehouse",
+      "warehouse_floor_texture": true,
+      "warehouse_texture_style": "unique"
+    },
+    "passed": false,
+    "motion": null,
+    "fusion": {
+      "passed": false,
+      "checks": {
+        "bound": true,
+        "ready_before_stop": false,
+        "ready_window": true,
+        "emitted": true,
+        "actual_fusion": true,
+        "no_velocity_fusion": true,
+        "dds_echo": true,
+        "unknown_velocity": true,
+        "rejected_promptly": false,
+        "source_retired": true,
+        "gate_retired": true,
+        "no_output_after_drain": true,
+        "fusion_stopped": true,
+        "no_flight_controls": true,
+        "sole_ev_writer": true,
+        "disarmed_landed": true
+      },
+      "scope": "actual same-aircraft simulated stereo/IMU -> cuVSLAM -> PX4 EV, disarmed only",
+      "stop_request_mono": 93543.147220311,
+      "graph_violations": [],
+      "endpoint_identity_modes": [
+        "unique_graph_only"
+      ],
+      "alignment": {
+        "schema": 1,
+        "profile": "aligned_pose_v1",
+        "anchor_config_id": "e7606c2175d1f0e60b7dddb43991719cc834f5863bd2cf9f26294fabfca27c68",
+        "source_session": "40b3035e-16bb-4efb-9034-d1a2af482a10",
+        "calibration_id": "9c05d988cb750e2748da3cf9f1bf946c77b29176ce306e2f588b61b2663ff5a8",
+        "reset_counter": 0,
+        "sample_stamp": 8.88,
+        "position_enu": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_enu": 0.0,
+        "rotation": [
+          [
+            0.9999999397574666,
+            0.000347109583877164,
+            0.0
+          ],
+          [
+            -0.000347109583877164,
+            0.9999999397574666,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "translation": [
+          -0.0016031771641702743,
+          0.0016550742983176465,
+          0.015279529616236687
+        ],
+        "covariance_policy": "unknown_temporal_correlation_bound_v1",
+        "initial_covariance": [
+          [
+            0.0010399003295639146,
+            0.00017061108845534047,
+            -0.0004989446693409655,
+            1.3816110687099108e-06,
+            0.0002532373886030861,
+            9.624039872557238e-05
+          ],
+          [
+            0.00017061108845534047,
+            0.0007957434562089353,
+            -0.00012594687091148566,
+            1.3924275885197995e-05,
+            7.386504453119056e-05,
+            0.0005908081748529392
+          ],
+          [
+            -0.0004989446693409657,
+            -0.00012594687091148566,
+            0.0012320857432205178,
+            7.941938606600847e-05,
+            -0.0009395941595437454,
+            -8.003301567973416e-05
+          ],
+          [
+            1.3816110687099108e-06,
+            1.3924275885197993e-05,
+            7.941938606600849e-05,
+            0.0006978103400921828,
+            -7.329081787301062e-05,
+            -1.9509470505402386e-05
+          ],
+          [
+            0.00025323738860308603,
+            7.386504453119056e-05,
+            -0.0009395941595437453,
+            -7.329081787301065e-05,
+            0.0008100695968468393,
+            4.9676288938502224e-05
+          ],
+          [
+            9.624039872557239e-05,
+            0.0005908081748529392,
+            -8.003301567973416e-05,
+            -1.9509470505402386e-05,
+            4.9676288938502224e-05,
+            0.0005062738164682773
+          ]
+        ],
+        "initial_yaw_jacobian": [
+          -0.002343307711677471,
+          -8.133846136968663e-07,
+          1.0
+        ],
+        "alignment_id": "378cf7e0ff1e104847fd532c232da6927f5425c5f099a14e5c714a6a5c7f046d"
+      },
+      "before_stop": {
+        "ready": false,
+        "source_fault": "VIO_RECEIVE_GAP",
+        "source_count": 645,
+        "last_fuse": {
+          "ev_pos": 34680000,
+          "ev_hgt": 34680000,
+          "ev_yaw": 34680000
+        },
+        "local": {
+          "timestamp": 101888000,
+          "timestamp_sample": 101888000,
+          "xy_valid": false,
+          "z_valid": true,
+          "v_xy_valid": false,
+          "v_z_valid": true,
+          "x": -0.0007796836434863508,
+          "y": -0.006777789909392595,
+          "z": 0.010953336022794247,
+          "delta_xy": [
+            0.0,
+            0.0
+          ],
+          "xy_reset_counter": 3,
+          "delta_z": 0.05414605513215065,
+          "z_reset_counter": 2,
+          "vx": -0.0008639806183055043,
+          "vy": -0.00019091471040155739,
+          "vz": 0.0011468831216916442,
+          "z_deriv": 0.003781859530135989,
+          "delta_vxy": [
+            -0.002036208985373378,
+            0.0009385254234075546
+          ],
+          "vxy_reset_counter": 2,
+          "delta_vz": 2.9675662517547607e-05,
+          "vz_reset_counter": 1,
+          "ax": -0.003041717456653714,
+          "ay": -0.005794204771518707,
+          "az": 0.002943444764241576,
+          "heading": 1.569307565689087,
+          "heading_var": 0.002890904899686575,
+          "unaided_heading": -0.0022861091420054436,
+          "delta_heading": 1.5706710815429688,
+          "heading_reset_counter": 1,
+          "heading_good_for_control": true,
+          "tilt_var": 2.4460276108584367e-05,
+          "xy_global": false,
+          "z_global": false,
+          "ref_timestamp": 0,
+          "ref_lat": null,
+          "ref_lon": null,
+          "ref_alt": null,
+          "dist_bottom_valid": false,
+          "dist_bottom": 0.10000000149011612,
+          "dist_bottom_var": 0.010000000707805157,
+          "delta_dist_bottom": 0.05414605513215065,
+          "dist_bottom_reset_counter": 2,
+          "dist_bottom_sensor_bitfield": 0,
+          "eph": 0.013925016857683659,
+          "epv": 0.27686527371406555,
+          "evh": 0.038205623626708984,
+          "evv": 0.053333036601543427,
+          "dead_reckoning": true,
+          "vxy_max": null,
+          "vz_max": null,
+          "hagl_min": null,
+          "hagl_max_z": null,
+          "hagl_max_xy": null
+        },
+        "flags": {
+          "timestamp": 101208000,
+          "timestamp_sample": 101088000,
+          "control_status_changes": 8,
+          "cs_tilt_align": true,
+          "cs_yaw_align": true,
+          "cs_gnss_pos": false,
+          "cs_opt_flow": false,
+          "cs_mag_hdg": false,
+          "cs_mag_3d": false,
+          "cs_mag_dec": false,
+          "cs_in_air": false,
+          "cs_wind": false,
+          "cs_baro_hgt": true,
+          "cs_rng_hgt": false,
+          "cs_gps_hgt": false,
+          "cs_ev_pos": false,
+          "cs_ev_yaw": false,
+          "cs_ev_hgt": false,
+          "cs_fuse_beta": false,
+          "cs_mag_field_disturbed": false,
+          "cs_fixed_wing": false,
+          "cs_mag_fault": false,
+          "cs_fuse_aspd": false,
+          "cs_gnd_effect": false,
+          "cs_rng_stuck": false,
+          "cs_gnss_yaw": false,
+          "cs_mag_aligned_in_flight": false,
+          "cs_ev_vel": false,
+          "cs_synthetic_mag_z": false,
+          "cs_vehicle_at_rest": true,
+          "cs_gnss_yaw_fault": false,
+          "cs_rng_fault": false,
+          "cs_inertial_dead_reckoning": true,
+          "cs_wind_dead_reckoning": false,
+          "cs_rng_kin_consistent": false,
+          "cs_fake_pos": false,
+          "cs_fake_hgt": false,
+          "cs_gravity_vector": true,
+          "cs_mag": false,
+          "cs_ev_yaw_fault": false,
+          "cs_mag_heading_consistent": false,
+          "cs_aux_gpos": false,
+          "cs_rng_terrain": false,
+          "cs_opt_flow_terrain": false,
+          "cs_valid_fake_pos": true,
+          "cs_constant_pos": false,
+          "cs_baro_fault": false,
+          "cs_gnss_vel": false,
+          "fault_status_changes": 0,
+          "fs_bad_mag_x": false,
+          "fs_bad_mag_y": false,
+          "fs_bad_mag_z": false,
+          "fs_bad_hdg": false,
+          "fs_bad_mag_decl": false,
+          "fs_bad_airspeed": false,
+          "fs_bad_sideslip": false,
+          "fs_bad_optflow_x": false,
+          "fs_bad_optflow_y": false,
+          "fs_bad_acc_vertical": false,
+          "fs_bad_acc_clipping": false,
+          "innovation_fault_status_changes": 0,
+          "reject_hor_vel": false,
+          "reject_ver_vel": false,
+          "reject_hor_pos": false,
+          "reject_ver_pos": false,
+          "reject_yaw": false,
+          "reject_airspeed": false,
+          "reject_sideslip": false,
+          "reject_hagl": false,
+          "reject_optflow_x": false,
+          "reject_optflow_y": false
+        }
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.011308261004160158,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      },
+      "source_fault": "VIO_RECEIVE_GAP",
+      "source_reason": "VIO_RECEIVE_GAP",
+      "gate_reason": "VIO_EKF_LOCAL_RESET",
+      "input_count": 645,
+      "observed_count": 645,
+      "fused_samples": {
+        "ev_pos": 643,
+        "ev_hgt": 643,
+        "ev_yaw": 643
+      },
+      "longest_ready_s": 30.17995734899887,
+      "gate_reasons": {
+        "VIO_TELEMETRY_MISSING": 196,
+        "VIO_EKF_FLAGS_INVALID": 3,
+        "VIO_EKF_NOT_FUSED:ev_pos": 2,
+        "VIO_STABILIZING": 100,
+        "READY": 1510,
+        "VIO_SOURCE_LOST": 21,
+        "VIO_EKF_LOCAL_RESET": 4466
+      },
+      "last_fuse_after_drain": {
+        "ev_pos": 34680000,
+        "ev_hgt": 34680000,
+        "ev_yaw": 34680000
+      },
+      "last_fuse_at_end": {
+        "ev_pos": 34680000,
+        "ev_hgt": 34680000,
+        "ev_yaw": 34680000
+      },
+      "control_publishers": {
+        "vehicle_command": 0,
+        "trajectory_setpoint": 0,
+        "offboard_control_mode": 0
+      }
+    },
+    "max_normalized_covariance_xyz": [
+      0.0011438087791738507,
+      0.0012220302870708205,
+      0.001928688719047359
+    ],
+    "cleanup": true
+  },
+  {
+    "run": "36ba47bb-7274-46b9-816f-81d0b883c2a1",
+    "profile": {
+      "schema": 1,
+      "scope": "force-driven reference sensor fixture, independent of disarmed PX4",
+      "model": "vio_motion_carrier",
+      "width": 640,
+      "height": 400,
+      "horizontal_fov_rad": 1.21,
+      "baseline_m": 0.075,
+      "rig_position_flu_m": [
+        0.12,
+        0.0,
+        0.242
+      ],
+      "image_rate_hz": 25,
+      "imu_rate_hz": 250,
+      "near_m": 0.1,
+      "far_m": 20.0,
+      "camera_pitch_deg": 30,
+      "real_time_factor": 0.8,
+      "scene": "warehouse",
+      "warehouse_floor_texture": true,
+      "warehouse_texture_style": "unique"
+    },
+    "passed": true,
+    "motion": {
+      "passed": true,
+      "checks": {
+        "truth_present": true,
+        "pose_present": true,
+        "imu_present": true,
+        "ordered_truth": true,
+        "paired_samples": true,
+        "truth_rate": true,
+        "three_axis_excitation": true,
+        "yaw_excitation": true,
+        "motion_duration": true,
+        "source_covers_end": true,
+        "source_continuous": true,
+        "position_rmse": true,
+        "position_max": true,
+        "orientation_max": true,
+        "imu_acceleration_response": true,
+        "imu_rotation_response": true,
+        "unique_truth_writer": true,
+        "truth_frames": true,
+        "truth_observer_only": true
+      },
+      "paired_samples": 2109,
+      "alignment_stamp": 16.88,
+      "alignment_rotation": [
+        [
+          0.9999984097894132,
+          -0.0007466767800331228,
+          0.001619534634062586
+        ],
+        [
+          0.0007470131916433114,
+          0.9999996995349695,
+          -0.00020712619852720576
+        ],
+        [
+          -0.0016193794911260864,
+          0.00020833568288890003,
+          0.9999986671022651
+        ]
+      ],
+      "alignment_translation": [
+        0.0004805451167933794,
+        -0.0009562553336264212,
+        1.299521453626625
+      ],
+      "position_rmse_m": 0.012948612680036001,
+      "position_max_m": 0.027311306766636498,
+      "orientation_max_deg": 0.41081408920668505,
+      "truth_extent_m": [
+        0.9995292481675858,
+        0.7994927301284469,
+        0.5995414481869719
+      ],
+      "yaw_extent_rad": 0.7998688681813586,
+      "imu_std": [
+        0.1768358792265528,
+        0.19663466724060008,
+        0.21256389188822497,
+        0.0002529617922624615,
+        0.00011106666177240982,
+        0.12004893244888581
+      ],
+      "truth_audit_interval": [
+        16.872,
+        101.208
+      ],
+      "startup_truth_max_gap_s": 0.012000000000000455,
+      "last_truth_stamp": 101.232,
+      "last_pose_stamp": 101.2,
+      "scope": "reference fixture motion only; one initial rigid alignment; no PX4 EV or flight acceptance"
+    },
+    "fusion": null,
+    "max_normalized_covariance_xyz": [
+      0.06737655118247006,
+      0.059711742214997476,
+      0.10744328724631089
+    ],
+    "cleanup": true
+  },
+  {
+    "run": "43fe5128-f399-41dc-9687-a47bc2d7a4b4",
+    "profile": {
+      "schema": 1,
+      "scope": "force-driven reference sensor fixture, independent of disarmed PX4",
+      "model": "vio_motion_carrier",
+      "width": 640,
+      "height": 400,
+      "horizontal_fov_rad": 1.21,
+      "baseline_m": 0.075,
+      "rig_position_flu_m": [
+        0.12,
+        0.0,
+        0.242
+      ],
+      "image_rate_hz": 25,
+      "imu_rate_hz": 250,
+      "near_m": 0.1,
+      "far_m": 20.0,
+      "camera_pitch_deg": 15,
+      "real_time_factor": 0.8,
+      "scene": "warehouse",
+      "warehouse_floor_texture": true,
+      "warehouse_texture_style": "unique"
+    },
+    "passed": true,
+    "motion": {
+      "passed": true,
+      "checks": {
+        "truth_present": true,
+        "pose_present": true,
+        "imu_present": true,
+        "ordered_truth": true,
+        "paired_samples": true,
+        "truth_rate": true,
+        "three_axis_excitation": true,
+        "yaw_excitation": true,
+        "motion_duration": true,
+        "source_covers_end": true,
+        "source_continuous": true,
+        "position_rmse": true,
+        "position_max": true,
+        "orientation_max": true,
+        "imu_acceleration_response": true,
+        "imu_rotation_response": true,
+        "unique_truth_writer": true,
+        "truth_frames": true,
+        "truth_observer_only": true
+      },
+      "paired_samples": 2107,
+      "alignment_stamp": 16.92,
+      "alignment_rotation": [
+        [
+          0.9999983029553189,
+          -0.0006045324116669756,
+          0.0017402951030448185
+        ],
+        [
+          0.000604976109707795,
+          0.9999997846319447,
+          -0.00025444050580595613
+        ],
+        [
+          -0.001740140910708246,
+          0.0002554929109702327,
+          0.9999984533152957
+        ]
+      ],
+      "alignment_translation": [
+        0.0003342299023693096,
+        -0.0005893197295211428,
+        1.3005234489392958
+      ],
+      "position_rmse_m": 0.030957444858516422,
+      "position_max_m": 0.050553692478940815,
+      "orientation_max_deg": 0.5718786575483005,
+      "truth_extent_m": [
+        0.9995292481675858,
+        0.7994927301284469,
+        0.5995414481869719
+      ],
+      "yaw_extent_rad": 0.7998688681813586,
+      "imu_std": [
+        0.17686005593738247,
+        0.1966416216895448,
+        0.21255183268913783,
+        0.000253000154808546,
+        0.00011108134167263074,
+        0.12007398767653765
+      ],
+      "truth_audit_interval": [
+        16.92,
+        101.172
+      ],
+      "startup_truth_max_gap_s": 0.012000000000000455,
+      "last_truth_stamp": 101.196,
+      "last_pose_stamp": 101.16,
+      "scope": "reference fixture motion only; one initial rigid alignment; no PX4 EV or flight acceptance"
+    },
+    "fusion": null,
+    "max_normalized_covariance_xyz": [
+      0.07838161309072714,
+      0.15387660715309331,
+      0.1962545892821569
+    ],
+    "cleanup": true
+  }
+]
