@@ -29,6 +29,8 @@ def main():
     parser.add_argument('--scene',choices=('planar','layered'),default='planar')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
+    parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
     parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion timing comparison')
     parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion')
     parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
@@ -81,7 +83,7 @@ def main():
         for name,digest in receipt.items():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))))
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION='uav_vio_sensors_'+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
@@ -115,7 +117,7 @@ def main():
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
               ROOT/'src/isaac_ros_common/isaac_ros_common/src/qos.cpp',
-              ROOT/'src/px4_comm_bridge/px4_comm_bridge/source_timing.py',
+              ROOT/'src/px4_comm_bridge/px4_comm_bridge/source_timing.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_dropout.py',
               PROFILE,upstream_world,models/'x500/model.sdf',models/'x500_base/model.sdf',
               out/'assets/default.sdf',out/'assets'/profile['model']/'model.sdf',out/'assets/frames.json',
               out/'vio-params.yaml',ROOT/'simulation/px4/server_control.config',binary,
@@ -141,7 +143,7 @@ def main():
             ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/cuvslam_ros_conversion.cpp',
             ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp']
     write_json(out/'calibration.json',dict(schema=1,profile=profile,frames=frames,parameters=params,
-        source_contract='cuvslam15_right_tangent_base_link_v1',render_device=args.render_device,headless_rendering=args.headless_rendering,
+        source_contract='cuvslam15_right_tangent_base_link_v1',quality_policy=args.quality_policy,render_device=args.render_device,headless_rendering=args.headless_rendering,
         native_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs
                        if 'libvisual_slam_node.so' in str(p) or 'libcuvslam.so' in str(p)
                        or 'cuvslam2.h' in str(p) or str(p).endswith('cuvslam_ros_conversion.cpp')
@@ -162,7 +164,7 @@ def main():
             build/'bin/px4',build/'vio-build.json']
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
-        render_device=args.render_device,headless_rendering=args.headless_rendering,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
+        render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
@@ -205,7 +207,7 @@ def main():
             if args.normalize:
                 normalizer=launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
                     '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
-                    '-p','source_contract:=cuvslam15_right_tangent_base_link_v1']+
+                    '-p','source_contract:=cuvslam15_right_tangent_base_link_v1','-p','quality_policy:='+args.quality_policy]+
                     (['-p','timing_path:='+str(out/'normalizer-timing.json')] if args.fuse_pose else []))
         # A stationary VIO-only SDK can retain its unknown initial covariance.
         # Observe the aircraft's physical spawn/settling; never fabricate motion.
