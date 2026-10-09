@@ -49,6 +49,7 @@ def free_port(port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--vision-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry')
     parser.add_argument('--vision-fusion-smoke', action='store_true', help='Separate disarmed build: synthetic EV input and actual EKF fusion telemetry')
     parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
     parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
@@ -62,6 +63,8 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.vision_fusion_profile!='full_odometry' and not args.vision_fusion_smoke:
+        parser.error('--vision-fusion-profile requires --vision-fusion-smoke')
     if args.vision_fusion_smoke and (args.flight or args.bt or args.depth_camera or args.aircraft_state or args.mission_file or args.flight_scenario != 'full'):
         parser.error('--vision-fusion-smoke is an independent disarmed audit')
     if args.require_vio and (not args.flight or not re.fullmatch('[0-9a-f]{64}', args.vio_calibration_id)):
@@ -111,10 +114,15 @@ def main():
                GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
                GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
     if args.vision_fusion_smoke:
-        env.update(PX4_PARAM_EKF2_EV_CTRL='15', PX4_PARAM_EKF2_GPS_CTRL='0',
+        env.update(PX4_PARAM_EKF2_EV_CTRL='11' if args.vision_fusion_profile=='aligned_pose_v1' else '15', PX4_PARAM_EKF2_GPS_CTRL='0',
                    PX4_PARAM_EKF2_MAG_TYPE='5', PX4_PARAM_EKF2_HGT_REF='3',
                    PX4_PARAM_SENS_IMU_MODE='0', PX4_PARAM_EKF2_MULTI_IMU='1',
                    PX4_PARAM_EKF2_MULTI_MAG='0')
+        if args.vision_fusion_profile=='aligned_pose_v1':
+            profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
+            if profile['schema']!=1 or profile['profile']!=args.vision_fusion_profile:
+                raise RuntimeError('Unsupported pose fusion profile')
+            env.update({'PX4_PARAM_'+name:str(value) for name,value in profile['parameters'].items()})
     if args.flight:
         env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),
                    UAV_REQUIRE_VIO='1' if args.require_vio else '0',
@@ -136,6 +144,9 @@ def main():
                     model_sha256=file_hash(models / f'{model_name}/model.sdf'),
                     hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
                     vision_fusion_smoke=args.vision_fusion_smoke,
+                    vision_fusion_profile=args.vision_fusion_profile,
+                    pose_fusion_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'simulation/px4/vio/pose_fusion.json',
+                        ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_fusion.py')} if args.vision_fusion_profile=='aligned_pose_v1' else None,
                     vio_build=vio_build if args.vision_fusion_smoke else None,
                     vision_audit_sha256=file_hash(ROOT/'scripts/px4_vision_audit.py') if args.vision_fusion_smoke else None,
                     vio_gate_sha256=file_hash(ROOT/'src/uav_mission/uav_mission/vio_gate.py') if args.vision_fusion_smoke else None,
@@ -197,7 +208,7 @@ def main():
     vision_audit = None
     if args.vision_fusion_smoke:
         from px4_vision_audit import VisionFusionAudit
-        vision_audit = VisionFusionAudit(node)
+        vision_audit = VisionFusionAudit(node,args.vision_fusion_profile)
     first_clock = None
     failure = None
     try:

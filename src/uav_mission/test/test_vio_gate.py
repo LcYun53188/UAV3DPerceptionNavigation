@@ -151,3 +151,62 @@ def test_one_hz_status_does_not_break_continuous_readiness(stream):
     gate.received[stream] = 10.
     assert not gate.ready(12.5,12.5,WRITERS)
     assert gate.reason == 'VIO_TELEMETRY_STALE:'+stream
+
+
+def pose_update(gate,now=10.):
+    from px4_msgs.msg import VehicleLocalPosition
+    update(gate,now)
+    gate.samples['source'].header.frame_id='px4_local_enu'
+    gate.samples['flags'].cs_ev_vel=False
+    gate.receive('local',VehicleLocalPosition(timestamp=int(now*1e6),timestamp_sample=int(now*1e6),
+        xy_valid=True,z_valid=True,v_xy_valid=True,v_z_valid=True,heading_good_for_control=True,
+        heading_var=.01,eph=.1,epv=.1,evh=.1,evv=.1),now)
+    gate.samples.pop('ev_vel',None)
+
+
+def pose_gate():
+    gate=VioGate(CAL,fusion_profile='aligned_pose_v1')
+    for t in (10.,10.5,11.,11.5,12.):
+        pose_update(gate,t)
+        result=gate.ready(t,t,{n:1 for n in gate.required})
+    assert result
+    return gate
+
+
+def test_explicit_pose_profile_accepts_three_fused_aids_and_local_velocity():
+    gate=pose_gate()
+    assert 'ev_vel' not in gate.required and 'local' in gate.required
+    default=VioGate(CAL)
+    pose_update(default)
+    assert not default.ready(10.,10.,WRITERS)  # Default four-aid requirement remains.
+    with pytest.raises(ValueError):VioGate(CAL,fusion_profile='unknown')
+
+
+@pytest.mark.parametrize('fault',['ev_velocity','gnss','mag','flow','range','aux','invalid_velocity','nan_velocity',
+    'large_velocity_sigma','zero_velocity_sigma','local_old','heading_invalid','dead_reckoning','position_sigma','reset'])
+def test_pose_profile_rejects_hidden_aids_and_unhealthy_ekf_velocity(fault):
+    gate=pose_gate();local=gate.samples['local'];flags=gate.samples['flags']
+    if fault=='ev_velocity':flags.cs_ev_vel=True
+    if fault=='gnss':flags.cs_gnss_pos=True
+    if fault=='mag':flags.cs_mag=True
+    if fault=='flow':flags.cs_opt_flow=True
+    if fault=='range':flags.cs_rng_hgt=True
+    if fault=='aux':flags.cs_aux_gpos=True
+    if fault=='invalid_velocity':local.v_xy_valid=False
+    if fault=='nan_velocity':local.vx=float('nan')
+    if fault=='large_velocity_sigma':local.evv=.6
+    if fault=='zero_velocity_sigma':local.evh=0.
+    if fault=='local_old':local.timestamp_sample=1
+    if fault=='heading_invalid':local.heading_good_for_control=False
+    if fault=='dead_reckoning':local.dead_reckoning=True
+    if fault=='position_sigma':local.eph=.6
+    if fault=='reset':local.vxy_reset_counter+=1
+    assert not gate.ready(12.,12.,{n:1 for n in gate.required})
+
+
+def test_pose_local_reset_between_ticks_is_latched():
+    gate=pose_gate();local=gate.samples['local'];local.heading_reset_counter=1
+    gate.receive('local',local,12.01)
+    pose_update(gate,12.02)
+    assert not gate.ready(12.02,12.02,{n:1 for n in gate.required})
+    assert gate.fault=='VIO_EKF_LOCAL_RESET'

@@ -9,7 +9,13 @@ import math
 class VioGate:
     required = ('source', 'flags', 'selector', 'ev_pos', 'ev_hgt', 'ev_vel', 'ev_yaw')
 
-    def __init__(self, calibration_id, stable_s=2.):
+    def __init__(self, calibration_id, stable_s=2., *, fusion_profile="full_odometry"):
+        if fusion_profile not in ("full_odometry", "aligned_pose_v1"):
+            raise ValueError("VIO_FUSION_PROFILE_UNSUPPORTED")
+        self.pose_only = fusion_profile == "aligned_pose_v1"
+        self.aids = ("ev_pos", "ev_hgt", "ev_yaw") if self.pose_only else ("ev_pos", "ev_hgt", "ev_vel", "ev_yaw")
+        if self.pose_only: self.required = ("source", "flags", "selector", "local") + self.aids
+        self.local_identity = self.local_candidate = None
         self.calibration_id = calibration_id
         self.stable_s = stable_s
         self.samples = {}
@@ -35,6 +41,10 @@ class VioGate:
         if name == 'selector' and self.bound_selector_count is not None:
             if message.primary_instance != 0 or message.instance_changed_count != self.bound_selector_count:
                 self.fault = 'VIO_EKF_INSTANCE_CHANGED'
+        if name == 'local' and self.local_identity is not None:
+            identity = tuple(getattr(message,n) for n in ('xy_reset_counter','z_reset_counter',
+                'vxy_reset_counter','vz_reset_counter','heading_reset_counter'))
+            if identity != self.local_identity: self.fault = 'VIO_EKF_LOCAL_RESET'
         self.samples[name] = message
         self.received[name] = now
 
@@ -69,7 +79,7 @@ class VioGate:
             max_age = 1.5 if name in ('flags', 'selector') else .5
             if not (0 <= now-self.received[name] <= max_age and stamp > 0 and -.05 <= ros-stamp <= max_age):
                 return self.fail('VIO_TELEMETRY_STALE:'+name)
-        if (not source.valid or source.header.frame_id != 'odom' or not source.localization_session
+        if (not source.valid or source.header.frame_id != ('px4_local_enu' if self.pose_only else 'odom') or not source.localization_session
                 or source.calibration_id != self.calibration_id or not self.calibration_id
                 or not -.05 <= ros-self.stamp(source.sample_stamp) <= .2):
             return self.fail('VIO_SOURCE_INVALID')
@@ -88,12 +98,31 @@ class VioGate:
             self.fault = 'VIO_EKF_INSTANCE_CHANGED'
             return self.fail(self.fault)
         flags = self.samples['flags']
-        if (not all(getattr(flags, 'cs_'+n) for n in ('ev_pos','ev_hgt','ev_vel','ev_yaw'))
+        if (not all(getattr(flags, 'cs_'+n) for n in self.aids)
                 or any(getattr(flags, n) for n in ('cs_ev_yaw_fault','cs_inertial_dead_reckoning',
                         'cs_fake_pos','cs_fake_hgt','reject_hor_pos','reject_ver_pos','reject_hor_vel',
                         'reject_ver_vel','reject_yaw','fs_bad_hdg','fs_bad_acc_vertical','fs_bad_acc_clipping'))):
             return self.fail('VIO_EKF_FLAGS_INVALID')
-        for name in ('ev_pos', 'ev_hgt', 'ev_vel', 'ev_yaw'):
+        if self.pose_only:
+            if flags.cs_ev_vel or any(getattr(flags,n) for n in ('cs_gnss_pos','cs_gnss_vel','cs_gnss_yaw',
+                    'cs_gps_hgt','cs_mag','cs_mag_hdg','cs_mag_3d','cs_opt_flow','cs_rng_hgt','cs_aux_gpos')):
+                return self.fail('VIO_UNEXPECTED_AIDING')
+            local = self.samples['local']
+            if (not all(getattr(local,n) for n in ('xy_valid','z_valid','v_xy_valid','v_z_valid','heading_good_for_control'))
+                    or local.dead_reckoning or not -.05 <= ros-local.timestamp_sample/1e6 <= .5
+                    or not all(math.isfinite(getattr(local,n)) for n in ('x','y','z','vx','vy','vz','heading','heading_var','eph','epv','evh','evv'))
+                    or not 0 < local.eph <= .5 or not 0 < local.epv <= .5
+                    or not 0 < local.heading_var <= .25 or not 0 < local.evh <= .5 or not 0 < local.evv <= .5):
+                return self.fail('VIO_EKF_LOCAL_INVALID')
+            local_identity = tuple(getattr(local,n) for n in ('xy_reset_counter','z_reset_counter',
+                'vxy_reset_counter','vz_reset_counter','heading_reset_counter'))
+            if self.local_identity is not None and local_identity != self.local_identity:
+                self.fault = 'VIO_EKF_LOCAL_RESET'
+                return self.fail(self.fault)
+            if local_identity != self.local_candidate:
+                self.local_candidate = local_identity
+                self.stable_since = None
+        for name in self.aids:
             aid = self.samples[name]
             ratios = aid.test_ratio if hasattr(aid.test_ratio, '__len__') else [aid.test_ratio]
             if (aid.estimator_instance != 0 or not aid.fused or aid.innovation_rejected
@@ -110,5 +139,6 @@ class VioGate:
             return False
         self.bound_identity = identity
         self.bound_selector_count = selector.instance_changed_count
+        if self.pose_only: self.local_identity = self.local_candidate
         self.reason = 'READY'
         return True

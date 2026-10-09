@@ -48,3 +48,38 @@ def test_drained_fusion_can_stop_and_unavailable_selector_slots_are_json_safe():
     assert result['passed']
     assert result['last_messages']['selector']['combined_test_ratio'][1] is None
     json.dumps(result, allow_nan=False)
+
+
+def completed_pose_audit():
+    a=completed_audit();a.pose_only=True;a.profile='aligned_pose_v1'
+    a.aids=('ev_pos','ev_hgt','ev_yaw');a.alignment=SimpleNamespace(binding={'synthetic':True})
+    a.fused_counts.pop('ev_vel');a.drained_snapshot.pop('ev_vel')
+    from px4_msgs.msg import VehicleOdometry
+    a.node.get_publishers_info_by_topic=lambda topic:[object()] if topic.endswith('vehicle_visual_odometry') else []
+    nan=[float('nan')]*3
+    a.observed_inputs=[VehicleOdometry(velocity_frame=VehicleOdometry.VELOCITY_FRAME_UNKNOWN,
+        velocity=nan,angular_velocity=nan,velocity_variance=nan) for _ in range(a.input_count)]
+    a.local_before_stop={}
+    a.unknown_velocity_count=a.input_count
+    a.aiding_before_stop.update(cs_ev_vel=False,cs_rng_hgt=False,cs_aux_gpos=False)
+    a.first_stop_rejection={'reason':'VIO_SOURCE_INVALID','after_stop_s':.21}
+    a.gate.reason='VIO_EKF_LOCAL_RESET'
+    return a
+
+
+def test_pose_stop_can_remain_rejected_after_px4_resets_local_state():
+    a=completed_pose_audit()
+    assert a.result()['passed']
+
+
+@pytest.mark.parametrize('fault',['fake_velocity','unexpected_velocity_fusion','late_rejection','unrelated_rejection','no_rejection','dds_known_velocity','dds_missing'])
+def test_pose_audit_rejects_false_velocity_or_incorrect_stop_evidence(fault):
+    a=completed_pose_audit()
+    if fault=='fake_velocity':a.unknown_velocity_count-=1
+    if fault=='unexpected_velocity_fusion':a.fused_counts['ev_vel']=1
+    if fault=='late_rejection':a.first_stop_rejection['after_stop_s']=.6
+    if fault=='unrelated_rejection':a.first_stop_rejection['reason']='VIO_TELEMETRY_WRITER_COUNT'
+    if fault=='no_rejection':a.first_stop_rejection=None
+    if fault=='dds_known_velocity':a.observed_inputs[0].velocity[0]=0.
+    if fault=='dds_missing':a.observed_inputs=[]
+    assert not a.result()['passed']
