@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "profile": "aligned_pose_v1",
+  "scope": "shared-clock owned SITL only; pose fusion audit, NOT flight authorization",
+  "input_frame": "px4_local_enu",
+  "required_aids": [
+    "ev_pos",
+    "ev_hgt",
+    "ev_yaw"
+  ],
+  "velocity_observation": "unknown: NaN, frame UNKNOWN",
+  "velocity_health": "PX4 local velocity valid, finite, sigma <=0.5 m/s; never an EV observation",
+  "barometer_height_aiding": "retained and explicitly audited",
+  "parameters": {
+    "EKF2_EV_CTRL": 11,
+    "EKF2_GPS_CTRL": 0,
+    "EKF2_MAG_TYPE": 5,
+    "EKF2_OF_CTRL": 0,
+    "EKF2_HGT_REF": 3,
+    "EKF2_EV_NOISE_MD": 0,
+    "SENS_IMU_MODE": 0,
+    "EKF2_MULTI_IMU": 1,
+    "EKF2_MULTI_MAG": 0,
+    "EKF2_RNG_CTRL": 0,
+    "EKF2_AGP_CTRL": 0,
+    "EKF2_DRAG_CTRL": 0,
+    "EKF2_BARO_CTRL": 1
+  },
+  "alignment_covariance": "world fixed covariance; unknown initial/current correlation bound 2*(J_current C_current J_current^T + J_initial C_initial J_initial^T); exact configured simulation anchor"
+}
