@@ -10,7 +10,7 @@
     "sha256": "5323a572991fb42f689ebb8db99b3c42e6d0d55f1ab07f40fe350abf6bec0134"
   },
   "gazebo.log": {
-    "archive": "gazebo.log",
+    "archive": "gazebo.log.gz",
     "bytes": 1626,
     "sha256": "91b7d7bf61eb6c2432077dc285d4cab574065404bf8651ec9c65179883d747fd"
   },
@@ -20,12 +20,12 @@
     "sha256": "6b1deea19a8daa70bcddd4b020fc37f4dbb961cfdfcc40cd7d4ea07d254c101f"
   },
   "qgc.log": {
-    "archive": "qgc.log",
+    "archive": "qgc.log.gz",
     "bytes": 68523,
     "sha256": "1059e12a5561a048b4818327bfff2b83c0dfb48ed5136dfb129bdb15c64a6b1f"
   },
   "sensor_bridge.log": {
-    "archive": "sensor_bridge.log",
+    "archive": "sensor_bridge.log.gz",
     "bytes": 1484,
     "sha256": "898654ef867b150b79ce95f1db47f2340d2ec33ff4e509d9428f6c7ebbbbf9a4"
   },
@@ -35,7 +35,7 @@
     "sha256": "6d2008870c574385c1fdb08e413f894dba046e99c81b11944d33d7a650977520"
   },
   "px4.log": {
-    "archive": "px4.log",
+    "archive": "px4.log.gz",
     "bytes": 5280,
     "sha256": "055b38a2f57fc07c70aaf61d30d6bd0b0fdf56f40d50ec003def26105542ef0e"
   },
@@ -65,12 +65,12 @@
     "sha256": "949d239ea1aac31e55a4105895b7547ca85711c97522c1cb328a8704840dbb64"
   },
   "normalizer.log": {
-    "archive": "normalizer.log",
+    "archive": "normalizer.log.gz",
     "bytes": 1112,
     "sha256": "3228639c07737b08e359fe9745bdcae2ff3dd2044446aaa58632aad2a5213fcd"
   },
   "agent.log": {
-    "archive": "agent.log",
+    "archive": "agent.log.gz",
     "bytes": 32833,
     "sha256": "d8255e8e2a3aa47026eef8c4b3d355b09c10a3044d5bcc40201f8f8acd60decd"
   },
@@ -200,7 +200,7 @@
     "sha256": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e"
   },
   "sdk-input/stereo.edex": {
-    "archive": "sdk-input/stereo.edex",
+    "archive": "sdk-input/stereo.edex.gz",
     "bytes": 1986,
     "sha256": "10cf89a1c9a7901d10d0f20eef3e32dc232393f30efd15891162b88f672354a5"
   },

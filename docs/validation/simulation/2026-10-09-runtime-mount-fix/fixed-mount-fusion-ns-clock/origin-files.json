@@ -20,7 +20,7 @@
     "sha256": "5338549261fb3faf57f3e850e90c3193c2725d7403e82c9ce2c25b7dbd8e0bde"
   },
   "gazebo.log": {
-    "archive": "gazebo.log",
+    "archive": "gazebo.log.gz",
     "bytes": 1590,
     "sha256": "88ba2e3903b2330b95548294ddb77061a37bd969da062a940b2f8b067f1089ce"
   },
@@ -30,7 +30,7 @@
     "sha256": "739a5e66376a9fc9f4019f965b007ac2335e5eb7df07358d083d64330386e525"
   },
   "gazebo_gui.log": {
-    "archive": "gazebo_gui.log",
+    "archive": "gazebo_gui.log.gz",
     "bytes": 1257,
     "sha256": "fa06b1634e778d45c1463618a2afb7ee4c861636ec334c859dd97937f578cac8"
   },
@@ -40,7 +40,7 @@
     "sha256": "c6a45c9449cb800f4d3158b8615b265cbde746d1bc2d9d49ea1156ac791ec026"
   },
   "qgc.log": {
-    "archive": "qgc.log",
+    "archive": "qgc.log.gz",
     "bytes": 70709,
     "sha256": "671e674ed4eee212a756a786f253393a103f0fb7e0702eee9d8c3998a097d726"
   },
@@ -50,7 +50,7 @@
     "sha256": "88c0bca9e80a85a85c18624673f12be9c61f1ea3c1880c0be129a9d1859f5050"
   },
   "sensor_bridge.log": {
-    "archive": "sensor_bridge.log",
+    "archive": "sensor_bridge.log.gz",
     "bytes": 1333,
     "sha256": "07161f36af911e70b92fe221840ba0089ec6e892365db9869e0ef1102cfc32dc"
   },
@@ -65,7 +65,7 @@
     "sha256": "6beb288f46519c933f783b5891c956403ed5a301cdebdb48f8afa82bc45022e8"
   },
   "px4.log": {
-    "archive": "px4.log",
+    "archive": "px4.log.gz",
     "bytes": 6215,
     "sha256": "f75ed6612806eae2e3e7ffdb5e79d1f24f031bc65fcbec0b09f043a224f3e4a8"
   },
@@ -85,17 +85,17 @@
     "sha256": "55fbfe9a16125f24b3ab95931e57f28760d5cf9e0ed022a6bb8e4f185270488c"
   },
   "vio.log": {
-    "archive": "vio.log",
+    "archive": "vio.log.gz",
     "bytes": 2560,
     "sha256": "71c38cc33ad63f7299429c166da745ada4e93a2e1b5a0fa1eaf1a66bc65447fd"
   },
   "normalizer.log": {
-    "archive": "normalizer.log",
+    "archive": "normalizer.log.gz",
     "bytes": 556,
     "sha256": "71afaed2ac8edf1626bd70200fede32714ac0203cf5738f74e4e17dbf587f4e0"
   },
   "agent.log": {
-    "archive": "agent.log",
+    "archive": "agent.log.gz",
     "bytes": 35943,
     "sha256": "2dadbbbdef477e0be5d032bd591040d6a495e19dad42c702140df0934ae7d87d"
   },

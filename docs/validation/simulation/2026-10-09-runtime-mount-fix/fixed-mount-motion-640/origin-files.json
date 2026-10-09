@@ -10,7 +10,7 @@
     "sha256": "b94687aa27cc4ac66b45bd53a8928e12804b8bf3e4f8a2f71fae213ea6fe4c10"
   },
   "gazebo.log": {
-    "archive": "gazebo.log",
+    "archive": "gazebo.log.gz",
     "bytes": 1626,
     "sha256": "47c92e68a432ca94c352cf81da257ec0bb8c1a057ef262463baffa8f7394f04b"
   },
@@ -20,17 +20,17 @@
     "sha256": "739a5e66376a9fc9f4019f965b007ac2335e5eb7df07358d083d64330386e525"
   },
   "gazebo_gui.log": {
-    "archive": "gazebo_gui.log",
+    "archive": "gazebo_gui.log.gz",
     "bytes": 1273,
     "sha256": "8c9788252906fe9bd2b6d6754ab5faefb36831f2cb3e23340c4a09085a0197e1"
   },
   "qgc.log": {
-    "archive": "qgc.log",
+    "archive": "qgc.log.gz",
     "bytes": 70709,
     "sha256": "6841e2a7f58b8b01e8777b7069824458755e8d273d0bea0bab20e3148edc8662"
   },
   "sensor_bridge.log": {
-    "archive": "sensor_bridge.log",
+    "archive": "sensor_bridge.log.gz",
     "bytes": 1484,
     "sha256": "070ea015de2f56e09ab4bdf5d10b6b0b2a249d728154c8c2f31759a1eb93fc3a"
   },
@@ -40,7 +40,7 @@
     "sha256": "354690a62b815078c930b37dc418b91e6aa322d80bd45f5c7a2363a0375fd5d5"
   },
   "px4.log": {
-    "archive": "px4.log",
+    "archive": "px4.log.gz",
     "bytes": 5354,
     "sha256": "d81e8b1bff2a0b1a643822652158d9c85fe51e269ead9fabb4d85faf29a1a905"
   },
@@ -65,17 +65,17 @@
     "sha256": "7cf2098286646ac6e028a36cefca5cb737de3c21b4d2703385edf776d0c04ba5"
   },
   "vio.log": {
-    "archive": "vio.log",
+    "archive": "vio.log.gz",
     "bytes": 2560,
     "sha256": "314e54d40bbd0323da7a1ea52efeaf0ccec257e2909456193879463fa70f50d2"
   },
   "normalizer.log": {
-    "archive": "normalizer.log",
+    "archive": "normalizer.log.gz",
     "bytes": 300,
     "sha256": "d771bb6817c474807dbfa8dd0fafb0f292aa824936e01b6f300593c15fbc3807"
   },
   "agent.log": {
-    "archive": "agent.log",
+    "archive": "agent.log.gz",
     "bytes": 32833,
     "sha256": "a8b1151728babeebf2c4ceff2d60e568e1905e2cdb9eb21824a15111db66f57d"
   },

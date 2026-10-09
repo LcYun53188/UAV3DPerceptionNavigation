@@ -10,7 +10,7 @@
     "sha256": "ce069b8b173fdbd761506fe77a3dae11f8637c6a7fbfd9e6de5f28eca7f15ae7"
   },
   "gazebo.log": {
-    "archive": "gazebo.log",
+    "archive": "gazebo.log.gz",
     "bytes": 1626,
     "sha256": "2703f6fcb02b8dc513cccadba8806ee0c79716f94b2c741ce237fb2c52e34b61"
   },
@@ -20,17 +20,17 @@
     "sha256": "56c3ff6f47d422539c6b414d1b455f22bfd2b6797ef3cc1f1bd05c9df17e18d2"
   },
   "gazebo_gui.log": {
-    "archive": "gazebo_gui.log",
+    "archive": "gazebo_gui.log.gz",
     "bytes": 1273,
     "sha256": "8c9788252906fe9bd2b6d6754ab5faefb36831f2cb3e23340c4a09085a0197e1"
   },
   "qgc.log": {
-    "archive": "qgc.log",
+    "archive": "qgc.log.gz",
     "bytes": 70709,
     "sha256": "6ba36e2054827d9dc5c9dad6bcecc02a3fb351e13e91b271f64c9f60941eded5"
   },
   "sensor_bridge.log": {
-    "archive": "sensor_bridge.log",
+    "archive": "sensor_bridge.log.gz",
     "bytes": 1484,
     "sha256": "5af77a24adb68da0bc921e7e312998d702d1e1a76b272ce4939111ee90a1bc82"
   },
@@ -40,7 +40,7 @@
     "sha256": "7582d8810b4c134e13bb89f44da706c87d316d89115a4734d62b4c5bfda2003d"
   },
   "px4.log": {
-    "archive": "px4.log",
+    "archive": "px4.log.gz",
     "bytes": 5354,
     "sha256": "21b64d5a619bdcf0939971a96359424dc5134817c009e46e6fe0a892f017f0a5"
   },
@@ -70,12 +70,12 @@
     "sha256": "63cd3eb32a2c94fe6b55f2675515c74e3f48094eb7b299d84284653c557edb75"
   },
   "normalizer.log": {
-    "archive": "normalizer.log",
+    "archive": "normalizer.log.gz",
     "bytes": 300,
     "sha256": "06b5c9616a2d2d93555a58d5178633a20a60da0140c1d1a9a0af9d6677aac393"
   },
   "agent.log": {
-    "archive": "agent.log",
+    "archive": "agent.log.gz",
     "bytes": 32833,
     "sha256": "ab5f181a0a69bece4f52abb4149fd9cc47c2975f59342f5134c4483e01574910"
   },
@@ -205,7 +205,7 @@
     "sha256": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e"
   },
   "sdk-input/stereo.edex": {
-    "archive": "sdk-input/stereo.edex",
+    "archive": "sdk-input/stereo.edex.gz",
     "bytes": 2276,
     "sha256": "ab622944242d44bc90e9914ce45ed4fe38e125c0eff4faf325c7f41f44562829"
   },

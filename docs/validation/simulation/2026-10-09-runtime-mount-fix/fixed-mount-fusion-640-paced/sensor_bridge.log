@@ -1,9 +1,0 @@
-[WARN] [1791540636.006079434] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
-[WARN] [1791540636.006115152] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
-[INFO] [1791540636.029847177] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
-[INFO] [1791540636.030774619] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/vio/left/image (gz.msgs.Image) -> /vio/left/image (sensor_msgs/msg/Image)] (Lazy 0)
-[INFO] [1791540636.033018569] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/vio/right/image (gz.msgs.Image) -> /vio/right/image (sensor_msgs/msg/Image)] (Lazy 0)
-[INFO] [1791540636.033282125] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/vio/left/camera_info (gz.msgs.CameraInfo) -> /vio/left/camera_info (sensor_msgs/msg/CameraInfo)] (Lazy 0)
-[INFO] [1791540636.033724994] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/vio/right/camera_info (gz.msgs.CameraInfo) -> /vio/right/camera_info (sensor_msgs/msg/CameraInfo)] (Lazy 0)
-[INFO] [1791540636.033980641] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/vio/imu (gz.msgs.IMU) -> /vio/imu (sensor_msgs/msg/Imu)] (Lazy 0)
-[INFO] [1791540780.157056012] [rclcpp]: signal_handler(SIGINT/SIGTERM)
