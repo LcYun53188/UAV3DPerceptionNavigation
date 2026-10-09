@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -26,11 +27,17 @@ def main():
     parser.add_argument('--scene',choices=('planar','layered'),default='planar')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
-    parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; no EV output')
+    parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion only')
+    parser.add_argument('--fuse-pose',action='store_true',help='Same-aircraft actual SDK pose -> PX4 EV; disarmed audit with source stop')
+    parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
-    if args.scene!='planar' and not args.motion:
-        parser.error('--scene layered requires --motion')
+    if args.real_time_factor is not None and (not args.fuse_pose or not .8<=args.real_time_factor<=1.):
+        parser.error('--real-time-factor requires --fuse-pose and a value within [0.8,1.0]')
+    if args.fuse_pose and (not args.normalize or args.motion or args.reset_source or args.duration<40):
+        parser.error('--fuse-pose requires --normalize, duration >=40 s, no carrier motion or reset')
+    if args.scene!='planar' and not (args.motion or args.fuse_pose):
+        parser.error('--scene layered requires --motion or disarmed --fuse-pose')
     if args.motion and (not args.normalize or args.reset_source or args.duration < 50):
         parser.error('--motion requires --normalize, duration >=50 s, and no reset')
     if args.reset_source and (not args.normalize or args.duration < 35):
@@ -49,6 +56,10 @@ def main():
     (out/'rootfs').mkdir(parents=True)
     px4 = ROOT/lock['sitl']['path']
     build = px4/'build/px4_sitl_default'
+    vio_build=None
+    if args.fuse_pose:
+        from build_px4_vio import BUILD,verify
+        vio_build=verify(lock);build=BUILD
     models = px4/'Tools/simulation/gz/models'
     upstream_world = px4/'Tools/simulation/gz/worlds/default.sdf'
     motion_plugin = ROOT/'.deps/vio-motion-build/libvio_motion_carrier.so' if args.motion else None
@@ -59,7 +70,7 @@ def main():
         for name,digest in receipt.items():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION='uav_vio_sensors_'+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
@@ -69,6 +80,12 @@ def main():
         GZ_SIM_RESOURCE_PATH=str(out/'assets')+':'+str(models),
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(build/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
+    fusion_profile=None
+    if args.fuse_pose:
+        fusion_profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
+        if fusion_profile['schema']!=1 or fusion_profile['profile']!='aligned_pose_v1':
+            raise RuntimeError('Unsupported pose fusion profile')
+        env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion_profile['parameters'].items()})
     os.environ.update({k:env[k] for k in ('ROS_DOMAIN_ID','ROS_LOCALHOST_ONLY','GZ_PARTITION','GZ_IP')})
     params = dict(use_sim_time=True,num_cameras=2,min_num_images=2,tracking_mode=1,
         image_qos='DEFAULT',
@@ -116,9 +133,22 @@ def main():
                        or str(p).endswith('visual_slam_impl.cpp')}))
     calibration = file_hash(out/'calibration.json')
     inputs.append(out/'calibration.json')
+    if args.fuse_pose:
+        anchor=dict(schema=1,scope='fixed configured local launch origin, disarmed same-aircraft audit only',
+            position_enu=[0.,0.,0.],yaw_enu=0.,height_reference='launch body origin, not terrain altitude',
+            calibration_id=calibration,scene_sha256=file_hash(out/'assets/default.sdf'),
+            model_sha256=file_hash(out/'assets'/profile['model']/'model.sdf'),
+            fusion_profile_sha256=file_hash(ROOT/'simulation/px4/vio/pose_fusion.json'))
+        write_json(out/'anchor.json',anchor)
+        inputs += [out/'anchor.json',ROOT/'simulation/px4/vio/pose_fusion.json',
+            ROOT/'scripts/px4_vio_real_fusion.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_stream.py',
+            ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_fusion.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',
+            ROOT/'src/uav_mission/uav_mission/vio_gate.py',ROOT/'scripts/build_px4_vio.py',
+            build/'bin/px4',build/'vio-build.json']
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
-        normalize=args.normalize,motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
+        requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
+        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
     def launch(name,command,environment=env):
@@ -128,9 +158,11 @@ def main():
         processes.append(process)
         manifest['processes'][name] = dict(pid=process.pid,command=list(map(str,command)))
         write_json(out/'manifest.json',manifest)
+        return process
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node = rclpy.create_node('vio_sensor_observer')
-    audit = SensorAudit(node,profile,frames)
+    audit = SensorAudit(node,profile,frames,allow_pose_fusion=args.fuse_pose)
+    fusion_audit=None
     pose_audit = PoseAudit(node) if args.normalize else None
     motion_audit = MotionAudit(node) if args.motion else None
     result = dict(passed=False)
@@ -146,16 +178,20 @@ def main():
             '/vio/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             '/vio/imu@sensor_msgs/msg/Imu[gz.msgs.IMU']+
             (['/vio/truth@nav_msgs/msg/Odometry[gz.msgs.Odometry'] if args.motion else []))
+        normalizer=None
         def launch_vio():
+            nonlocal normalizer
             reset_remap = ['-r','visual_slam/reset:=/visual_slam/internal/reset'] if args.normalize else []
             launch('vio',[binary,'--ros-args','--params-file',out/'vio-params.yaml',
                 '-r','visual_slam/image_0:=/vio/left/image','-r','visual_slam/image_1:=/vio/right/image',
                 '-r','visual_slam/camera_info_0:=/vio/left/camera_info','-r','visual_slam/camera_info_1:=/vio/right/camera_info',
                 '-r','visual_slam/imu:=/vio/imu']+reset_remap)
             if args.normalize:
-                launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
+                normalizer=launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
                     '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
                     '-p','source_contract:=cuvslam15_right_tangent_base_link_v1'])
+        # A stationary VIO-only SDK can retain its unknown initial covariance.
+        # Observe the aircraft's physical spawn/settling; never fabricate motion.
         if not args.motion: launch_vio()
         launch('px4',[build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
         config = out/'qgc-config/QGroundControl';config.mkdir(parents=True)
@@ -164,8 +200,8 @@ def main():
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
-        if args.motion:
-            # The separate carrier exists before PX4's spawn. Finish simulator/QGC
+        if args.motion or args.fuse_pose:
+            # Finish model spawn and simulator/QGC
             # startup before binding a VIO source; freshness limits stay unchanged.
             deadline = time.monotonic()+25.
             while True:
@@ -174,8 +210,11 @@ def main():
                         and 'vehicle' in audit.last and 'land' in audit.last
                         and 'Adding new vehicle' in (out/'qgc.log').read_text(errors='replace')):
                     break
-                if time.monotonic()>deadline: raise RuntimeError('Motion fixture startup not ready')
-            launch_vio()
+                if time.monotonic()>deadline: raise RuntimeError('Sensor/vehicle/QGC startup not ready')
+            if args.fuse_pose:
+                from px4_vio_real_fusion import RealPoseFusionAudit
+                fusion_audit=RealPoseFusionAudit(node,calibration,anchor,file_hash(out/'anchor.json'))
+            if args.motion:launch_vio()
         until = time.monotonic()+args.duration
         before_reset = None
         while time.monotonic()<until:
@@ -207,6 +246,12 @@ def main():
         result['qgc_connected'] = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2',
                                                      (out/'qgc.log').read_text(errors='replace')))
         result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes)
+        if fusion_audit is not None:
+            fusion_audit.mark_stop()
+            # Actually terminate the normalized source, keep the SDK running.
+            os.killpg(normalizer.pid,signal.SIGINT)
+            drain_until=time.monotonic()+6.
+            while time.monotonic()<drain_until:rclpy.spin_once(node,timeout_sec=.02)
         for side in ('left','right'):
             image = audit.last.get(side)
             if image is not None and image.encoding == 'rgb8' and len(image.data) == image.step*image.height:
@@ -216,10 +261,15 @@ def main():
     except Exception as exc:
         result.update(passed=False,error=str(exc))
     finally:
+        if fusion_audit is not None:
+            result['real_pose_fusion']=fusion_audit.result()
+            result['passed'] &= result['real_pose_fusion']['passed']
         node.destroy_node();rclpy.try_shutdown()
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
         try:
+            if fusion_audit is not None:
+                for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
             write_json(out/'odometry.json',list(audit.records))
             write_json(out/'samples.json',{k:list(v) for k,v in audit.samples.items()})
             if pose_audit is not None:

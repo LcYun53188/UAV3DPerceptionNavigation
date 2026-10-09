@@ -64,3 +64,27 @@ def test_motion_fixture_has_physics_and_separate_truth(tmp_path):
     assert generated.findtext('.//include/pose') == '0 0 1.3 0 0 0'
     landmarks = generated.findall('.//model/link[@name="landmark"]')
     assert len(landmarks)==90 and all(m.find('collision') is not None for m in landmarks)
+
+
+def test_layered_same_aircraft_rig_keeps_px4_model_and_has_no_motion_plugin(tmp_path):
+    world=tmp_path/'world.sdf'
+    world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    profile,_=assets(tmp_path/'layered',world,scene='layered')
+    model=ET.parse(tmp_path/'layered'/profile['model']/'model.sdf')
+    assert profile['model']=='x500_vio_ref' and profile['scene']=='layered'
+    assert model.findtext('.//include/uri')=='model://x500'
+    assert model.find('.//plugin[@name="uav::test::MotionCarrier"]') is None
+    assert model.find('.//plugin/odom_topic') is None
+    assert len(ET.parse(tmp_path/'layered/default.sdf').findall('.//model/link[@name="landmark"]'))==90
+
+
+def test_explicit_pacing_changes_only_generated_world_and_preserves_simulation_sampling(tmp_path):
+    world=tmp_path/'world.sdf'
+    world.write_text('<sdf version="1.9"><world name="default"><physics><max_step_size>0.004</max_step_size><real_time_factor>1</real_time_factor><real_time_update_rate>250</real_time_update_rate></physics></world></sdf>')
+    p,_=assets(tmp_path/'paced',world,real_time_factor=.8)
+    physics=ET.parse(tmp_path/'paced/default.sdf').find('.//physics')
+    assert float(physics.findtext('max_step_size'))==.004
+    assert float(physics.findtext('real_time_factor'))==.8
+    assert float(physics.findtext('real_time_update_rate'))==200
+    assert p['image_rate_hz']==25 and p['imu_rate_hz']==250
+    assert ET.parse(world).findtext('.//real_time_factor')=='1'
