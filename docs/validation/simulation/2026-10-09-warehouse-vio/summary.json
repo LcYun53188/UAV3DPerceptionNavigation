@@ -1,0 +1,128 @@
+{
+  "sparse-fusion": {
+    "run_id": "2f555ae0-3f07-4f18-90d4-fcb3c7f8cd58",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": 233,
+      "longest_ready_s": 9.519482082003378,
+      "source_fault": "VIO_SOURCE_INVALID:VIO_UNCERTAINTY_INVALID"
+    }
+  },
+  "sparse-motion-480": {
+    "run_id": "746d81a1-539d-4109-b38c-5921b647c768",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": 0.288046431504042,
+      "position_max_m": 0.5690025110071868,
+      "orientation_max_deg": 6.406283287345138
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "sparse-motion-640": {
+    "run_id": "09c23f62-d091-4d15-8a79-6669b133a931",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 0,
+    "resolution": [
+      640,
+      400
+    ],
+    "motion": {
+      "position_rmse_m": 0.2940832696180496,
+      "position_max_m": 0.5666513818141834,
+      "orientation_max_deg": 4.654003966750929
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "textured-fusion": {
+    "run_id": "76c3e997-e1d7-47c0-a954-0145ca93d577",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": 0,
+      "longest_ready_s": 0.0,
+      "source_fault": "VIO_UNCERTAINTY_INVALID"
+    }
+  },
+  "textured-motion-crash": {
+    "run_id": "36c1afb3-e885-49d9-a926-3cdc3c9dab37",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 1,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "textured-motion-repeat": {
+    "run_id": "987ce969-2f0c-4fd0-864a-0ff2c9d65ebb",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  }
+}
