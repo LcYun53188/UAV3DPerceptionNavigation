@@ -6,11 +6,15 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
 算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、VIO 飞行及实机飞行仍待验证。
 
-当前按 **BT 飞行验证 → VIO 定点悬停 → 导航与避障** 三阶段推进，验收条件见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
+当前优先 **完整 BT 任务 → PX4 导航／避障集成**，使用官方 SITL GNSS／惯性 EKF 定位进行功能开发；VIO 稳定性单独优化与验收。相机默认固定下偏 **5°**。本轮无界面完整 BT 飞行回归通过，见 [基线回归](docs/validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。完整任务实现不代表 VIO 或避障已验收，见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
 
 新增室内仓库场景（墙、门洞、立柱、货架及纹理），可通过 `px4-vio-sensors --scene warehouse` 验证实际双目／IMU VIO；仓库 0.8 m 初始 VIO 飞行闭环已通过，完整高度任务与避障尚待验收。入口和门槛见 [仓库场景说明](docs/WAREHOUSE_SIMULATION.md)。
 
 仓库 VIO 已通过同低负载配置 120 秒运动验证（RMSE 2.60 cm，最大 3.78 cm），同机 120 秒融合在显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 延迟缓冲 160 ms 配置下连续两轮通过（READY 约 114.02 s）。默认／带 UI 配置仍有失败，仓库 0.8 m BT VIO 起飞／悬停／降落连续两轮通过，1.5 m 悬停仍失败，导航尚未执行。运动证据见 [最新运动报告](docs/validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)，融合证据见 [最新融合报告](docs/validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
+
+新增无周期网格地面纹理与 30° 下俯对照：两轮 120 秒运动测试通过，30° 相对 15° 的位置 RMSE 从 3.10 cm 降至 1.29 cm；但 30° 同机地面长时融合失败，SDK 原始协方差持续接近 1.0 导致源撤销。新配置尚不允许飞行，见 [纹理与下俯对照](docs/validation/simulation/2026-10-09-vio-pitch-texture/REPORT.md)。
+
+新增四窗口 VIO 飞行诊断（Gazebo、QGC、RViz、只读双目／任务监视）：两轮 1.5 m UI 任务复现源新鲜度失败并自动降落、锁定。飞行画面存在分布广的候选角点，但尚未取得 SDK 跟踪内点证据，不能认定画面不足或问题已解决。运行与证据见 [UI 画面诊断报告](docs/validation/simulation/2026-10-09-vio-flight-ui/REPORT.md)。
 
 新增 480×300 双目负载优化、协方差坏样本拒绝及 FlightServer 仅位姿 VIO 准入。最终 0.8× 的 120 秒未解锁融合一轮通过，同配置仍有失败；真实悬停尚未验收。见 [最新优化报告](docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
 

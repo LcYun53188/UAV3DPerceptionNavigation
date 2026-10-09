@@ -21,6 +21,7 @@ from px4_vio_pose_audit import PoseAudit
 from px4_vio_motion_audit import MotionAudit
 from vio_sdk_parameters import stream_parameters
 from vio_sdk_runtime import SdkRuntimeReceipt
+from vio_ui_lifecycle import grounded_for_viewers
 from vio_render_device import environment as render_environment,capture as capture_renderer
 
 
@@ -31,10 +32,13 @@ def main():
     parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
     parser.add_argument('--duration',type=float,default=45.,help='Disarmed observation duration only; flight stops at task terminal with a 280 s cap')
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
-    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
+    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,5,15,30),default=5,help='Default fixed 5 degree downward rig; other angles are historical reproduction only')
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
+    parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--diagnostic-ui',action='store_true',help='Explicit UI fusion/flight observation; never qualifies the headless baseline')
+    parser.add_argument('--ui-hold-seconds',type=float,default=0.,help='Keep owned viewers after confirmed landed/disarmed terminal; stop via run directory close-ui file')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
     parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit EKF delayed-horizon setting for pose fusion or owned flight; no EV timestamp offset')
@@ -48,9 +52,13 @@ def main():
     args = parser.parse_args()
     if args.flight and (args.scene!='warehouse' or not args.normalize or args.fuse_pose or args.motion or args.reset_source or args.sdk_debug_dump or args.diagnostic_visual_only):
         parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
+    if args.diagnostic_ui and not (args.ui and (args.flight or args.fuse_pose)):parser.error('--diagnostic-ui requires --ui and --flight or --fuse-pose')
+    if not 0<=args.ui_hold_seconds<=3600 or (args.ui_hold_seconds and not args.diagnostic_ui):parser.error('UI hold requires diagnostic UI flight and 0..3600 seconds')
+    if args.flight and args.camera_pitch_deg==5:parser.error('5 degree VIO flight source is not qualified yet; use sim.sh px4-flight --bt --ui for the complete PX4 task workflow')
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
+    if args.warehouse_texture_style!="corners" and (args.scene!="warehouse" or not args.warehouse_floor_texture):parser.error("Unique texture requires warehouse floor texture")
     if args.warehouse_floor_texture and args.scene!='warehouse':
         parser.error('--warehouse-floor-texture requires --scene warehouse')
     if args.ekf_delay_max_ms is not None and not pose_fusion_mode:
@@ -99,7 +107,7 @@ def main():
         for name,digest in receipt.items():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg,warehouse_texture_style=args.warehouse_texture_style)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION=('uav_warehouse_flight_' if args.flight else 'uav_vio_sensors_')+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
@@ -133,7 +141,7 @@ def main():
     params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
-    inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -202,9 +210,9 @@ def main():
                        base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160',
                        base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160-repeat']
         # Exact checked source configuration only; UI/realtime are still unqualified.
-        if not (args.headless_rendering and not args.ui and args.render_device=='nvidia' and
+        if not (args.headless_rendering and (not args.ui or args.diagnostic_ui) and args.render_device=='nvidia' and
                 args.sdk_image_depth==1 and args.real_time_factor==.8 and args.ekf_delay_max_ms==160 and
-                args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
+                args.warehouse_texture_style=='corners' and args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
                 args.warehouse_floor_texture and args.quality_policy=='bounded_gap'):
             raise RuntimeError('Warehouse flight requires explicitly qualified low-load configuration')
         prerequisite_receipts=[]
@@ -229,7 +237,7 @@ def main():
             ROOT/'src/uav_mission/uav_mission/flight_profiles.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',
             Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']
     manifest = dict(run_id=run_id,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
-        flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
+        diagnostic_ui=args.diagnostic_ui,ui_hold_seconds=args.ui_hold_seconds,flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
@@ -257,7 +265,10 @@ def main():
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
         gazebo_env=render_environment(env,args.render_device)
         launch('gazebo',['gz','sim','-r','-s']+(['--headless-rendering'] if args.headless_rendering else [])+[out/'assets/default.sdf'],gazebo_env)
-        if args.ui: launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
+        if args.ui:
+            launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
+            launch('rviz',['ros2','run','rviz2','rviz2','-d',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz','--ros-args','-p','use_sim_time:=true'])
+            launch('stereo_monitor',[sys.executable,ROOT/'scripts/vio_stereo_ui.py',str(out)])
         launch('sensor_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
             '/vio/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
@@ -396,6 +407,25 @@ def main():
                 result['passed'] &= result['real_pose_fusion']['passed']
         if args.flight:(out/'release-flight-gateway').touch()
         node.destroy_node();rclpy.try_shutdown()
+        if args.diagnostic_ui:
+            result['diagnostic_checks_passed']=result['passed']
+            result['passed']=False
+            result['scope']='UI diagnostic only; no headless flight qualification'
+        if args.ui_hold_seconds:
+            terminal=read(out/'flight-observation.json') if (out/'flight-observation.json').exists() else dict(scope='disarmed fusion diagnostic; no mission',final_arming=getattr(audit.last.get('vehicle'),'arming_state',None),final_land=getattr(audit.last.get('land'),'landed',False))
+            if terminal.get('final_land') and terminal.get('final_arming')==1 and grounded_for_viewers(audit.last,audit.receive,time.monotonic()):
+                if flight_process is not None:stop(flight_process)
+                if normalizer is not None:stop(normalizer)
+                fusion_audit.timing.write(out/'fusion-timing.json')
+                for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
+                write_json(out/'normalized-poses.json',list(pose_audit.poses))
+                write_json(out/'normalized-status.json',list(pose_audit.statuses))
+                write_json(out/'ui-session.json',dict(result_snapshot=result,state='LANDED_DISARMED_VIEWERS_OPEN',diagnostic=True,qualification=False,close_file=str(out/'close-ui'),terminal=terminal))
+                # No observer spins or EV publishing after the mission terminal.
+                until_ui=time.monotonic()+args.ui_hold_seconds
+                try:
+                    while time.monotonic()<until_ui and not (out/'close-ui').exists():time.sleep(.2)
+                except KeyboardInterrupt:pass  # Continue owned cleanup.
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
         try:
