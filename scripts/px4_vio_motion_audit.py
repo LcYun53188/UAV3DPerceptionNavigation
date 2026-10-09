@@ -23,11 +23,14 @@ def assess_motion(truth,poses,imu):
     positions = np.array([r['position'] for r in truth])
     checks['ordered_truth'] = bool(np.all(np.diff(ts)>0))
     if not checks['ordered_truth']: return dict(passed=False,checks=checks)
-    checks['truth_rate'] = bool(np.max(np.diff(ts)) <= .032)
     # Match only bracketed samples, no extrapolation or trajectory fitting.
     matched = [p for p in poses if ts[0] <= p['stamp'] <= ts[-1]]
     checks['paired_samples'] = len(matched)>=100
     if not matched: return dict(passed=False,checks=checks)
+    first = max(0,int(np.searchsorted(ts,matched[0]['stamp'],side='right')-1))
+    last = min(len(ts)-1,int(np.searchsorted(ts,matched[-1]['stamp'],side='right')))
+    checks['truth_rate'] = bool(np.max(np.diff(ts[first:last+1])) <= .032)
+    observed = positions[first:last+1]
     def reference(p):
         t = p['stamp']
         i = int(np.clip(np.searchsorted(ts,t,side='right')-1,0,len(ts)-2))
@@ -46,8 +49,8 @@ def assess_motion(truth,poses,imu):
         errors.append(float(np.linalg.norm(align@np.array(p['position'])+offset-xyz)))
         relative = r.T@align@rotation(p['quaternion'])
         angles.append(math.acos(float(np.clip((np.trace(relative)-1)/2,-1,1))))
-    extent = np.ptp(positions,axis=0)
-    yaws = np.unwrap([math.atan2(rotation(r['quaternion'])[1,0],rotation(r['quaternion'])[0,0]) for r in truth])
+    extent = np.ptp(observed,axis=0)
+    yaws = np.unwrap([math.atan2(rotation(r['quaternion'])[1,0],rotation(r['quaternion'])[0,0]) for r in truth[first:last+1]])
     checks['three_axis_excitation'] = bool(np.all(extent>=[.8,.6,.4]))
     checks['yaw_excitation'] = float(np.ptp(yaws))>=.6
     checks['motion_duration'] = matched[-1]['stamp']-max(15.,matched[0]['stamp']) >= 30.
@@ -66,6 +69,8 @@ def assess_motion(truth,poses,imu):
         alignment_translation=offset.tolist(),position_rmse_m=rmse,position_max_m=max(errors),
         orientation_max_deg=math.degrees(max(angles)),truth_extent_m=extent.tolist(),
         yaw_extent_rad=float(np.ptp(yaws)),imu_std=deviations.tolist(),
+        truth_audit_interval=[float(ts[first]),float(ts[last])],
+        startup_truth_max_gap_s=float(np.max(np.diff(ts[:first+1]))) if first else None,
         last_truth_stamp=float(ts[-1]),last_pose_stamp=matched[-1]['stamp'],
         scope='reference fixture motion only; one initial rigid alignment; no PX4 EV or flight acceptance')
 

@@ -1,5 +1,4 @@
 """The error audit must reject drift, scaling, timing gaps, and missing axes."""
-import copy
 import math
 from pathlib import Path
 import sys
@@ -71,3 +70,19 @@ def test_disordered_or_missing_truth_fails():
     assert not assess_motion([],poses,imu)['passed']
     truth[100]['stamp'] = truth[99]['stamp']
     assert not assess_motion(truth,poses,imu)['passed']
+
+
+def test_truth_gap_before_initial_alignment_is_diagnostic_only():
+    truth,poses,imu = dataset()
+    poses = [p for p in poses if p['stamp']>=10.]
+    truth = [p for p in truth if not 4.<p['stamp']<4.1]
+    result = assess_motion(truth,poses,imu)
+    assert result['passed']
+    assert result['startup_truth_max_gap_s']>.09
+    assert result['truth_audit_interval'][0]>=10.
+
+
+def test_truth_gap_during_pose_window_fails():
+    truth,poses,imu = dataset()
+    truth = [p for p in truth if not 40.<p['stamp']<40.1]
+    assert not assess_motion(truth,poses,imu)['checks']['truth_rate']
