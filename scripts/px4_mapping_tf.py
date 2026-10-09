@@ -71,7 +71,7 @@ class MappingTf(Node):
         data = dict(passed=passed, map_id=message.map_id, epoch=message.epoch,
                     version=message.version, valid=message.valid, observed_voxels=observed,
                     observed_positive_distance_voxels=int(np.count_nonzero(mask & (distances > 0))),
-                    shape=list(message.shape), resolution=message.resolution,
+                    shape=[int(v) for v in message.shape], resolution=message.resolution,
                     odometry_reset_counter=self.reset,
                     voxels=len(message.observed), source_age_s=age,
                     captured_monotonic=time.monotonic(), disarmed=self.allowed,

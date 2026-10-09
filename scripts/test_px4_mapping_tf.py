@@ -58,3 +58,18 @@ def test_no_tf_after_invalid_sources(monkeypatch, condition):
         msg.timestamp_sample = 400_000
     module.MappingTf.pose(node, msg)
     assert not sent
+
+
+def test_actual_ros_snapshot_serializes_numpy_shape(monkeypatch, tmp_path):
+    import json
+    from uav_nav_interfaces.msg import MapSnapshot
+    node, _, _, _ = fixture(monkeypatch)
+    node.evidence = tmp_path/'map.json'
+    node.started = True
+    msg = MapSnapshot(valid=True, resolution=.1, shape=[1, 1, 2],
+                      distance=[.5, 0.], observed=[1, 1])
+    msg.source_stamp.sec = 1
+    module.MappingTf.snapshot(node, msg)
+    result = json.loads(node.evidence.read_text())
+    assert result['passed'] and result['shape'] == [1, 1, 2]
+    assert result['observed_positive_distance_voxels'] == 1
