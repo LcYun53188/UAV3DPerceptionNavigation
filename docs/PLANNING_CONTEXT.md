@@ -1,8 +1,10 @@
 # 带坐标与会话绑定的 EGO 影子规划
 
 当前新增链路把非 identity PX4 局部 ENU 里程计变换到 map，再调用实际 EGO 规划器。
-输出只用于规划审计，没有 FMU、cmd_vel 或控制权发布者，不执行飞机运动。基础 PX4
-飞行后端与此影子规划链路尚未合并为感知导航任务。
+默认输出仍用于影子规划，PlanningContext 节点不发布 FMU 或 cmd_vel。
+FlightServer 已接入显式 EGO 执行准入／采样分支（导航和返航），需要受管根任务授权
+及实时地图／对齐／唯一规划源；真实曲线飞行与同机感知导航尚未验收。见
+[执行接口与前置验证](validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
 
 ## 接口与坐标
 
@@ -64,5 +66,5 @@ EGO 新参数 `coordinate_frame:=map` 要求 map/base_link 里程计，并输出
 深度传感器链路验收。证据见 [本批报告](validation/simulation/2026-10-08-planning-context/REPORT.md)。
 
 真正 EGO/PX4 执行还需要：S5 深度/地图输入、已验证的地图对齐来源、地图包 schema 2、
-父任务/ControlSession 授权绑定、将 map 样条采样变换到 PX4 local 的执行器及碰撞/制动
-包线验收。这些契约未完成前，ContextTrajectory 不进入飞控 setpoint 链路。
+父任务/ControlSession 授权绑定与 map 样条到 PX4 local 采样执行器已实现，
+仍需完整受管源生命周期、真实跟踪和碰撞/制动包线验收。默认影子输出不自动获得飞行权限。

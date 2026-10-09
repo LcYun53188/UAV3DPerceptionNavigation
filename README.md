@@ -6,6 +6,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 当前优先 **完整 BT 任务 → PX4 导航／避障集成**，使用官方 SITL GNSS／惯性 EKF 定位进行功能开发；VIO 稳定性单独优化与验收。相机默认固定下偏 **5°**。本轮无界面完整 BT 飞行回归通过，见 [基线回归](docs/validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。完整任务实现不代表 VIO 或避障已验收，见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
 
+新增显式 EGO 导航／返航执行分支：网关复检已绑定曲线并转换到 PX4 local，地图／会话／控制权变化撤销旧曲线。115 项回归、真实规划输出准入及缺少规划源时 SITL 解锁前拒绝已通过；同机深度地图与实际曲线飞行尚未验收，见 [执行前置报告](docs/validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
+
 新增室内仓库场景（墙、门洞、立柱、货架及纹理），可通过 `px4-vio-sensors --scene warehouse` 验证实际双目／IMU VIO；仓库 0.8 m 初始 VIO 飞行闭环已通过，完整高度任务与避障尚待验收。入口和门槛见 [仓库场景说明](docs/WAREHOUSE_SIMULATION.md)。
 
 仓库 VIO 已通过同低负载配置 120 秒运动验证（RMSE 2.60 cm，最大 3.78 cm），同机 120 秒融合在显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 延迟缓冲 160 ms 配置下连续两轮通过（READY 约 114.02 s）。默认／带 UI 配置仍有失败，仓库 0.8 m BT VIO 起飞／悬停／降落连续两轮通过，1.5 m 悬停仍失败，导航尚未执行。运动证据见 [最新运动报告](docs/validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)，融合证据见 [最新融合报告](docs/validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
