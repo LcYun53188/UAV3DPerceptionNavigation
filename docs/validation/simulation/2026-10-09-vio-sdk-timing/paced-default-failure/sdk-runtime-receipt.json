@@ -1,0 +1,84 @@
+{
+  "system_ns": 1791524340342248650,
+  "mono": 65359.933259908,
+  "domain": "78",
+  "scope": "passive graph subscription metadata; no publishers",
+  "topics": {
+    "/vio/left/image": [
+      {
+        "node": "vio_sensor_observer",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3ab2b24f9160000000000001604",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      },
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3abdb2486ea0000000000001504",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      }
+    ],
+    "/vio/right/image": [
+      {
+        "node": "vio_sensor_observer",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3ab2b24f9160000000000001704",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      },
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3abdb2486ea0000000000001804",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      }
+    ],
+    "/vio/imu": [
+      {
+        "node": "vio_sensor_observer",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Imu",
+        "gid": "010fb3ab2b24f9160000000000001a04",
+        "depth": 0,
+        "reliability": "BEST_EFFORT"
+      },
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Imu",
+        "gid": "010fb3abdb2486ea0000000000001d04",
+        "depth": 0,
+        "reliability": "BEST_EFFORT"
+      }
+    ]
+  },
+  "sdk_parameters": {
+    "image_qos_depth": {
+      "type": 2,
+      "integer_value": 10,
+      "string_value": ""
+    },
+    "image_qos": {
+      "type": 4,
+      "integer_value": 0,
+      "string_value": "DEFAULT"
+    },
+    "imu_buffer_size": {
+      "type": 2,
+      "integer_value": 144,
+      "string_value": ""
+    },
+    "image_buffer_size": {
+      "type": 2,
+      "integer_value": 100,
+      "string_value": ""
+    }
+  }
+}

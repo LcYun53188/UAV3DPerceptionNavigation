@@ -88,3 +88,12 @@ def test_explicit_pacing_changes_only_generated_world_and_preserves_simulation_s
     assert float(physics.findtext('real_time_update_rate'))==200
     assert p['image_rate_hz']==25 and p['imu_rate_hz']==250
     assert ET.parse(world).findtext('.//real_time_factor')=='1'
+
+
+def test_reduced_resolution_regenerates_camera_geometry(tmp_path):
+    world=tmp_path/'world.sdf';world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    profile,_=assets(tmp_path/'assets',world,resolution=(480,300))
+    model=ET.parse(tmp_path/'assets'/profile['model']/'model.sdf')
+    assert profile['width']==480 and profile['height']==300 and profile['image_rate_hz']==25
+    for image in model.findall('.//camera/image'):
+        assert image.findtext('width')=='480' and image.findtext('height')=='300'

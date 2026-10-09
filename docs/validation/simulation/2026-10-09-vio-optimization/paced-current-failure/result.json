@@ -1,0 +1,709 @@
+{
+  "passed": false,
+  "checks": {
+    "present:clock": true,
+    "writer:clock": true,
+    "fresh:clock": true,
+    "present:left": true,
+    "writer:left": true,
+    "fresh:left": true,
+    "present:right": true,
+    "writer:right": true,
+    "fresh:right": true,
+    "present:left_info": true,
+    "writer:left_info": true,
+    "fresh:left_info": true,
+    "present:right_info": true,
+    "writer:right_info": true,
+    "fresh:right_info": true,
+    "present:imu": true,
+    "writer:imu": true,
+    "fresh:imu": true,
+    "present:odom": true,
+    "writer:odom": true,
+    "fresh:odom": true,
+    "present:pose_cov": true,
+    "writer:pose_cov": true,
+    "fresh:pose_cov": true,
+    "present:tracking": true,
+    "writer:tracking": true,
+    "fresh:tracking": true,
+    "present:vehicle": true,
+    "writer:vehicle": true,
+    "fresh:vehicle": true,
+    "present:land": true,
+    "writer:land": true,
+    "fresh:land": true,
+    "image:left": true,
+    "image_age:left": true,
+    "calibration:left": true,
+    "image:right": true,
+    "image_age:right": true,
+    "calibration:right": true,
+    "quality:left": true,
+    "quality:right": true,
+    "quality:imu": true,
+    "quality:odom": true,
+    "quality:stereo": true,
+    "quality:static_imu": true,
+    "imu_frame": true,
+    "tracking_continuous": true,
+    "tracking_ok": true,
+    "tracking_window": true,
+    "static_drift": true,
+    "odometry_age": true,
+    "frames": true,
+    "disarmed": true,
+    "landed": true,
+    "only_pose_fmu_input": true
+  },
+  "scope": "disarmed same-aircraft sensors with explicitly enabled pose EV audit",
+  "counts": {
+    "clock": 25312,
+    "imu": 24659,
+    "left_info": 2467,
+    "left": 2467,
+    "right_info": 2467,
+    "right": 2467,
+    "odom": 2418,
+    "pose_cov": 2418,
+    "tracking": 2418,
+    "land": 99,
+    "vehicle": 191
+  },
+  "images": {
+    "left": {
+      "width": 480,
+      "height": 300,
+      "encoding": "rgb8",
+      "step": 1440,
+      "frame": "vio_left_optical",
+      "stamp": 101.24,
+      "byte_std": 57.608741918148006
+    },
+    "right": {
+      "width": 480,
+      "height": 300,
+      "encoding": "rgb8",
+      "step": 1440,
+      "frame": "vio_right_optical",
+      "stamp": 101.24,
+      "byte_std": 55.2219099557597
+    }
+  },
+  "calibration": {
+    "left": {
+      "frame": "vio_left_optical",
+      "stamp": 101.24,
+      "width": 480,
+      "height": 300,
+      "distortion_model": "plumb_bob",
+      "k": [
+        347.07043647766113,
+        0.0,
+        240.0,
+        0.0,
+        347.0704436302185,
+        150.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        347.07043647766113,
+        0.0,
+        240.0,
+        0.0,
+        0.0,
+        347.0704436302185,
+        150.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    "right": {
+      "frame": "vio_right_optical",
+      "stamp": 101.24,
+      "width": 480,
+      "height": 300,
+      "distortion_model": "plumb_bob",
+      "k": [
+        347.07043647766113,
+        0.0,
+        240.0,
+        0.0,
+        347.0704436302185,
+        150.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        347.07043647766113,
+        0.0,
+        240.0,
+        -26.030282735824585,
+        0.0,
+        347.0704436302185,
+        150.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "quality": {
+    "left": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 125,
+      "span_s": 4.959999999999994,
+      "rate_hz": 25.000000000000032,
+      "max_gap_s": 0.04000000000000625
+    },
+    "right": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 125,
+      "span_s": 4.959999999999994,
+      "rate_hz": 25.000000000000032,
+      "max_gap_s": 0.04000000000000625
+    },
+    "imu": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 1250,
+      "span_s": 4.995999999999995,
+      "rate_hz": 250.00000000000026,
+      "max_gap_s": 0.0040000000000048885
+    },
+    "odom": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 123,
+      "span_s": 4.920000000000002,
+      "rate_hz": 24.796747967479668,
+      "max_gap_s": 0.0799999999999983
+    },
+    "stereo": {
+      "passed": true,
+      "matched_fraction": 1.0,
+      "max_error_s": 0.0
+    },
+    "static_imu": {
+      "passed": true,
+      "mean": [
+        -8.290437338781643e-10,
+        8.154792980439439e-14,
+        9.79999999999989,
+        -1.4535505576163454e-15,
+        -1.968641005332607e-15,
+        -1.2773490294661372e-17
+      ]
+    }
+  },
+  "static_drift_m": 9.12696123123169e-08,
+  "raw_odometry_numeric_conversion": {
+    "accepted": false,
+    "reason": "VIO_UNCERTAINTY_INVALID"
+  },
+  "px4_source_contract_verified": false,
+  "observer_imu_qos": {
+    "depth": 100,
+    "reliability": "BEST_EFFORT"
+  },
+  "arming_states": [
+    1
+  ],
+  "control_publishers": {
+    "vehicle_command": 0,
+    "trajectory_setpoint": 0,
+    "offboard_control_mode": 0,
+    "vehicle_visual_odometry": 1
+  },
+  "last_odometry": {
+    "mono": 73073.693232195,
+    "stamp": 101.2,
+    "position": [
+      0.003520844504237175,
+      0.00584417162463069,
+      -0.012934579513967037
+    ],
+    "pose_variance": [
+      0.0,
+      7.15573433840433e-18,
+      0.0,
+      5.711587478201699e-16,
+      4.958323904082639e-15,
+      3.7531873794711596e-18
+    ],
+    "velocity_variance": [
+      2.8683406925601156e-31,
+      -9.860761315262648e-32,
+      2.4872415155048135e-31,
+      2.2508532793628774e-15,
+      3.681960867539273e-14,
+      4.3484806477785195e-15
+    ]
+  },
+  "sdk_pose_covariance": [
+    0.016147667542099953,
+    0.0005987887270748615,
+    -0.007925187237560749,
+    -0.00014344694500323385,
+    0.0030660326592624187,
+    9.247810521628708e-05,
+    0.0005987886688672006,
+    0.023870719596743584,
+    0.0009888814529404044,
+    -0.00013623539416585118,
+    -0.0003660873044282198,
+    0.006835020612925291,
+    -0.007925187237560749,
+    0.0009888814529404044,
+    0.027462638914585114,
+    0.0003664274699985981,
+    -0.008777101524174213,
+    0.00043560986523516476,
+    -0.0001434469158994034,
+    -0.0001362354087177664,
+    0.0003664274699985981,
+    0.0016360130393877625,
+    -0.00014470501628238708,
+    0.00020619206770788878,
+    0.0030660326592624187,
+    -0.0003660873626358807,
+    -0.008777102455496788,
+    -0.0001447050308343023,
+    0.0030471549835056067,
+    -0.00016227911692112684,
+    9.24781197682023e-05,
+    0.006835020612925291,
+    0.0004356098943389952,
+    0.00020619209681171924,
+    -0.00016227911692112684,
+    0.002185730030760169
+  ],
+  "normalized_pose": {
+    "passed": false,
+    "checks": {
+      "steady_valid": false,
+      "calibration": true,
+      "source_samples": false,
+      "one_session": true,
+      "original_timestamps": false,
+      "pose_window": false,
+      "writer_pose": true,
+      "writer_status": true,
+      "covariance": false,
+      "unchanged_pose": false
+    },
+    "reset_request_mono": null,
+    "poses": 919,
+    "statuses": 3548,
+    "pose_window": {
+      "clock": "original_sample_ros",
+      "end_ros": 101.268,
+      "duration_s": 5.0,
+      "count": 0,
+      "minimum_count": 100
+    },
+    "scope": "standard SDK pose covariance and source retirement only; no velocity, EV or flight"
+  },
+  "qgc_connected": true,
+  "renderer": {
+    "passed": true,
+    "requested": "default",
+    "fresh_log": true,
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-S)",
+    "source": "/home/nuc/.gz/rendering/ogre2.log",
+    "mtime_ns": 1791531930805742331,
+    "sha256": "da5bbac59cae9f3dd3156ae89812e0cfc69500926f87bd2c0538591813687807"
+  },
+  "real_pose_fusion": {
+    "passed": false,
+    "checks": {
+      "bound": true,
+      "ready_before_stop": false,
+      "ready_window": true,
+      "emitted": true,
+      "actual_fusion": true,
+      "no_velocity_fusion": true,
+      "dds_echo": true,
+      "unknown_velocity": true,
+      "rejected_promptly": false,
+      "source_retired": true,
+      "gate_retired": true,
+      "no_output_after_drain": true,
+      "fusion_stopped": true,
+      "no_flight_controls": true,
+      "sole_ev_writer": true,
+      "disarmed_landed": true
+    },
+    "scope": "actual same-aircraft simulated stereo/IMU -> cuVSLAM -> PX4 EV, disarmed only",
+    "stop_request_mono": 73073.718323456,
+    "graph_violations": [],
+    "endpoint_identity_modes": [
+      "unique_graph_only"
+    ],
+    "alignment": {
+      "schema": 1,
+      "profile": "aligned_pose_v1",
+      "anchor_config_id": "1b79a0d545ab3a86239d917dc79006303ca320a85d27c8d164ade78580d079b4",
+      "source_session": "5ad252d3-8a83-4fe9-954a-da53e87742d2",
+      "calibration_id": "dae087ea49b401ac4aeb69fbbce5faa5c16dece68f34f2a47d906c8787b399c4",
+      "reset_counter": 0,
+      "sample_stamp": 8.16,
+      "position_enu": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_enu": 0.0,
+      "rotation": [
+        [
+          0.9999999988127056,
+          -4.872975249643618e-05,
+          0.0
+        ],
+        [
+          4.872975249643618e-05,
+          0.9999999988127056,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "translation": [
+        -0.0006579963313948318,
+        -0.0008446502541498258,
+        0.011564734391868114
+      ],
+      "covariance_policy": "unknown_temporal_correlation_bound_v1",
+      "initial_covariance": [
+        [
+          0.015318921528137531,
+          -0.0005132856366879053,
+          -0.0073280385766175795,
+          -2.977716952910251e-05,
+          0.002862916157943197,
+          -0.00019244565070674081
+        ],
+        [
+          -0.0005132856366879053,
+          0.02180647864999558,
+          0.0012787908831934736,
+          -7.949484337100312e-05,
+          -0.00047759930135173625,
+          0.006342995894222168
+        ],
+        [
+          -0.0073280385766175795,
+          0.0012787908831934738,
+          0.0251886286735548,
+          2.9606713627295983e-05,
+          -0.00817081952995827,
+          0.0004350553439448352
+        ],
+        [
+          -2.9777169529102504e-05,
+          -7.949484337100309e-05,
+          2.9606713627295987e-05,
+          0.0016073513332769194,
+          -2.5838415418801825e-05,
+          0.00021176055325731436
+        ],
+        [
+          0.0028629161579431964,
+          -0.00047759930135173625,
+          -0.008170819529958271,
+          -2.5838415418801825e-05,
+          0.002886744639807182,
+          -0.00016460409124253265
+        ],
+        [
+          -0.00019244565070674081,
+          0.006342995894222168,
+          0.0004350553439448352,
+          0.00021176055325731438,
+          -0.00016460409124253265,
+          0.0020676351316549096
+        ]
+      ],
+      "initial_yaw_jacobian": [
+        0.0003507169058255431,
+        -1.7090348037485908e-08,
+        1.0
+      ],
+      "alignment_id": "22b93c9f1e4238ec12885c12753369cc8728753856a1b8846ca071dd9798f6b0"
+    },
+    "before_stop": {
+      "ready": false,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "source_count": 820,
+      "last_fuse": {
+        "ev_pos": 40956000,
+        "ev_hgt": 40956000,
+        "ev_yaw": 40956000
+      },
+      "local": {
+        "timestamp": 101252000,
+        "timestamp_sample": 101252000,
+        "xy_valid": false,
+        "z_valid": true,
+        "v_xy_valid": false,
+        "v_z_valid": true,
+        "x": 0.005307623650878668,
+        "y": 0.0014781354693695903,
+        "z": 0.009571501053869724,
+        "delta_xy": [
+          0.0,
+          0.0
+        ],
+        "xy_reset_counter": 3,
+        "delta_z": -0.07282428443431854,
+        "z_reset_counter": 2,
+        "vx": -0.000594170531257987,
+        "vy": 4.601042746799067e-05,
+        "vz": -0.00018241495126858354,
+        "z_deriv": 0.0021813935600221157,
+        "delta_vxy": [
+          -0.0008929704781621695,
+          0.00242792465724051
+        ],
+        "vxy_reset_counter": 2,
+        "delta_vz": -0.19260148704051971,
+        "vz_reset_counter": 1,
+        "ax": -0.0020629416685551405,
+        "ay": 0.008217498660087585,
+        "az": 0.006170477252453566,
+        "heading": 1.5721728801727295,
+        "heading_var": 0.002403547754511237,
+        "unaided_heading": 0.0002448044833727181,
+        "delta_heading": 1.580945611000061,
+        "heading_reset_counter": 1,
+        "heading_good_for_control": true,
+        "tilt_var": 2.4128356017172337e-05,
+        "xy_global": false,
+        "z_global": false,
+        "ref_timestamp": 0,
+        "ref_lat": null,
+        "ref_lon": null,
+        "ref_alt": null,
+        "dist_bottom_valid": false,
+        "dist_bottom": 0.10000000149011612,
+        "dist_bottom_var": 0.010000000707805157,
+        "delta_dist_bottom": -0.07282428443431854,
+        "dist_bottom_reset_counter": 2,
+        "dist_bottom_sensor_bitfield": 0,
+        "eph": 0.011615979485213757,
+        "epv": 0.27734461426734924,
+        "evh": 0.0346490778028965,
+        "evv": 0.053647011518478394,
+        "dead_reckoning": true,
+        "vxy_max": null,
+        "vz_max": null,
+        "hagl_min": null,
+        "hagl_max_z": null,
+        "hagl_max_xy": null
+      },
+      "flags": {
+        "timestamp": 100524000,
+        "timestamp_sample": 100372000,
+        "control_status_changes": 8,
+        "cs_tilt_align": true,
+        "cs_yaw_align": true,
+        "cs_gnss_pos": false,
+        "cs_opt_flow": false,
+        "cs_mag_hdg": false,
+        "cs_mag_3d": false,
+        "cs_mag_dec": false,
+        "cs_in_air": false,
+        "cs_wind": false,
+        "cs_baro_hgt": true,
+        "cs_rng_hgt": false,
+        "cs_gps_hgt": false,
+        "cs_ev_pos": false,
+        "cs_ev_yaw": false,
+        "cs_ev_hgt": false,
+        "cs_fuse_beta": false,
+        "cs_mag_field_disturbed": false,
+        "cs_fixed_wing": false,
+        "cs_mag_fault": false,
+        "cs_fuse_aspd": false,
+        "cs_gnd_effect": false,
+        "cs_rng_stuck": false,
+        "cs_gnss_yaw": false,
+        "cs_mag_aligned_in_flight": false,
+        "cs_ev_vel": false,
+        "cs_synthetic_mag_z": false,
+        "cs_vehicle_at_rest": true,
+        "cs_gnss_yaw_fault": false,
+        "cs_rng_fault": false,
+        "cs_inertial_dead_reckoning": true,
+        "cs_wind_dead_reckoning": false,
+        "cs_rng_kin_consistent": false,
+        "cs_fake_pos": false,
+        "cs_fake_hgt": false,
+        "cs_gravity_vector": true,
+        "cs_mag": false,
+        "cs_ev_yaw_fault": false,
+        "cs_mag_heading_consistent": false,
+        "cs_aux_gpos": false,
+        "cs_rng_terrain": false,
+        "cs_opt_flow_terrain": false,
+        "cs_valid_fake_pos": true,
+        "cs_constant_pos": false,
+        "cs_baro_fault": false,
+        "cs_gnss_vel": false,
+        "fault_status_changes": 0,
+        "fs_bad_mag_x": false,
+        "fs_bad_mag_y": false,
+        "fs_bad_mag_z": false,
+        "fs_bad_hdg": false,
+        "fs_bad_mag_decl": false,
+        "fs_bad_airspeed": false,
+        "fs_bad_sideslip": false,
+        "fs_bad_optflow_x": false,
+        "fs_bad_optflow_y": false,
+        "fs_bad_acc_vertical": false,
+        "fs_bad_acc_clipping": false,
+        "innovation_fault_status_changes": 0,
+        "reject_hor_vel": false,
+        "reject_ver_vel": false,
+        "reject_hor_pos": false,
+        "reject_ver_pos": false,
+        "reject_yaw": false,
+        "reject_airspeed": false,
+        "reject_sideslip": false,
+        "reject_hagl": false,
+        "reject_optflow_x": false,
+        "reject_optflow_y": false
+      }
+    },
+    "first_stop_rejection": {
+      "after_stop_s": 0.011583212995901704,
+      "reason": "VIO_EKF_LOCAL_RESET"
+    },
+    "source_fault": "VIO_SAMPLE_STALE",
+    "source_reason": "VIO_SAMPLE_STALE",
+    "gate_reason": "VIO_EKF_LOCAL_RESET",
+    "input_count": 820,
+    "observed_count": 820,
+    "fused_samples": {
+      "ev_pos": 818,
+      "ev_hgt": 818,
+      "ev_yaw": 818
+    },
+    "longest_ready_s": 38.900123027997324,
+    "gate_reasons": {
+      "VIO_TELEMETRY_MISSING": 192,
+      "VIO_EKF_FLAGS_INVALID": 3,
+      "VIO_EKF_NOT_FUSED:ev_pos": 2,
+      "VIO_STABILIZING": 100,
+      "READY": 1946,
+      "VIO_SOURCE_INVALID": 1,
+      "VIO_SOURCE_LOST": 24,
+      "VIO_EKF_LOCAL_RESET": 4030
+    },
+    "last_fuse_after_drain": {
+      "ev_pos": 40956000,
+      "ev_hgt": 40956000,
+      "ev_yaw": 40956000
+    },
+    "last_fuse_at_end": {
+      "ev_pos": 40956000,
+      "ev_hgt": 40956000,
+      "ev_yaw": 40956000
+    },
+    "control_publishers": {
+      "vehicle_command": 0,
+      "trajectory_setpoint": 0,
+      "offboard_control_mode": 0
+    }
+  },
+  "root_exit_codes": {
+    "agent": -2,
+    "gazebo": 0,
+    "sensor_bridge": 0,
+    "vio": 0,
+    "normalizer": 0,
+    "px4": 0,
+    "qgc": -9
+  },
+  "remaining_owned_processes": [],
+  "cleanup_confirmed": true
+}

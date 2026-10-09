@@ -29,6 +29,7 @@ changes must be reviewed and unstaged before preparation.
 | `third_party/Livox-SDK2` | `f5d9375f84efe2b15bc0a052d3e18482ed13adf4` | `livox_sdk2.patch` |
 | `src/isaac_ros_nvblox` | `6362295e581ef243773c8a348ac46711e4a1fca4` | `isaac_ros_nvblox.patch` |
 | `src/magic_enum` | `9f19f78a7d726af84761ecd6d8414613507a95e6` | `magic_enum.patch` |
+| `src/isaac_ros_visual_slam` | `04bf49a2daf7710d2ba2390d1772435a1baeb48d` | `isaac_ros_visual_slam.patch` |
 | `src/isaac_ros_nitros` | `a22f10d4918662c485b0a1323e2fe1d8c21407a9` | `isaac_ros_nitros.patch` |
 | `src/negotiated` | `eac198b55dcd052af5988f0f174902913c5f20e7` | `negotiated.patch` |
 | `src/isaac_ros_nvblox/nvblox_ros/nvblox_core` | `3f42b210df9ad7a2099f00fcf324049d97342cb0` | `nvblox_core.patch` |
@@ -111,3 +112,8 @@ The source carries GPL-3.0; upstream notices and LICENSE are retained/installed.
 `src/uav_bringup/config/algorithm_versions.json` records dependency commits and
 patch SHA-256 values for map compatibility. Python wheels are pinned separately in
 `requirements/algorithm-sim.txt`; generated maps and dependency sources stay ignored.
+
+`isaac_ros_visual_slam.patch` retains upstream `04bf49a2daf7710d2ba2390d1772435a1baeb48d`
+and converts sequencer jitter parameters from milliseconds to nanoseconds. Rebuild with
+`scripts/build_vio_node.sh`; reviewed binary/source hashes are frozen in
+`simulation/px4/vio/pose_contract.json`. It does not change pose covariance math.

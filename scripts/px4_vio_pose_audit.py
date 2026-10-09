@@ -7,6 +7,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from uav_nav_interfaces.msg import VioStatus
 from isaac_ros_visual_slam_interfaces.srv import Reset
 from px4_vio_sensor_audit import stamp
+from vio_pose_window import source_window
 
 
 class PoseAudit:
@@ -15,6 +16,7 @@ class PoseAudit:
         self.poses,self.statuses = deque(maxlen=5000),deque(maxlen=12000)
         self.raw = {}
         self.reset_time = None
+        self.reset_ros = None
         self.future = None
         self.reset_client = node.create_client(Reset,'/uav/vio/reset')
         node.create_subscription(PoseWithCovarianceStamped,'/uav/vio/pose',self.on_pose,10)
@@ -36,12 +38,14 @@ class PoseAudit:
     def request_reset(self):
         if not self.reset_client.service_is_ready(): raise RuntimeError('Reset proxy not discovered')
         self.reset_time = time.monotonic()
+        self.reset_ros = self.node.get_clock().now().nanoseconds/1e9
         self.future = self.reset_client.call_async(Reset.Request())
 
     def result(self,calibration):
         boundary = self.reset_time or time.monotonic()
         steady = [s for s in self.statuses if boundary-2 <= s['mono'] < boundary]
-        poses = [p for p in self.poses if boundary-5 <= p['mono'] < boundary]
+        ros = self.reset_ros if self.reset_ros is not None else self.node.get_clock().now().nanoseconds/1e9
+        poses = source_window(self.poses,ros,boundary)
         checks = dict(steady_valid=len(steady)>=30 and all(s['valid'] for s in steady),
             calibration=bool(steady) and all(s['calibration']==calibration for s in steady),
             source_samples=bool(steady) and all(0 <= s['stamp']-s['sample'] <= .2 for s in steady),
@@ -76,4 +80,5 @@ class PoseAudit:
             checks['sdk_output_resumed'] = bool(after) and max(self.raw,default=0) > after[0]['stamp']+1.
         return dict(passed=all(checks.values()),checks=checks,reset_request_mono=self.reset_time,
             poses=len(self.poses),statuses=len(self.statuses),
+            pose_window=dict(clock='original_sample_ros',end_ros=ros,duration_s=5.,count=len(poses),minimum_count=100),
             scope='standard SDK pose covariance and source retirement only; no velocity, EV or flight')

@@ -232,3 +232,37 @@ EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV
 [实际融合与失败证据](../../docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。
 生成的模型、世界、标定/锚点摘要、实际参数、SDK 位姿、EV 回读和 EKF 遥测均可追溯；
 这不是 OAK-D Pro W 硬件标定或 VIO 悬停验收。
+
+
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](../../docs/validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
+融合入口可显式增加 `--render-device nvidia`、`--headless-rendering` 做渲染对照；
+两项仅作用于自有 Gazebo 进程，并保存新鲜 Ogre 驱动日志。此轮实时对照仍失败，
+不能把这些选项作为已验证的性能修复。时序复核支持原 JSON 和 gzip 归档：
+
+```bash
+.venv/bin/python scripts/assess_vio_timing.py <run-or-archive-directory>
+```
+
+融合审计可用 `--sdk-image-depth 1..10` 显式对照 SDK 图像队列；默认 10，
+原生 IMU 缓冲显式设为 144（旧 400 经 uint8_t 截断后的实际值），拒绝容量溢出。
+被动时序包含 SDK Track/UpdatePose 耗时；深度 1 单轮减少了回调外积压，但实时仍失败。
+详见 [SDK 时序及同步器接口复现](../../docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md)。
+
+
+SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建及 222 项测试通过。
+实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
+1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
+[同步器与审计时钟修复报告](../../docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md)。
+
+## 最新 VIO 优化与准入接入
+
+双目可显式选择 `--image-resolution 480x300`，协方差异常样本可显式选择
+`--quality-policy bounded_gap`；默认分辨率和 strict 策略保留。FlightServer 支持
+`--require-vio --vio-fusion-profile aligned_pose_v1`，使用独立遥测构建及冻结的
+仅位姿 EKF 参数；持续 EV 飞行会话尚未实现。120 s 减速融合有成功和失败，
+不代表实时稳定或悬停通过。见 [优化报告](../../docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。

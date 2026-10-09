@@ -19,6 +19,8 @@ from isaac_ros_visual_slam_interfaces.srv import Reset
 from uav_nav_interfaces.msg import VioStatus
 from .vio_input import SourceContinuity, stamp_s
 from .cuvslam_pose import CONTRACT, SOURCE_PARAMETERS, normalize_pose
+from .source_timing import SourceTiming
+from .pose_dropout import can_drop
 
 
 class CuvslamPose(Node):
@@ -27,6 +29,15 @@ class CuvslamPose(Node):
 
     def __init__(self):
         super().__init__('cuvslam_pose')
+        self.declare_parameter('quality_policy','strict')
+        self.quality_policy=self.get_parameter('quality_policy').value
+        if self.quality_policy not in ('strict','bounded_gap'):
+            raise ValueError('Unknown quality policy')
+        self.dropped_samples=0
+        self.last_input_stamp=None
+        self.declare_parameter('timing_path','')
+        self.timing_path=self.get_parameter('timing_path').value
+        self.timing=SourceTiming() if self.timing_path else None
         self.declare_parameter('calibration_id','')
         self.declare_parameter('source_contract','unverified')
         self.calibration = self.get_parameter('calibration_id').value
@@ -61,7 +72,12 @@ class CuvslamPose(Node):
         self.create_timer(.05,self.tick,callback_group=self.clients_group,
                           clock=Clock(clock_type=ClockType.STEADY_TIME))
 
+    def trace(self,stage,sample=None,info=None,**details):
+        if self.timing is not None:
+            self.timing.record(stage,self.get_clock().now().nanoseconds/1e9,sample,info,**details)
+
     def retire(self, reason):
+        if not self.fault:self.trace('retire',stamp_s(self.sample) if self.sample is not None else None,reason=reason)
         if not self.fault: self.get_logger().warning('Source retired: '+reason)
         self.fault = self.fault or reason
         self.reason = self.fault
@@ -107,7 +123,9 @@ class CuvslamPose(Node):
         if len(self.get_publishers_info_by_topic('/uav/vio/pose')) != 1:
             raise ValueError('VIO_OUTPUT_WRITER_COUNT')
 
-    def on_tracking(self, message):
+    def on_tracking(self, message, info):
+        started=time.monotonic()
+        self.trace('tracking_rx',stamp_s(message.header.stamp),info)
         try:
             gid = self.publisher(self.tracking_topic)
             if self.bound and self.tracking_gid != gid:
@@ -121,20 +139,25 @@ class CuvslamPose(Node):
             self.drain()
         except ValueError as exc:
             self.reject(str(exc))
+        finally:self.trace('tracking_done',stamp_s(message.header.stamp),elapsed_s=time.monotonic()-started)
 
-    def on_pose(self,message):
+    def on_pose(self,message,info):
+        started=time.monotonic()
+        self.trace('pose_rx',stamp_s(message.header.stamp),info)
         if self.fault: return
         try:
             gid = self.publisher(self.pose_topic)
             if self.bound and gid != self.continuity.publisher:
                 raise ValueError('VIO_PUBLISHER_CHANGED')
             key = stamp_s(message.header.stamp)
-            if key in self.pending or (self.continuity.last_stamp is not None and key<=self.continuity.last_stamp):
+            if key in self.pending or (self.last_input_stamp is not None and key<=self.last_input_stamp):
                 raise ValueError('VIO_TIME_DISCONTINUITY')
             if len(self.pending)>=20: raise ValueError('VIO_PAIR_QUEUE_OVERFLOW')
+            self.last_input_stamp=key
             self.pending[key] = (message,time.monotonic())
             self.drain()
         except ValueError as exc: self.reject(str(exc))
+        finally:self.trace('pose_done',stamp_s(message.header.stamp),elapsed_s=time.monotonic()-started)
 
     def drain(self):
         for key in sorted(self.pending):
@@ -155,8 +178,8 @@ class CuvslamPose(Node):
         try:
             if self.receive is not None and time.monotonic()-self.receive > .2:
                 raise ValueError('VIO_RECEIVE_GAP')
-            normalized = normalize_pose(message,self.get_clock().now().nanoseconds/1e9)
             self.validate_tracking(stamp_s(message.header.stamp),pair)
+            normalized = normalize_pose(message,self.get_clock().now().nanoseconds/1e9)
             self.continuity.accept(message,self.publisher(self.pose_topic))
             self.sample,self.receive = message.header.stamp,time.monotonic()
             if self.stable_since is None: self.stable_since = self.receive
@@ -167,8 +190,15 @@ class CuvslamPose(Node):
             self.bound = True
             self.reason = ''
             self.pose_pub.publish(normalized)
+            self.trace('pose_emit',stamp_s(normalized.header.stamp))
         except ValueError as exc:
-            self.reject(str(exc))
+            if can_drop(self.quality_policy,str(exc),bound=self.bound,
+                    ros=self.get_clock().now().nanoseconds/1e9,mono=time.monotonic(),
+                    last_sample=stamp_s(self.sample) if self.sample is not None else None,last_receive=self.receive):
+                self.dropped_samples+=1
+                self.trace('quality_drop',stamp_s(message.header.stamp),reason=str(exc),count=self.dropped_samples)
+                self.get_logger().warning('Pose sample rejected; last-good deadline retained: '+str(exc))
+            else:self.reject(str(exc))
         self.publish_status()
 
     async def on_reset(self,request,response):
@@ -221,6 +251,7 @@ class CuvslamPose(Node):
             reason = reason or str(exc)
             if self.bound and not self.fault:
                 self.fault = reason
+                self.trace('retire',stamp_s(self.sample) if self.sample is not None else None,reason=reason)
                 self.get_logger().warning('Source retired: '+reason)
         if not self.bound: reason = reason or 'VIO_STABILIZING'
         status = VioStatus(localization_session=self.session,calibration_id=self.calibration,
@@ -237,5 +268,6 @@ def main(args=None):
     try: rclpy.spin(node)
     except (KeyboardInterrupt,ExternalShutdownException): pass
     finally:
+        if node.timing is not None:node.timing.write(node.timing_path)
         node.destroy_node()
         rclpy.try_shutdown()

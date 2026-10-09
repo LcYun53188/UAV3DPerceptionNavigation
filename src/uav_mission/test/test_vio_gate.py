@@ -210,3 +210,22 @@ def test_pose_local_reset_between_ticks_is_latched():
     pose_update(gate,12.02)
     assert not gate.ready(12.02,12.02,{n:1 for n in gate.required})
     assert gate.fault=='VIO_EKF_LOCAL_RESET'
+
+
+def test_flight_gateway_forwards_pose_only_local_health_and_reset():
+    from px4_msgs.msg import VehicleLocalPosition
+    gate=VioGate(CAL,fusion_profile='aligned_pose_v1')
+    server=SimpleNamespace(vio_gate=gate)
+    local=VehicleLocalPosition(timestamp=10000000)
+    FlightServer.forward_vio_local(server,'vehicle_local_position',local,10.)
+    assert gate.samples['local'] is local and gate.received['local']==10.
+    gate.local_identity=(0,0,0,0,0)
+    local.xy_reset_counter=1
+    FlightServer.forward_vio_local(server,'vehicle_local_position',local,10.02)
+    assert gate.fault=='VIO_EKF_LOCAL_RESET'
+
+
+def test_full_odometry_flight_profile_retains_velocity_aid_requirement():
+    server=SimpleNamespace(vio_gate=VioGate(CAL))
+    FlightServer.forward_vio_local(server,'vehicle_local_position',object(),10.)
+    assert 'ev_vel' in server.vio_gate.required and 'local' not in server.vio_gate.samples

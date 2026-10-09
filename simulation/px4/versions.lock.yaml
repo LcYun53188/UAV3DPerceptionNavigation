@@ -65,6 +65,8 @@ files:
   sha256: a685bad0f6cb446ec6f4b9e6753e9d49dd58cf35b28e74391b3715191a7c872d
 - path: patches/vendor/ego_planner.patch
   sha256: 67a2f96c0f8290ef03442fa514fcd54ce66daac2c36bbaad841f1eff5d004d13
+- path: patches/vendor/isaac_ros_visual_slam.patch
+  sha256: 77f04cd05880c692f9bd9fc751525c7c296a8cdee252f9652c2c6f7c7fdb8fc9
 - path: requirements/simulation-validation.txt
   sha256: 2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1
 - path: /home/nuc/Program/QGC/QGroundControl-x86_64.AppImage

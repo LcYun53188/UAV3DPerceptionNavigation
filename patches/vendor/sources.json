@@ -42,6 +42,11 @@
       "commit": "3f42b210df9ad7a2099f00fcf324049d97342cb0"
     },
     {
+      "path": "src/isaac_ros_visual_slam",
+      "patch": "patches/vendor/isaac_ros_visual_slam.patch",
+      "commit": "04bf49a2daf7710d2ba2390d1772435a1baeb48d"
+    },
+    {
       "path": ".deps/ego_planner_src",
       "patch": "patches/vendor/ego_planner.patch",
       "commit": "23a8d5a191711dd65633df689bd00f55d4dea8f9",

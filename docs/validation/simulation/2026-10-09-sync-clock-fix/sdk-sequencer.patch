@@ -1,0 +1,15 @@
+diff --git a/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp b/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp
+index 47d9f87..49c52bb 100644
+--- a/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp
++++ b/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp
+@@ -113,8 +113,8 @@ VisualSlamNode::VisualSlamImpl::VisualSlamImpl(VisualSlamNode & vslam_node)
+     1e6 * node.sync_matching_threshold_ms_, node.min_num_images_ +
+     node.num_input_masks_ + (node.tracking_mode_ == static_cast<int>(TrackingMode::RGBD) ? 1 : 0),
+     node.image_buffer_size_),
+-  sequencer(node.imu_buffer_size_, node.imu_jitter_threshold_ms_, node.image_buffer_size_,
+-    node.image_jitter_threshold_ms_),
++  sequencer(node.imu_buffer_size_, static_cast<int64_t>(1e6 * node.imu_jitter_threshold_ms_),
++    node.image_buffer_size_, static_cast<int64_t>(1e6 * node.image_jitter_threshold_ms_)),
+   tf_buffer(std::make_unique<tf2_ros::Buffer>(node.get_clock())),
+   tf_listener(std::make_unique<tf2_ros::TransformListener>(*tf_buffer)),
+   tf_publisher(std::make_unique<tf2_ros::TransformBroadcaster>(&node)),

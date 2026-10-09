@@ -17,6 +17,8 @@ def fixture():
     def reject(reason):a.stream.fault=a.stream.fault or reason
     a.stream.reject=reject
     a.node=SimpleNamespace(get_publishers_info_by_topic=lambda _:[SimpleNamespace(endpoint_gid=bytes([1]))])
+    from px4_comm_bridge.source_timing import SourceTiming
+    a.timing=SourceTiming();a.ros=lambda:12.
     a.gid_modes=set()
     a.statuses=OrderedDict();a.pending=OrderedDict();a.drain=lambda:None
     m=VioStatus(localization_session='session',calibration_id='a'*64,valid=True)

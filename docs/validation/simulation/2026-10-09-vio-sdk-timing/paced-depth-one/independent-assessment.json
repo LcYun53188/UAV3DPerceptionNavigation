@@ -1,0 +1,28 @@
+{
+  "passed": false,
+  "checks": {
+    "owned_disarmed": true,
+    "completed": false,
+    "audited_checks": true,
+    "normalized_checks": false,
+    "source_identity": true,
+    "sdk_normalization": true,
+    "original_samples": true,
+    "coordinate_conversion": true,
+    "covariance_propagation": true,
+    "echo_samples": true,
+    "unknown_velocity": true,
+    "actual_three_aids": true,
+    "local_health": true,
+    "flags": true,
+    "stopped": true,
+    "alignment_hash": true,
+    "anchor_is_original": true,
+    "anchor_covariance": true,
+    "no_ev_velocity": true,
+    "no_control_writers": true
+  },
+  "input_samples": 2315,
+  "echo_samples": 2315,
+  "scope": "archived actual source/output/EKF chronology; disarmed only"
+}

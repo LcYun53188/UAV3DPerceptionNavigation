@@ -1,5 +1,27 @@
 # OAK-D Pro W 辅助室内悬停
 
+最新优化增加 480×300 仿真双目与显式 `bounded_gap` 协方差坏样本拒绝策略，
+保留 200 ms 原有效样本期限。最终 0.8×、120 s 未解锁融合一轮通过（连续 READY
+114.2 s），同配置仍有跟踪新鲜度失败；120 s 独立运动通过。FlightServer 已接入
+显式 `aligned_pose_v1` 准入门控，持续 EV 飞行会话与真实悬停仍待验收。见
+[负载优化与准入接入报告](validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
+
+SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建及 222 项测试通过。
+实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
+1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
+[同步器与审计时钟修复报告](validation/simulation/2026-10-09-sync-clock-fix/REPORT.md)。
+
+SDK 分段时序现已采集：默认实时轮存在至少约 388 ms 的 UpdatePose 回调外延迟，
+缩短图像队列后有所下降，但四轮整体仍未通过。另复现同步器毫秒/纳秒阈值不匹配，
+以及减速审计的墙钟计数边界；修复与重跑仍待推进。见
+[SDK 时序及接口复现](validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md)。
+
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
 目标是相机双目/IMU产生连续 VIO，经 PX4 EKF 外部视觉融合，再由现有 BT 调度
 位置 Offboard 起飞、悬停和降落。VIO 计算不放在行为树节点内，飞控输出仍由
 FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。
@@ -245,8 +267,10 @@ QGC 就绪，再启动 VIO，避免把载台先于 PX4 出现带来的初始化�
 `pose_fusion.py` 已交付固定初始化对齐与仅位姿转换；`pose_fusion.json` 固定
 EV_CTRL=11（位置/高度/航向，关闭 EV 速度）、GNSS/磁/光流/测距高度/辅助全球
 位置/阻力辅助关闭，气压高度辅助保留。入口只做未解锁的独立合成输入审计。
-实际 `/uav/vio/pose` 可通过下述显式受管审计接入 PX4；FlightServer 尚无该模式的
-飞行入口，现有 `--require-vio` 仍要求默认完整 Odometry 和四类融合。
+实际 `/uav/vio/pose` 可通过下述显式受管审计接入 PX4；FlightServer 已支持
+`--require-vio --vio-fusion-profile aligned_pose_v1` 的仅位姿融合准入，检查本地速度
+有效性与 reset。默认仍要求完整 Odometry 和四类融合；飞行入口尚未管理真实
+相机源/持续 EV 写入，不能把该参数当作已完成悬停演示。
 
 对齐要求明确的已知仿真起点/航向及配置标识、未解锁着地、至少 2 s 静止位姿，
 最大平移 0.03 m、转角 0.03 rad、初始倾斜 ≤10°。只冻结 yaw 与平移，不重设

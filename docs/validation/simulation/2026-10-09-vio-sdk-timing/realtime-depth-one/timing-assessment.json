@@ -1,0 +1,2226 @@
+{
+  "schema": 1,
+  "host_clock_stable": true,
+  "host_clock_offset_range_s": 1.4066696166992188e-05,
+  "trace_complete": true,
+  "fusion_faults": [
+    {
+      "stage": "watchdog_fault",
+      "mono": 65030.93410148,
+      "system_ns": 1791524011343092239,
+      "ros": 43.776,
+      "sample": 43.56,
+      "age_s": 0.21600000000000108,
+      "rmw": {},
+      "reason": "VIO_SAMPLE_STALE"
+    }
+  ],
+  "fresh_pairs_with_expired_previous": 0,
+  "fresh_pair_examples": [],
+  "scope": "shared host DDS publish-to-callback and stereo-to-SDK publish timing; not physical sensor synchronization",
+  "metrics": {
+    "observer:imu": {
+      "age": {
+        "count": 3236,
+        "min_s": -8.881784197001252e-16,
+        "p50_s": 0.0,
+        "p95_s": 0.0,
+        "p99_s": 0.0,
+        "max_s": 0.007999999999999119
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3236,
+        "min_s": 9.117e-05,
+        "p50_s": 0.00022991450000000002,
+        "p95_s": 0.000561228,
+        "p99_s": 0.0013019987000000034,
+        "max_s": 0.010647241
+      }
+    },
+    "observer:left": {
+      "age": {
+        "count": 3236,
+        "min_s": 0.007999999999981355,
+        "p50_s": 0.012000000000000455,
+        "p95_s": 0.02400000000000091,
+        "p99_s": 0.028000000000005798,
+        "max_s": 0.06799999999999784
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3236,
+        "min_s": 0.000498793,
+        "p50_s": 0.0010695745,
+        "p95_s": 0.0111386665,
+        "p99_s": 0.01152365415,
+        "max_s": 0.053670894
+      }
+    },
+    "observer:pose_cov": {
+      "age": {
+        "count": 3168,
+        "min_s": 0.015999999999991132,
+        "p50_s": 0.047999999999998266,
+        "p95_s": 0.0799999999999983,
+        "p99_s": 0.10399999999998968,
+        "max_s": 0.17199999999999704
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3168,
+        "min_s": 0.000139462,
+        "p50_s": 0.0004167135,
+        "p95_s": 0.0009963455499999994,
+        "p99_s": 0.00155662718,
+        "max_s": 0.014750464
+      }
+    },
+    "observer:right": {
+      "age": {
+        "count": 3236,
+        "min_s": 0.011999999999986244,
+        "p50_s": 0.02400000000000091,
+        "p95_s": 0.03599999999999781,
+        "p99_s": 0.036000000000001364,
+        "max_s": 0.04800000000000182
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3236,
+        "min_s": 0.000439778,
+        "p50_s": 0.001214955,
+        "p95_s": 0.0111463995,
+        "p99_s": 0.011515832200000001,
+        "max_s": 0.026859924
+      }
+    },
+    "observer:tracking": {
+      "age": {
+        "count": 3168,
+        "min_s": 0.015999999999991132,
+        "p50_s": 0.04800000000000182,
+        "p95_s": 0.0799999999999983,
+        "p99_s": 0.10399999999998968,
+        "max_s": 0.17199999999999704
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3168,
+        "min_s": 0.000231039,
+        "p50_s": 0.0005558455,
+        "p95_s": 0.0012065587499999998,
+        "p99_s": 0.0017930241499999992,
+        "max_s": 0.014735282
+      }
+    },
+    "normalizer:pose_done": {
+      "age": {
+        "count": 999,
+        "min_s": 0.016000000000000014,
+        "p50_s": 0.036000000000001364,
+        "p95_s": 0.06400000000000006,
+        "p99_s": 0.08400000000000145,
+        "max_s": 0.1599999999999966
+      },
+      "callback_elapsed": {
+        "count": 999,
+        "min_s": 4.432200512383133e-05,
+        "p50_s": 0.00014794899470871314,
+        "p95_s": 0.0002102032012771815,
+        "p99_s": 0.0002476770969224162,
+        "max_s": 0.00034731000050669536
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:pose_emit": {
+      "age": {
+        "count": 948,
+        "min_s": 0.019999999999999574,
+        "p50_s": 0.03999999999999915,
+        "p95_s": 0.06400000000000006,
+        "p99_s": 0.08400000000000235,
+        "max_s": 0.1599999999999966
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:pose_rx": {
+      "age": {
+        "count": 3026,
+        "min_s": 0.015999999999991132,
+        "p50_s": 0.04400000000001114,
+        "p95_s": 0.0799999999999983,
+        "p99_s": 0.09999999999999432,
+        "max_s": 0.18799999999999528
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3026,
+        "min_s": 0.000125559,
+        "p50_s": 0.00027019100000000003,
+        "p95_s": 0.00043714425,
+        "p99_s": 0.000541723,
+        "max_s": 0.015935964
+      }
+    },
+    "normalizer:retire": {
+      "age": {
+        "count": 1,
+        "min_s": 0.2079999999999984,
+        "p50_s": 0.2079999999999984,
+        "p95_s": 0.2079999999999984,
+        "p99_s": 0.2079999999999984,
+        "max_s": 0.2079999999999984
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:tracking_done": {
+      "age": {
+        "count": 3026,
+        "min_s": 0.015999999999991132,
+        "p50_s": 0.04799999999998761,
+        "p95_s": 0.0799999999999983,
+        "p99_s": 0.09999999999999432,
+        "max_s": 0.18799999999999528
+      },
+      "callback_elapsed": {
+        "count": 3026,
+        "min_s": 6.25609973212704e-05,
+        "p50_s": 0.00015891599832684733,
+        "p95_s": 0.0010284497493557865,
+        "p99_s": 0.0011679922517942032,
+        "max_s": 0.001635695000004489
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:tracking_rx": {
+      "age": {
+        "count": 3026,
+        "min_s": 0.015999999999991132,
+        "p50_s": 0.04799999999998761,
+        "p95_s": 0.0799999999999983,
+        "p99_s": 0.09999999999999432,
+        "max_s": 0.18799999999999528
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3026,
+        "min_s": 0.000155764,
+        "p50_s": 0.0004054885,
+        "p95_s": 0.00064718875,
+        "p99_s": 0.000771344,
+        "max_s": 0.015909439
+      }
+    },
+    "fusion:accepted": {
+      "age": {
+        "count": 837,
+        "min_s": 0.019999999999999574,
+        "p50_s": 0.03999999999999915,
+        "p95_s": 0.06799999999999784,
+        "p99_s": 0.08655999999999717,
+        "max_s": 0.1599999999999966
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "fusion:pose_rx": {
+      "age": {
+        "count": 913,
+        "min_s": 0.019999999999999574,
+        "p50_s": 0.03999999999999915,
+        "p95_s": 0.06559999999999908,
+        "p99_s": 0.08400000000000318,
+        "max_s": 0.1599999999999966
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 913,
+        "min_s": 0.000127237,
+        "p50_s": 0.000372747,
+        "p95_s": 0.0009642044,
+        "p99_s": 0.00144867824,
+        "max_s": 0.013876622
+      }
+    },
+    "fusion:status_rx": {
+      "age": {
+        "count": 3313,
+        "min_s": 0.019999999999999574,
+        "p50_s": 0.35999999999999943,
+        "p95_s": 74.87919999999998,
+        "p99_s": 81.50224,
+        "max_s": 83.16
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 3313,
+        "min_s": 0.000142891,
+        "p50_s": 0.000393816,
+        "p95_s": 0.0009942241999999991,
+        "p99_s": 0.0015966697600000004,
+        "max_s": 0.013786094
+      }
+    },
+    "fusion:watchdog_fault": {
+      "age": {
+        "count": 1,
+        "min_s": 0.21600000000000108,
+        "p50_s": 0.21600000000000108,
+        "p95_s": 0.21600000000000108,
+        "p99_s": 0.21600000000000108,
+        "max_s": 0.21600000000000108
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    }
+  },
+  "stereo_to_sdk_publish": {
+    "count": 3168,
+    "min_s": 0.001228949,
+    "p50_s": 0.027360958499999997,
+    "p95_s": 0.05951836129999997,
+    "p99_s": 0.08255055770999997,
+    "max_s": 0.140887072
+  },
+  "worst_pipeline": [
+    {
+      "sample": 44.96,
+      "delay_s": 0.140887072
+    },
+    {
+      "sample": 43.6,
+      "delay_s": 0.134847763
+    },
+    {
+      "sample": 122.56,
+      "delay_s": 0.134154841
+    },
+    {
+      "sample": 43.24,
+      "delay_s": 0.133850896
+    },
+    {
+      "sample": 62.16,
+      "delay_s": 0.131444891
+    },
+    {
+      "sample": 82.6,
+      "delay_s": 0.12668674
+    },
+    {
+      "sample": 122.28,
+      "delay_s": 0.12455234
+    },
+    {
+      "sample": 59.72,
+      "delay_s": 0.110481574
+    },
+    {
+      "sample": 129.68,
+      "delay_s": 0.107943755
+    },
+    {
+      "sample": 58.8,
+      "delay_s": 0.106408188
+    },
+    {
+      "sample": 46.0,
+      "delay_s": 0.105237362
+    },
+    {
+      "sample": 129.8,
+      "delay_s": 0.101171805
+    },
+    {
+      "sample": 38.36,
+      "delay_s": 0.100976756
+    },
+    {
+      "sample": 55.8,
+      "delay_s": 0.100365987
+    },
+    {
+      "sample": 83.6,
+      "delay_s": 0.098990051
+    },
+    {
+      "sample": 85.16,
+      "delay_s": 0.098447228
+    },
+    {
+      "sample": 130.04,
+      "delay_s": 0.095626725
+    },
+    {
+      "sample": 66.8,
+      "delay_s": 0.094902316
+    },
+    {
+      "sample": 53.52,
+      "delay_s": 0.094674079
+    },
+    {
+      "sample": 130.16,
+      "delay_s": 0.092567931
+    }
+  ],
+  "first_source_retirement": {
+    "stage": "retire",
+    "mono": 65030.943784071,
+    "system_ns": 1791524011352774158,
+    "ros": 43.768,
+    "sample": 43.56,
+    "age_s": 0.2079999999999984,
+    "rmw": {},
+    "reason": "VIO_TRACKING_INVALID"
+  },
+  "around_retirement": {
+    "observer": [
+      {
+        "stage": "left",
+        "mono": 65030.467698518,
+        "system_ns": 1791524010876689053,
+        "ros": 43.308,
+        "sample": 43.28,
+        "age_s": 0.027999999999998693,
+        "rmw": {
+          "source_timestamp": 1791524010865165395,
+          "received_timestamp": 1791524010875874912,
+          "publication_sequence_number": 1000
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.473842523,
+        "system_ns": 1791524010882832554,
+        "ros": 43.312,
+        "sample": 43.28,
+        "age_s": 0.031999999999996476,
+        "rmw": {
+          "source_timestamp": 1791524010882223136,
+          "received_timestamp": 1791524010882479565,
+          "publication_sequence_number": 1000
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.490770398,
+        "system_ns": 1791524010899760437,
+        "ros": 43.332,
+        "sample": 43.32,
+        "age_s": 0.012000000000000455,
+        "rmw": {
+          "source_timestamp": 1791524010899010437,
+          "received_timestamp": 1791524010899248137,
+          "publication_sequence_number": 1001
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.505329787,
+        "system_ns": 1791524010914319844,
+        "ros": 43.344,
+        "sample": 43.32,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524010913412767,
+          "received_timestamp": 1791524010913850849,
+          "publication_sequence_number": 1001
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.535407929,
+        "system_ns": 1791524010944397830,
+        "ros": 43.376,
+        "sample": 43.36,
+        "age_s": 0.015999999999998238,
+        "rmw": {
+          "source_timestamp": 1791524010942700523,
+          "received_timestamp": 1791524010943199428,
+          "publication_sequence_number": 1002
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.5501676,
+        "system_ns": 1791524010959157571,
+        "ros": 43.392,
+        "sample": 43.36,
+        "age_s": 0.03200000000000358,
+        "rmw": {
+          "source_timestamp": 1791524010948265792,
+          "received_timestamp": 1791524010958717616,
+          "publication_sequence_number": 1002
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.556734288,
+        "system_ns": 1791524010965724133,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {
+          "source_timestamp": 1791524010965258468,
+          "received_timestamp": 1791524010965303939,
+          "publication_sequence_number": 993
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.556784148,
+        "system_ns": 1791524010965773725,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {
+          "source_timestamp": 1791524010965330172,
+          "received_timestamp": 1791524010965348843,
+          "publication_sequence_number": 993
+        },
+        "sdk_track_s": 0.121230074,
+        "sdk_callback_s": 0.122495006
+      },
+      {
+        "stage": "right",
+        "mono": 65030.580107906,
+        "system_ns": 1791524010989097605,
+        "ros": 43.42,
+        "sample": 43.4,
+        "age_s": 0.020000000000003126,
+        "rmw": {
+          "source_timestamp": 1791524010988075165,
+          "received_timestamp": 1791524010988249459,
+          "publication_sequence_number": 1003
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.581836336,
+        "system_ns": 1791524010990826045,
+        "ros": 43.424,
+        "sample": 43.4,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524010979889463,
+          "received_timestamp": 1791524010990259119,
+          "publication_sequence_number": 1003
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.589490576,
+        "system_ns": 1791524010998484513,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524010998125040,
+          "received_timestamp": 1791524010998191287,
+          "publication_sequence_number": 994
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.590503774,
+        "system_ns": 1791524010999493706,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524010998212507,
+          "received_timestamp": 1791524010998232765,
+          "publication_sequence_number": 994
+        },
+        "sdk_track_s": 0.030906003,
+        "sdk_callback_s": 0.031222773
+      },
+      {
+        "stage": "right",
+        "mono": 65030.617054036,
+        "system_ns": 1791524011026043845,
+        "ros": 43.456,
+        "sample": 43.44,
+        "age_s": 0.016000000000005343,
+        "rmw": {
+          "source_timestamp": 1791524011025339769,
+          "received_timestamp": 1791524011025685563,
+          "publication_sequence_number": 1004
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.621131253,
+        "system_ns": 1791524011030121075,
+        "ros": 43.464,
+        "sample": 43.44,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524011019206290,
+          "received_timestamp": 1791524011029748028,
+          "publication_sequence_number": 1004
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.636148616,
+        "system_ns": 1791524011045138697,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011044804392,
+          "received_timestamp": 1791524011044893862,
+          "publication_sequence_number": 995
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.636689494,
+        "system_ns": 1791524011045679049,
+        "ros": 43.48,
+        "sample": 43.4,
+        "age_s": 0.0799999999999983,
+        "rmw": {
+          "source_timestamp": 1791524011044868234,
+          "received_timestamp": 1791524011044911432,
+          "publication_sequence_number": 995
+        },
+        "sdk_track_s": 0.043951957,
+        "sdk_callback_s": 0.045110322
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.652788406,
+        "system_ns": 1791524011061778194,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {
+          "source_timestamp": 1791524011061419625,
+          "received_timestamp": 1791524011061452305,
+          "publication_sequence_number": 996
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.652838235,
+        "system_ns": 1791524011061827798,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {
+          "source_timestamp": 1791524011061466640,
+          "received_timestamp": 1791524011061476413,
+          "publication_sequence_number": 996
+        },
+        "sdk_track_s": 0.014579112,
+        "sdk_callback_s": 0.014766546
+      },
+      {
+        "stage": "left",
+        "mono": 65030.65851471,
+        "system_ns": 1791524011067504332,
+        "ros": 43.5,
+        "sample": 43.48,
+        "age_s": 0.020000000000003126,
+        "rmw": {
+          "source_timestamp": 1791524011066362493,
+          "received_timestamp": 1791524011066765341,
+          "publication_sequence_number": 1005
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.673936238,
+        "system_ns": 1791524011082926172,
+        "ros": 43.512,
+        "sample": 43.48,
+        "age_s": 0.03200000000000358,
+        "rmw": {
+          "source_timestamp": 1791524011082043935,
+          "received_timestamp": 1791524011082415851,
+          "publication_sequence_number": 1005
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.703484846,
+        "system_ns": 1791524011112474755,
+        "ros": 43.544,
+        "sample": 43.52,
+        "age_s": 0.023999999999993804,
+        "rmw": {
+          "source_timestamp": 1791524011101518312,
+          "received_timestamp": 1791524011112022594,
+          "publication_sequence_number": 1006
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.704247112,
+        "system_ns": 1791524011113236725,
+        "ros": 43.544,
+        "sample": 43.52,
+        "age_s": 0.023999999999993804,
+        "rmw": {
+          "source_timestamp": 1791524011112612334,
+          "received_timestamp": 1791524011112908310,
+          "publication_sequence_number": 1006
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.72187434,
+        "system_ns": 1791524011130864097,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {
+          "source_timestamp": 1791524011130392884,
+          "received_timestamp": 1791524011130440721,
+          "publication_sequence_number": 997
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.721919282,
+        "system_ns": 1791524011130908860,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {
+          "source_timestamp": 1791524011130442423,
+          "received_timestamp": 1791524011130453368,
+          "publication_sequence_number": 997
+        },
+        "sdk_track_s": 0.046438874,
+        "sdk_callback_s": 0.047532429
+      },
+      {
+        "stage": "left",
+        "mono": 65030.738937108,
+        "system_ns": 1791524011147927413,
+        "ros": 43.58,
+        "sample": 43.56,
+        "age_s": 0.01999999999999602,
+        "rmw": {
+          "source_timestamp": 1791524011146932497,
+          "received_timestamp": 1791524011147437793,
+          "publication_sequence_number": 1007
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.761995107,
+        "system_ns": 1791524011170985135,
+        "ros": 43.604,
+        "sample": 43.56,
+        "age_s": 0.04399999999999693,
+        "rmw": {
+          "source_timestamp": 1791524011159752367,
+          "received_timestamp": 1791524011170215757,
+          "publication_sequence_number": 1007
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.764370538,
+        "system_ns": 1791524011173360448,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {
+          "source_timestamp": 1791524011173092594,
+          "received_timestamp": 1791524011173191909,
+          "publication_sequence_number": 998
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.764876249,
+        "system_ns": 1791524011173865824,
+        "ros": 43.608,
+        "sample": 43.52,
+        "age_s": 0.08799999999999386,
+        "rmw": {
+          "source_timestamp": 1791524011173167454,
+          "received_timestamp": 1791524011173210873,
+          "publication_sequence_number": 998
+        },
+        "sdk_track_s": 0.041172889,
+        "sdk_callback_s": 0.041388158
+      },
+      {
+        "stage": "left",
+        "mono": 65030.793629761,
+        "system_ns": 1791524011202620904,
+        "ros": 43.636,
+        "sample": 43.6,
+        "age_s": 0.036000000000001364,
+        "rmw": {
+          "source_timestamp": 1791524011191055201,
+          "received_timestamp": 1791524011201665101,
+          "publication_sequence_number": 1008
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.795555842,
+        "system_ns": 1791524011204545604,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011204103574,
+          "received_timestamp": 1791524011204141076,
+          "publication_sequence_number": 999
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.795600322,
+        "system_ns": 1791524011204589876,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011204154722,
+          "received_timestamp": 1791524011204165226,
+          "publication_sequence_number": 999
+        },
+        "sdk_track_s": 0.027896606,
+        "sdk_callback_s": 0.028941881
+      },
+      {
+        "stage": "right",
+        "mono": 65030.804685648,
+        "system_ns": 1791524011213675989,
+        "ros": 43.648,
+        "sample": 43.6,
+        "age_s": 0.04800000000000182,
+        "rmw": {
+          "source_timestamp": 1791524011202696252,
+          "received_timestamp": 1791524011213142514,
+          "publication_sequence_number": 1008
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.823365556,
+        "system_ns": 1791524011232355928,
+        "ros": 43.664,
+        "sample": 43.64,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524011231279559,
+          "received_timestamp": 1791524011231681471,
+          "publication_sequence_number": 1009
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.844786569,
+        "system_ns": 1791524011253777262,
+        "ros": 43.684,
+        "sample": 43.64,
+        "age_s": 0.04399999999999693,
+        "rmw": {
+          "source_timestamp": 1791524011242339234,
+          "received_timestamp": 1791524011252872333,
+          "publication_sequence_number": 1009
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.862977139,
+        "system_ns": 1791524011271967665,
+        "ros": 43.7,
+        "sample": 43.68,
+        "age_s": 0.020000000000003126,
+        "rmw": {
+          "source_timestamp": 1791524011270355903,
+          "received_timestamp": 1791524011270897950,
+          "publication_sequence_number": 1010
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.883403713,
+        "system_ns": 1791524011292393643,
+        "ros": 43.724,
+        "sample": 43.68,
+        "age_s": 0.04399999999999693,
+        "rmw": {
+          "source_timestamp": 1791524011280646098,
+          "received_timestamp": 1791524011291347508,
+          "publication_sequence_number": 1010
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65030.895950681,
+        "system_ns": 1791524011304940831,
+        "ros": 43.736,
+        "sample": 43.72,
+        "age_s": 0.015999999999998238,
+        "rmw": {
+          "source_timestamp": 1791524011303548424,
+          "received_timestamp": 1791524011304029162,
+          "publication_sequence_number": 1011
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.917164859,
+        "system_ns": 1791524011326154770,
+        "ros": 43.76,
+        "sample": 43.72,
+        "age_s": 0.03999999999999915,
+        "rmw": {
+          "source_timestamp": 1791524011315290186,
+          "received_timestamp": 1791524011325737807,
+          "publication_sequence_number": 1011
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.929054842,
+        "system_ns": 1791524011338044908,
+        "ros": 43.772,
+        "sample": 43.6,
+        "age_s": 0.17199999999999704,
+        "rmw": {
+          "source_timestamp": 1791524011337544015,
+          "received_timestamp": 1791524011337599138,
+          "publication_sequence_number": 1000
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.929112204,
+        "system_ns": 1791524011338101764,
+        "ros": 43.772,
+        "sample": 43.6,
+        "age_s": 0.17199999999999704,
+        "rmw": {
+          "source_timestamp": 1791524011337621761,
+          "received_timestamp": 1791524011337648192,
+          "publication_sequence_number": 1000
+        },
+        "sdk_track_s": 0.122527929,
+        "sdk_callback_s": 0.123692194
+      },
+      {
+        "stage": "left",
+        "mono": 65030.936415261,
+        "system_ns": 1791524011345405000,
+        "ros": 43.776,
+        "sample": 43.76,
+        "age_s": 0.016000000000005343,
+        "rmw": {
+          "source_timestamp": 1791524011344416842,
+          "received_timestamp": 1791524011344906028,
+          "publication_sequence_number": 1012
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65030.951199671,
+        "system_ns": 1791524011360189905,
+        "ros": 43.792,
+        "sample": 43.76,
+        "age_s": 0.03200000000000358,
+        "rmw": {
+          "source_timestamp": 1791524011359274706,
+          "received_timestamp": 1791524011359755671,
+          "publication_sequence_number": 1012
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65030.95874892,
+        "system_ns": 1791524011367738493,
+        "ros": 43.8,
+        "sample": 43.72,
+        "age_s": 0.0799999999999983,
+        "rmw": {
+          "source_timestamp": 1791524011367383172,
+          "received_timestamp": 1791524011367454639,
+          "publication_sequence_number": 1001
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65030.95880339,
+        "system_ns": 1791524011367792951,
+        "ros": 43.8,
+        "sample": 43.72,
+        "age_s": 0.0799999999999983,
+        "rmw": {
+          "source_timestamp": 1791524011367456604,
+          "received_timestamp": 1791524011367472106,
+          "publication_sequence_number": 1001
+        },
+        "sdk_track_s": 0.025559687,
+        "sdk_callback_s": 0.027036325
+      },
+      {
+        "stage": "left",
+        "mono": 65030.990491403,
+        "system_ns": 1791524011399481542,
+        "ros": 43.832,
+        "sample": 43.8,
+        "age_s": 0.03200000000000358,
+        "rmw": {
+          "source_timestamp": 1791524011388466398,
+          "received_timestamp": 1791524011399013168,
+          "publication_sequence_number": 1013
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65031.002684056,
+        "system_ns": 1791524011411674134,
+        "ros": 43.844,
+        "sample": 43.8,
+        "age_s": 0.044000000000004036,
+        "rmw": {
+          "source_timestamp": 1791524011400774920,
+          "received_timestamp": 1791524011411272646,
+          "publication_sequence_number": 1013
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.010417376,
+        "system_ns": 1791524011419407328,
+        "ros": 43.852,
+        "sample": 43.76,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011418834838,
+          "received_timestamp": 1791524011418885829,
+          "publication_sequence_number": 1002
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.011388583,
+        "system_ns": 1791524011420378308,
+        "ros": 43.852,
+        "sample": 43.76,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011418888706,
+          "received_timestamp": 1791524011418913912,
+          "publication_sequence_number": 1002
+        },
+        "sdk_track_s": 0.049051146,
+        "sdk_callback_s": 0.04992679
+      },
+      {
+        "stage": "left",
+        "mono": 65031.02019594,
+        "system_ns": 1791524011429185954,
+        "ros": 43.86,
+        "sample": 43.84,
+        "age_s": 0.01999999999999602,
+        "rmw": {
+          "source_timestamp": 1791524011427850272,
+          "received_timestamp": 1791524011428315286,
+          "publication_sequence_number": 1014
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.031614844,
+        "system_ns": 1791524011440604757,
+        "ros": 43.872,
+        "sample": 43.8,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524011440129732,
+          "received_timestamp": 1791524011440201656,
+          "publication_sequence_number": 1003
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.031699112,
+        "system_ns": 1791524011440688710,
+        "ros": 43.872,
+        "sample": 43.8,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524011440195973,
+          "received_timestamp": 1791524011440220714,
+          "publication_sequence_number": 1003
+        },
+        "sdk_track_s": 0.019666787,
+        "sdk_callback_s": 0.019854452
+      },
+      {
+        "stage": "right",
+        "mono": 65031.033639227,
+        "system_ns": 1791524011442629187,
+        "ros": 43.872,
+        "sample": 43.84,
+        "age_s": 0.031999999999996476,
+        "rmw": {
+          "source_timestamp": 1791524011441339069,
+          "received_timestamp": 1791524011441767522,
+          "publication_sequence_number": 1014
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.049626303,
+        "system_ns": 1791524011458616346,
+        "ros": 43.892,
+        "sample": 43.84,
+        "age_s": 0.0519999999999996,
+        "rmw": {
+          "source_timestamp": 1791524011457661176,
+          "received_timestamp": 1791524011457707842,
+          "publication_sequence_number": 1004
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.049722369,
+        "system_ns": 1791524011458711975,
+        "ros": 43.892,
+        "sample": 43.84,
+        "age_s": 0.0519999999999996,
+        "rmw": {
+          "source_timestamp": 1791524011457719026,
+          "received_timestamp": 1791524011457734059,
+          "publication_sequence_number": 1004
+        },
+        "sdk_track_s": 0.015244346,
+        "sdk_callback_s": 0.01542756
+      },
+      {
+        "stage": "left",
+        "mono": 65031.05601428,
+        "system_ns": 1791524011465004350,
+        "ros": 43.896,
+        "sample": 43.88,
+        "age_s": 0.015999999999998238,
+        "rmw": {
+          "source_timestamp": 1791524011463677654,
+          "received_timestamp": 1791524011464232071,
+          "publication_sequence_number": 1015
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65031.06639663,
+        "system_ns": 1791524011475386811,
+        "ros": 43.908,
+        "sample": 43.88,
+        "age_s": 0.027999999999998693,
+        "rmw": {
+          "source_timestamp": 1791524011474231246,
+          "received_timestamp": 1791524011474597750,
+          "publication_sequence_number": 1015
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65031.103170974,
+        "system_ns": 1791524011512160871,
+        "ros": 43.944,
+        "sample": 43.92,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524011511386944,
+          "received_timestamp": 1791524011511708028,
+          "publication_sequence_number": 1016
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65031.104559066,
+        "system_ns": 1791524011513549111,
+        "ros": 43.948,
+        "sample": 43.92,
+        "age_s": 0.027999999999998693,
+        "rmw": {
+          "source_timestamp": 1791524011502558527,
+          "received_timestamp": 1791524011513046747,
+          "publication_sequence_number": 1016
+        }
+      },
+      {
+        "stage": "left",
+        "mono": 65031.129834733,
+        "system_ns": 1791524011538824528,
+        "ros": 43.972,
+        "sample": 43.96,
+        "age_s": 0.012000000000000455,
+        "rmw": {
+          "source_timestamp": 1791524011537101678,
+          "received_timestamp": 1791524011537502994,
+          "publication_sequence_number": 1017
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.131242496,
+        "system_ns": 1791524011540232158,
+        "ros": 43.972,
+        "sample": 43.88,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011539543108,
+          "received_timestamp": 1791524011539604309,
+          "publication_sequence_number": 1005
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.131346139,
+        "system_ns": 1791524011540335740,
+        "ros": 43.972,
+        "sample": 43.88,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011539628813,
+          "received_timestamp": 1791524011539643255,
+          "publication_sequence_number": 1005
+        },
+        "sdk_track_s": 0.062768108,
+        "sdk_callback_s": 0.063956187
+      },
+      {
+        "stage": "right",
+        "mono": 65031.135818677,
+        "system_ns": 1791524011544808660,
+        "ros": 43.976,
+        "sample": 43.96,
+        "age_s": 0.015999999999998238,
+        "rmw": {
+          "source_timestamp": 1791524011543351932,
+          "received_timestamp": 1791524011543815601,
+          "publication_sequence_number": 1017
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.156923707,
+        "system_ns": 1791524011565913429,
+        "ros": 44.0,
+        "sample": 43.96,
+        "age_s": 0.03999999999999915,
+        "rmw": {
+          "source_timestamp": 1791524011565562603,
+          "received_timestamp": 1791524011565619120,
+          "publication_sequence_number": 1006
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.156976946,
+        "system_ns": 1791524011565966497,
+        "ros": 44.0,
+        "sample": 43.96,
+        "age_s": 0.03999999999999915,
+        "rmw": {
+          "source_timestamp": 1791524011565619772,
+          "received_timestamp": 1791524011565632295,
+          "publication_sequence_number": 1006
+        },
+        "sdk_track_s": 0.019863132,
+        "sdk_callback_s": 0.021239124
+      },
+      {
+        "stage": "left",
+        "mono": 65031.183207198,
+        "system_ns": 1791524011592196904,
+        "ros": 44.024,
+        "sample": 44.0,
+        "age_s": 0.02400000000000091,
+        "rmw": {
+          "source_timestamp": 1791524011581283403,
+          "received_timestamp": 1791524011591857821,
+          "publication_sequence_number": 1018
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65031.190442361,
+        "system_ns": 1791524011599432206,
+        "ros": 44.032,
+        "sample": 44.0,
+        "age_s": 0.031999999999996476,
+        "rmw": {
+          "source_timestamp": 1791524011588610923,
+          "received_timestamp": 1791524011599049387,
+          "publication_sequence_number": 1018
+        }
+      },
+      {
+        "stage": "pose_cov",
+        "mono": 65031.205845404,
+        "system_ns": 1791524011614835368,
+        "ros": 44.048,
+        "sample": 44.0,
+        "age_s": 0.04800000000000182,
+        "rmw": {
+          "source_timestamp": 1791524011614201961,
+          "received_timestamp": 1791524011614247258,
+          "publication_sequence_number": 1007
+        }
+      },
+      {
+        "stage": "tracking",
+        "mono": 65031.205939315,
+        "system_ns": 1791524011614928914,
+        "ros": 44.048,
+        "sample": 44.0,
+        "age_s": 0.04800000000000182,
+        "rmw": {
+          "source_timestamp": 1791524011614255003,
+          "received_timestamp": 1791524011614268421,
+          "publication_sequence_number": 1007
+        },
+        "sdk_track_s": 0.014630865,
+        "sdk_callback_s": 0.014836506
+      },
+      {
+        "stage": "left",
+        "mono": 65031.211032808,
+        "system_ns": 1791524011620022714,
+        "ros": 44.052,
+        "sample": 44.04,
+        "age_s": 0.012000000000000455,
+        "rmw": {
+          "source_timestamp": 1791524011619059291,
+          "received_timestamp": 1791524011619267005,
+          "publication_sequence_number": 1019
+        }
+      },
+      {
+        "stage": "right",
+        "mono": 65031.22680469,
+        "system_ns": 1791524011635795084,
+        "ros": 44.068,
+        "sample": 44.04,
+        "age_s": 0.027999999999998693,
+        "rmw": {
+          "source_timestamp": 1791524011624154250,
+          "received_timestamp": 1791524011634630591,
+          "publication_sequence_number": 1019
+        }
+      }
+    ],
+    "normalizer": [
+      {
+        "stage": "pose_rx",
+        "mono": 65030.556536681,
+        "system_ns": 1791524010965526762,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {
+          "source_timestamp": 1791524010965258468,
+          "received_timestamp": 1791524010965306112,
+          "publication_sequence_number": 993
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.556703111,
+        "system_ns": 1791524010965692760,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {},
+        "elapsed_s": 0.00017798199405660853
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.556931978,
+        "system_ns": 1791524010965921602,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {
+          "source_timestamp": 1791524010965330172,
+          "received_timestamp": 1791524010965351048,
+          "publication_sequence_number": 993
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.557760156,
+        "system_ns": 1791524010966749852,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.558055857,
+        "system_ns": 1791524010967045464,
+        "ros": 43.4,
+        "sample": 43.24,
+        "age_s": 0.1599999999999966,
+        "rmw": {},
+        "elapsed_s": 0.0011242649998166598
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.589468065,
+        "system_ns": 1791524010998458335,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524010998125040,
+          "received_timestamp": 1791524010998192858,
+          "publication_sequence_number": 994
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.589674855,
+        "system_ns": 1791524010998664520,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {},
+        "elapsed_s": 0.00022240699763642624
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.589936238,
+        "system_ns": 1791524010998925869,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524010998212507,
+          "received_timestamp": 1791524010998235576,
+          "publication_sequence_number": 994
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.590774901,
+        "system_ns": 1791524010999764593,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.591055301,
+        "system_ns": 1791524011000044917,
+        "ros": 43.432,
+        "sample": 43.36,
+        "age_s": 0.07200000000000273,
+        "rmw": {},
+        "elapsed_s": 0.0011204179972992279
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.636298803,
+        "system_ns": 1791524011045288765,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011044804392,
+          "received_timestamp": 1791524011044865759,
+          "publication_sequence_number": 995
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.636463157,
+        "system_ns": 1791524011045452761,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {},
+        "elapsed_s": 0.00017839599604485556
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.636563647,
+        "system_ns": 1791524011045553265,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011044868234,
+          "received_timestamp": 1791524011044880699,
+          "publication_sequence_number": 995
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.637497414,
+        "system_ns": 1791524011046487105,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.637784928,
+        "system_ns": 1791524011046774495,
+        "ros": 43.476,
+        "sample": 43.4,
+        "age_s": 0.07600000000000051,
+        "rmw": {},
+        "elapsed_s": 0.001221556005475577
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.652702105,
+        "system_ns": 1791524011061692150,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {
+          "source_timestamp": 1791524011061419625,
+          "received_timestamp": 1791524011061455566,
+          "publication_sequence_number": 996
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.652873148,
+        "system_ns": 1791524011061862781,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {},
+        "elapsed_s": 0.0001797760050976649
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.652956843,
+        "system_ns": 1791524011061946483,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {
+          "source_timestamp": 1791524011061466640,
+          "received_timestamp": 1791524011061480337,
+          "publication_sequence_number": 996
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.654202658,
+        "system_ns": 1791524011063192312,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.654510053,
+        "system_ns": 1791524011063499825,
+        "ros": 43.496,
+        "sample": 43.44,
+        "age_s": 0.05600000000000449,
+        "rmw": {},
+        "elapsed_s": 0.0015540389940724708
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.721664621,
+        "system_ns": 1791524011130654640,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {
+          "source_timestamp": 1791524011130392884,
+          "received_timestamp": 1791524011130436396,
+          "publication_sequence_number": 997
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.721826762,
+        "system_ns": 1791524011130816345,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {},
+        "elapsed_s": 0.000173608998011332
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.722070219,
+        "system_ns": 1791524011131059847,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {
+          "source_timestamp": 1791524011130442423,
+          "received_timestamp": 1791524011130457114,
+          "publication_sequence_number": 997
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.722845209,
+        "system_ns": 1791524011131834831,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.723096006,
+        "system_ns": 1791524011132085618,
+        "ros": 43.564,
+        "sample": 43.48,
+        "age_s": 0.08400000000000318,
+        "rmw": {},
+        "elapsed_s": 0.0010287269979016855
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.764558996,
+        "system_ns": 1791524011173548947,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {
+          "source_timestamp": 1791524011173092594,
+          "received_timestamp": 1791524011173179485,
+          "publication_sequence_number": 998
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.764748691,
+        "system_ns": 1791524011173738260,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {},
+        "elapsed_s": 0.00022068100224714726
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.764810225,
+        "system_ns": 1791524011173799759,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {
+          "source_timestamp": 1791524011173167454,
+          "received_timestamp": 1791524011173199524,
+          "publication_sequence_number": 998
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.765387049,
+        "system_ns": 1791524011174376971,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.765523867,
+        "system_ns": 1791524011174513437,
+        "ros": 43.604,
+        "sample": 43.52,
+        "age_s": 0.08399999999999608,
+        "rmw": {},
+        "elapsed_s": 0.0007150409946916625
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.79548806,
+        "system_ns": 1791524011204478121,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011204103574,
+          "received_timestamp": 1791524011204150114,
+          "publication_sequence_number": 999
+        }
+      },
+      {
+        "stage": "pose_done",
+        "mono": 65030.795647317,
+        "system_ns": 1791524011204636927,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {},
+        "elapsed_s": 0.00017623600433580577
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.795741014,
+        "system_ns": 1791524011204730629,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {
+          "source_timestamp": 1791524011204154722,
+          "received_timestamp": 1791524011204167387,
+          "publication_sequence_number": 999
+        }
+      },
+      {
+        "stage": "pose_emit",
+        "mono": 65030.796670056,
+        "system_ns": 1791524011205659746,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {}
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.796915924,
+        "system_ns": 1791524011205905544,
+        "ros": 43.636,
+        "sample": 43.56,
+        "age_s": 0.07600000000000051,
+        "rmw": {},
+        "elapsed_s": 0.001176079000288155
+      },
+      {
+        "stage": "retire",
+        "mono": 65030.943784071,
+        "system_ns": 1791524011352774158,
+        "ros": 43.768,
+        "sample": 43.56,
+        "age_s": 0.2079999999999984,
+        "rmw": {},
+        "reason": "VIO_TRACKING_INVALID"
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.944490306,
+        "system_ns": 1791524011353479979,
+        "ros": 43.788,
+        "sample": 43.6,
+        "age_s": 0.18799999999999528,
+        "rmw": {
+          "source_timestamp": 1791524011337544015,
+          "received_timestamp": 1791524011337591216,
+          "publication_sequence_number": 1000
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.94454164,
+        "system_ns": 1791524011353531200,
+        "ros": 43.788,
+        "sample": 43.6,
+        "age_s": 0.18799999999999528,
+        "rmw": {
+          "source_timestamp": 1791524011337621761,
+          "received_timestamp": 1791524011337644796,
+          "publication_sequence_number": 1000
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.944644965,
+        "system_ns": 1791524011353634541,
+        "ros": 43.788,
+        "sample": 43.6,
+        "age_s": 0.18799999999999528,
+        "rmw": {},
+        "elapsed_s": 0.00010384699999121949
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65030.958715731,
+        "system_ns": 1791524011367705989,
+        "ros": 43.8,
+        "sample": 43.72,
+        "age_s": 0.0799999999999983,
+        "rmw": {
+          "source_timestamp": 1791524011367383172,
+          "received_timestamp": 1791524011367436218,
+          "publication_sequence_number": 1001
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65030.95896402,
+        "system_ns": 1791524011367953651,
+        "ros": 43.8,
+        "sample": 43.72,
+        "age_s": 0.0799999999999983,
+        "rmw": {
+          "source_timestamp": 1791524011367456604,
+          "received_timestamp": 1791524011367473062,
+          "publication_sequence_number": 1001
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65030.959209874,
+        "system_ns": 1791524011368199477,
+        "ros": 43.8,
+        "sample": 43.72,
+        "age_s": 0.0799999999999983,
+        "rmw": {},
+        "elapsed_s": 0.0002461519979988225
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.010239904,
+        "system_ns": 1791524011419230087,
+        "ros": 43.852,
+        "sample": 43.76,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011418834838,
+          "received_timestamp": 1791524011418907950,
+          "publication_sequence_number": 1002
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.010348741,
+        "system_ns": 1791524011419338371,
+        "ros": 43.852,
+        "sample": 43.76,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011418888706,
+          "received_timestamp": 1791524011418922111,
+          "publication_sequence_number": 1002
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.010557848,
+        "system_ns": 1791524011419547442,
+        "ros": 43.852,
+        "sample": 43.76,
+        "age_s": 0.09199999999999875,
+        "rmw": {},
+        "elapsed_s": 0.00021037599799456075
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.031512941,
+        "system_ns": 1791524011440502935,
+        "ros": 43.872,
+        "sample": 43.8,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524011440129732,
+          "received_timestamp": 1791524011440192218,
+          "publication_sequence_number": 1003
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.031605345,
+        "system_ns": 1791524011440594947,
+        "ros": 43.872,
+        "sample": 43.8,
+        "age_s": 0.07200000000000273,
+        "rmw": {
+          "source_timestamp": 1791524011440195973,
+          "received_timestamp": 1791524011440207191,
+          "publication_sequence_number": 1003
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.031775187,
+        "system_ns": 1791524011440764794,
+        "ros": 43.872,
+        "sample": 43.8,
+        "age_s": 0.07200000000000273,
+        "rmw": {},
+        "elapsed_s": 0.0001712930024950765
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.048901919,
+        "system_ns": 1791524011457891745,
+        "ros": 43.892,
+        "sample": 43.84,
+        "age_s": 0.0519999999999996,
+        "rmw": {
+          "source_timestamp": 1791524011457661176,
+          "received_timestamp": 1791524011457703494,
+          "publication_sequence_number": 1004
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.049042953,
+        "system_ns": 1791524011458032515,
+        "ros": 43.892,
+        "sample": 43.84,
+        "age_s": 0.0519999999999996,
+        "rmw": {
+          "source_timestamp": 1791524011457719026,
+          "received_timestamp": 1791524011457734261,
+          "publication_sequence_number": 1004
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.04925512,
+        "system_ns": 1791524011458244684,
+        "ros": 43.892,
+        "sample": 43.84,
+        "age_s": 0.0519999999999996,
+        "rmw": {},
+        "elapsed_s": 0.00021405999723356217
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.130928022,
+        "system_ns": 1791524011539917990,
+        "ros": 43.972,
+        "sample": 43.88,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011539543108,
+          "received_timestamp": 1791524011539627745,
+          "publication_sequence_number": 1005
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.130992804,
+        "system_ns": 1791524011539982363,
+        "ros": 43.972,
+        "sample": 43.88,
+        "age_s": 0.09199999999999875,
+        "rmw": {
+          "source_timestamp": 1791524011539628813,
+          "received_timestamp": 1791524011539647364,
+          "publication_sequence_number": 1005
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.131154334,
+        "system_ns": 1791524011540143901,
+        "ros": 43.972,
+        "sample": 43.88,
+        "age_s": 0.09199999999999875,
+        "rmw": {},
+        "elapsed_s": 0.0001614440043340437
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.156755861,
+        "system_ns": 1791524011565746320,
+        "ros": 44.0,
+        "sample": 43.96,
+        "age_s": 0.03999999999999915,
+        "rmw": {
+          "source_timestamp": 1791524011565562603,
+          "received_timestamp": 1791524011565610839,
+          "publication_sequence_number": 1006
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.156888029,
+        "system_ns": 1791524011565877595,
+        "ros": 44.0,
+        "sample": 43.96,
+        "age_s": 0.03999999999999915,
+        "rmw": {
+          "source_timestamp": 1791524011565619772,
+          "received_timestamp": 1791524011565631398,
+          "publication_sequence_number": 1006
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.156997365,
+        "system_ns": 1791524011565986931,
+        "ros": 44.0,
+        "sample": 43.96,
+        "age_s": 0.03999999999999915,
+        "rmw": {},
+        "elapsed_s": 0.00010993800242431462
+      },
+      {
+        "stage": "pose_rx",
+        "mono": 65031.205415973,
+        "system_ns": 1791524011614405881,
+        "ros": 44.048,
+        "sample": 44.0,
+        "age_s": 0.04800000000000182,
+        "rmw": {
+          "source_timestamp": 1791524011614201961,
+          "received_timestamp": 1791524011614253313,
+          "publication_sequence_number": 1007
+        }
+      },
+      {
+        "stage": "tracking_rx",
+        "mono": 65031.205686736,
+        "system_ns": 1791524011614676538,
+        "ros": 44.048,
+        "sample": 44.0,
+        "age_s": 0.04800000000000182,
+        "rmw": {
+          "source_timestamp": 1791524011614255003,
+          "received_timestamp": 1791524011614268786,
+          "publication_sequence_number": 1007
+        }
+      },
+      {
+        "stage": "tracking_done",
+        "mono": 65031.205862872,
+        "system_ns": 1791524011614852469,
+        "ros": 44.048,
+        "sample": 44.0,
+        "age_s": 0.04800000000000182,
+        "rmw": {},
+        "elapsed_s": 0.0001857390016084537
+      }
+    ]
+  },
+  "sdk_execution": {
+    "valid_count": 3168,
+    "invalid_count": 0,
+    "track": {
+      "count": 3168,
+      "min_s": 0.000303487,
+      "p50_s": 0.0201597725,
+      "p95_s": 0.046054466899999986,
+      "p99_s": 0.07056786293999998,
+      "max_s": 0.128870743
+    },
+    "callback": {
+      "count": 3168,
+      "min_s": 0.000469985,
+      "p50_s": 0.0208982035,
+      "p95_s": 0.04680901564999996,
+      "p99_s": 0.07126799848999991,
+      "max_s": 0.130000396
+    },
+    "callback_without_track": {
+      "count": 3168,
+      "min_s": 4.839200000000127e-05,
+      "p50_s": 0.0004394924999999994,
+      "p95_s": 0.0012891290999999996,
+      "p99_s": 0.0013688144299999986,
+      "max_s": 0.004075789
+    },
+    "outside_callback_lower_bound": {
+      "count": 3168,
+      "min_s": 0.00036843699999999924,
+      "p50_s": 0.010581717499999997,
+      "p95_s": 0.018893073599999987,
+      "p99_s": 0.027833188459999998,
+      "max_s": 0.03495536800000001
+    },
+    "worst_pipeline": [
+      {
+        "sample": 44.96,
+        "pipeline_s": 0.140887072,
+        "track_s": 0.128870743,
+        "callback_s": 0.130000396,
+        "outside_callback_lower_bound_s": 0.010886676000000012
+      },
+      {
+        "sample": 43.6,
+        "pipeline_s": 0.134847763,
+        "track_s": 0.122527929,
+        "callback_s": 0.123692194,
+        "outside_callback_lower_bound_s": 0.011155569000000004
+      },
+      {
+        "sample": 122.56,
+        "pipeline_s": 0.134154841,
+        "track_s": 0.11679518,
+        "callback_s": 0.117441478,
+        "outside_callback_lower_bound_s": 0.016713362999999995
+      },
+      {
+        "sample": 43.24,
+        "pipeline_s": 0.133850896,
+        "track_s": 0.121230074,
+        "callback_s": 0.122495006,
+        "outside_callback_lower_bound_s": 0.011355889999999993
+      },
+      {
+        "sample": 62.16,
+        "pipeline_s": 0.131444891,
+        "track_s": 0.119473065,
+        "callback_s": 0.120646903,
+        "outside_callback_lower_bound_s": 0.010797988000000008
+      },
+      {
+        "sample": 82.6,
+        "pipeline_s": 0.12668674,
+        "track_s": 0.105516742,
+        "callback_s": 0.105757502,
+        "outside_callback_lower_bound_s": 0.02092923799999999
+      },
+      {
+        "sample": 122.28,
+        "pipeline_s": 0.12455234,
+        "track_s": 0.101206972,
+        "callback_s": 0.101585606,
+        "outside_callback_lower_bound_s": 0.022966734000000003
+      },
+      {
+        "sample": 59.72,
+        "pipeline_s": 0.110481574,
+        "track_s": 0.098618456,
+        "callback_s": 0.099717197,
+        "outside_callback_lower_bound_s": 0.010764377000000006
+      },
+      {
+        "sample": 129.68,
+        "pipeline_s": 0.107943755,
+        "track_s": 0.096253067,
+        "callback_s": 0.09721936,
+        "outside_callback_lower_bound_s": 0.010724394999999998
+      },
+      {
+        "sample": 58.8,
+        "pipeline_s": 0.106408188,
+        "track_s": 0.09477255,
+        "callback_s": 0.095269677,
+        "outside_callback_lower_bound_s": 0.011138511000000004
+      },
+      {
+        "sample": 46.0,
+        "pipeline_s": 0.105237362,
+        "track_s": 0.103354544,
+        "callback_s": 0.104475982,
+        "outside_callback_lower_bound_s": 0.0007613800000000059
+      },
+      {
+        "sample": 129.8,
+        "pipeline_s": 0.101171805,
+        "track_s": 0.071921971,
+        "callback_s": 0.072912895,
+        "outside_callback_lower_bound_s": 0.028258909999999998
+      },
+      {
+        "sample": 38.36,
+        "pipeline_s": 0.100976756,
+        "track_s": 0.088907566,
+        "callback_s": 0.09000045,
+        "outside_callback_lower_bound_s": 0.010976306000000005
+      },
+      {
+        "sample": 55.8,
+        "pipeline_s": 0.100365987,
+        "track_s": 0.088438438,
+        "callback_s": 0.089510488,
+        "outside_callback_lower_bound_s": 0.010855499000000005
+      },
+      {
+        "sample": 83.6,
+        "pipeline_s": 0.098990051,
+        "track_s": 0.076403256,
+        "callback_s": 0.077258159,
+        "outside_callback_lower_bound_s": 0.02173189199999999
+      },
+      {
+        "sample": 85.16,
+        "pipeline_s": 0.098447228,
+        "track_s": 0.096045355,
+        "callback_s": 0.09772465,
+        "outside_callback_lower_bound_s": 0.0007225780000000015
+      },
+      {
+        "sample": 130.04,
+        "pipeline_s": 0.095626725,
+        "track_s": 0.084228562,
+        "callback_s": 0.084788293,
+        "outside_callback_lower_bound_s": 0.010838431999999995
+      },
+      {
+        "sample": 66.8,
+        "pipeline_s": 0.094902316,
+        "track_s": 0.068211973,
+        "callback_s": 0.06900776,
+        "outside_callback_lower_bound_s": 0.025894556
+      },
+      {
+        "sample": 53.52,
+        "pipeline_s": 0.094674079,
+        "track_s": 0.082938944,
+        "callback_s": 0.083150003,
+        "outside_callback_lower_bound_s": 0.011524075999999994
+      },
+      {
+        "sample": 130.16,
+        "pipeline_s": 0.092567931,
+        "track_s": 0.072797355,
+        "callback_s": 0.073695619,
+        "outside_callback_lower_bound_s": 0.018872312000000002
+      }
+    ],
+    "scope": "SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time"
+  }
+}
