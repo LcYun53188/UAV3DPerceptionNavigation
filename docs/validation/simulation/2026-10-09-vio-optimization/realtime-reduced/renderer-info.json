@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "requested": "default",
+  "fresh_log": true,
+  "vendor": "Intel",
+  "renderer": "Mesa Intel(R) Graphics (RPL-S)",
+  "source": "/home/nuc/.gz/rendering/ogre2.log",
+  "mtime_ns": 1791531496399416326,
+  "sha256": "5a903d34f6282622c6d6cdfaa80438425cb8cdda75b385a02db05fddefb5cd16"
+}

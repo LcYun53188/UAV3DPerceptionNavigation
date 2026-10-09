@@ -1,0 +1,127 @@
+{
+  "odometry.json": {
+    "archive": "odometry.json.gz",
+    "bytes": 1669565,
+    "sha256": "3a9c69ceb33bb0cc5424640652d3dbf8432c15e2a39a70d2f49360c591a5e80f"
+  },
+  "normalized-poses.json": {
+    "archive": "normalized-poses.json.gz",
+    "bytes": 3808480,
+    "sha256": "3b8999ef5468f869149473393074350e1cb8858d66bdf0069e51a66261cc2bb2"
+  },
+  "gazebo.log": {
+    "archive": "gazebo.log.gz",
+    "bytes": 1626,
+    "sha256": "1c95482b75fb3c7ca1f01cc0ff4bc18781c8fd8bb21ccf000d0803ee51748107"
+  },
+  "vio-params.yaml": {
+    "archive": "vio-params.yaml",
+    "bytes": 963,
+    "sha256": "739a5e66376a9fc9f4019f965b007ac2335e5eb7df07358d083d64330386e525"
+  },
+  "qgc.log": {
+    "archive": "qgc.log.gz",
+    "bytes": 68031,
+    "sha256": "05cd95a65a1c9e18fe78753b7217c5a3508e211215db41e0edf5fbbfd8557ed3"
+  },
+  "sensor_bridge.log": {
+    "archive": "sensor_bridge.log.gz",
+    "bytes": 1484,
+    "sha256": "a37e03180ff489d43f041d620e8d90ed9f428cf0bcb4c6d6603fd96a81c6b7a9"
+  },
+  "motion-independent-assessment.json": {
+    "archive": "motion-independent-assessment.json",
+    "bytes": 450,
+    "sha256": "ef3d7cbd2afc8983e870513c6bc4a1d54c5d00e32c7b409663f670e3f468ff92"
+  },
+  "motion-imu.json": {
+    "archive": "motion-imu.json.gz",
+    "bytes": 6718539,
+    "sha256": "2bd3bbf665aa562f5a36c83ebea539c5d734c0b7517b801febd93c4f4f8a7bf0"
+  },
+  "px4.log": {
+    "archive": "px4.log.gz",
+    "bytes": 5280,
+    "sha256": "a2bf65a9e5a1c170dac69a9d1afae1ca98a8a34625ed89d2251467da8df33a66"
+  },
+  "truth.json": {
+    "archive": "truth.json.gz",
+    "bytes": 3321122,
+    "sha256": "ce1b2dfcdf4981b12ebc79bc494922b5fe5a3add660fe4fca385a49d99e965e9"
+  },
+  "result.json": {
+    "archive": "result.json",
+    "bytes": 12085,
+    "sha256": "0bc59a9dc711379595a3206b13474dd93594a219466d1caf45f45e63bef5d7c8"
+  },
+  "samples.json": {
+    "archive": "samples.json.gz",
+    "bytes": 514625,
+    "sha256": "70349c43d9e369cbb26eeefbb46e9ae55cd657c7eff3a49ee52dad2ff770014f"
+  },
+  "sdk-poses.json": {
+    "archive": "sdk-poses.json.gz",
+    "bytes": 3856810,
+    "sha256": "7d4e5b43724c49badf1d4d5b812ac2638e970342bb6d1c45e8d45f3a6eb10773"
+  },
+  "vio.log": {
+    "archive": "vio.log.gz",
+    "bytes": 2560,
+    "sha256": "2097c8c4ea5d86177e6643a96124d51a7007cf65e53e89806390f8b26a6594cd"
+  },
+  "normalizer.log": {
+    "archive": "normalizer.log.gz",
+    "bytes": 421,
+    "sha256": "155061dd9e95a526c17cab3a15a5218013fdce6c3961465654eb16cdd0456319"
+  },
+  "agent.log": {
+    "archive": "agent.log.gz",
+    "bytes": 32833,
+    "sha256": "a9b186e7895b0f130e6bb2da6fd4daf77416cefa35404372237aa9922d720962"
+  },
+  "right.ppm": {
+    "archive": "right.ppm.gz",
+    "bytes": 432015,
+    "sha256": "1532aa9034bbedb0e3454d9fbba37a2a2b9a355623fb1e23768c8bee2d04c7a6"
+  },
+  "manifest.json": {
+    "archive": "manifest.json",
+    "bytes": 20038,
+    "sha256": "1f545faf4859df1443a8c94b5e6583c415e327b4936b5ae577374ca43f2b6cb1"
+  },
+  "normalized-status.json": {
+    "archive": "normalized-status.json.gz",
+    "bytes": 1480785,
+    "sha256": "033167c211ee04f8d3fd311d6a5cb306c00d1329694020e66460164a64ff3328"
+  },
+  "left.ppm": {
+    "archive": "left.ppm.gz",
+    "bytes": 432015,
+    "sha256": "6a954e031997a447999610011e91a9a92e672656ace879224aaaf29d7c9e8f00"
+  },
+  "calibration.json": {
+    "archive": "calibration.json",
+    "bytes": 2801,
+    "sha256": "ba56e5e2c31f07f852cc2a32fed72c80d56495ca9141f82ebb8b6713e552d58f"
+  },
+  "assets/default.sdf": {
+    "archive": "assets/default.sdf.gz",
+    "bytes": 353105,
+    "sha256": "9478f90bc22a9b4de037f4e310d5611a5cd7865e1fe533b2906c9e9eb6e87565"
+  },
+  "assets/frames.json": {
+    "archive": "assets/frames.json",
+    "bytes": 486,
+    "sha256": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761"
+  },
+  "assets/vio_motion_carrier/model.sdf": {
+    "archive": "assets/vio_motion_carrier/model.sdf",
+    "bytes": 3127,
+    "sha256": "7814e93b271878b2bd96f127e9eb7639b3b2da7efbc12bf145239c495917a600"
+  },
+  "assets/vio_motion_carrier/model.config": {
+    "archive": "assets/vio_motion_carrier/model.config",
+    "bytes": 100,
+    "sha256": "4d81bd841b8953fc1bae50f84d2d3849c3b79b1d406d63ec58bd1ef5879317cd"
+  }
+}

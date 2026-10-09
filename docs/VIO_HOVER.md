@@ -1,5 +1,11 @@
 # OAK-D Pro W 辅助室内悬停
 
+最新优化增加 480×300 仿真双目与显式 `bounded_gap` 协方差坏样本拒绝策略，
+保留 200 ms 原有效样本期限。最终 0.8×、120 s 未解锁融合一轮通过（连续 READY
+114.2 s），同配置仍有跟踪新鲜度失败；120 s 独立运动通过。FlightServer 已接入
+显式 `aligned_pose_v1` 准入门控，持续 EV 飞行会话与真实悬停仍待验收。见
+[负载优化与准入接入报告](validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
+
 SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建及 222 项测试通过。
 实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
 1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
@@ -261,8 +267,10 @@ QGC 就绪，再启动 VIO，避免把载台先于 PX4 出现带来的初始化�
 `pose_fusion.py` 已交付固定初始化对齐与仅位姿转换；`pose_fusion.json` 固定
 EV_CTRL=11（位置/高度/航向，关闭 EV 速度）、GNSS/磁/光流/测距高度/辅助全球
 位置/阻力辅助关闭，气压高度辅助保留。入口只做未解锁的独立合成输入审计。
-实际 `/uav/vio/pose` 可通过下述显式受管审计接入 PX4；FlightServer 尚无该模式的
-飞行入口，现有 `--require-vio` 仍要求默认完整 Odometry 和四类融合。
+实际 `/uav/vio/pose` 可通过下述显式受管审计接入 PX4；FlightServer 已支持
+`--require-vio --vio-fusion-profile aligned_pose_v1` 的仅位姿融合准入，检查本地速度
+有效性与 reset。默认仍要求完整 Odometry 和四类融合；飞行入口尚未管理真实
+相机源/持续 EV 写入，不能把该参数当作已完成悬停演示。
 
 对齐要求明确的已知仿真起点/航向及配置标识、未解锁着地、至少 2 s 静止位姿，
 最大平移 0.03 m、转角 0.03 rad、初始倾斜 ≤10°。只冻结 yaw 与平移，不重设

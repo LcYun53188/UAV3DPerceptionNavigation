@@ -1,0 +1,42 @@
+{
+  "gazebo.log": {
+    "archive": "gazebo.log.gz",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "clock_bridge.log": {
+    "archive": "clock_bridge.log.gz",
+    "bytes": 513,
+    "sha256": "9052d5d29d6690a6c6379b85d29311e75b177f7957d8a59ef5f68e8d7451df90"
+  },
+  "qgc.log": {
+    "archive": "qgc.log.gz",
+    "bytes": 68797,
+    "sha256": "0d5db620496d15701ffe8e81428eb69512827cb18b8434ab3be756f03a2256c1"
+  },
+  "cleanup.json": {
+    "archive": "cleanup.json",
+    "bytes": 67,
+    "sha256": "718e51c2ca70a306130a795220edc5893265fd81a69615a56b1ba99185c17806"
+  },
+  "observation.json": {
+    "archive": "observation.json",
+    "bytes": 1989,
+    "sha256": "b8a16f32fd31744e2880394a951bca1f0202a9693e785ffbb5c1042f8e294761"
+  },
+  "px4.log": {
+    "archive": "px4.log.gz",
+    "bytes": 5742,
+    "sha256": "934316f68a6b608c663ac08cc6179b9aa7fb453509791a29306dea7509b560fc"
+  },
+  "agent.log": {
+    "archive": "agent.log.gz",
+    "bytes": 32833,
+    "sha256": "207c70fdfeb5a6a977878858cd9ff39b7d65d6b5f3e17acd369a3aa74bb0e5ee"
+  },
+  "manifest.json": {
+    "archive": "manifest.json",
+    "bytes": 13722,
+    "sha256": "3c391c1fb6048ff11bdccbe8cd54ddf955750070b6f16b4417606bbad7cfa9f7"
+  }
+}

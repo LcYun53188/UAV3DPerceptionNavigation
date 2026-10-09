@@ -6,6 +6,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 当前按 **BT 飞行验证 → VIO 定点悬停 → 导航与避障** 三阶段推进，验收条件见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
 
+新增 480×300 双目负载优化、协方差坏样本拒绝及 FlightServer 仅位姿 VIO 准入。最终 0.8× 的 120 秒未解锁融合一轮通过，同配置仍有失败；真实悬停尚未验收。见 [最新优化报告](docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
+
 本机 PX4/BT 入口：首次执行 `./scripts/build_px4_sim.sh --jobs 4` 和 `./scripts/build_px4_flight.sh`，随后运行 `./scripts/sim.sh px4-flight --bt --ui`，显示 Gazebo/QGC 并执行逐步骤飞行 BT。任务完成后确认着陆解除武装并自动清理本次会话。详见 [PX4 运行说明](simulation/px4/README.md) 与 [BT 生命周期](src/uav_bt/README.md)。
 
 真实 VIO 传感器前置验证：构建 `./scripts/build_vio_node.sh` 后运行 `./scripts/sim.sh px4-vio-sensors --ui --duration 35`，检查 Gazebo 双目／IMU 经实际 cuVSLAM 的静止跟踪。全程未解锁，不发布外部视觉或飞行控制；参考模型尚非 OAK-D Pro W 标定模型，也尚未完成 VIO 悬停。见 [VIO 验证](docs/VIO_HOVER.md)。

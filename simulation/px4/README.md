@@ -258,3 +258,11 @@ SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建�
 实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
 1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
 [同步器与审计时钟修复报告](../../docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md)。
+
+## 最新 VIO 优化与准入接入
+
+双目可显式选择 `--image-resolution 480x300`，协方差异常样本可显式选择
+`--quality-policy bounded_gap`；默认分辨率和 strict 策略保留。FlightServer 支持
+`--require-vio --vio-fusion-profile aligned_pose_v1`，使用独立遥测构建及冻结的
+仅位姿 EKF 参数；持续 EV 飞行会话尚未实现。120 s 减速融合有成功和失败，
+不代表实时稳定或悬停通过。见 [优化报告](../../docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
