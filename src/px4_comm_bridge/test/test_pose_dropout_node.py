@@ -43,3 +43,11 @@ def test_strict_policy_still_retires_on_first_uncertain_sample():
     node=fixture();node.quality_policy='strict'
     CuvslamPose.accept_pose(node,uncertain(),None)
     assert node.fault=='VIO_UNCERTAINTY_INVALID' and node.dropped_samples==0
+
+
+def test_reordering_after_a_rejected_sample_still_retires_source():
+    node=fixture();node.last_input_stamp=10.08
+    node.continuity=SimpleNamespace(publisher='gid');node.publisher=lambda topic:'gid'
+    node.pending={};node.pose_topic='/sdk/pose'
+    CuvslamPose.on_pose(node,uncertain(10.04),None)
+    assert node.fault=='VIO_TIME_DISCONTINUITY' and not node.emitted
