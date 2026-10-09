@@ -247,3 +247,8 @@ EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV
 ```bash
 .venv/bin/python scripts/assess_vio_timing.py <run-or-archive-directory>
 ```
+
+融合审计可用 `--sdk-image-depth 1..10` 显式对照 SDK 图像队列；默认 10，
+原生 IMU 缓冲显式设为 144（旧 400 经 uint8_t 截断后的实际值），拒绝容量溢出。
+被动时序包含 SDK Track/UpdatePose 耗时；深度 1 单轮减少了回调外积压，但实时仍失败。
+详见 [SDK 时序及同步器接口复现](../../docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md)。
