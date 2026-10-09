@@ -1,0 +1,30 @@
+[
+  {
+    "mono": 94913.366803835,
+    "ros": 18.564,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 94913.870453316,
+    "ros": 19.068,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 94913.930538334,
+    "ros": 19.128,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 94914.434486496,
+    "ros": 19.632,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  }
+]
