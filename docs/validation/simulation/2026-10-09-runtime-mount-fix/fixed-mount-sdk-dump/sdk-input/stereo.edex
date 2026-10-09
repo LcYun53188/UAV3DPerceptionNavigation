@@ -1,0 +1,145 @@
+[
+	{
+		"cameras" : 
+		[
+			{
+				"intrinsics" : 
+				{
+					"distortion_model" : "pinhole",
+					"focal" : 
+					[
+						462.76058959960938,
+						462.76058959960938
+					],
+					"principal" : 
+					[
+						320.0,
+						200.0
+					],
+					"size" : 
+					[
+						640,
+						400
+					]
+				},
+				"transform" : 
+				[
+					[
+						1.0,
+						-5.3334210382365271e-17,
+						1.9063495564472694e-16,
+						-0.037500001490116119
+					],
+					[
+						2.1769408488925561e-18,
+						0.96592581272125244,
+						0.25881904363632202,
+						0.24199999868869781
+					],
+					[
+						-1.9794312944385745e-16,
+						-0.25881904363632202,
+						0.96592581272125244,
+						-0.11999999731779099
+					]
+				]
+			},
+			{
+				"intrinsics" : 
+				{
+					"distortion_model" : "pinhole",
+					"focal" : 
+					[
+						462.76058959960938,
+						462.76058959960938
+					],
+					"principal" : 
+					[
+						320.0,
+						200.0
+					],
+					"size" : 
+					[
+						640,
+						400
+					]
+				},
+				"transform" : 
+				[
+					[
+						1.0,
+						-5.3334210382365271e-17,
+						1.9063495564472694e-16,
+						0.037500001490116119
+					],
+					[
+						2.1769408488925561e-18,
+						0.96592581272125244,
+						0.25881904363632202,
+						0.24199999868869781
+					],
+					[
+						-1.9794312944385745e-16,
+						-0.25881904363632202,
+						0.96592581272125244,
+						-0.11999999731779099
+					]
+				]
+			}
+		],
+		"configuration" : 
+		{
+			"enable_landmarks_export" : false,
+			"enable_observations_export" : false,
+			"multicam_mode" : 0,
+			"odometry_mode" : 1,
+			"rectified_stereo_camera" : true,
+			"rgbd_settings" : 
+			{
+				"depth_scale_factor" : 1.0,
+				"enable_depth_stereo_tracking" : false
+			},
+			"use_denoising" : false,
+			"use_gpu" : true,
+			"use_motion_model" : true
+		},
+		"cuvslam_version_major" : 15,
+		"cuvslam_version_minor" : 0,
+		"frame_end" : 1,
+		"frame_start" : 0,
+		"imu" : 
+		{
+			"measurements" : "IMU.jsonl",
+			"transform" : 
+			[
+				[
+					1.0,
+					0.0,
+					0.0,
+					0.0
+				],
+				[
+					0.0,
+					1.0,
+					0.0,
+					0.24199999868869781
+				],
+				[
+					0.0,
+					0.0,
+					1.0,
+					-0.11999999731779099
+				]
+			]
+		},
+		"version" : "0.9"
+	},
+	{
+		"frame_metadata" : "frame_metadata.jsonl",
+		"sequence" : 
+		[
+			"images/cam0.00000.tga",
+			"images/cam1.00000.tga"
+		]
+	}
+]

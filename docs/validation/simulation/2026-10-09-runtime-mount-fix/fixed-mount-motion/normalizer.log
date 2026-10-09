@@ -1,0 +1,7 @@
+[WARN] [1791539942.242293908] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791539942.242329752] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[WARN] [1791539952.461510156] [cuvslam_pose]: Pose sample rejected; last-good deadline retained: VIO_UNCERTAINTY_INVALID
+[WARN] [1791539952.468382267] [cuvslam_pose]: Pose sample rejected; last-good deadline retained: VIO_UNCERTAINTY_INVALID
+[WARN] [1791539952.518180097] [cuvslam_pose]: Pose sample rejected; last-good deadline retained: VIO_UNCERTAINTY_INVALID
+[WARN] [1791539952.548757606] [cuvslam_pose]: Pose sample rejected; last-good deadline retained: VIO_UNCERTAINTY_INVALID
+[WARN] [1791539952.570210785] [cuvslam_pose]: Source retired: VIO_SAMPLE_STALE

@@ -1,8 +1,8 @@
 # 仓库场景与分阶段 VIO 验证
 
-最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。
+已修复运行时静态 TF 忽略相机下倾的问题。640×400 仓库 VIO 的 120 秒三轴运动／转向与归一化源检查通过，位置 RMSE 1.64 cm；480×300 仍有协方差／时效失败。同机 120 秒融合仍未通过，结果与边界见 [运行时外参报告](validation/simulation/2026-10-09-runtime-mount-fix/REPORT.md)。仓库悬停和导航尚未执行。
 
-已实测六轮，VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。
+初始六轮实测的 VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。
 详见 [原始结果与重放](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
 
 新增 `--scene warehouse` 使用 14×14 m、6 m 高的通用室内参考布局。
@@ -23,12 +23,13 @@
 ```bash
 # 同一架未解锁 x500：双目/IMU -> 实际 cuVSLAM -> 归一化 -> 固定对齐 -> PX4 EKF
 ./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene warehouse \
-  --image-resolution 480x300 --quality-policy bounded_gap --sdk-image-depth 1 \
-  --real-time-factor .8 --duration 120 --ui
+  --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
+  --quality-policy bounded_gap --real-time-factor .8 --duration 120 --ui
 
 # 独立载台三轴移动/转向：真值仅供误差审计，PX4 不解锁、不接收 EV
 ./scripts/sim.sh px4-vio-sensors --normalize --motion --scene warehouse \
-  --image-resolution 480x300 --quality-policy bounded_gap --duration 120 --ui
+  --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
+  --quality-policy bounded_gap --duration 120 --ui
 
 # 只读验收；传入脚本输出的缓存目录
 python3 scripts/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
@@ -61,3 +62,8 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 后续需要带同机传感器模型的飞行 profile、持续 EV 写入会话及唯一 FlightServer
 控制输出；VIO 在着地时仅初始化一次，飞行中继续使用原采样，失效锁存且不重发旧值。
 真值只能用于审计。源前置检查未通过时不得进入飞行；导航/避障也仍为独立待实现阶段。
+
+显式 `--sdk-debug-dump` 将 SDK 实际消费的图像／IMU及外参写入缓存 `sdk-input`，
+只供诊断，退出码为 1、整体验收标记恒为 false。输入摘要可用
+`python3 scripts/audit_vio_sdk_dump.py <run>/sdk-input --output /tmp/sdk-input-receipt.json` 生成；
+记录负载不代表正常运行性能，尚未实现原生 SDK 的同输入回放对照。

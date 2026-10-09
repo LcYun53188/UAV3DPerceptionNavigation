@@ -1,0 +1,4 @@
+[WARN] [1791540184.235808564] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791540184.235838652] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[WARN] [1791540225.180723241] [cuvslam_pose]: Tracking rejected: {'ros': 37.6, 'tracking_stamp': 37.4, 'receive_gap': 0.030147552010021172, 'vo_state': 1, 'sample': None}
+[WARN] [1791540225.181243981] [cuvslam_pose]: Source retired: VIO_TRACKING_INVALID

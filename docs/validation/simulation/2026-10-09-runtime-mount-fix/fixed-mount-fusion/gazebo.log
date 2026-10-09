@@ -1,0 +1,15 @@
+[1;33mWarning [Utils.cc:132][0m [/sdf/model[@name="x500_vio_ref"]/link[@name="vio_rig_link"]/sensor[@name="left"]/gz_frame_id:/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/01be81ec-b4d7-437f-b50a-210fcebdc9fd/assets/x500_vio_ref/model.sdf:L22]: XML Element[gz_frame_id], child of element[sensor], not defined in SDF. Copying[gz_frame_id] as children of [sensor].
+[1;33mWarning [Utils.cc:132][0m [/sdf/model[@name="x500_vio_ref"]/link[@name="vio_rig_link"]/sensor[@name="right"]/gz_frame_id:/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/01be81ec-b4d7-437f-b50a-210fcebdc9fd/assets/x500_vio_ref/model.sdf:L43]: XML Element[gz_frame_id], child of element[sensor], not defined in SDF. Copying[gz_frame_id] as children of [sensor].
+[1;33mWarning [Utils.cc:132][0m [/sdf/model[@name="x500_vio_ref"]/link[@name="vio_rig_link"]/sensor[@name="vio_imu"]/gz_frame_id:/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/01be81ec-b4d7-437f-b50a-210fcebdc9fd/assets/x500_vio_ref/model.sdf:L63]: XML Element[gz_frame_id], child of element[sensor], not defined in SDF. Copying[gz_frame_id] as children of [sensor].
+libEGL warning: pci id for fd 52: 10de:2860, driver (null)
+
+pci id for fd 53: 10de:2860, driver (null)
+pci id for fd 54: 10de:2860, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 52: 10de:2860, driver (null)
+
+pci id for fd 53: 10de:2860, driver (null)
+pci id for fd 54: 10de:2860, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 52: 10de:2860, driver (null)
+
