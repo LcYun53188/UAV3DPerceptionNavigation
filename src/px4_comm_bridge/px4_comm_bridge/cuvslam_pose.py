@@ -8,7 +8,7 @@ sliding-window covariance in the upstream Odometry topic. No velocity inferred.
 import copy
 import math
 import numpy as np
-from .vio_input import covariance, stamp_s
+from .vio_input import covariance
 
 CONTRACT = 'cuvslam15_right_tangent_base_link_v1'
 SOURCE_PARAMETERS = dict(base_frame='base_link',odom_frame='odom',tracking_mode=1,
@@ -27,11 +27,16 @@ def rotation(q):
                      [2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)]])
 
 
-def normalize_pose(message, now_s):
+def fresh_stamp(now_ns, stamp):
+    """Inclusive original 200 ms age / 50 ms future bounds in ROS nanoseconds."""
+    sample_ns=stamp.sec*1_000_000_000+stamp.nanosec
+    return sample_ns>0 and -50_000_000<=now_ns-sample_ns<=200_000_000
+
+
+def normalize_pose(message, now_s, *, now_ns=None):
     if message.header.frame_id != 'odom':
         raise ValueError('VIO_FRAME_INVALID')
-    t = stamp_s(message.header.stamp)
-    if t <= 0 or not -.05 <= now_s-t <= .2:
+    if not fresh_stamp(round(now_s*1e9) if now_ns is None else now_ns,message.header.stamp):
         raise ValueError('VIO_SAMPLE_STALE')
     p = message.pose.pose.position
     if not all(math.isfinite(v) for v in (p.x,p.y,p.z)):

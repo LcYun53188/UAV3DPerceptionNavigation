@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from px4_comm_bridge.cuvslam_pose import normalize_pose
+from px4_comm_bridge.cuvslam_pose import normalize_pose, fresh_stamp
 
 
 def sample():
@@ -62,3 +62,22 @@ def test_unknown_or_invalid_measurement_not_given_confidence(fault):
     if fault == 'nonfinite_pose': m.pose.pose.position.x = math.inf
     if fault == 'quaternion': m.pose.pose.orientation.w = 0.
     with pytest.raises(ValueError): normalize_pose(m,10.)
+
+
+@pytest.mark.parametrize('now,stamp',[(34.2,34.),(37.6,37.4)])
+def test_exact_age_limit_is_not_rejected_by_float_subtraction(now,stamp):
+    m=sample();m.header.stamp.sec=int(stamp);m.header.stamp.nanosec=round((stamp-int(stamp))*1e9)
+    assert now-stamp>.2  # Reproduce the observed old comparison failure.
+    assert normalize_pose(m,now)==m
+
+
+@pytest.mark.parametrize('age_ns,expected',[(200_000_000,True),(200_000_001,False),
+    (-50_000_000,True),(-50_000_001,False)])
+def test_nanosecond_bounds_remain_exact_at_epoch_time(age_ns,expected):
+    m=sample();m.header.stamp.sec=1_791_540_000;m.header.stamp.nanosec=1
+    now_ns=m.header.stamp.sec*1_000_000_000+m.header.stamp.nanosec+age_ns
+    assert fresh_stamp(now_ns,m.header.stamp)==expected
+    if expected:assert normalize_pose(m,now_ns/1e9,now_ns=now_ns)==m
+    else:
+        with pytest.raises(ValueError,match='VIO_SAMPLE_STALE'):
+            normalize_pose(m,now_ns/1e9,now_ns=now_ns)
