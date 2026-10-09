@@ -54,6 +54,8 @@ def main():
     parser.add_argument('--vio-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry',help='Explicit VIO admission profile; existing W0 scene authorization still required')
     parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
     parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
+    parser.add_argument('--depth-mapping', action='store_true', help='Disarmed actual depth to nvblox ESDF audit; requires --depth-reference')
+    parser.add_argument('--depth-reference', action='store_true', help='Audit same-X500 fixed 5 degree RGBD reference, disarmed only')
     parser.add_argument('--depth-camera', action='store_true', help='Audit pinned x500_depth camera, disarmed only')
     parser.add_argument('--duration', type=float, default=45)
     parser.add_argument('--mission-file', type=Path, help='Custom W0 JSON recipe; NAVIGATE offset_enu is relative to launch')
@@ -65,18 +67,22 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.depth_mapping and not args.depth_reference:
+        parser.error('--depth-mapping requires --depth-reference')
     if args.vio_fusion_profile!='full_odometry' and not args.require_vio:
         parser.error('--vio-fusion-profile requires --require-vio')
     if args.vision_fusion_profile!='full_odometry' and not args.vision_fusion_smoke:
         parser.error('--vision-fusion-profile requires --vision-fusion-smoke')
-    if args.vision_fusion_smoke and (args.flight or args.bt or args.depth_camera or args.aircraft_state or args.mission_file or args.flight_scenario != 'full'):
+    if args.vision_fusion_smoke and (args.flight or args.bt or args.depth_camera or args.depth_reference or args.aircraft_state or args.mission_file or args.flight_scenario != 'full'):
         parser.error('--vision-fusion-smoke is an independent disarmed audit')
     if args.require_vio and (not args.flight or not re.fullmatch('[0-9a-f]{64}', args.vio_calibration_id)):
         parser.error('--require-vio needs --flight and --vio-calibration-id SHA256')
     if args.vio_calibration_id and not args.require_vio:
         parser.error('--vio-calibration-id requires --require-vio')
-    if args.depth_camera and (args.flight or args.bt or args.mission_file or args.flight_scenario != 'full'):
+    if (args.depth_camera or args.depth_reference) and (args.flight or args.bt or args.mission_file or args.flight_scenario != 'full'):
         parser.error('--depth-camera is a disarmed profile and cannot use flight options')
+    if args.depth_camera and args.depth_reference:
+        parser.error('Select exactly one depth profile')
     if args.bt and not args.flight:
         parser.error('--bt requires --flight')
     if args.flight_scenario in ('runner-exit','runner-stall') and not args.bt:
@@ -110,14 +116,27 @@ def main():
     models = px4 / 'Tools/simulation/gz/models'
     worlds = px4 / 'Tools/simulation/gz/worlds'
     model_name = 'x500_depth' if args.depth_camera else 'x500'
+    depth_profile = None
+    model_file = models / model_name / 'model.sdf'
+    world_file = worlds / 'default.sdf'
+    resource_models = str(models)
+    if args.depth_reference:
+        from prepare_px4_depth_assets import depth_assets
+        depth_profile, _ = depth_assets(run_dir / 'assets', world_file)
+        model_name = depth_profile['model']
+        model_file = run_dir / 'assets' / model_name / 'model.sdf'
+        world_file = run_dir / 'assets/default.sdf'
+        resource_models = f'{run_dir / "assets"}:{models}'
     env = dict(os.environ, ROS_DOMAIN_ID=str(domain), ROS_LOCALHOST_ONLY='1',
                GZ_PARTITION=f'uav_px4_s0_{run_id}', GZ_IP='127.0.0.1',
                PX4_SIM_MODEL=f'gz_{model_name}', PX4_GZ_STANDALONE='1', PX4_GZ_WORLD='default',
                HEADLESS='1', PX4_UXRCE_DDS_PORT=str(xrce_port), PX4_PARAM_UXRCE_DDS_SYNCT='0',
-               PX4_GZ_MODELS=str(models), PX4_GZ_WORLDS=str(worlds),
-               GZ_SIM_RESOURCE_PATH=f"{models}:{worlds}:" + os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
+               PX4_GZ_MODELS=str(model_file.parent.parent), PX4_GZ_WORLDS=str(world_file.parent),
+               GZ_SIM_RESOURCE_PATH=f"{resource_models}:{world_file.parent}:" + os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
                GZ_SIM_SYSTEM_PLUGIN_PATH=str(build / 'src/modules/simulation/gz_plugins') + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
                GZ_SIM_SERVER_CONFIG_PATH=str(ROOT / 'simulation/px4/server_control.config'))
+    if args.depth_reference:
+        env['PX4_SYS_AUTOSTART'] = '4001'
     if args.vision_fusion_smoke:
         env.update(PX4_PARAM_EKF2_EV_CTRL='11' if args.vision_fusion_profile=='aligned_pose_v1' else '15', PX4_PARAM_EKF2_GPS_CTRL='0',
                    PX4_PARAM_EKF2_MAG_TYPE='5', PX4_PARAM_EKF2_HGT_REF='3',
@@ -149,9 +168,9 @@ def main():
                     vio_fusion_profile=args.vio_fusion_profile,flight_profile_sha256=file_hash(ROOT/'simulation/safe_regions/W0.json') if args.flight else None,
                     px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
                     tool_sha256=file_hash(Path(__file__)),
-                    world_sha256=file_hash(worlds / 'default.sdf'),
+                    world_sha256=file_hash(world_file),
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
-                    model_sha256=file_hash(models / f'{model_name}/model.sdf'),
+                    model_sha256=file_hash(model_file),
                     navigation_backend=args.navigation_backend,hardware_camera='OAK-D Pro W', require_vio=args.require_vio,
                     vision_fusion_smoke=args.vision_fusion_smoke,
                     vision_fusion_profile=args.vision_fusion_profile,
@@ -161,11 +180,16 @@ def main():
                     vision_audit_sha256=file_hash(ROOT/'scripts/px4_vision_audit.py') if args.vision_fusion_smoke else None,
                     vio_gate_sha256=file_hash(ROOT/'src/uav_mission/uav_mission/vio_gate.py') if args.vision_fusion_smoke else None,
                     vio_calibration_id=args.vio_calibration_id or None,
-                    sensor_profile='px4-reference-oakd-lite-disarmed' if args.depth_camera else None,
-                    sensor_topics={'depth': '/depth_camera', 'camera_info': '/camera_info'} if args.depth_camera else {},
+                    depth_mapping=args.depth_mapping,
+                    mapping_source_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'scripts/px4_mapping_tf.py', ROOT/'src/uav_nav_sim/uav_nav_sim/map_session.py', ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml')} if args.depth_mapping else None,
+                    depth_reference_profile=depth_profile,
+                    depth_reference_assets_sha256={str(p.relative_to(run_dir)):file_hash(p) for p in (run_dir/'assets').rglob('*') if p.is_file()} if args.depth_reference else None,
+                    sensor_profile='fixed-five-degree-rgbd-disarmed' if args.depth_reference else ('px4-reference-oakd-lite-disarmed' if args.depth_camera else None),
+                    sensor_topics=depth_profile['topics'] if args.depth_reference else ({'depth': '/depth_camera', 'camera_info': '/camera_info'} if args.depth_camera else {}),
                     model_dependencies_sha256={name: file_hash(models / name / 'model.sdf')
-                                               for name in ('x500', 'x500_base', 'OakD-Lite')} if args.depth_camera else {},
-                    depth_audit_sha256=file_hash(ROOT / 'scripts/px4_depth_audit.py') if args.depth_camera else None,
+                                               for name in (('x500', 'x500_base', 'OakD-Lite') if args.depth_camera else ('x500', 'x500_base'))} if args.depth_camera or args.depth_reference else {},
+                    depth_generator_sha256={name:file_hash(ROOT/'scripts'/name) for name in ('prepare_px4_depth_assets.py','prepare_vio_sensor_assets.py')} if args.depth_reference else None,
+                    depth_audit_sha256=file_hash(ROOT / 'scripts/px4_depth_audit.py') if args.depth_camera or args.depth_reference else None,
                     processes={})
     write_json(run_dir / 'manifest.json', manifest)
     processes, logs, managed = [], [], {}
@@ -207,10 +231,10 @@ def main():
         from uav_nav_interfaces.msg import AircraftState
         node.create_subscription(AircraftState, '/aircraft_state', callback('aircraft_state'), 10)
     depth_audit = None
-    if args.depth_camera:
+    if args.depth_camera or args.depth_reference:
         from px4_depth_audit import DepthAudit
         from sensor_msgs.msg import Image, CameraInfo
-        depth_audit = DepthAudit()
+        depth_audit = DepthAudit(depth_profile)
         node.create_subscription(Image, '/px4_depth/image',
                                  lambda m: depth_audit.image(m, time.monotonic()), qos_profile_sensor_data)
         node.create_subscription(CameraInfo, '/px4_depth/camera_info',
@@ -223,17 +247,43 @@ def main():
     failure = None
     try:
         launch('agent', [ROOT / '.deps/microxrce-install/bin/MicroXRCEAgent', 'udp4', '-p', str(xrce_port)])
-        launch('gazebo', ['gz', 'sim', '-r', '-s', worlds / 'default.sdf'])
+        launch('gazebo', ['gz', 'sim', '-r', '-s', *(['--headless-rendering'] if args.depth_reference else []), world_file])
         if args.ui:
             launch('gazebo_gui', ['gz', 'sim', '-g'])
         launch('clock_bridge', ['ros2', 'run', 'ros_gz_bridge', 'parameter_bridge',
                                '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'])
-        if args.depth_camera:
+        if args.depth_reference:
+            launch('depth_bridge', ['ros2', 'run', 'ros_gz_bridge', 'parameter_bridge',
+                '/px4_reference/rgbd/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
+                '/px4_reference/rgbd/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+                '--ros-args', '-r', '/px4_reference/rgbd/depth_image:=/px4_depth/image',
+                '-r', '/px4_reference/rgbd/camera_info:=/px4_depth/camera_info'])
+        elif args.depth_camera:
             launch('depth_bridge', ['ros2', 'run', 'ros_gz_bridge', 'parameter_bridge',
                                    '/depth_camera@sensor_msgs/msg/Image[gz.msgs.Image',
                                    '/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
                                    '--ros-args', '-r', '/depth_camera:=/px4_depth/image',
                                    '-r', '/camera_info:=/px4_depth/camera_info'])
+        if args.depth_mapping:
+            # Only these owned mapping processes source the large-map transport profile.
+            mapping_env = dict(env, FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
+                               FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
+            def mapping_launch(name, command, transport=False):
+                return launch(name, ['bash','-e','-c',
+                    'source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; shift; exec "$@"',
+                    'mapping', str(ROOT), *map(str, command)], mapping_env if transport else env)
+            mapping_launch('mapping_tf', ['python', ROOT/'scripts/px4_mapping_tf.py',
+                          run_dir/'assets/frames.json', run_dir/'depth-map.json'])
+            mapping_launch('nvblox', ['ros2','run','nvblox_ros','nvblox_node','--ros-args',
+                '--params-file', ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml',
+                '-p','use_sim_time:=true','-p','use_color:=false',
+                '-r','camera_0/depth/image:=/uav/mapping/depth',
+                '-r','camera_0/depth/camera_info:=/uav/mapping/camera_info'], True)
+            mapping_launch('map_session', ['ros2','run','uav_nav_sim','map_session','--ros-args',
+                '-p','use_sim_time:=true','-p',f'scene_id:={file_hash(world_file)}',
+                '-p','aabb_min:=[-5.0,-5.0,0.0]','-p','aabb_size:=[10.0,10.0,4.0]',
+                '-r','/rgbd_camera/depth_image:=/px4_depth/image',
+                '-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'], True)
         launch('px4', [build / 'bin/px4', '-d', '-i', str(instance), '-w', run_dir / 'rootfs', build / 'etc'])
         config = run_dir / 'qgc-config/QGroundControl'
         config.mkdir(parents=True)
@@ -290,6 +340,11 @@ def main():
             write_json(run_dir / 'depth-camera.json', depth_result)
             result['depth_camera_passed'] = depth_result['passed']
             result['passed'] = result['passed'] and depth_result['passed']
+        if args.depth_mapping:
+            depth_map = read(run_dir/'depth-map.json') if (run_dir/'depth-map.json').is_file() else {}
+            fresh = time.monotonic() - depth_map.get('captured_monotonic', 0) < 2.
+            result['depth_mapping_passed'] = bool(depth_map.get('passed') and fresh)
+            result['passed'] = result['passed'] and result['depth_mapping_passed']
         if vision_audit is not None:
             vision_audit.stop_input()
             until = time.monotonic()+6
