@@ -1,7 +1,7 @@
 """Paired normalized VIO source -> fixed launch alignment, with terminal retirement.
 
 No ROS graph access or publishers. The caller supplies verified endpoint GIDs and
-fresh ground state. This stream is deliberately disarmed-audit-only.
+fresh aircraft state. The default stream is deliberately disarmed-audit-only.
 """
 from .pose_fusion import PoseAlignment, checked_pose, convert_aligned_pose
 from .vio_input import SourceContinuity, stamp_s
@@ -12,6 +12,8 @@ def stamp_ns(stamp):
 
 
 class AlignedPoseStream:
+    flight_continuity = False
+
     def __init__(self,calibration,position,yaw,anchor_id):
         self.calibration=calibration
         self.alignment=PoseAlignment(position,yaw,anchor_id)
@@ -37,12 +39,13 @@ class AlignedPoseStream:
             self.last_receive=None
         return None
 
-    def check(self,ros,mono,*,ground,incoming_sample=None):
+    def check(self,ros,mono,*,ground,airborne=False,incoming_sample=None):
         if self.last_clock is not None and ros<self.last_clock:
             self.fault=self.fault or 'VIO_CLOCK_RESET'
         self.last_clock=ros
         if self.fault: return self.reject(self.fault)
-        if not ground: return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
+        if not ground and not (self.flight_continuity and self.bound and airborne):
+            return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
         if self.bound and (self.last_receive is None or mono-self.last_receive>.2):
             return self.reject('VIO_RECEIVE_GAP')
         sample=self.alignment.last_stamp if self.bound and incoming_sample is None else incoming_sample
@@ -50,8 +53,8 @@ class AlignedPoseStream:
             return self.reject('VIO_SAMPLE_STALE')
         return True
 
-    def accept(self,pose,status,ros,mono,*,pose_gid,status_gid,ground):
-        if not self.check(ros,mono,ground=ground,incoming_sample=stamp_s(pose.header.stamp)): return None
+    def accept(self,pose,status,ros,mono,*,pose_gid,status_gid,ground,airborne=False):
+        if not self.check(ros,mono,ground=ground,airborne=airborne,incoming_sample=stamp_s(pose.header.stamp)): return None
         try:
             if (not status.valid or status.reason or status.header.frame_id!='odom'
                     or status.calibration_id!=self.calibration or not status.localization_session
@@ -85,3 +88,16 @@ class AlignedPoseStream:
             return aligned,converted
         except ValueError as exc:
             return self.reject(str(exc))
+
+
+class FlightAlignedPoseStream(AlignedPoseStream):
+    """Ground initialization followed by continuous original-time airborne poses.
+
+    This pure policy publishes nothing and grants no flight authorization. A flight
+    supervisor must supply fresh, unique PX4 state: ground means disarmed AND
+    landed, airborne means armed AND not landed. Missing/stale state supplies
+    neither. Only an already bound ground alignment can continue airborne; all
+    original identity, covariance, clock and freshness faults remain terminal.
+    The disarmed audit must continue using AlignedPoseStream.
+    """
+    flight_continuity = True
