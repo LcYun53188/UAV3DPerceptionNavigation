@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "run_id": "01be81ec-b4d7-437f-b50a-210fcebdc9fd",
+  "case": "WH-V01",
+  "passed": false,
+  "checks": {
+    "warehouse_scene": true,
+    "generated_assets_match": true,
+    "clearance_matches": true,
+    "layout_current": true,
+    "texture_integrity": true,
+    "disarmed": true,
+    "cleanup": true,
+    "raw_passed": false,
+    "full_duration": true,
+    "sustained_ready": false
+  },
+  "raw_passed": false,
+  "flight_authorized": false,
+  "pending_cases": [
+    "WH-F01",
+    "WH-F02",
+    "WH-F03",
+    "WH-N01"
+  ],
+  "scope": "source prerequisite only; flight/hover/navigation not evaluated",
+  "artifacts": {
+    "world_sha256": "961fc2155ebd89d3b74cced56163ba332c36fba6039647325c0b6ea2178d4bfe",
+    "model_sha256": "036fd39ea96b2caad7fd17fd8e560aab592c8370e8eb5681ab54a7092c536759"
+  }
+}

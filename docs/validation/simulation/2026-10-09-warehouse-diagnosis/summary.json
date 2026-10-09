@@ -1,0 +1,90 @@
+{
+  "baseline-vio": {
+    "run_id": "987ce969-2f0c-4fd0-864a-0ff2c9d65ebb",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "diagnostic_passed": null,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "floor-vio": {
+    "run_id": "065078be-9cd6-4b98-acbd-677af3db8848",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "diagnostic_passed": null,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "pitched-vio": {
+    "run_id": "66878fd8-367f-43af-bd97-dbe9609a4fcc",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "diagnostic_passed": null,
+    "normalizer_exit": 0,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": null,
+      "position_max_m": null,
+      "orientation_max_deg": null
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  },
+  "pitched-stereo-diagnostic": {
+    "run_id": "5925a4ed-0bfe-4003-9a4a-775eefc7b4f9",
+    "passed": false,
+    "qualification": false,
+    "cleanup_confirmed": true,
+    "diagnostic_passed": true,
+    "normalizer_exit": null,
+    "resolution": [
+      480,
+      300
+    ],
+    "motion": {
+      "position_rmse_m": 0.0870228442964267,
+      "position_max_m": 0.16571990117923022,
+      "orientation_max_deg": 6.341967080332455
+    },
+    "fusion": {
+      "input_count": null,
+      "longest_ready_s": null,
+      "source_fault": null
+    }
+  }
+}

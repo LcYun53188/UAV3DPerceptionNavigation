@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="700" viewBox="0 0 660 700">
+<rect width="660" height="700" fill="white"/>
+<text x="30" y="25" font-size="18">Warehouse: planned flight volume and static obstacles</text>
+<rect x="170.0" y="180.0" width="320" height="320" fill="#fff1bd" stroke="#d69c16"/>
+<rect x="250.0" y="260.0" width="160" height="160" fill="#d9f1df" stroke="#148540"/>
+<rect x="606.0" y="56.0" width="8.0" height="568.0" fill="#677783" stroke="#35434c"/>
+<rect x="46.0" y="56.0" width="8.0" height="568.0" fill="#677783" stroke="#35434c"/>
+<rect x="50.0" y="56.0" width="560" height="8.0" fill="#677783" stroke="#35434c"/>
+<rect x="50.0" y="616.0" width="560" height="8.0" fill="#677783" stroke="#35434c"/>
+<rect x="510.0" y="60.0" width="8.0" height="232.0" fill="#677783" stroke="#35434c"/>
+<rect x="510.0" y="388.0" width="8.0" height="232.0" fill="#677783" stroke="#35434c"/>
+<rect x="510.0" y="292.0" width="8.0" height="96.0" fill="#677783" stroke="#35434c"/>
+<rect x="130.0" y="140.0" width="16.0" height="16.0" fill="#677783" stroke="#35434c"/>
+<rect x="130.0" y="524.0" width="16.0" height="16.0" fill="#677783" stroke="#35434c"/>
+<rect x="190.0" y="110.0" width="200" height="28.0" fill="#677783" stroke="#35434c"/>
+<rect x="270.0" y="542.0" width="160" height="28.0" fill="#677783" stroke="#35434c"/>
+<rect x="558.0" y="148.0" width="24.0" height="120" fill="#677783" stroke="#35434c"/>
+<rect x="532.0" y="402.0" width="28.0" height="36.0" fill="#677783" stroke="#35434c"/>
+<rect x="102.0" y="286.0" width="32.0" height="44.0" fill="#677783" stroke="#35434c"/>
+<circle cx="330" cy="340" r="5" fill="#d84444"/>
+<text x="30" y="650" font-size="14">Green: planned x/y +/-2 m; initial hover and waypoints</text>
+<text x="30" y="675" font-size="14">Yellow: body + tracking + braking inflation; no door traversal</text>
+</svg>
