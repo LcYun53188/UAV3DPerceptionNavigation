@@ -30,7 +30,8 @@
 # 独立载台三轴移动/转向：真值仅供误差审计，PX4 不解锁、不接收 EV
 ./scripts/sim.sh px4-vio-sensors --normalize --motion --scene warehouse \
   --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
-  --quality-policy bounded_gap --duration 120 --ui
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --duration 120
 
 # 只读验收；传入脚本输出的缓存目录
 python3 scripts/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
@@ -68,3 +69,7 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 只供诊断，退出码为 1、整体验收标记恒为 false。输入摘要可用
 `python3 scripts/audit_vio_sdk_dump.py <run>/sdk-input --output /tmp/sdk-input-receipt.json` 生成；
 记录负载不代表正常运行性能，尚未实现原生 SDK 的同输入回放对照。
+
+同低负载配置 WH-V02 已完成 120 s 运动验收，RMSE 2.60 cm、最大 3.78 cm，
+原始证据与重放见 [运动报告](validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)。
+空中持续原样本的纯流策略已有单元验证，实际持续 EV/仓库 BT 飞行接入仍待完成。

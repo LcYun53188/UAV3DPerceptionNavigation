@@ -8,7 +8,7 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 新增室内仓库场景（墙、门洞、立柱、货架及纹理），可通过 `px4-vio-sensors --scene warehouse` 验证实际双目／IMU VIO；仓库飞行与避障尚待验收。入口和门槛见 [仓库场景说明](docs/WAREHOUSE_SIMULATION.md)。
 
-仓库 VIO 已通过 120 秒运动验证（RMSE 1.64 cm），同机 120 秒融合在显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 延迟缓冲 160 ms 配置下连续两轮通过（READY 约 114.02 s）。默认／带 UI 配置仍有失败，仓库 VIO 悬停与导航尚未执行。见 [最新融合报告](docs/validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
+仓库 VIO 已通过同低负载配置 120 秒运动验证（RMSE 2.60 cm，最大 3.78 cm），同机 120 秒融合在显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 延迟缓冲 160 ms 配置下连续两轮通过（READY 约 114.02 s）。默认／带 UI 配置仍有失败，仓库 VIO 悬停与导航尚未执行。运动证据见 [最新运动报告](docs/validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)，融合证据见 [最新融合报告](docs/validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
 
 新增 480×300 双目负载优化、协方差坏样本拒绝及 FlightServer 仅位姿 VIO 准入。最终 0.8× 的 120 秒未解锁融合一轮通过，同配置仍有失败；真实悬停尚未验收。见 [最新优化报告](docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
 

@@ -1,6 +1,8 @@
 # PX4 官方链路三阶段集成
 
-640×400 仓库 VIO 运动验证已通过，显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败，仓库悬停和导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
+640×400 仓库 VIO 同低负载配置 120 s 运动验证已通过（RMSE 2.60 cm，最大 3.78 cm），显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败，仓库悬停和导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
+
+低负载运动与空中持续流策略的验证边界见 [运动报告](validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)。空中持续 EV、仓库 FlightServer/BT 接入及真实飞行仍待完成。
 
 新增仓库场景与 staged 验收入口；初始六轮 VIO 前置实测均失败，仓库悬停／导航未执行。
 见 [仓库说明](WAREHOUSE_SIMULATION.md) 与 [原始证据](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
