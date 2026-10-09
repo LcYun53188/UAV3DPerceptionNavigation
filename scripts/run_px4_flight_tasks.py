@@ -47,7 +47,7 @@ def main():
     implementation_hashes={str(path.relative_to(ROOT)):file_hash(path) for path in
       [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
-       ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',
+       ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
@@ -74,7 +74,7 @@ def main():
                 msg=json.loads(line)
                 for pose in msg.get('pose',[]):
                     frames.add(pose.get('name',''))
-                    if pose.get('name')=='x500_7':
+                    if pose.get('name')==os.environ.get('UAV_FLIGHT_MODEL','x500_7'):
                         p=pose['position']
                         truth.append(dict(mono=time.monotonic(),position=[p.get('x',0),p.get('y',0),p.get('z',0)],phase=node.phase))
             except (ValueError,KeyError):
@@ -85,15 +85,23 @@ def main():
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
     result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile='known_region_control',scope='real x500 takeoff/navigation/hover/return/native landing',mock=False)
     try:
-        until=time.monotonic()+20
+        until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='warehouse' else 20)
         while time.monotonic()<until:
             with node.lock:
                 ready=node.healthy(ground=True) and node.samples.get('vehicle_status').pre_flight_checks_pass
+            admission=os.environ.get('UAV_FLIGHT_ADMISSION')
+            if admission:
+                path=Path(admission)
+                receipt=json.loads(path.read_text()) if path.is_file() else {}
+                ready=ready and receipt.get('sensor_checks_passed') is True and receipt.get('calibration_id')==os.environ.get('UAV_VIO_CALIBRATION_ID')
+            if admission and receipt.get('sensor_checks_passed') is True:
+                with node.lock:node.prepare_vio_ground_mode()
             if ready and truth and time.monotonic()-truth[-1]['mono']<.5:break
             time.sleep(.05)
         if not ready or not truth:
             result['truth_frames']=sorted(frames)
             result['preflight_healthy']=ready
+            result['failsafe_flags']=str(node.samples.get('failsafe_flags'))
             result['vio_gate_reason']=node.vio_gate.reason if node.vio_gate else None
             result['preflight_fields']={n:{f:getattr(m,f) for f in fields} for n,fields in [('vehicle_status',['arming_state','nav_state','system_id','pre_flight_checks_pass','failsafe']),('battery_status',['connected','remaining','warning']),('vehicle_local_position',['xy_valid','z_valid','v_xy_valid','v_z_valid','eph','epv'])] if (m:=node.samples.get(n)) is not None}
             raise RuntimeError('Preflight/truth unavailable: '+str(list(node.samples)))
@@ -297,7 +305,6 @@ def main():
                 s['child']=='base_link' and s['stamp_matches'] for s in localized_samples))
         result['passed'] = result['passed'] and result['localized_odometry']['valid']
         write_json(out/'localized-odometry.json',localized_samples)
-        write_json(out/'flight-observation.json',result)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)
         write_json(out/'flight-status-history.json',node.status_history)
@@ -305,6 +312,10 @@ def main():
         write_json(out/'flight-trace.json',node.trace)
         write_json(out/'flight-truth.json',truth)
         write_json(out/'bt-progress.json',node.runner_progress_log)
+        write_json(out/'flight-observation.pending.json',result)
+        os.replace(out/'flight-observation.pending.json',out/'flight-observation.json')
+        if os.environ.get('UAV_FLIGHT_HOLD_RECEIPT')=='1':
+            while not (out/'release-flight-gateway').exists():time.sleep(.02)
         if bt:bt.close()
         truth_process.terminate()
         truth_process.wait(timeout=5);truth_thread.join(timeout=2)

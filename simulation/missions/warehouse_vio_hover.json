@@ -1,0 +1,7 @@
+{
+  "steps": [
+    {"type": "TAKEOFF", "height_m": 1.5},
+    {"type": "HOVER", "duration_s": 15},
+    {"type": "LAND"}
+  ]
+}

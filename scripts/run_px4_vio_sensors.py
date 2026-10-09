@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Owned disarmed official PX4/Gazebo/QGC with independent stereo + IMU VIO."""
+"""Owned official PX4/Gazebo/QGC VIO audits and explicit warehouse BT flight."""
 import argparse
 import fcntl
 import json
@@ -26,9 +26,10 @@ from vio_render_device import environment as render_environment,capture as captu
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--flight',choices=('hover','hover-low','sequence'),help='Owned warehouse BT flight; separate from disarmed audits')
     parser.add_argument('--sdk-debug-dump',action='store_true',help='Explicit SDK-consumed input dump; diagnostic load, not VIO qualification')
     parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
-    parser.add_argument('--duration',type=float,default=45.)
+    parser.add_argument('--duration',type=float,default=45.,help='Disarmed observation duration only; flight stops at task terminal with a 280 s cap')
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
     parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
@@ -36,32 +37,35 @@ def main():
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
-    parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit disarmed EKF delayed-horizon comparison; no EV timestamp offset')
+    parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit EKF delayed-horizon setting for pose fusion or owned flight; no EV timestamp offset')
     parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion or carrier motion')
     parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion or carrier motion')
     parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
     parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion or carrier motion')
     parser.add_argument('--fuse-pose',action='store_true',help='Same-aircraft actual SDK pose -> PX4 EV; disarmed audit with source stop')
-    parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
+    parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose or --flight')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.flight and (args.scene!='warehouse' or not args.normalize or args.fuse_pose or args.motion or args.reset_source or args.sdk_debug_dump or args.diagnostic_visual_only):
+        parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
+    pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
     if args.warehouse_floor_texture and args.scene!='warehouse':
         parser.error('--warehouse-floor-texture requires --scene warehouse')
-    if args.ekf_delay_max_ms is not None and not args.fuse_pose:
-        parser.error('--ekf-delay-max-ms requires --fuse-pose')
-    if args.sdk_image_depth is not None and not (args.fuse_pose or args.motion):
-        parser.error('--sdk-image-depth requires --fuse-pose or --motion')
-    if args.headless_rendering and not (args.fuse_pose or args.motion):
-        parser.error('--headless-rendering requires --fuse-pose or --motion')
-    if args.render_device!='default' and not (args.fuse_pose or args.motion):
-        parser.error('--render-device nvidia requires --fuse-pose or --motion')
-    if args.real_time_factor is not None and (not (args.fuse_pose or args.motion) or not .8<=args.real_time_factor<=1.):
-        parser.error('--real-time-factor requires --fuse-pose or --motion, and a value within [0.8,1.0]')
+    if args.ekf_delay_max_ms is not None and not pose_fusion_mode:
+        parser.error('--ekf-delay-max-ms requires --fuse-pose or --flight')
+    if args.sdk_image_depth is not None and not (pose_fusion_mode or args.motion):
+        parser.error('--sdk-image-depth requires --fuse-pose, --flight or --motion')
+    if args.headless_rendering and not (pose_fusion_mode or args.motion):
+        parser.error('--headless-rendering requires --fuse-pose, --flight or --motion')
+    if args.render_device!='default' and not (pose_fusion_mode or args.motion):
+        parser.error('--render-device nvidia requires --fuse-pose, --flight or --motion')
+    if args.real_time_factor is not None and (not (pose_fusion_mode or args.motion) or not .8<=args.real_time_factor<=1.):
+        parser.error('--real-time-factor requires --fuse-pose, --flight or --motion, and a value within [0.8,1.0]')
     if args.fuse_pose and (not args.normalize or args.motion or args.reset_source or args.duration<40):
         parser.error('--fuse-pose requires --normalize, duration >=40 s, no carrier motion or reset')
-    if args.scene!='planar' and not (args.motion or args.fuse_pose):
+    if args.scene!='planar' and not (args.motion or pose_fusion_mode):
         parser.error('--scene layered/warehouse requires --motion or disarmed --fuse-pose')
     if args.motion and (not (args.normalize or args.diagnostic_visual_only) or args.reset_source or args.duration < 50):
         parser.error('--motion requires --normalize, duration >=50 s, and no reset')
@@ -82,7 +86,7 @@ def main():
     px4 = ROOT/lock['sitl']['path']
     build = px4/'build/px4_sitl_default'
     vio_build=None
-    if args.fuse_pose:
+    if pose_fusion_mode:
         from build_px4_vio import BUILD,verify
         vio_build=verify(lock);build=BUILD
     models = px4/'Tools/simulation/gz/models'
@@ -97,7 +101,7 @@ def main():
                 raise RuntimeError('Motion fixture build drift: '+name)
     profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
-        GZ_PARTITION='uav_vio_sensors_'+run_id,GZ_IP='127.0.0.1',
+        GZ_PARTITION=('uav_warehouse_flight_' if args.flight else 'uav_vio_sensors_')+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
         PX4_GZ_STANDALONE='1',PX4_GZ_WORLD='default',HEADLESS='1',
         PX4_UXRCE_DDS_PORT='8898',PX4_PARAM_UXRCE_DDS_SYNCT='0',
@@ -106,7 +110,7 @@ def main():
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(build/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
     fusion_profile=None
-    if args.fuse_pose:
+    if pose_fusion_mode:
         fusion_profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
         if fusion_profile['schema']!=1 or fusion_profile['profile']!='aligned_pose_v1':
             raise RuntimeError('Unsupported pose fusion profile')
@@ -171,8 +175,8 @@ def main():
                        or str(p).endswith('visual_slam_impl.cpp')}))
     calibration = file_hash(out/'calibration.json')
     inputs.append(out/'calibration.json')
-    if args.fuse_pose:
-        anchor=dict(schema=1,scope='fixed configured local launch origin, disarmed same-aircraft audit only',
+    if pose_fusion_mode:
+        anchor=dict(schema=1,scope=('fixed launch origin, owned warehouse flight' if args.flight else 'fixed configured local launch origin, disarmed same-aircraft audit only'),
             position_enu=[0.,0.,0.],yaw_enu=0.,height_reference='launch body origin, not terrain altitude',
             calibration_id=calibration,scene_sha256=file_hash(out/'assets/default.sdf'),
             model_sha256=file_hash(out/'assets'/profile['model']/'model.sdf'),
@@ -183,8 +187,49 @@ def main():
             ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_fusion.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',
             ROOT/'src/uav_mission/uav_mission/vio_gate.py',ROOT/'scripts/build_px4_vio.py',
             build/'bin/px4',build/'vio-build.json']
-    manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
-        partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
+    if args.flight:
+        from vio_warehouse_scene import box_clearance
+        layout=read(out/'assets/warehouse-layout.json')
+        box_clearance(layout['layout'])
+        region=ROOT/'simulation/safe_regions/warehouse.json'
+        config=read(region);margin=sum(config[k] for k in ('body_radius_m','tracking_margin_m','braking_margin_m'))
+        if any(config['bounds_min'][i]+margin!=layout['layout']['flight_box_min'][i] or
+               config['bounds_max'][i]-margin!=layout['layout']['flight_box_max'][i] for i in (0,1)):
+            raise RuntimeError('Warehouse profile/clearance bounds mismatch')
+        from assess_vio_warehouse import assess as qualify
+        base=ROOT/'docs/validation/simulation'
+        prerequisites=[base/'2026-10-09-warehouse-low-load-motion/motion',
+                       base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160',
+                       base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160-repeat']
+        # Exact checked source configuration only; UI/realtime are still unqualified.
+        if not (args.headless_rendering and not args.ui and args.render_device=='nvidia' and
+                args.sdk_image_depth==1 and args.real_time_factor==.8 and args.ekf_delay_max_ms==160 and
+                args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
+                args.warehouse_floor_texture and args.quality_policy=='bounded_gap'):
+            raise RuntimeError('Warehouse flight requires explicitly qualified low-load configuration')
+        prerequisite_receipts=[]
+        for folder in prerequisites:
+            assessment=qualify(folder)
+            if not assessment['passed']:raise RuntimeError('Warehouse source prerequisite failed: '+str(folder))
+            prerequisite_receipts.append(assessment)
+        write_json(out/'source-prerequisites.json',prerequisite_receipts)
+        receipt_files=[p for p in inputs if p.is_relative_to(out) and p.is_file()]
+        write_json(out/'flight-assets.json',dict(schema=1,partition=env['GZ_PARTITION'],
+            calibration_id=calibration,region_sha256=file_hash(region),
+            files={str(p.relative_to(out)):file_hash(p) for p in receipt_files}))
+        env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),UAV_WORKSPACE=str(ROOT),
+            UAV_REQUIRE_VIO='1',UAV_VIO_FUSION_PROFILE='aligned_pose_v1',UAV_VIO_CALIBRATION_ID=calibration,
+            UAV_FLIGHT_REGION_PROFILE='warehouse',UAV_FLIGHT_ASSET_RECEIPT=str(out/'flight-assets.json'),
+            UAV_FLIGHT_ASSET_SHA256=file_hash(out/'flight-assets.json'),UAV_FLIGHT_MODEL=profile['model']+'_7',
+            UAV_FLIGHT_MISSION_FILE=str(ROOT/('simulation/missions/'+{'hover':'warehouse_vio_hover.json','hover-low':'warehouse_vio_hover_low.json','sequence':'warehouse_vio_sequence.json'}[args.flight])),
+            UAV_FLIGHT_HOLD_RECEIPT='1',UAV_FLIGHT_EVIDENCE=str(out),UAV_FLIGHT_ADMISSION=str(out/'flight-admission.json'),UAV_FLIGHT_SCENARIO='full',UAV_FLIGHT_BT='1',
+            PX4_PARAM_COM_RC_IN_MODE='4',PX4_PARAM_COM_OF_LOSS_T='0.5',PX4_PARAM_COM_OBL_RC_ACT='4',PX4_PARAM_COM_DISARM_LAND='2')
+        inputs += [region,out/'flight-assets.json',out/'source-prerequisites.json',
+            ROOT/'scripts/px4_vio_flight_session.py',ROOT/'scripts/run_px4_flight_tasks.py',
+            ROOT/'src/uav_mission/uav_mission/flight_profiles.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',
+            Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']
+    manifest = dict(run_id=run_id,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
+        flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
@@ -199,11 +244,12 @@ def main():
         return process
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node = rclpy.create_node('vio_sensor_observer')
-    audit = SensorAudit(node,profile,frames,allow_pose_fusion=args.fuse_pose)
+    audit = SensorAudit(node,profile,frames,allow_pose_fusion=pose_fusion_mode)
     runtime_receipt=SdkRuntimeReceipt(node,{k:params[k] for k in (
         "image_buffer_size","imu_buffer_size","image_qos","image_qos_depth",
         "tracking_mode","num_cameras","min_num_images","camera_optical_frames")})
     fusion_audit=None
+    flight_process=None
     pose_audit = PoseAudit(node) if args.normalize or args.diagnostic_visual_only else None
     motion_audit = MotionAudit(node) if args.motion else None
     result = dict(passed=False)
@@ -232,7 +278,7 @@ def main():
                 normalizer=launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
                     '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
                     '-p','source_contract:=cuvslam15_right_tangent_base_link_v1','-p','quality_policy:='+args.quality_policy]+
-                    (['-p','timing_path:='+str(out/'normalizer-timing.json')] if args.fuse_pose else []))
+                    (['-p','timing_path:='+str(out/'normalizer-timing.json')] if pose_fusion_mode else []))
         # A stationary VIO-only SDK can retain its unknown initial covariance.
         # Observe the aircraft's physical spawn/settling; never fabricate motion.
         if not args.motion: launch_vio()
@@ -243,7 +289,7 @@ def main():
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
-        if args.motion or args.fuse_pose:
+        if args.motion or pose_fusion_mode:
             # Finish model spawn and simulator/QGC
             # startup before binding a VIO source; freshness limits stay unchanged.
             deadline = time.monotonic()+25.
@@ -254,14 +300,33 @@ def main():
                         and 'Adding new vehicle' in (out/'qgc.log').read_text(errors='replace')):
                     break
                 if time.monotonic()>deadline: raise RuntimeError('Sensor/vehicle/QGC startup not ready')
-            if args.fuse_pose:
+            if pose_fusion_mode:
                 from px4_vio_real_fusion import RealPoseFusionAudit
-                fusion_audit=RealPoseFusionAudit(node,calibration,anchor,file_hash(out/'anchor.json'))
+                if args.flight:
+                    from px4_vio_flight_session import FlightPoseSession
+                    fusion_audit=FlightPoseSession(node,calibration,anchor,file_hash(out/'anchor.json'),quality_policy=args.quality_policy)
+                else:
+                    fusion_audit=RealPoseFusionAudit(node,calibration,anchor,file_hash(out/'anchor.json'))
             if args.motion:launch_vio()
-        until = time.monotonic()+args.duration
+        if args.flight:
+            flight_process=launch('flight_gateway',[sys.executable,ROOT/'scripts/run_px4_flight_tasks.py'])
+            ready_until=time.monotonic()+40.
+            while time.monotonic()<ready_until:
+                rclpy.spin_once(node,timeout_sec=.02)
+                if fusion_audit.stream.fault:raise RuntimeError('VIO preflight fault: '+fusion_audit.stream.fault)
+                if fusion_audit.gate.reason=='READY' and runtime_receipt.result()['passed']:break
+            else:raise RuntimeError('VIO preflight fusion unavailable: '+fusion_audit.gate.reason)
+            preflight=audit.result()
+            write_json(out/'sensor-preflight.json',preflight)
+            sensor_failures=[k for k,v in preflight['checks'].items() if not v and k!='only_pose_fmu_input']
+            if sensor_failures:raise RuntimeError('Sensor preflight failed: '+str(sensor_failures))
+            write_json(out/'flight-admission.pending.json',dict(calibration_id=calibration,sensor_checks_passed=True))
+            os.replace(out/'flight-admission.pending.json',out/'flight-admission.json')
+        until = time.monotonic()+(280. if args.flight else args.duration)
         before_reset = None
         while time.monotonic()<until:
-            rclpy.spin_once(node,timeout_sec=.05)
+            rclpy.spin_once(node,timeout_sec=.02 if args.flight else .05)
+            if args.flight and ((out/'flight-observation.json').exists() or flight_process.poll() is not None):break
             if args.reset_source and pose_audit.reset_time is None and time.monotonic() > until-8.:
                 before_reset = audit.result()
                 before_reset['normalized_pose'] = pose_audit.result(calibration)
@@ -269,7 +334,12 @@ def main():
                 if not before_reset['passed'] or not before_reset['normalized_pose']['passed']:
                     raise RuntimeError('Sensor/normalized source not ready before reset')
                 pose_audit.request_reset()
-        result = before_reset or audit.result()
+        if args.flight:
+            if not (out/'flight-observation.json').exists():raise RuntimeError('Warehouse flight deadline exceeded or gateway exit')
+            result=dict(passed=flight_process.poll() is None,
+                scope='warehouse BT actual VIO takeoff/hover/native landing',flight=read(out/'flight-observation.json'))
+            result['passed'] &= result['flight']['passed']
+        else:result = before_reset or audit.result()
         if motion_audit is not None:
             result['scope'] = 'independent force-driven sensor motion, disarmed PX4, no EV or flight acceptance'
             for name in ('quality:static_imu','static_drift'):
@@ -286,7 +356,7 @@ def main():
                 result['motion']=result['motion_raw_sdk_diagnostic']
                 result['scope']='diagnostic visual-only SDK motion; no normalized VIO source or acceptance'
             result['passed'] = all(result['checks'].values()) and result['motion']['passed']
-        if args.normalize:
+        if args.normalize and not args.flight:
             result['normalized_pose'] = pose_audit.result(calibration)
             result['passed'] &= result['normalized_pose']['passed']
         if args.diagnostic_visual_only:
@@ -294,8 +364,8 @@ def main():
             result['passed']=False  # A diagnostic never qualifies warehouse VIO.
         result['qgc_connected'] = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2',
                                                      (out/'qgc.log').read_text(errors='replace')))
-        result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes)
-        if fusion_audit is not None:
+        result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes if p is not flight_process)
+        if fusion_audit is not None and not args.flight:
             fusion_audit.mark_stop()
             # Actually terminate the normalized source, keep the SDK running.
             os.killpg(normalizer.pid,signal.SIGINT)
@@ -318,8 +388,13 @@ def main():
             result['renderer']=renderer
             result['passed'] &= renderer['passed']
         if fusion_audit is not None:
-            result['real_pose_fusion']=fusion_audit.result()
-            result['passed'] &= result['real_pose_fusion']['passed']
+            if args.flight:
+                result['flight_pose_session']=fusion_audit.flight_result()
+                result['passed'] &= not fusion_audit.stream.fault and not fusion_audit.graph_violations and fusion_audit.gateway_seen
+            else:
+                result['real_pose_fusion']=fusion_audit.result()
+                result['passed'] &= result['real_pose_fusion']['passed']
+        if args.flight:(out/'release-flight-gateway').touch()
         node.destroy_node();rclpy.try_shutdown()
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
