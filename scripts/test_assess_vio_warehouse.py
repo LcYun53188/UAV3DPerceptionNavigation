@@ -39,3 +39,11 @@ def test_asset_or_texture_drift_cannot_qualify(tmp_path):
     report=assess(run);assert not report['passed'] and not report['checks']['generated_assets_match']
     texture=next((run/'assets').rglob('*.png'));texture.write_bytes(b'changed')
     report=assess(run);assert not report['checks']['texture_integrity']
+
+
+def test_missing_motion_metrics_are_failed_checks_not_type_errors(tmp_path):
+    run,m,r=case(tmp_path);m['fuse_pose']=False;m['motion']=True
+    r['motion']=dict(position_rmse_m=None,position_max_m=None,orientation_max_deg=None)
+    (run/'manifest.json').write_text(json.dumps(m));(run/'result.json').write_text(json.dumps(r))
+    report=assess(run);assert not report['passed']
+    assert not report['checks']['bounded_rmse'] and not report['checks']['bounded_max']

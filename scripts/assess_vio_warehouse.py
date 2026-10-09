@@ -45,9 +45,9 @@ def assess(folder):
         case='WH-V02';motion=r.get('motion',{})
         checks=dict(common,raw_passed=r.get('passed') is True,
             full_duration=m['duration_s']>=120,
-            bounded_rmse=0<=motion.get('position_rmse_m',float('inf'))<=cfg['position_rmse_max_m'],
-            bounded_max=0<=motion.get('position_max_m',float('inf'))<=cfg['position_error_max_m'],
-            bounded_orientation=0<=motion.get('orientation_max_deg',float('inf'))<=cfg['orientation_error_max_deg'])
+            bounded_rmse=isinstance(motion.get('position_rmse_m'),(int,float)) and 0<=motion['position_rmse_m']<=cfg['position_rmse_max_m'],
+            bounded_max=isinstance(motion.get('position_max_m'),(int,float)) and 0<=motion['position_max_m']<=cfg['position_error_max_m'],
+            bounded_orientation=isinstance(motion.get('orientation_max_deg'),(int,float)) and 0<=motion['orientation_max_deg']<=cfg['orientation_error_max_deg'])
     else:raise ValueError('Unsupported warehouse case')
     return dict(schema=1,run_id=m['run_id'],case=case,passed=all(checks.values()),checks=checks,
         raw_passed=r.get('passed'),flight_authorized=False,
