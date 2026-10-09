@@ -1,5 +1,11 @@
 # OAK-D Pro W 辅助室内悬停
 
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
 目标是相机双目/IMU产生连续 VIO，经 PX4 EKF 外部视觉融合，再由现有 BT 调度
 位置 Offboard 起飞、悬停和降落。VIO 计算不放在行为树节点内，飞控输出仍由
 FlightServer 独占。定点悬停不以 nvblox 或 EGO 建图规划为前提。

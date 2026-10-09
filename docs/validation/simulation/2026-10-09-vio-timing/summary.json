@@ -1,0 +1,186 @@
+{
+  "realtime-default-before-fix": {
+    "run_id": "5b553ec4-ca06-49fd-ab37-d264e67981ea",
+    "passed": true,
+    "current_inputs": false,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 2924,
+      "longest_ready_s": 114.87996703400131,
+      "source_fault": "VIO_WRITER_COUNT",
+      "fused_samples": {
+        "ev_pos": 2919,
+        "ev_hgt": 2919,
+        "ev_yaw": 2919
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.1255723130016122,
+        "reason": "VIO_SOURCE_LOST"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 3235,
+        "min_s": 0.001362401,
+        "p50_s": 0.027285162,
+        "p95_s": 0.0604064781,
+        "p99_s": 0.08353562417999995,
+        "max_s": 0.108647336
+      },
+      "fresh_pairs_with_expired_previous": 0
+    }
+  },
+  "realtime-nvidia-before-fix": {
+    "run_id": "d94f1df8-c93c-4037-82a8-e9da18794900",
+    "passed": false,
+    "current_inputs": false,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 1797,
+      "longest_ready_s": 69.7799833570025,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "fused_samples": {
+        "ev_pos": 1794,
+        "ev_hgt": 1794,
+        "ev_yaw": 1794
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.004449332001968287,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 3237,
+        "min_s": 0.001134537,
+        "p50_s": 0.026136858,
+        "p95_s": 0.07406146139999999,
+        "p99_s": 0.11339592607999993,
+        "max_s": 0.151313668
+      },
+      "fresh_pairs_with_expired_previous": 0
+    }
+  },
+  "realtime-nvidia-after-fix": {
+    "run_id": "2bc4a9d1-fda8-4b1c-977a-bfd4be93bb97",
+    "passed": false,
+    "current_inputs": false,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 2027,
+      "longest_ready_s": 78.78019983999548,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "fused_samples": {
+        "ev_pos": 2025,
+        "ev_hgt": 2025,
+        "ev_yaw": 2025
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.009656952002842445,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 3229,
+        "min_s": 0.001185954,
+        "p50_s": 0.024505796,
+        "p95_s": 0.08719904319999999,
+        "p99_s": 0.39327454883999996,
+        "max_s": 0.474016782
+      },
+      "fresh_pairs_with_expired_previous": 1
+    }
+  },
+  "realtime-nvidia-egl": {
+    "run_id": "c18bfe26-100f-4efb-92d1-b2913986fe7d",
+    "passed": false,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 1594,
+      "longest_ready_s": 61.37811448299908,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "fused_samples": {
+        "ev_pos": 1591,
+        "ev_hgt": 1591,
+        "ev_yaw": 1591
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.006423703998734709,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 3237,
+        "min_s": 0.001092527,
+        "p50_s": 0.027582764,
+        "p95_s": 0.14418323239999983,
+        "p99_s": 0.2403226148799999,
+        "max_s": 0.378006156
+      },
+      "fresh_pairs_with_expired_previous": 0
+    }
+  },
+  "paced-current": {
+    "run_id": "1f99777f-7d15-4803-8d6c-5aaa6e1317c6",
+    "passed": true,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 2329,
+      "longest_ready_s": 114.26003487400158,
+      "source_fault": "VIO_WRITER_COUNT",
+      "fused_samples": {
+        "ev_pos": 2326,
+        "ev_hgt": 2326,
+        "ev_yaw": 2326
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.10661152599641355,
+        "reason": "VIO_SOURCE_LOST"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 2585,
+        "min_s": 0.001363429,
+        "p50_s": 0.028377746,
+        "p95_s": 0.060556929799999985,
+        "p99_s": 0.08856325539999994,
+        "max_s": 0.127797362
+      },
+      "fresh_pairs_with_expired_previous": 0
+    }
+  },
+  "reset-covariance-failure": {
+    "run_id": "cb0bb7c0-5e86-4a54-81d2-c3bbf941b558",
+    "passed": false,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {}
+  },
+  "reset-current": {
+    "run_id": "2d06b8aa-ab06-44d1-9803-81606d360db5",
+    "passed": true,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {}
+  }
+}

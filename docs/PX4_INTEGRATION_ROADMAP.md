@@ -1,5 +1,11 @@
 # PX4 官方链路三阶段集成
 
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
 按用户指定顺序推进，使用本机 PX4 官方 SITL + Gazebo Harmonic + QGroundControl；
 当前固定 PX4 v1.16.2、ROS 2 Jazzy。Jetson 延期，不依赖实机或接收机供电。
 每阶段单独配置、证据和 Git 提交；前阶段通过不替代后阶段验收。

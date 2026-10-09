@@ -232,3 +232,18 @@ EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV
 [实际融合与失败证据](../../docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。
 生成的模型、世界、标定/锚点摘要、实际参数、SDK 位姿、EV 回读和 EKF 遥测均可追溯；
 这不是 OAK-D Pro W 硬件标定或 VIO 悬停验收。
+
+
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](../../docs/validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
+融合入口可显式增加 `--render-device nvidia`、`--headless-rendering` 做渲染对照；
+两项仅作用于自有 Gazebo 进程，并保存新鲜 Ogre 驱动日志。此轮实时对照仍失败，
+不能把这些选项作为已验证的性能修复。时序复核支持原 JSON 和 gzip 归档：
+
+```bash
+.venv/bin/python scripts/assess_vio_timing.py <run-or-archive-directory>
+```
