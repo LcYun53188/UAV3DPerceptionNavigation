@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--diagnostic-ui',action='store_true',help='Explicit UI flight observation; never qualifies the headless flight baseline')
+    parser.add_argument('--ui-hold-seconds',type=float,default=0.,help='Keep owned viewers after confirmed landed/disarmed terminal; stop via run directory close-ui file')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
     parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit EKF delayed-horizon setting for pose fusion or owned flight; no EV timestamp offset')
@@ -48,6 +50,8 @@ def main():
     args = parser.parse_args()
     if args.flight and (args.scene!='warehouse' or not args.normalize or args.fuse_pose or args.motion or args.reset_source or args.sdk_debug_dump or args.diagnostic_visual_only):
         parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
+    if args.diagnostic_ui and not (args.ui and args.flight):parser.error('--diagnostic-ui requires --ui and --flight')
+    if not 0<=args.ui_hold_seconds<=3600 or (args.ui_hold_seconds and not args.diagnostic_ui):parser.error('UI hold requires diagnostic UI flight and 0..3600 seconds')
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
@@ -133,7 +137,7 @@ def main():
     params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
-    inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -202,7 +206,7 @@ def main():
                        base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160',
                        base/'2026-10-09-warehouse-queue-latency/nvidia-depth1-headless-horizon160-repeat']
         # Exact checked source configuration only; UI/realtime are still unqualified.
-        if not (args.headless_rendering and not args.ui and args.render_device=='nvidia' and
+        if not (args.headless_rendering and (not args.ui or args.diagnostic_ui) and args.render_device=='nvidia' and
                 args.sdk_image_depth==1 and args.real_time_factor==.8 and args.ekf_delay_max_ms==160 and
                 args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
                 args.warehouse_floor_texture and args.quality_policy=='bounded_gap'):
@@ -229,7 +233,7 @@ def main():
             ROOT/'src/uav_mission/uav_mission/flight_profiles.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',
             Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']
     manifest = dict(run_id=run_id,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
-        flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
+        diagnostic_ui=args.diagnostic_ui,ui_hold_seconds=args.ui_hold_seconds,flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
@@ -257,7 +261,10 @@ def main():
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
         gazebo_env=render_environment(env,args.render_device)
         launch('gazebo',['gz','sim','-r','-s']+(['--headless-rendering'] if args.headless_rendering else [])+[out/'assets/default.sdf'],gazebo_env)
-        if args.ui: launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
+        if args.ui:
+            launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
+            launch('rviz',['ros2','run','rviz2','rviz2','-d',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz','--ros-args','-p','use_sim_time:=true'])
+            launch('stereo_monitor',[sys.executable,ROOT/'scripts/vio_stereo_ui.py',str(out)])
         launch('sensor_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
             '/vio/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
@@ -396,6 +403,23 @@ def main():
                 result['passed'] &= result['real_pose_fusion']['passed']
         if args.flight:(out/'release-flight-gateway').touch()
         node.destroy_node();rclpy.try_shutdown()
+        if args.diagnostic_ui:
+            result['diagnostic_checks_passed']=result['passed']
+            result['passed']=False
+            result['scope']='UI diagnostic only; no headless flight qualification'
+        if args.ui_hold_seconds and (out/'flight-observation.json').exists():
+            terminal=read(out/'flight-observation.json')
+            if terminal.get('final_land') and terminal.get('final_arming')==1:
+                stop(flight_process)
+                if normalizer is not None:stop(normalizer)
+                fusion_audit.timing.write(out/'fusion-timing.json')
+                for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
+                write_json(out/'normalized-poses.json',list(pose_audit.poses))
+                write_json(out/'normalized-status.json',list(pose_audit.statuses))
+                write_json(out/'ui-session.json',dict(result_snapshot=result,state='LANDED_DISARMED_VIEWERS_OPEN',diagnostic=True,qualification=False,close_file=str(out/'close-ui'),terminal=terminal))
+                # No observer spins or EV publishing after the mission terminal.
+                until_ui=time.monotonic()+args.ui_hold_seconds
+                while time.monotonic()<until_ui and not (out/'close-ui').exists():time.sleep(.2)
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
         try:
