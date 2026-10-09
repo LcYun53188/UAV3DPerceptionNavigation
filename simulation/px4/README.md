@@ -266,3 +266,26 @@ SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建�
 `--require-vio --vio-fusion-profile aligned_pose_v1`，使用独立遥测构建及冻结的
 仅位姿 EKF 参数；持续 EV 飞行会话尚未实现。120 s 减速融合有成功和失败，
 不代表实时稳定或悬停通过。见 [优化报告](../../docs/validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
+
+## 同机固定 5° 深度建图
+
+```bash
+./scripts/sim.sh px4-depth-map --duration 40
+```
+
+使用生成的 `x500_depth_ref`，保留上游 x500 动力学和官方 GNSS／惯性 EKF。
+RGBD 参考相机固定下偏 5°，640×400、15 Hz、水平 FOV 1.21 rad，
+光学 TF 与 SDF 同步生成；这是理想深度模型，不模拟真实双目匹配误差或 OAK-D Pro W 标定。
+本入口不启动 cuVSLAM，不发送 FMU 输入或飞行任务。
+
+受管进程包括 Gazebo、QGC（禁止串口自动连接）、XRCE agent、时钟／深度桥、
+只读 `px4_mapping_tf.py`、nvblox 与 `map_session`。使用域 78、独立 GZ partition。
+TF 由带原始采样时间戳的 PX4 VehicleOdometry 转为 ENU／FLU，map 定义为该次 EKF odom 坐标系。
+初始化重置计数须稳定 5 秒才开始 TF；开始后发生重置、解锁或无效位姿即停止输出，
+状态过期也不转发位姿。地图会话只在对应历史 TF 可用时送入深度，不填充未知空间。
+
+`depth-camera.json` 检查数据格式、内参、时间推进、新鲜度及唯一发布者；
+`depth-map.json` 记录真实 ESDF 的有效性、已观测体素及源时间；
+`manifest.json` 保存模型／场景／源代码哈希，退出后仅清理本次进程组。
+这是未解锁建图验证，不能代替机体安全包络、地图覆盖、规划会话绑定或轨迹跟踪验收。
+实测结果见 [验证报告](../../docs/validation/simulation/2026-10-09-px4-depth-mapping/REPORT.md)。

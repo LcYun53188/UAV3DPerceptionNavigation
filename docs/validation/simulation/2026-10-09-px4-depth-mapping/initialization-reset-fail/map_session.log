@@ -1,0 +1,96 @@
+not found: "/home/nuc/Program/uav_nav_ws/install_uav/isaac_ros_image_proc/share/isaac_ros_image_proc/local_setup.bash"
+[WARN] [1791557236.630816398] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791557236.630836773] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[WARN] [1791557239.515566304] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557239.706763989] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557240.207471904] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557240.707670633] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557242.297260061] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557242.816868745] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557245.305823879] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=2.220s, forwarded_depth_age=2.152, pending_depth=0
+[WARN] [1791557245.805372453] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=2.720s, forwarded_depth_age=2.652, pending_depth=0
+[WARN] [1791557246.306473054] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=3.220s, forwarded_depth_age=3.152, pending_depth=3
+[WARN] [1791557246.796991612] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=3.712s, forwarded_depth_age=3.644, pending_depth=2
+[WARN] [1791557247.297111409] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=4.212s, forwarded_depth_age=4.144, pending_depth=2
+[WARN] [1791557247.796502361] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=4.712s, forwarded_depth_age=4.644, pending_depth=4
+[WARN] [1791557248.295743374] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=5.212s, forwarded_depth_age=5.144, pending_depth=0
+[WARN] [1791557248.796065068] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=5.712s, forwarded_depth_age=5.644, pending_depth=0
+[WARN] [1791557249.295933283] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=6.212s, forwarded_depth_age=6.144, pending_depth=2
+[WARN] [1791557249.795355414] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=6.712s, forwarded_depth_age=6.644, pending_depth=1
+[WARN] [1791557250.295495418] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=7.212s, forwarded_depth_age=7.144, pending_depth=3
+[WARN] [1791557250.815664869] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=7.732s, forwarded_depth_age=7.664, pending_depth=5
+[WARN] [1791557251.295713694] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=8.212s, forwarded_depth_age=8.144, pending_depth=7
+[WARN] [1791557251.796440384] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=8.712s, forwarded_depth_age=8.644, pending_depth=5
+[WARN] [1791557252.305750651] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=9.220s, forwarded_depth_age=9.152, pending_depth=7
+[WARN] [1791557252.795975993] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=9.712s, forwarded_depth_age=9.644, pending_depth=4
+[WARN] [1791557253.307131500] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=10.220s, forwarded_depth_age=10.152, pending_depth=4
+[WARN] [1791557253.796502226] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=10.712s, forwarded_depth_age=10.644, pending_depth=6
+[WARN] [1791557254.295608014] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=11.212s, forwarded_depth_age=11.144, pending_depth=3
+[WARN] [1791557254.795050167] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=11.708s, forwarded_depth_age=11.64, pending_depth=6
+[WARN] [1791557255.306557936] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=12.220s, forwarded_depth_age=12.152, pending_depth=7
+[WARN] [1791557255.796873324] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=12.712s, forwarded_depth_age=12.644, pending_depth=5
+[WARN] [1791557256.295646797] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=13.212s, forwarded_depth_age=13.144, pending_depth=8
+[WARN] [1791557256.805575299] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=13.720s, forwarded_depth_age=13.652, pending_depth=7
+[WARN] [1791557257.295508409] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=14.212s, forwarded_depth_age=14.144, pending_depth=7
+[WARN] [1791557257.796474792] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=14.708s, forwarded_depth_age=14.64, pending_depth=6
+[WARN] [1791557258.296552785] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=15.212s, forwarded_depth_age=15.144, pending_depth=1
+[WARN] [1791557258.795851971] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=15.708s, forwarded_depth_age=15.64, pending_depth=7
+[WARN] [1791557259.294889937] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=16.208s, forwarded_depth_age=16.14, pending_depth=8
+[WARN] [1791557259.805375563] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=16.720s, forwarded_depth_age=16.652, pending_depth=4
+[WARN] [1791557260.294860724] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=17.208s, forwarded_depth_age=17.14, pending_depth=1
+[WARN] [1791557260.797179979] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=17.712s, forwarded_depth_age=17.644, pending_depth=5
+[WARN] [1791557261.305992314] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=18.220s, forwarded_depth_age=18.152, pending_depth=1
+[WARN] [1791557261.795388174] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=18.712s, forwarded_depth_age=18.644, pending_depth=5
+[WARN] [1791557262.305277559] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=19.220s, forwarded_depth_age=19.152, pending_depth=7
+[WARN] [1791557262.795383878] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=19.712s, forwarded_depth_age=19.644, pending_depth=6
+[WARN] [1791557263.295644221] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=20.212s, forwarded_depth_age=20.144, pending_depth=6
+[WARN] [1791557263.806350365] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=20.720s, forwarded_depth_age=20.652, pending_depth=5
+[WARN] [1791557264.295176664] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=21.208s, forwarded_depth_age=21.14, pending_depth=8
+[WARN] [1791557264.795749211] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=21.712s, forwarded_depth_age=21.644, pending_depth=7
+[WARN] [1791557265.305733682] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=22.220s, forwarded_depth_age=22.152, pending_depth=3
+[WARN] [1791557265.795195657] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=22.708s, forwarded_depth_age=22.64, pending_depth=4
+[WARN] [1791557266.306525865] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=23.220s, forwarded_depth_age=23.152, pending_depth=4
+[WARN] [1791557266.795495957] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=23.712s, forwarded_depth_age=23.644, pending_depth=2
+[WARN] [1791557267.296203142] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=24.208s, forwarded_depth_age=24.14, pending_depth=0
+[WARN] [1791557267.805832793] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=24.720s, forwarded_depth_age=24.652, pending_depth=2
+[WARN] [1791557268.296573218] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=25.212s, forwarded_depth_age=25.144, pending_depth=6
+[WARN] [1791557268.806725763] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=25.720s, forwarded_depth_age=25.652, pending_depth=8
+[WARN] [1791557269.295608743] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=26.212s, forwarded_depth_age=26.144, pending_depth=3
+[WARN] [1791557269.795266790] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=26.712s, forwarded_depth_age=26.644, pending_depth=6
+[WARN] [1791557270.306729118] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=27.220s, forwarded_depth_age=27.152, pending_depth=5
+[WARN] [1791557270.795455819] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=27.712s, forwarded_depth_age=27.644, pending_depth=6
+[WARN] [1791557271.295900827] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=28.212s, forwarded_depth_age=28.144, pending_depth=3
+[WARN] [1791557271.796820930] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=28.712s, forwarded_depth_age=28.644, pending_depth=4
+[WARN] [1791557272.307206584] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=29.220s, forwarded_depth_age=29.152, pending_depth=3
+[WARN] [1791557272.795467195] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=29.712s, forwarded_depth_age=29.644, pending_depth=3
+[WARN] [1791557273.295258979] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=30.212s, forwarded_depth_age=30.144, pending_depth=5
+[WARN] [1791557273.795817634] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=30.712s, forwarded_depth_age=30.644, pending_depth=2
+[WARN] [1791557274.295208724] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=31.212s, forwarded_depth_age=31.144, pending_depth=2
+[WARN] [1791557274.795350474] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=31.712s, forwarded_depth_age=31.644, pending_depth=8
+[WARN] [1791557275.305324485] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=32.220s, forwarded_depth_age=32.152, pending_depth=0
+[WARN] [1791557275.795221454] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=32.712s, forwarded_depth_age=32.644, pending_depth=3
+[WARN] [1791557276.296893147] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=33.212s, forwarded_depth_age=33.144, pending_depth=8
+[WARN] [1791557276.795282701] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=33.712s, forwarded_depth_age=33.644, pending_depth=7
+[WARN] [1791557277.296430437] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=34.212s, forwarded_depth_age=34.144, pending_depth=8
+[WARN] [1791557277.805160719] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=34.720s, forwarded_depth_age=34.652, pending_depth=4
+[WARN] [1791557278.295815113] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=35.212s, forwarded_depth_age=35.144, pending_depth=7
+[WARN] [1791557278.795728558] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=35.712s, forwarded_depth_age=35.644, pending_depth=1
+[WARN] [1791557279.295217511] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=36.212s, forwarded_depth_age=36.144, pending_depth=3
+[WARN] [1791557279.805419826] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=36.720s, forwarded_depth_age=36.652, pending_depth=0
+[WARN] [1791557280.296361872] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=37.212s, forwarded_depth_age=37.144, pending_depth=3
+[WARN] [1791557280.805453736] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=37.720s, forwarded_depth_age=37.652, pending_depth=7
+[WARN] [1791557281.295154783] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=38.208s, forwarded_depth_age=38.14, pending_depth=7
+[WARN] [1791557281.804618012] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=38.720s, forwarded_depth_age=38.652, pending_depth=8
+[WARN] [1791557282.295137962] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=39.208s, forwarded_depth_age=39.14, pending_depth=4
+[WARN] [1791557282.805452085] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=39.720s, forwarded_depth_age=39.652, pending_depth=7
+[WARN] [1791557283.305299232] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=40.220s, forwarded_depth_age=40.152, pending_depth=7
+[WARN] [1791557283.806948442] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=40.720s, forwarded_depth_age=40.652, pending_depth=1
+[WARN] [1791557284.305214103] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=41.220s, forwarded_depth_age=41.152, pending_depth=6
+[WARN] [1791557284.795691758] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=41.712s, forwarded_depth_age=41.644, pending_depth=7
+[WARN] [1791557285.296174174] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=42.212s, forwarded_depth_age=42.144, pending_depth=8
+[WARN] [1791557285.796835233] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=42.712s, forwarded_depth_age=42.644, pending_depth=4
+[WARN] [1791557286.295003405] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=43.208s, forwarded_depth_age=43.14, pending_depth=3
+[WARN] [1791557286.795189995] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=43.708s, forwarded_depth_age=43.64, pending_depth=3
+[WARN] [1791557287.295235061] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=44.208s, forwarded_depth_age=44.14, pending_depth=3
+[WARN] [1791557287.795233941] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=44.708s, forwarded_depth_age=44.64, pending_depth=3
+[WARN] [1791557288.316232227] [uav_map_session]: ESDF unavailable: Map source data stale: source_age=45.232s, forwarded_depth_age=45.164, pending_depth=2

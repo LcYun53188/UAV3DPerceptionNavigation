@@ -1,0 +1,62 @@
+{
+  "passed": false,
+  "scenario": "full",
+  "vio_required": false,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        12.15108267904217,
+        -1.0769755465737902,
+        2.318607065081596
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 30.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        7.4542191148052765,
+        -2.7914645838510475,
+        2.318607065081596
+      ]
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "navigation_backend": "EGO",
+  "recipe_sha256": "8ec8a848d47e9a37ce195239dd6a49d89176a5b672338d8bffd41b3887853ddc",
+  "error": "BT runner failed to submit a root mission; inspect bt-runner.log",
+  "outputs_at_end": 0,
+  "final_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "final_arming": 1,
+  "final_land": true,
+  "localized_odometry": {
+    "samples": 114,
+    "sessions": [
+      "3699f8b7-4173-4a8f-b578-b97c92736ae0"
+    ],
+    "valid": true
+  }
+}

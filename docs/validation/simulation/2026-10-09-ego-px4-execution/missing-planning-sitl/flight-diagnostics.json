@@ -1,0 +1,34 @@
+[
+  {
+    "admission": {
+      "reason": "INVALID_REQUEST:NON_UNIQUE_PLANNING_SOURCE",
+      "clock_fault_latched": false,
+      "ages": {
+        "battery_status": {
+          "receive": 0.008288848999654874,
+          "source": 0.007999999999999119
+        },
+        "vehicle_local_position": {
+          "receive": 0.008329838994541205,
+          "source": 0.012000000000000455
+        },
+        "vehicle_odometry": {
+          "receive": 0.008259819995146245,
+          "source": 0.012000000000000455
+        },
+        "vehicle_status": {
+          "receive": 0.4476456749980571,
+          "source": 0.4480000000000004
+        },
+        "failsafe_flags": {
+          "receive": 0.12403782999899704,
+          "source": 0.12399999999999878
+        },
+        "vehicle_land_detected": {
+          "receive": 0.5478603880037554,
+          "source": 0.5479999999999983
+        }
+      }
+    }
+  }
+]

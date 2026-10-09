@@ -1,0 +1,136 @@
+{
+  "context": {
+    "header": {
+      "stamp": {
+        "sec": 1791555833,
+        "nanosec": 626706003
+      },
+      "frame_id": "map"
+    },
+    "context_id": "2d3aeb5f6b3405db8b49d4f7e7c701f55f606433f989a929e7ab6019ab1fa648",
+    "map_id": "synthetic-obstacle",
+    "map_epoch": 1,
+    "map_version": 12,
+    "localization_session": "synthetic-ekf",
+    "alignment_id": "explicit-nonidentity",
+    "alignment_generation": 1,
+    "reset_counters": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "valid": true,
+    "reason": "READY"
+  },
+  "trajectory": {
+    "header": {
+      "stamp": {
+        "sec": 1791555833,
+        "nanosec": 622839031
+      },
+      "frame_id": "map"
+    },
+    "goal_stamp": {
+      "sec": 1791555833,
+      "nanosec": 272697483
+    },
+    "map_id": "synthetic-obstacle",
+    "epoch": 1,
+    "map_version": 12,
+    "trajectory_id": 1,
+    "parent_trajectory_id": 0,
+    "start_time": {
+      "sec": 1791555834,
+      "nanosec": 122839264
+    },
+    "knot_interval": 0.8517067831386842,
+    "control_points": [
+      {
+        "x": 4.0,
+        "y": -2.0,
+        "z": 2.0
+      },
+      {
+        "x": 4.0,
+        "y": -2.0,
+        "z": 2.0
+      },
+      {
+        "x": 4.0,
+        "y": -2.0,
+        "z": 2.0
+      },
+      {
+        "x": 4.066666666666666,
+        "y": -2.4,
+        "z": 2.0
+      },
+      {
+        "x": 4.133333333333334,
+        "y": -2.8,
+        "z": 2.0
+      },
+      {
+        "x": 4.2,
+        "y": -3.2,
+        "z": 2.0
+      },
+      {
+        "x": 4.6000000000000005,
+        "y": -3.3333333333333335,
+        "z": 2.0
+      },
+      {
+        "x": 5.0,
+        "y": -3.466666666666667,
+        "z": 2.0
+      },
+      {
+        "x": 5.4,
+        "y": -3.6,
+        "z": 2.0
+      },
+      {
+        "x": 5.6,
+        "y": -3.4000000000000004,
+        "z": 2.0
+      },
+      {
+        "x": 5.8,
+        "y": -3.2,
+        "z": 2.0
+      },
+      {
+        "x": 5.866666666666666,
+        "y": -2.8000000000000003,
+        "z": 2.0
+      },
+      {
+        "x": 5.933333333333334,
+        "y": -2.4000000000000004,
+        "z": 2.0
+      },
+      {
+        "x": 6.0,
+        "y": -2.0,
+        "z": 2.0
+      },
+      {
+        "x": 6.0,
+        "y": -2.0,
+        "z": 2.0
+      },
+      {
+        "x": 6.0,
+        "y": -2.0,
+        "z": 2.0
+      }
+    ],
+    "max_velocity": 0.5,
+    "max_acceleration": 1.0,
+    "max_jerk": 2.0
+  }
+}

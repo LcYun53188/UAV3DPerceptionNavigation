@@ -1,0 +1,13 @@
+[1;33mWarning [Utils.cc:132][0m [/sdf/model[@name="x500_depth_ref"]/link[@name="vio_rig_link"]/sensor[@name="mapping_rgbd"]/gz_frame_id:/home/nuc/Program/uav_nav_ws/.cache/simulation/sitl/b19a98dc-b8e4-4197-a1fa-8af49ff1a387/assets/x500_depth_ref/model.sdf:L22]: XML Element[gz_frame_id], child of element[sensor], not defined in SDF. Copying[gz_frame_id] as children of [sensor].
+libEGL warning: pci id for fd 55: 10de:2860, driver (null)
+
+pci id for fd 57: 10de:2860, driver (null)
+pci id for fd 58: 10de:2860, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 55: 10de:2860, driver (null)
+
+pci id for fd 57: 10de:2860, driver (null)
+pci id for fd 58: 10de:2860, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 55: 10de:2860, driver (null)
+

@@ -5,3 +5,6 @@ patches/vendor/*.patch -whitespace
 src/robot_localization/test/*.bag filter=lfs diff=lfs merge=lfs -text
 src/uav_bringup/gazebo/models/**/meshes/*.stl filter=lfs diff=lfs merge=lfs -text
 src/uav_bringup/gazebo/models/**/meshes/*.dae filter=lfs diff=lfs merge=lfs -text
+
+# Archived simulator output retains original bytes for checksum verification.
+docs/validation/simulation/2026-10-09-px4-depth-mapping/**/*.log -whitespace
