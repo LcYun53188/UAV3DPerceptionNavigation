@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=0, warehouse_texture_style="corners"):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=None, warehouse_texture_style="corners"):
     if scene not in ('planar','layered','warehouse'):
         raise ValueError('Unknown reference scene')
     if warehouse_floor_texture and scene!='warehouse':
@@ -17,10 +17,11 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
     if warehouse_texture_style!="corners" and (scene!="warehouse" or not warehouse_floor_texture):raise ValueError("Unique texture requires warehouse floor texture")
-    if camera_pitch_deg not in (0,15,30):raise ValueError('Unsupported reference camera pitch')
     p = json.loads(PROFILE.read_text())
+    if camera_pitch_deg is None:camera_pitch_deg=p['camera_pitch_deg']
+    if camera_pitch_deg not in (0,5,15,30):raise ValueError('Unsupported reference camera pitch')
     pitch=math.radians(camera_pitch_deg)
-    if camera_pitch_deg:p['camera_pitch_deg']=camera_pitch_deg
+    p['camera_pitch_deg']=camera_pitch_deg
     if resolution is not None:
         if resolution not in ((640,400),(480,300)):
             raise ValueError('Unsupported reference image resolution')

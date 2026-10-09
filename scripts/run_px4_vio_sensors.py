@@ -32,7 +32,7 @@ def main():
     parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
     parser.add_argument('--duration',type=float,default=45.,help='Disarmed observation duration only; flight stops at task terminal with a 280 s cap')
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
-    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15,30),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
+    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,5,15,30),default=5,help='Default fixed 5 degree downward rig; other angles are historical reproduction only')
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
     parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
@@ -54,6 +54,7 @@ def main():
         parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
     if args.diagnostic_ui and not (args.ui and (args.flight or args.fuse_pose)):parser.error('--diagnostic-ui requires --ui and --flight or --fuse-pose')
     if not 0<=args.ui_hold_seconds<=3600 or (args.ui_hold_seconds and not args.diagnostic_ui):parser.error('UI hold requires diagnostic UI flight and 0..3600 seconds')
+    if args.flight and args.camera_pitch_deg==5:parser.error('5 degree VIO flight source is not qualified yet; use sim.sh px4-flight --bt --ui for the complete PX4 task workflow')
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
