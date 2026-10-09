@@ -212,6 +212,23 @@ Gazebo 力/力矩驱动独立立体相机/IMU 载台，官方 x500/PX4 保持未
 
 独立合成位姿经过固定初始化对齐、保守协方差传播和 ENU/FLU→NED/FRD 转换，
 速度保持 NaN/UNKNOWN；检查实际位置/高度/航向融合及 PX4 自身速度健康。
-默认四类融合模式不变，不能用此选项启动飞行；尚未接入实际 cuVSLAM 位姿。
+默认四类融合模式不变，不能用此选项启动飞行；实际 cuVSLAM 位姿有下述独立入口。
 参数、停更与回归证据见
 [位姿融合报告](../../docs/validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
+
+
+## 同机实际 VIO 未解锁融合
+
+```bash
+./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene layered --real-time-factor .8 --duration 120
+```
+
+同一架 x500_vio_ref 的参考双目/IMU→实际 cuVSLAM→源状态配对→固定对齐→PX4
+EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV；此选项不能与运动载台
+或 reset 组合，也不启动飞行任务。末尾实际停止标准化源并观察 6 s，审计失效锁存和
+融合时间停止推进。新机体/场景没有 W0 飞行准入。
+
+120 s 墙钟的 0.8 倍目标速度检查通过，实时长时对照仍因源超时失败，详见
+[实际融合与失败证据](../../docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。
+生成的模型、世界、标定/锚点摘要、实际参数、SDK 位姿、EV 回读和 EKF 遥测均可追溯；
+这不是 OAK-D Pro W 硬件标定或 VIO 悬停验收。

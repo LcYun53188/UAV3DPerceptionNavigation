@@ -2,7 +2,7 @@
 
 ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / LIO、三维 EKF、EGO + nvblox 三维导航和 PX4 通信接口。
 当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
-算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、外部 VIO 及实机飞行仍待验证。
+算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、VIO 飞行及实机飞行仍待验证。
 
 当前按 **BT 飞行验证 → VIO 定点悬停 → 导航与避障** 三阶段推进，验收条件见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
 
@@ -14,7 +14,9 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 新增独立载台运动验证：`./scripts/build_vio_motion.sh` 后运行 `./scripts/sim.sh px4-vio-sensors --normalize --motion --scene layered --duration 120`。实际双目/IMU VIO 已在多深度场景完成三轴移动与转向检查，真值只供误差审计，PX4 保持未解锁；尚未完成 VIO 飞行。对照结果见 [运动报告](docs/validation/simulation/2026-10-09-vio-motion/REPORT.md)。
 
-显式仅位姿融合已增加固定初始化对齐和独立审计：`./scripts/sim.sh px4-vision-audit --vision-fusion-profile aligned_pose_v1 --duration 35`。合成位姿已通过实际 PX4 位置/高度/航向融合与停更检查，速度为 NaN；实际 cuVSLAM 源尚未接入该配置，默认四类融合门控保留。见 [位姿融合报告](docs/validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
+显式仅位姿融合已增加固定初始化对齐和独立审计：`./scripts/sim.sh px4-vision-audit --vision-fusion-profile aligned_pose_v1 --duration 35`。合成位姿已通过实际 PX4 位置/高度/航向融合与停更检查，速度为 NaN；默认四类融合门控保留；实际 SDK 源的受管入口见下文。见 [位姿融合报告](docs/validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
+
+实际 VIO→PX4 未解锁融合：`./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene layered --real-time-factor .8 --duration 120`。同一架 x500 的双目/IMU 经 cuVSLAM、固定对齐进入实际 EKF，2326 个样本、三类融合及停止源后的失效检查通过。此结果使用 0.8 倍目标仿真速度；实时长时试验仍出现超时，不能视为实时飞行或 VIO 悬停通过。见 [实际融合报告](docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。
 
 相机实机型号为 **OAK-D Pro W**。`./scripts/sim.sh px4-depth --ui` 单独验收 PX4 深度传感器到 ROS 的数据链路，使用上游 OakD-Lite 参考模型，不能作为 Pro W 的视场、标定或 VIO 验证。它全程保持未解锁，不与 W0 飞行模式混用。详见 [相机仿真说明](simulation/px4/README.md#深度相机参考链路)。
 

@@ -1,0 +1,58 @@
+{
+  "passed": false,
+  "error": "'dict' object has no attribute 'publisher_gid'",
+  "real_pose_fusion": {
+    "passed": false,
+    "checks": {
+      "bound": false,
+      "ready_before_stop": false,
+      "ready_window": false,
+      "emitted": false,
+      "actual_fusion": false,
+      "no_velocity_fusion": true,
+      "dds_echo": false,
+      "unknown_velocity": false,
+      "rejected_promptly": false,
+      "source_retired": false,
+      "gate_retired": true,
+      "no_output_after_drain": false,
+      "fusion_stopped": false,
+      "no_flight_controls": true,
+      "sole_ev_writer": true,
+      "disarmed_landed": true
+    },
+    "scope": "actual same-aircraft simulated stereo/IMU -> cuVSLAM -> PX4 EV, disarmed only",
+    "alignment": null,
+    "before_stop": null,
+    "first_stop_rejection": null,
+    "source_fault": "",
+    "source_reason": "VIO_ALIGNMENT_REQUIRES_GROUND",
+    "gate_reason": "VIO_CLOCK_STALLED",
+    "input_count": 0,
+    "observed_count": 0,
+    "fused_samples": {},
+    "longest_ready_s": 0.0,
+    "gate_reasons": {
+      "VIO_TELEMETRY_WRITER_COUNT": 209,
+      "VIO_CLOCK_STALLED": 234
+    },
+    "last_fuse_after_drain": null,
+    "last_fuse_at_end": {},
+    "control_publishers": {
+      "vehicle_command": 0,
+      "trajectory_setpoint": 0,
+      "offboard_control_mode": 0
+    }
+  },
+  "root_exit_codes": {
+    "agent": -2,
+    "gazebo": 0,
+    "sensor_bridge": 0,
+    "px4": 0,
+    "qgc": -9,
+    "vio": 0,
+    "normalizer": 0
+  },
+  "remaining_owned_processes": [],
+  "cleanup_confirmed": true
+}
