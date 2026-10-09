@@ -314,3 +314,37 @@ def test_localized_odometry_carries_source_session_counters_and_sample_stamp():
     assert result.localization_session==f.instance
     assert list(result.reset_counters)==[0,0,9,0,0,255]
     assert result.header==result.odometry.header==o.header
+
+
+def test_vio_ground_prestream_never_arms_and_stops_on_lost_health():
+    calls=[]
+    f=SimpleNamespace(clock_fault_latched=False,healthy=lambda ground:True,fresh=lambda name,age:True,
+        resets=lambda:(),reset_baseline=(),region=lambda p:True,position=lambda:(0.,0.,0.),
+        preflight_until=120.,initial_mode=4,phase_started=100.,last_command=100.,
+        get_publishers_info_by_topic=lambda topic:[object()],
+        stream=lambda:calls.append('stream'),command=lambda *args:calls.append(args),
+        fault=lambda reason:calls.append(reason),samples={
+            'vehicle_status':SimpleNamespace(arming_state=1,nav_state=4),
+            'vehicle_land_detected':SimpleNamespace(landed=True)})
+    FlightServer.preflight_tick(f,102.)
+    assert calls==['stream',(176,1,6)]
+    f.healthy=lambda ground:False
+    FlightServer.preflight_tick(f,102.02)
+    assert f.preflight_fault_latched and calls[-1]=='VIO_GROUND_PRESTREAM_FAILED'
+    assert len(calls)==3
+
+
+def test_paced_land_receipt_keeps_original_ros_age_limit():
+    from unittest.mock import patch
+    f=SimpleNamespace(config={'land_receive_max_age_s':1.5},
+        samples={'vehicle_land_detected':SimpleNamespace(timestamp=9_000_000)},
+        received={'vehicle_land_detected':98.75},
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000)))
+    with patch('uav_mission.px4_flight.time.monotonic',return_value=100.):
+        assert FlightServer.fresh(f,'vehicle_land_detected',1.2)
+        f.samples['vehicle_land_detected'].timestamp=8_700_000
+        assert not FlightServer.fresh(f,'vehicle_land_detected',1.2)
+        f.samples['vehicle_land_detected'].timestamp=9_000_000;f.received['vehicle_land_detected']=98.4
+        assert not FlightServer.fresh(f,'vehicle_land_detected',1.2)
+        f.received['vehicle_land_detected']=98.75;f.config={}
+        assert not FlightServer.fresh(f,'vehicle_land_detected',1.2)
