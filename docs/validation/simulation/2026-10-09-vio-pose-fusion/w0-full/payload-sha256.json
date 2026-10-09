@@ -1,0 +1,26 @@
+{
+  "original_run": "02fc6f06-dedb-4654-9c0c-d528055c2bd2",
+  "source_sha256": {
+    "localized-odometry.json": "9076b86b9b54ed9045441baca158b1a49baf58a69bbe162ef5bea6cac88c2ebe",
+    "flight_tasks.log": "a0dc5c6e48dfcd40c9a36bba305558a6a9754670f82e0b32050d6215b0276ef9",
+    "gazebo.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bt-progress.json": "88a0ede328256e25f569f8da34c8738b7c626d207ffee4140db889bfb4ccdb24",
+    "flight-commands.json": "7605ba6aa6dee1ecda5958b49bf1484d9ffe55fdf21cbc79c975ce00cf4df313",
+    "flight-truth.json": "15a0703db0f3fdb48d807986d97bb652b01d6595d5113329761658ef7390219d",
+    "clock_bridge.log": "1343045e27fcefe89a73e701c60a67df5faf3f371fab55096aa60bc040075070",
+    "qgc.log": "ff819b06087704bad952a7aa18627ce98d1ed07b9d2d86bace42c860ebd455c4",
+    "flight-diagnostics.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "flight-status-history.json": "cd67de43390710dbf06d645e21d2a9d3c3b079fe647626d0195c7a4c7efa996d",
+    "cleanup.json": "dd71bceced894f11c75641997bc6b1c4d994344a3d3449e86b836a44ef56549f",
+    "observation.json": "3d0a56e0ae0fe69579c60c7e8c7b2331467cd084c182045de5ce92c1f68ed25b",
+    "px4.log": "d32703c5b370c7e93c36f466c3406d13c6e981e83e232bb1a5c3d668dc01aac8",
+    "flight-trace.json": "693289e6af15aceed871d9405b2a53173455cf153720859025bd6f720ae7db92",
+    "truth-reader.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "agent.log": "ba50fb42a0af1613ac8989db7bf43ec5e842cf82df8f423c0df87224e768eb7e",
+    "flight-events.json": "a50781ec8597d9a7d7f24cc2da35fecf35fab498faa8af94191a8123ea1d8b5b",
+    "manifest.json": "8dca09bb8f6f2500554a339548a6db001b8754d58942810e05c165e66aef78ce",
+    "bt-runner.log": "280df171d89ecb1759662b063e3a2596809e1302360867983caf28750ccb9c67",
+    "bt-flight-tree.xml": "19506bcc0c7d2ababe386c2dc414d8d003374884ccbc94c9d488bf981664ceb0",
+    "flight-observation.json": "4ec805060051dfdc23abfc81a080e39affa610c8aa8d404679e321a3c902240c"
+  }
+}

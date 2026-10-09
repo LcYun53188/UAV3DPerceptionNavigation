@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "cases": {
+    "fake_velocity": {
+      "rejected": true,
+      "failed_checks": [
+        "echo_samples",
+        "unknown_velocity"
+      ]
+    },
+    "stale_sample": {
+      "rejected": true,
+      "failed_checks": [
+        "original_samples",
+        "echo_samples"
+      ]
+    },
+    "clamped_covariance": {
+      "rejected": true,
+      "failed_checks": [
+        "covariance_propagation"
+      ]
+    },
+    "wrong_coordinate": {
+      "rejected": true,
+      "failed_checks": [
+        "coordinate_conversion",
+        "echo_samples"
+      ]
+    },
+    "wrong_source": {
+      "rejected": true,
+      "failed_checks": [
+        "sdk_normalization",
+        "coordinate_conversion",
+        "covariance_propagation"
+      ]
+    },
+    "hidden_gnss": {
+      "rejected": true,
+      "failed_checks": [
+        "flags"
+      ]
+    },
+    "continued_fusion": {
+      "rejected": true,
+      "failed_checks": [
+        "actual_three_aids"
+      ]
+    },
+    "missing_actual_fusion": {
+      "rejected": true,
+      "failed_checks": [
+        "actual_three_aids"
+      ]
+    }
+  }
+}

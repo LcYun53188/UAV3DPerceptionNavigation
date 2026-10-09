@@ -1,0 +1,36 @@
+{
+  "default-four-aids": {
+    "passed": true,
+    "checks": {
+      "ready": true,
+      "fused": true,
+      "stopped": true,
+      "controls_absent": true,
+      "current_sources": true,
+      "parameters": true,
+      "other_aiding": true
+    }
+  },
+  "pose-three-aids": {
+    "passed": true,
+    "checks": {
+      "ready": true,
+      "fused": true,
+      "stopped": true,
+      "controls_absent": true,
+      "current_sources": true,
+      "parameters": true,
+      "other_aiding": true,
+      "local_record_hash": true,
+      "local_record_fresh": true,
+      "unknown_velocity": true,
+      "ev_velocity_disabled": true,
+      "range_aux_disabled": true,
+      "ekf_velocity": true,
+      "stop_rejection": true,
+      "terminal_rejected": true,
+      "preserved_sample": true,
+      "alignment_identity": true
+    }
+  }
+}

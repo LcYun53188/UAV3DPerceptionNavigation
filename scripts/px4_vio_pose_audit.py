@@ -12,7 +12,7 @@ from px4_vio_sensor_audit import stamp
 class PoseAudit:
     def __init__(self,node):
         self.node = node
-        self.poses,self.statuses = deque(maxlen=5000),deque(maxlen=5000)
+        self.poses,self.statuses = deque(maxlen=5000),deque(maxlen=12000)
         self.raw = {}
         self.reset_time = None
         self.future = None

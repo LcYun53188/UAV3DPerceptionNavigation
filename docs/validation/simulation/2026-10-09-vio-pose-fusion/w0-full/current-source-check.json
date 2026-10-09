@@ -1,0 +1,20 @@
+{
+  "all_current": true,
+  "checks": {
+    "scripts/run_px4_sitl_smoke.py": true,
+    "src/uav_nav_interfaces/msg/VioStatus.msg": true,
+    "src/uav_mission/uav_mission/vio_gate.py": true,
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": true,
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": true,
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": true,
+    "src/uav_mission/uav_mission/px4_flight.py": true,
+    "src/uav_mission/uav_mission/flight_geometry.py": true,
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": true,
+    "scripts/run_px4_flight_tasks.py": true,
+    "src/uav_bt/src/mission_runner.cpp": true,
+    "src/uav_bt/trees/px4_flight.xml": true,
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": true,
+    "scripts/bt_flight_client.py": true,
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": true
+  }
+}

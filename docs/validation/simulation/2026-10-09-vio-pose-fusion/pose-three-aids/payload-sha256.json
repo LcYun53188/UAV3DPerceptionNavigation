@@ -1,0 +1,14 @@
+{
+  "original_run": "50a60413-ca89-4648-84cf-ebb5fec021ea",
+  "source_sha256": {
+    "gazebo.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clock_bridge.log": "1295e784bffa7633dc6dfa1c469b5cdc119c7d0f5c5bac325f789570c5596546",
+    "qgc.log": "44cfdb448eb1dc244fa9bb11030c68379a25c01c2b563c717e5f7661bf8c07f6",
+    "cleanup.json": "718e51c2ca70a306130a795220edc5893265fd81a69615a56b1ba99185c17806",
+    "observation.json": "a896a0612cadaa33111f10e5399564420c939d0f195c6a8fbd48ab1568773fff",
+    "vision-fusion.json": "d4ba4fdd508250cef23261af66e9397318a4b110fd4a20764f7fae4040ad965b",
+    "px4.log": "4e01eadca746b1965a7abb34885031a6cf7be82a664b9370c151fac9ee219404",
+    "agent.log": "5ec1e34807aa7bf6eda323e49888119aaedb89747489c6bcaf25c0476ba6b5c6",
+    "manifest.json": "06b180cdc44147283a1f26f642c6031a0667972a61af6db9064b8ce7ee9d9b14"
+  }
+}

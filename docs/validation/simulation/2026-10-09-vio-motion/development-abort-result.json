@@ -1,0 +1,14 @@
+{
+  "passed": false,
+  "root_exit_codes": {
+    "agent": -2,
+    "gazebo": -9,
+    "sensor_bridge": 0,
+    "px4": 0,
+    "qgc": -9,
+    "vio": 0,
+    "normalizer": 0
+  },
+  "remaining_owned_processes": [],
+  "cleanup_confirmed": true
+}
