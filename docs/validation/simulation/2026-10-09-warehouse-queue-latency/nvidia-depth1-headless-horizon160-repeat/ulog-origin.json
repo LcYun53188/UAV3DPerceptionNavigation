@@ -1,0 +1,23 @@
+{
+  "bytes": 32598978,
+  "sha256": "a17c6093c57233ee0719234c035360afb49f73226b81cfa016dbb4df50cb72d6",
+  "source": "/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/1a3dae99-de76-499e-a9bf-208ba4e0fbfc/rootfs/log/2026-10-09/10_55_56.ulg",
+  "expected": {
+    "UXRCE_DDS_SYNCT": 0.0,
+    "EKF2_EV_CTRL": 11.0,
+    "EKF2_GPS_CTRL": 0.0,
+    "EKF2_MAG_TYPE": 5.0,
+    "EKF2_OF_CTRL": 0.0,
+    "EKF2_HGT_REF": 3.0,
+    "EKF2_EV_NOISE_MD": 0.0,
+    "SENS_IMU_MODE": 0.0,
+    "EKF2_MULTI_IMU": 1.0,
+    "EKF2_MULTI_MAG": 0.0,
+    "EKF2_RNG_CTRL": 0.0,
+    "EKF2_AGP_CTRL": 0.0,
+    "EKF2_DRAG_CTRL": 0.0,
+    "EKF2_BARO_CTRL": 1.0,
+    "EKF2_DELAY_MAX": 160.0,
+    "EKF2_EV_DELAY": 0.0
+  }
+}

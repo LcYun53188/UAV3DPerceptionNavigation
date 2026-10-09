@@ -1,0 +1,163 @@
+{
+  "passed": false,
+  "checks": {
+    "UXRCE_DDS_SYNCT": true,
+    "EKF2_EV_CTRL": true,
+    "EKF2_GPS_CTRL": true,
+    "EKF2_MAG_TYPE": true,
+    "EKF2_OF_CTRL": true,
+    "EKF2_HGT_REF": true,
+    "EKF2_EV_NOISE_MD": true,
+    "SENS_IMU_MODE": true,
+    "EKF2_MULTI_IMU": true,
+    "EKF2_MULTI_MAG": true,
+    "EKF2_RNG_CTRL": true,
+    "EKF2_AGP_CTRL": true,
+    "EKF2_DRAG_CTRL": true,
+    "EKF2_BARO_CTRL": true,
+    "EKF2_DELAY_MAX": false,
+    "EKF2_EV_DELAY": false
+  },
+  "parameters": {
+    "EKF2_AGP_CTRL": 0,
+    "EKF2_BARO_CTRL": 1,
+    "EKF2_DRAG_CTRL": 0,
+    "EKF2_EV_CTRL": 11,
+    "EKF2_EV_NOISE_MD": 0,
+    "EKF2_GPS_CTRL": 0,
+    "EKF2_HGT_REF": 3,
+    "EKF2_MAG_TYPE": 5,
+    "EKF2_MULTI_IMU": 1,
+    "EKF2_MULTI_MAG": 0,
+    "EKF2_OF_CTRL": 0,
+    "EKF2_RNG_CTRL": 0,
+    "SENS_IMU_MODE": 0,
+    "UXRCE_DDS_SYNCT": 0
+  },
+  "history": {
+    "EKF2_AGP_CTRL": [
+      {
+        "offset": 36440,
+        "value": 0
+      }
+    ],
+    "EKF2_BARO_CTRL": [
+      {
+        "offset": 36469,
+        "value": 1
+      }
+    ],
+    "EKF2_DRAG_CTRL": [
+      {
+        "offset": 36499,
+        "value": 0
+      }
+    ],
+    "EKF2_EV_CTRL": [
+      {
+        "offset": 36552,
+        "value": 11
+      },
+      {
+        "offset": 85633,
+        "value": 11
+      }
+    ],
+    "EKF2_EV_NOISE_MD": [
+      {
+        "offset": 36580,
+        "value": 0
+      }
+    ],
+    "EKF2_GPS_CTRL": [
+      {
+        "offset": 36612,
+        "value": 0
+      },
+      {
+        "offset": 85661,
+        "value": 0
+      }
+    ],
+    "EKF2_HGT_REF": [
+      {
+        "offset": 36641,
+        "value": 3
+      },
+      {
+        "offset": 85690,
+        "value": 3
+      }
+    ],
+    "EKF2_MAG_TYPE": [
+      {
+        "offset": 36669,
+        "value": 5
+      },
+      {
+        "offset": 85718,
+        "value": 5
+      }
+    ],
+    "EKF2_MULTI_IMU": [
+      {
+        "offset": 36698,
+        "value": 1
+      },
+      {
+        "offset": 85747,
+        "value": 1
+      }
+    ],
+    "EKF2_MULTI_MAG": [
+      {
+        "offset": 36728,
+        "value": 0
+      }
+    ],
+    "EKF2_OF_CTRL": [
+      {
+        "offset": 36758,
+        "value": 0
+      },
+      {
+        "offset": 85777,
+        "value": 0
+      }
+    ],
+    "EKF2_RNG_CTRL": [
+      {
+        "offset": 36814,
+        "value": 0
+      },
+      {
+        "offset": 85805,
+        "value": 0
+      }
+    ],
+    "SENS_IMU_MODE": [
+      {
+        "offset": 47729,
+        "value": 0
+      },
+      {
+        "offset": 85918,
+        "value": 0
+      }
+    ],
+    "UXRCE_DDS_SYNCT": [
+      {
+        "offset": 52365,
+        "value": 0
+      },
+      {
+        "offset": 86067,
+        "value": 0
+      }
+    ]
+  },
+  "source": "/home/nuc/Program/uav_nav_ws/.cache/simulation/vio-sensors/c53535e0-951a-4bcd-ac77-dafddb584174/rootfs/log/2026-10-09/10_31_48.ulg",
+  "source_sha256": "3275f945bbdf12dba756837f5e2b54518ea4a39432379bfb17d4e43de91425c8",
+  "initial_header_bytes": 86098,
+  "scope": "actual ULog parameter records; no camera or flight claim"
+}

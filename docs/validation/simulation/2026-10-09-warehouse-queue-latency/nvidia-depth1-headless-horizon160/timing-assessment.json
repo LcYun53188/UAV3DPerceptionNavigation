@@ -1,0 +1,310 @@
+{
+  "schema": 1,
+  "host_clock_stable": false,
+  "host_clock_offset_range_s": 0.4290652275085449,
+  "trace_complete": true,
+  "fusion_faults": [],
+  "fresh_pairs_with_expired_previous": 0,
+  "fresh_pair_examples": [],
+  "scope": "shared host DDS publish-to-callback and stereo-to-SDK publish timing; not physical sensor synchronization",
+  "metrics": {
+    "observer:imu": {
+      "age": {
+        "count": 2600,
+        "min_s": -4.440892098500626e-16,
+        "p50_s": 0.0,
+        "p95_s": 0.0,
+        "p99_s": 0.0,
+        "max_s": 0.031999999999996476
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2600,
+        "min_s": 9.4469e-05,
+        "p50_s": 0.000353459,
+        "p95_s": 0.0007170185499999997,
+        "p99_s": 0.0014070506699999919,
+        "max_s": 0.041427002
+      }
+    },
+    "observer:left": {
+      "age": {
+        "count": 2601,
+        "min_s": 0.0,
+        "p50_s": 0.004000000000001336,
+        "p95_s": 0.012000000000000455,
+        "p99_s": 0.012000000000000455,
+        "max_s": 0.036000000000001364
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2601,
+        "min_s": 0.000435546,
+        "p50_s": 0.000812505,
+        "p95_s": 0.010909006,
+        "p99_s": 0.011288797,
+        "max_s": 0.038637063
+      }
+    },
+    "observer:pose_cov": {
+      "age": {
+        "count": 2589,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.0519999999999996,
+        "p99_s": 0.07199999999999562,
+        "max_s": 0.12000000000000455
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2589,
+        "min_s": 0.000119703,
+        "p50_s": 0.000374816,
+        "p95_s": 0.0008483905999999999,
+        "p99_s": 0.0016395849199999973,
+        "max_s": 0.065509846
+      }
+    },
+    "observer:right": {
+      "age": {
+        "count": 2601,
+        "min_s": 0.003999999999990678,
+        "p50_s": 0.007999999999995566,
+        "p95_s": 0.016000000000000014,
+        "p99_s": 0.016000000000005343,
+        "max_s": 0.036000000000001364
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2601,
+        "min_s": 0.000335656,
+        "p50_s": 0.000680976,
+        "p95_s": 0.010869254,
+        "p99_s": 0.011095411,
+        "max_s": 0.036071807
+      }
+    },
+    "observer:tracking": {
+      "age": {
+        "count": 2589,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.0519999999999996,
+        "p99_s": 0.07199999999999562,
+        "max_s": 0.12000000000000455
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2589,
+        "min_s": 0.000246674,
+        "p50_s": 0.000514537,
+        "p95_s": 0.0010199367999999998,
+        "p99_s": 0.001678086359999997,
+        "max_s": 0.065496592
+      }
+    },
+    "normalizer:pose_done": {
+      "age": {
+        "count": 2474,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.04800000000000182,
+        "p99_s": 0.06400000000000197,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 2474,
+        "min_s": 4.8891990445554256e-05,
+        "p50_s": 0.00011207450006622821,
+        "p95_s": 0.00016965349786914885,
+        "p99_s": 0.00019580491920351048,
+        "max_s": 0.00028753299557138234
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:pose_emit": {
+      "age": {
+        "count": 2433,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.04800000000000182,
+        "p99_s": 0.06400000000000489,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:pose_rx": {
+      "age": {
+        "count": 2474,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.04800000000000182,
+        "p99_s": 0.06400000000000197,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2474,
+        "min_s": 0.000128871,
+        "p50_s": 0.0002491775,
+        "p95_s": 0.00041427699999999995,
+        "p99_s": 0.00052723768,
+        "max_s": 0.000864336
+      }
+    },
+    "normalizer:tracking_done": {
+      "age": {
+        "count": 2474,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.04800000000000182,
+        "p99_s": 0.06400000000000197,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 2474,
+        "min_s": 0.0004686640022555366,
+        "p50_s": 0.0008343355002580211,
+        "p95_s": 0.001009274752868805,
+        "p99_s": 0.0010871972249879036,
+        "max_s": 0.0018529789958847687
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "normalizer:tracking_rx": {
+      "age": {
+        "count": 2474,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.04800000000000182,
+        "p99_s": 0.06400000000000197,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2474,
+        "min_s": 0.000203451,
+        "p50_s": 0.000460943,
+        "p95_s": 0.0006419109000000001,
+        "p99_s": 0.0007762783799999999,
+        "max_s": 0.001175168
+      }
+    },
+    "fusion:accepted": {
+      "age": {
+        "count": 2317,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.028000000000005798,
+        "p95_s": 0.0519999999999996,
+        "p99_s": 0.06799999999999784,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 0
+      }
+    },
+    "fusion:pose_rx": {
+      "age": {
+        "count": 2393,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.027999999999998693,
+        "p95_s": 0.0519999999999996,
+        "p99_s": 0.06799999999999784,
+        "max_s": 0.10000000000000142
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 2393,
+        "min_s": 0.000123199,
+        "p50_s": 0.000320405,
+        "p95_s": 0.0009202326000000003,
+        "p99_s": 0.0016132757199999997,
+        "max_s": 0.005414115
+      }
+    },
+    "fusion:status_rx": {
+      "age": {
+        "count": 4793,
+        "min_s": 0.007999999999995566,
+        "p50_s": 0.047999999999998266,
+        "p95_s": 0.05200000000000671,
+        "p99_s": 0.09199999999999875,
+        "max_s": 0.132000000000005
+      },
+      "callback_elapsed": {
+        "count": 0
+      },
+      "publisher_to_callback": {
+        "count": 4793,
+        "min_s": 0.000162441,
+        "p50_s": 0.000433644,
+        "p95_s": 0.0010087191999999987,
+        "p99_s": 0.0015793973599999996,
+        "max_s": 0.005322153
+      }
+    }
+  },
+  "stereo_to_sdk_publish": null,
+  "worst_pipeline": [],
+  "first_source_retirement": null,
+  "around_retirement": {},
+  "sdk_execution": {
+    "valid_count": 2589,
+    "invalid_count": 0,
+    "track": {
+      "count": 2589,
+      "min_s": 0.000417863,
+      "p50_s": 0.022911272,
+      "p95_s": 0.045782388199999996,
+      "p99_s": 0.06832095135999995,
+      "max_s": 0.541855225
+    },
+    "callback": {
+      "count": 2589,
+      "min_s": 0.000524931,
+      "p50_s": 0.023643899,
+      "p95_s": 0.046849745199999994,
+      "p99_s": 0.06927064031999994,
+      "max_s": 0.543012038
+    },
+    "callback_without_track": {
+      "count": 2589,
+      "min_s": 7.305199999999999e-05,
+      "p50_s": 0.0007228129999999992,
+      "p95_s": 0.0012856555999999997,
+      "p99_s": 0.00133815076,
+      "max_s": 0.0015684440000000002
+    },
+    "outside_callback_lower_bound": null,
+    "worst_pipeline": [],
+    "scope": "SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time"
+  }
+}

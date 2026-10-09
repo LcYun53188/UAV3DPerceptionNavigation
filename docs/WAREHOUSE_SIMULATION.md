@@ -1,6 +1,6 @@
 # 仓库场景与分阶段 VIO 验证
 
-已修复运行时静态 TF 忽略相机下倾的问题。640×400 仓库 VIO 的 120 秒三轴运动／转向与归一化源检查通过，位置 RMSE 1.64 cm；480×300 仍有协方差／时效失败。同机 120 秒融合仍未通过，结果与边界见 [运行时外参报告](validation/simulation/2026-10-09-runtime-mount-fix/REPORT.md)。仓库悬停和导航尚未执行。
+640×400 仓库 VIO 运动验证已通过，显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败，仓库悬停和导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
 
 初始六轮实测的 VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。
 详见 [原始结果与重放](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
@@ -21,10 +21,11 @@
 ## 已可执行的传感器检查
 
 ```bash
-# 同一架未解锁 x500：双目/IMU -> 实际 cuVSLAM -> 归一化 -> 固定对齐 -> PX4 EKF
+# 两轮通过的无界面未解锁配置：实际双目/IMU -> cuVSLAM -> PX4 EKF
 ./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene warehouse \
   --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
-  --quality-policy bounded_gap --real-time-factor .8 --duration 120 --ui
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --ekf-delay-max-ms 160 --duration 120
 
 # 独立载台三轴移动/转向：真值仅供误差审计，PX4 不解锁、不接收 EV
 ./scripts/sim.sh px4-vio-sensors --normalize --motion --scene warehouse \
@@ -36,7 +37,7 @@ python3 scripts/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
   --output /tmp/warehouse-assessment.json
 ```
 
-`--ui` 显示本次 Gazebo/QGC，检查完成后关闭所属窗口。仿真模型为理想针孔双目/
+`--ui` 显示本次 Gazebo/QGC，检查完成后关闭所属窗口；带 UI 的长时融合仍失败。仿真模型为理想针孔双目/
 IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解锁着地；严禁与
 现有 FlightServer 混开以绕过审计。SDK 新鲜度/协方差、reset 等门限保持不变。
 

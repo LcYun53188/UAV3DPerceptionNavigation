@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "passed": true,
+  "expected": {
+    "image_buffer_size": 100,
+    "imu_buffer_size": 144,
+    "image_qos": "DEFAULT",
+    "image_qos_depth": 1,
+    "tracking_mode": 1,
+    "num_cameras": 2,
+    "min_num_images": 2,
+    "camera_optical_frames": [
+      "vio_left_optical",
+      "vio_right_optical"
+    ]
+  },
+  "actual": {
+    "image_buffer_size": 100,
+    "imu_buffer_size": 144,
+    "image_qos": "DEFAULT",
+    "image_qos_depth": 1,
+    "tracking_mode": 1,
+    "num_cameras": 2,
+    "min_num_images": 2,
+    "camera_optical_frames": [
+      "vio_left_optical",
+      "vio_right_optical"
+    ]
+  },
+  "error": null,
+  "scope": "SDK parameter service snapshot; configured subscription depth, not queue occupancy"
+}
