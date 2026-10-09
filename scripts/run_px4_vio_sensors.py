@@ -37,10 +37,10 @@ def main():
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
     parser.add_argument('--ekf-delay-max-ms',type=int,choices=(160,200),default=None,help='Explicit disarmed EKF delayed-horizon comparison; no EV timestamp offset')
-    parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion timing comparison')
-    parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion')
+    parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion or carrier motion')
+    parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion or carrier motion')
     parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
-    parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion only')
+    parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion or carrier motion')
     parser.add_argument('--fuse-pose',action='store_true',help='Same-aircraft actual SDK pose -> PX4 EV; disarmed audit with source stop')
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
@@ -51,14 +51,14 @@ def main():
         parser.error('--warehouse-floor-texture requires --scene warehouse')
     if args.ekf_delay_max_ms is not None and not args.fuse_pose:
         parser.error('--ekf-delay-max-ms requires --fuse-pose')
-    if args.sdk_image_depth is not None and not args.fuse_pose:
-        parser.error('--sdk-image-depth requires --fuse-pose')
-    if args.headless_rendering and not args.fuse_pose:
-        parser.error('--headless-rendering requires --fuse-pose')
-    if args.render_device!='default' and not args.fuse_pose:
-        parser.error('--render-device nvidia requires --fuse-pose')
-    if args.real_time_factor is not None and (not args.fuse_pose or not .8<=args.real_time_factor<=1.):
-        parser.error('--real-time-factor requires --fuse-pose and a value within [0.8,1.0]')
+    if args.sdk_image_depth is not None and not (args.fuse_pose or args.motion):
+        parser.error('--sdk-image-depth requires --fuse-pose or --motion')
+    if args.headless_rendering and not (args.fuse_pose or args.motion):
+        parser.error('--headless-rendering requires --fuse-pose or --motion')
+    if args.render_device!='default' and not (args.fuse_pose or args.motion):
+        parser.error('--render-device nvidia requires --fuse-pose or --motion')
+    if args.real_time_factor is not None and (not (args.fuse_pose or args.motion) or not .8<=args.real_time_factor<=1.):
+        parser.error('--real-time-factor requires --fuse-pose or --motion, and a value within [0.8,1.0]')
     if args.fuse_pose and (not args.normalize or args.motion or args.reset_source or args.duration<40):
         parser.error('--fuse-pose requires --normalize, duration >=40 s, no carrier motion or reset')
     if args.scene!='planar' and not (args.motion or args.fuse_pose):
@@ -310,13 +310,14 @@ def main():
     except Exception as exc:
         result.update(passed=False,error=str(exc))
     finally:
-        if fusion_audit is not None:
+        if fusion_audit is not None or args.motion:
             renderer_log=Path.home()/'.gz/rendering/ogre2.log'
             renderer=capture_renderer(renderer_log,manifest['processes']['gazebo']['started_system_ns'],args.render_device)
             write_json(out/'renderer-info.json',renderer)
             if renderer_log.is_file():(out/'renderer.log').write_bytes(renderer_log.read_bytes())
             result['renderer']=renderer
             result['passed'] &= renderer['passed']
+        if fusion_audit is not None:
             result['real_pose_fusion']=fusion_audit.result()
             result['passed'] &= result['real_pose_fusion']['passed']
         node.destroy_node();rclpy.try_shutdown()
