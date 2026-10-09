@@ -48,3 +48,19 @@ def test_assets_are_reproducible_without_mutating_upstream(tmp_path):
     assert world.read_bytes() == original
     for relative in ('default.sdf','frames.json','x500_vio_ref/model.sdf'):
         assert (tmp_path/'a'/relative).read_bytes() == (tmp_path/'b'/relative).read_bytes()
+
+
+def test_motion_fixture_has_physics_and_separate_truth(tmp_path):
+    world = tmp_path/'world.sdf'
+    world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    profile,_ = assets(tmp_path/'motion',world,motion_plugin=Path('/fixture.so'),scene='layered')
+    model = ET.parse(tmp_path/'motion'/profile['model']/'model.sdf')
+    assert not model.findall('.//include')  # No PX4 motors or flight model on fixture.
+    assert model.findtext('.//link[@name="base_link"]/inertial/mass') == '1'
+    assert model.find('.//link[@name="base_link"]/collision') is not None
+    assert model.find('.//plugin[@name="uav::test::MotionCarrier"]') is not None
+    assert model.findtext('.//plugin/odom_topic') == '/vio/truth'
+    generated = ET.parse(tmp_path/'motion/default.sdf')
+    assert generated.findtext('.//include/pose') == '0 0 1.3 0 0 0'
+    landmarks = generated.findall('.//model/link[@name="landmark"]')
+    assert len(landmarks)==90 and all(m.find('collision') is not None for m in landmarks)

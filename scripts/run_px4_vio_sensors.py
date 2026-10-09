@@ -17,15 +17,22 @@ from run_px4_sitl_smoke import stop,free_port
 from prepare_vio_sensor_assets import assets,PROFILE
 from px4_vio_sensor_audit import SensorAudit
 from px4_vio_pose_audit import PoseAudit
+from px4_vio_motion_audit import MotionAudit
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration',type=float,default=45.)
+    parser.add_argument('--scene',choices=('planar','layered'),default='planar')
+    parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; no EV output')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.scene!='planar' and not args.motion:
+        parser.error('--scene layered requires --motion')
+    if args.motion and (not args.normalize or args.reset_source or args.duration < 50):
+        parser.error('--motion requires --normalize, duration >=50 s, and no reset')
     if args.reset_source and (not args.normalize or args.duration < 35):
         parser.error('--reset-source requires --normalize and duration >=35 s')
     if not 20 <= args.duration <= 120: parser.error('duration must be within [20,120] s')
@@ -44,13 +51,21 @@ def main():
     build = px4/'build/px4_sitl_default'
     models = px4/'Tools/simulation/gz/models'
     upstream_world = px4/'Tools/simulation/gz/worlds/default.sdf'
-    profile,frames = assets(out/'assets',upstream_world)
+    motion_plugin = ROOT/'.deps/vio-motion-build/libvio_motion_carrier.so' if args.motion else None
+    if motion_plugin is not None and not motion_plugin.is_file():
+        raise RuntimeError('Build the independent fixture first: ./scripts/build_vio_motion.sh')
+    if motion_plugin is not None:
+        receipt = read(motion_plugin.parent/'build-inputs.json')
+        for name,digest in receipt.items():
+            if file_hash(ROOT/name) != digest:
+                raise RuntimeError('Motion fixture build drift: '+name)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION='uav_vio_sensors_'+run_id,GZ_IP='127.0.0.1',
-        PX4_SIM_MODEL='gz_'+profile['model'],PX4_SYS_AUTOSTART='4001',
+        PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
         PX4_GZ_STANDALONE='1',PX4_GZ_WORLD='default',HEADLESS='1',
         PX4_UXRCE_DDS_PORT='8898',PX4_PARAM_UXRCE_DDS_SYNCT='0',
-        PX4_GZ_MODELS=str(out/'assets'),PX4_GZ_WORLDS=str(out/'assets'),
+        PX4_GZ_MODELS=str(models if args.motion else out/'assets'),PX4_GZ_WORLDS=str(out/'assets'),
         GZ_SIM_RESOURCE_PATH=str(out/'assets')+':'+str(models),
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(build/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
@@ -74,6 +89,11 @@ def main():
               out/'vio-params.yaml',ROOT/'simulation/px4/server_control.config',binary,
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so',
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libcuvslam.so']
+    if args.motion:
+        inputs += [motion_plugin,ROOT/'simulation/px4/vio/motion/MotionCarrier.cc',
+                   ROOT/'simulation/px4/vio/motion/CMakeLists.txt',ROOT/'scripts/build_vio_motion.sh',
+                   motion_plugin.parent/'build-inputs.json',ROOT/'scripts/record_vio_motion_build.py',
+                   ROOT/'scripts/px4_vio_motion_audit.py']
     if args.normalize:
         reviewed = ROOT/'simulation/px4/vio/pose_contract.json'
         approved = read(reviewed)
@@ -97,8 +117,8 @@ def main():
     calibration = file_hash(out/'calibration.json')
     inputs.append(out/'calibration.json')
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
-        partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model']+'_7',versions=lock,profile=profile,
-        normalize=args.normalize,reset_source=args.reset_source,calibration_id=calibration,
+        partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
+        normalize=args.normalize,motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
     def launch(name,command,environment=env):
@@ -112,6 +132,7 @@ def main():
     node = rclpy.create_node('vio_sensor_observer')
     audit = SensorAudit(node,profile,frames)
     pose_audit = PoseAudit(node) if args.normalize else None
+    motion_audit = MotionAudit(node) if args.motion else None
     result = dict(passed=False)
     try:
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
@@ -123,16 +144,19 @@ def main():
             '/vio/right/image@sensor_msgs/msg/Image[gz.msgs.Image',
             '/vio/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             '/vio/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            '/vio/imu@sensor_msgs/msg/Imu[gz.msgs.IMU'])
-        reset_remap = ['-r','visual_slam/reset:=/visual_slam/internal/reset'] if args.normalize else []
-        launch('vio',[binary,'--ros-args','--params-file',out/'vio-params.yaml',
-            '-r','visual_slam/image_0:=/vio/left/image','-r','visual_slam/image_1:=/vio/right/image',
-            '-r','visual_slam/camera_info_0:=/vio/left/camera_info','-r','visual_slam/camera_info_1:=/vio/right/camera_info',
-            '-r','visual_slam/imu:=/vio/imu']+reset_remap)
-        if args.normalize:
-            launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
-                '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
-                '-p','source_contract:=cuvslam15_right_tangent_base_link_v1'])
+            '/vio/imu@sensor_msgs/msg/Imu[gz.msgs.IMU']+
+            (['/vio/truth@nav_msgs/msg/Odometry[gz.msgs.Odometry'] if args.motion else []))
+        def launch_vio():
+            reset_remap = ['-r','visual_slam/reset:=/visual_slam/internal/reset'] if args.normalize else []
+            launch('vio',[binary,'--ros-args','--params-file',out/'vio-params.yaml',
+                '-r','visual_slam/image_0:=/vio/left/image','-r','visual_slam/image_1:=/vio/right/image',
+                '-r','visual_slam/camera_info_0:=/vio/left/camera_info','-r','visual_slam/camera_info_1:=/vio/right/camera_info',
+                '-r','visual_slam/imu:=/vio/imu']+reset_remap)
+            if args.normalize:
+                launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
+                    '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
+                    '-p','source_contract:=cuvslam15_right_tangent_base_link_v1'])
+        if not args.motion: launch_vio()
         launch('px4',[build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
         config = out/'qgc-config/QGroundControl';config.mkdir(parents=True)
         (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
@@ -140,6 +164,18 @@ def main():
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
+        if args.motion:
+            # The separate carrier exists before PX4's spawn. Finish simulator/QGC
+            # startup before binding a VIO source; freshness limits stay unchanged.
+            deadline = time.monotonic()+25.
+            while True:
+                rclpy.spin_once(node,timeout_sec=.05)
+                if (audit.counts['left']>=50 and audit.counts['right']>=50
+                        and 'vehicle' in audit.last and 'land' in audit.last
+                        and 'Adding new vehicle' in (out/'qgc.log').read_text(errors='replace')):
+                    break
+                if time.monotonic()>deadline: raise RuntimeError('Motion fixture startup not ready')
+            launch_vio()
         until = time.monotonic()+args.duration
         before_reset = None
         while time.monotonic()<until:
@@ -152,6 +188,19 @@ def main():
                     raise RuntimeError('Sensor/normalized source not ready before reset')
                 pose_audit.request_reset()
         result = before_reset or audit.result()
+        if motion_audit is not None:
+            result['scope'] = 'independent force-driven sensor motion, disarmed PX4, no EV or flight acceptance'
+            for name in ('quality:static_imu','static_drift'):
+                result['checks'].pop(name,None)
+            result['static_drift_m'] = None
+            result['quality'].pop('static_imu',None)
+            result['motion'] = motion_audit.result(list(pose_audit.poses))
+            first = pose_audit.poses[0]['stamp'] if pose_audit.poses else min(pose_audit.raw,default=float('inf'))+2.
+            raw_poses = [dict(stamp=t,position=[m.pose.pose.position.x,m.pose.pose.position.y,m.pose.pose.position.z],
+                quaternion=[m.pose.pose.orientation.x,m.pose.pose.orientation.y,m.pose.pose.orientation.z,m.pose.pose.orientation.w])
+                for t,m in pose_audit.raw.items() if t>=first]
+            result['motion_raw_sdk_diagnostic'] = motion_audit.result(raw_poses)
+            result['passed'] = all(result['checks'].values()) and result['motion']['passed']
         if pose_audit is not None:
             result['normalized_pose'] = pose_audit.result(calibration)
             result['passed'] &= result['normalized_pose']['passed']
@@ -176,7 +225,11 @@ def main():
             if pose_audit is not None:
                 write_json(out/'normalized-poses.json',list(pose_audit.poses))
                 write_json(out/'normalized-status.json',list(pose_audit.statuses))
+                if motion_audit is not None:
+                    write_json(out/'truth.json',motion_audit.truth)
+                    write_json(out/'motion-imu.json',motion_audit.imu)
                 write_json(out/'sdk-poses.json',[dict(stamp=t,covariance=list(m.pose.covariance),
+                    position=[m.pose.pose.position.x,m.pose.pose.position.y,m.pose.pose.position.z],
                     quaternion=[m.pose.pose.orientation.x,m.pose.pose.orientation.y,m.pose.pose.orientation.z,m.pose.pose.orientation.w])
                     for t,m in pose_audit.raw.items()])
         except Exception as exc:

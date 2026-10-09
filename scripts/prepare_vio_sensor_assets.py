@@ -9,17 +9,39 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar'):
+    if scene not in ('planar','layered') or (scene=='layered' and motion_plugin is None):
+        raise ValueError('Layered scene requires the independent motion fixture')
     p = json.loads(PROFILE.read_text())
+    if motion_plugin is not None: p['scene'] = scene
     if p['schema'] != 1 or not 0 < p['baseline_m'] < 1:
         raise ValueError('Invalid reference sensor profile')
     directory.mkdir(parents=True,exist_ok=True)
+    if motion_plugin is not None:
+        p['model'] = 'vio_motion_carrier'
+        p['scope'] = 'force-driven reference sensor fixture, independent of disarmed PX4'
     model_dir = directory/p['model']
     model_dir.mkdir()
     sdf = ET.Element('sdf',version='1.9')
     model = ET.SubElement(sdf,'model',name=p['model'])
-    include = ET.SubElement(model,'include',merge='true')
-    ET.SubElement(include,'uri').text = 'model://x500'
+    if motion_plugin is None:
+        include = ET.SubElement(model,'include',merge='true')
+        ET.SubElement(include,'uri').text = 'model://x500'
+    else:
+        body = ET.SubElement(model,'link',name='base_link')
+        inertial = ET.SubElement(body,'inertial')
+        ET.SubElement(inertial,'mass').text = '1'
+        inertia = ET.SubElement(inertial,'inertia')
+        for axis in ('ixx','iyy','izz'): ET.SubElement(inertia,axis).text = '0.02'
+        for kind in ('visual','collision'):
+            element = ET.SubElement(body,kind,name='body')
+            ET.SubElement(ET.SubElement(ET.SubElement(element,'geometry'),'box'),'size').text = '.2 .2 .1'
+        ET.SubElement(model,'plugin',filename=str(motion_plugin),name='uav::test::MotionCarrier')
+        truth = ET.SubElement(model,'plugin',filename='gz-sim-odometry-publisher-system',
+                              name='gz::sim::systems::OdometryPublisher')
+        for key,value in [('odom_frame','world'),('robot_base_frame','base_link'),
+                          ('odom_topic','/vio/truth'),('odom_publish_frequency','100'),('dimensions','3')]:
+            ET.SubElement(truth,key).text = value
     rig = ET.SubElement(model,'link',name='vio_rig_link')
     ET.SubElement(rig,'pose').text = ' '.join(map(str,p['rig_position_flu_m']))+' 0 0 0'
     inertial = ET.SubElement(rig,'inertial')
@@ -59,6 +81,11 @@ def assets(directory, upstream_world):
     (model_dir/'model.config').write_text('<model><name>'+p['model']+'</name><version>1</version><sdf version="1.9">model.sdf</sdf></model>')
     world = ET.parse(upstream_world)
     root = world.getroot().find('world')
+    if motion_plugin is not None:
+        carrier = ET.SubElement(root,'include')
+        ET.SubElement(carrier,'uri').text = 'model://'+p['model']
+        ET.SubElement(carrier,'name').text = p['model']
+        ET.SubElement(carrier,'pose').text = '0 0 1.3 0 0 0'
     # Seeded geometry gives real stereo parallax and image features, never odometry.
     rng = random.Random(68078)
     for wall in range(3):
@@ -78,6 +105,31 @@ def assets(directory, upstream_world):
                 material = ET.SubElement(visual,'material')
                 color = ' '.join(str(rng.choice((.03,.15,.35,.65,.95))) for _ in range(3))+' 1'
                 for tag in ('ambient','diffuse'): ET.SubElement(material,tag).text = color
+    if scene=='layered':
+        # Varied depths and non-repeating colored geometry, outside fixture bounds.
+        for i in range(90):
+            m = ET.SubElement(root,'model',name=f'vio_landmark_{i}')
+            ET.SubElement(m,'static').text = 'true'
+            x,y,z = rng.uniform(1.4,3.7),rng.uniform(-3.7,3.7),rng.uniform(.25,4.5)
+            ET.SubElement(m,'pose').text = f'{x} {y} {z} 0 0 0'
+            link = ET.SubElement(m,'link',name='landmark')
+            size = ' '.join(str(rng.uniform(.08,.3)) for _ in range(3))
+            for kind in ('visual','collision'):
+                obj = ET.SubElement(link,kind,name='box')
+                ET.SubElement(ET.SubElement(ET.SubElement(obj,'geometry'),'box'),'size').text = size
+                if kind=='visual':
+                    material = ET.SubElement(obj,'material')
+                    color = ' '.join(str(rng.uniform(.02,.98)) for _ in range(3))+' 1'
+                    for tag in ('ambient','diffuse'): ET.SubElement(material,tag).text = color
+        for i in range(160):
+            m = ET.SubElement(root,'model',name=f'vio_floor_patch_{i}')
+            ET.SubElement(m,'static').text = 'true'
+            ET.SubElement(m,'pose').text = f'{rng.uniform(-.8,3.8)} {rng.uniform(-4,4)} .002 0 0 {rng.uniform(-3.14,3.14)}'
+            visual = ET.SubElement(ET.SubElement(m,'link',name='patch'),'visual',name='patch')
+            ET.SubElement(ET.SubElement(ET.SubElement(visual,'geometry'),'box'),'size').text = '.17 .23 .002'
+            material = ET.SubElement(visual,'material')
+            color = ' '.join(str(rng.uniform(.02,.98)) for _ in range(3))+' 1'
+            for tag in ('ambient','diffuse'): ET.SubElement(material,tag).text = color
     world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
     (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
     return p,frames
