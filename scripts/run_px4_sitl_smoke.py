@@ -101,7 +101,7 @@ def main():
     (run_dir / 'rootfs').mkdir()
     px4 = ROOT / lock['sitl']['path']
     build = px4 / 'build/px4_sitl_default'
-    if args.vision_fusion_smoke:
+    if args.vision_fusion_smoke or args.require_vio:
         from build_px4_vio import BUILD, verify
         vio_build = verify(lock)
         build = BUILD
@@ -155,7 +155,7 @@ def main():
                     vision_fusion_profile=args.vision_fusion_profile,
                     pose_fusion_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'simulation/px4/vio/pose_fusion.json',
                         ROOT/'src/px4_comm_bridge/px4_comm_bridge/pose_fusion.py')} if args.vision_fusion_profile=='aligned_pose_v1' else None,
-                    vio_build=vio_build if args.vision_fusion_smoke else None,
+                    vio_build=vio_build if args.vision_fusion_smoke or args.require_vio else None,
                     vision_audit_sha256=file_hash(ROOT/'scripts/px4_vision_audit.py') if args.vision_fusion_smoke else None,
                     vio_gate_sha256=file_hash(ROOT/'src/uav_mission/uav_mission/vio_gate.py') if args.vision_fusion_smoke else None,
                     vio_calibration_id=args.vio_calibration_id or None,
