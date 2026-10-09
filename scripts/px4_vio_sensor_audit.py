@@ -9,9 +9,11 @@ from nav_msgs.msg import Odometry
 from rosgraph_msgs.msg import Clock
 from px4_msgs.msg import VehicleStatus,VehicleLandDetected
 from isaac_ros_visual_slam_interfaces.msg import VisualSlamStatus
-from rclpy.qos import qos_profile_sensor_data, qos_profile_default, QoSProfile, ReliabilityPolicy
+from rclpy.qos import qos_profile_sensor_data, qos_profile_default, QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from tf2_ros import StaticTransformBroadcaster
+from tf2_msgs.msg import TFMessage
 from px4_comm_bridge.vio_input import convert_vio
+from vio_sensor_transforms import quaternion_from_rpy
 from vio_sensor_quality import sample_window, stereo_pairs, static_imu
 from px4_comm_bridge.source_timing import SourceTiming
 
@@ -32,15 +34,22 @@ class SensorAudit:
         self.samples = {name:deque(maxlen=40000) for name in ('left','right','imu','odom','tracking')}
         self.imu_values = deque(maxlen=1500)
         self.tracking_states = deque(maxlen=150)
+        self.mount_frames = frames
+        self.observed_mounts = {}
+        def receive_mounts(message):
+            for t in message.transforms:
+                if t.child_frame_id in frames:
+                    v,q=t.transform.translation,t.transform.rotation
+                    self.observed_mounts[t.child_frame_id]=dict(parent=t.header.frame_id,position=[v.x,v.y,v.z],quaternion=[q.x,q.y,q.z,q.w])
+        node.create_subscription(TFMessage,"/tf_static",receive_mounts,
+            QoSProfile(depth=100,reliability=ReliabilityPolicy.RELIABLE,durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.tf = StaticTransformBroadcaster(node)
         transforms = []
         for name,frame in frames.items():
             t = TransformStamped()
             t.header.frame_id,t.child_frame_id = 'base_link',name
             t.transform.translation.x,t.transform.translation.y,t.transform.translation.z = frame['position']
-            if name.endswith('optical'):
-                t.transform.rotation.x,t.transform.rotation.y,t.transform.rotation.z,t.transform.rotation.w = -.5,.5,-.5,.5
-            else: t.transform.rotation.w = 1.
+            t.transform.rotation.x,t.transform.rotation.y,t.transform.rotation.z,t.transform.rotation.w = quaternion_from_rpy(frame['rpy'])
             transforms.append(t)
         self.tf.sendTransform(transforms)
         entries = [('clock','/clock',Clock),('left','/vio/left/image',Image),('right','/vio/right/image',Image),
@@ -87,6 +96,11 @@ class SensorAudit:
         now = time.monotonic()
         ros = self.last['clock'].clock.sec+self.last['clock'].clock.nanosec/1e9 if 'clock' in self.last else 0.
         checks = {}
+        for name,frame in self.mount_frames.items():
+            observed=self.observed_mounts.get(name)
+            checks["runtime_tf:"+name]=bool(observed is not None and observed["parent"]=="base_link"
+                and np.allclose(observed["position"],frame["position"],atol=1e-8,rtol=0)
+                and abs(abs(np.dot(observed["quaternion"],quaternion_from_rpy(frame["rpy"]))) - 1)<1e-8)
         for name in self.topics:
             checks['present:'+name] = self.counts[name] >= (20 if name in ('left','right','imu','odom','tracking') else 1)
             checks['writer:'+name] = len(self.node.get_publishers_info_by_topic(self.topics[name])) == 1
@@ -150,7 +164,7 @@ class SensorAudit:
         return dict(passed=bool(checks) and all(checks.values()),checks=checks,
             scope=('disarmed same-aircraft sensors with explicitly enabled pose EV audit' if self.allow_pose_fusion else
                 'disarmed physical simulated stereo/IMU -> actual cuVSLAM; no EV emission or flight acceptance'),
-            counts=dict(self.counts),images=images,calibration=calibration,quality=quality,
+            runtime_mounts=self.observed_mounts,counts=dict(self.counts),images=images,calibration=calibration,quality=quality,
             static_drift_m=drift,raw_odometry_numeric_conversion=adapter,
             px4_source_contract_verified=False,
             observer_imu_qos=dict(depth=100,reliability='BEST_EFFORT'),
