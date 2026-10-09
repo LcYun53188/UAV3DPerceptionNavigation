@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "run_id": "7280d119-ebaf-4019-8927-89bb99dfdc8c",
+  "case": "WH-F01-low",
+  "passed": true,
+  "checks": {
+    "raw_passed": true,
+    "flight_passed": true,
+    "actual_bt": true,
+    "root_success": true,
+    "native_land": true,
+    "hover_complete": true,
+    "hover_replay": true,
+    "actual_displacement": true,
+    "near_home": true,
+    "source_original_time": true,
+    "source_healthy": true,
+    "unique_control": true,
+    "no_gnss": true,
+    "no_ev_velocity": true,
+    "runtime_tf": true,
+    "scene_assets": true,
+    "cleanup": true
+  },
+  "takeoff_height_m": 0.8,
+  "hovers": [
+    {
+      "duration_s": 17.02393992600264,
+      "samples": 851,
+      "max_drift_m": 0.1081578519490743
+    }
+  ],
+  "planned_1p5m_hover_passed": false,
+  "navigation_obstacle_avoidance_evaluated": false,
+  "scope": "actual BT VIO closure and independently replayed truth hover; no navigation/avoidance acceptance"
+}

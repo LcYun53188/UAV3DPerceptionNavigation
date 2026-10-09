@@ -1,0 +1,136 @@
+{
+  "passed": false,
+  "scenario": "full",
+  "vio_required": true,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 0.8
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 15
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "recipe_sha256": "e3189b79e89fbb653d3421eefd57596299341f7464a04853946d3e14050bff2a",
+  "outputs_at_action_result": 1654,
+  "landing_cancel_rejected": true,
+  "action_status": 6,
+  "result": {
+    "code": "ABORTED",
+    "reason": "STALE_OR_INVALID_AIRCRAFT_STATE",
+    "cleanup_confirmed": false,
+    "mock": false
+  },
+  "mission_uuid": "b8578812-9ae8-36f8-eec3-71d1e834c25e",
+  "home_enu": [
+    6.539492460433394e-05,
+    0.0007990089361555874,
+    0.0019043826032429934
+  ],
+  "home_truth": [
+    -1.1144630690357808e-12,
+    1.4315438184568396e-18,
+    -0.013000184424629663
+  ],
+  "phases": [
+    "VIO_GROUND_PRESTREAM",
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "AWAIT_STEP",
+    "HOVER",
+    "AWAIT_STEP",
+    "LAND_REQUEST",
+    "LANDING",
+    "FAULT"
+  ],
+  "max_truth_displacement_m": 0.802854350772154,
+  "hovers": [
+    {
+      "duration_s": 17.00229695600865,
+      "samples": 850,
+      "max_drift_m": 0.08941586416519433
+    }
+  ],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        0.0006995663123003713,
+        -0.00016011210391297795,
+        0.786606088246742
+      ],
+      "actual_world": [
+        0.002431295272116246,
+        -0.0010567668289166126,
+        0.6978946377261461
+      ],
+      "error_m": 0.08873288188915243
+    }
+  ],
+  "source_sha256": {
+    "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+    "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+    "src/uav_mission/uav_mission/px4_flight.py": "41c46a5f531201d428632529146b2ebd8dfbd17a6248a79158d9b5c8a9d1d839",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/uav_mission/uav_mission/flight_profiles.py": "41fed312dda5b93e8b9944baa47b36e6fa1affc90fb79f6a1e4dedbbac27534b",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "a827cc3c401debb023a6be01d3e9eb320e1ce9faf6e199af01b1a22c98374a56",
+    "scripts/run_px4_sitl_smoke.py": "dcce5104d37d8ec7579ea1d64addd270eedad6e12098adadfa39207a533368e0",
+    "src/uav_bt/src/mission_runner.cpp": "a4d490024072fda407ce3c86791e5cc5dc01493448a9ff2fc0ed32d8338f9553",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "566cb9c7cc73edba01498097e6da966eb39698cb3ad8d28f2cadee3708c2a785"
+  },
+  "final_truth": [
+    0.012459324126905497,
+    0.0031291153468932962,
+    -0.013000842666025803
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "bt_exit_code": 1,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0,
+    1,
+    2
+  ],
+  "bt_step_completes": [
+    0,
+    1
+  ],
+  "bt_progress": {
+    "samples": 315,
+    "max_gap_s": 0.11468910999246873,
+    "handshake_s": 2.5099800629977835,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 1654,
+  "fallback_landed_disarmed": true,
+  "localized_odometry": {
+    "samples": 3724,
+    "sessions": [
+      "c513ad62-c894-4409-9258-2c320eb09142"
+    ],
+    "valid": true
+  }
+}

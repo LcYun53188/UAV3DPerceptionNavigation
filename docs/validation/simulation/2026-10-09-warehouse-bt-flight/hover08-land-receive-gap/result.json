@@ -1,0 +1,321 @@
+{
+  "passed": false,
+  "scope": "warehouse BT actual VIO takeoff/hover/native landing",
+  "flight": {
+    "passed": false,
+    "scenario": "full",
+    "vio_required": true,
+    "profile": "known_region_control",
+    "scope": "real x500 takeoff/navigation/hover/return/native landing",
+    "mock": false,
+    "steps": [
+      {
+        "type": "TAKEOFF",
+        "height_m": 0.8
+      },
+      {
+        "type": "HOVER",
+        "duration_s": 15
+      },
+      {
+        "type": "LAND"
+      }
+    ],
+    "recipe_sha256": "e3189b79e89fbb653d3421eefd57596299341f7464a04853946d3e14050bff2a",
+    "outputs_at_action_result": 1654,
+    "landing_cancel_rejected": true,
+    "action_status": 6,
+    "result": {
+      "code": "ABORTED",
+      "reason": "STALE_OR_INVALID_AIRCRAFT_STATE",
+      "cleanup_confirmed": false,
+      "mock": false
+    },
+    "mission_uuid": "b8578812-9ae8-36f8-eec3-71d1e834c25e",
+    "home_enu": [
+      6.539492460433394e-05,
+      0.0007990089361555874,
+      0.0019043826032429934
+    ],
+    "home_truth": [
+      -1.1144630690357808e-12,
+      1.4315438184568396e-18,
+      -0.013000184424629663
+    ],
+    "phases": [
+      "VIO_GROUND_PRESTREAM",
+      "PRESTREAM",
+      "OFFBOARD_REQUEST",
+      "ARM_REQUEST",
+      "TAKEOFF",
+      "AWAIT_STEP",
+      "HOVER",
+      "AWAIT_STEP",
+      "LAND_REQUEST",
+      "LANDING",
+      "FAULT"
+    ],
+    "max_truth_displacement_m": 0.802854350772154,
+    "hovers": [
+      {
+        "duration_s": 17.00229695600865,
+        "samples": 850,
+        "max_drift_m": 0.08941586416519433
+      }
+    ],
+    "waypoint_truth": [
+      {
+        "phase": "TAKEOFF",
+        "expected_world": [
+          0.0006995663123003713,
+          -0.00016011210391297795,
+          0.786606088246742
+        ],
+        "actual_world": [
+          0.002431295272116246,
+          -0.0010567668289166126,
+          0.6978946377261461
+        ],
+        "error_m": 0.08873288188915243
+      }
+    ],
+    "source_sha256": {
+      "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+      "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+      "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+      "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+      "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+      "src/uav_mission/uav_mission/px4_flight.py": "41c46a5f531201d428632529146b2ebd8dfbd17a6248a79158d9b5c8a9d1d839",
+      "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+      "src/uav_mission/uav_mission/flight_profiles.py": "41fed312dda5b93e8b9944baa47b36e6fa1affc90fb79f6a1e4dedbbac27534b",
+      "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+      "scripts/run_px4_flight_tasks.py": "a827cc3c401debb023a6be01d3e9eb320e1ce9faf6e199af01b1a22c98374a56",
+      "scripts/run_px4_sitl_smoke.py": "dcce5104d37d8ec7579ea1d64addd270eedad6e12098adadfa39207a533368e0",
+      "src/uav_bt/src/mission_runner.cpp": "a4d490024072fda407ce3c86791e5cc5dc01493448a9ff2fc0ed32d8338f9553",
+      "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+      "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+      "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+      ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "566cb9c7cc73edba01498097e6da966eb39698cb3ad8d28f2cadee3708c2a785"
+    },
+    "final_truth": [
+      0.012459324126905497,
+      0.0031291153468932962,
+      -0.013000842666025803
+    ],
+    "final_land": true,
+    "final_arming": 1,
+    "command_acks": [
+      {
+        "command": 21,
+        "result": 0
+      }
+    ],
+    "bt_exit_code": 1,
+    "bt_dispatch_count": 1,
+    "bt_step_accepts": [
+      0,
+      1,
+      2
+    ],
+    "bt_step_completes": [
+      0,
+      1
+    ],
+    "bt_progress": {
+      "samples": 315,
+      "max_gap_s": 0.11468910999246873,
+      "handshake_s": 2.5099800629977835,
+      "loss_to_brake_s": null
+    },
+    "outputs_at_end": 1654,
+    "fallback_landed_disarmed": true,
+    "localized_odometry": {
+      "samples": 3724,
+      "sessions": [
+        "c513ad62-c894-4409-9258-2c320eb09142"
+      ],
+      "valid": true
+    }
+  },
+  "qgc_connected": true,
+  "renderer": {
+    "passed": true,
+    "requested": "nvidia",
+    "fresh_log": true,
+    "vendor": "NVIDIA Corporation",
+    "renderer": "NVIDIA GeForce RTX 4070 Laptop GPU/PCIe/SSE2",
+    "source": "/home/nuc/.gz/rendering/ogre2.log",
+    "mtime_ns": 1791547213861819532,
+    "sha256": "aed6f79be1318db5569d6ccd9bffea0f2dea4522f3f7b11aa43b0d9039f711bd"
+  },
+  "flight_pose_session": {
+    "scope": "continuous actual stereo/IMU EV for owned warehouse flight",
+    "source_fault": "",
+    "source_reason": "",
+    "alignment": {
+      "schema": 1,
+      "profile": "aligned_pose_v1",
+      "anchor_config_id": "2c4c4f6b6f6c67764086e817a1a3ef4ce39181dde136bd9e662f976927e3edd3",
+      "source_session": "1d577e5a-d395-4dfd-9d67-3823094826e0",
+      "calibration_id": "f20dbd77bfa479dfcefe33e073f756a661c8fb79fff838ca7ed7b539ea1f5c0b",
+      "reset_counter": 0,
+      "sample_stamp": 9.52,
+      "position_enu": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_enu": 0.0,
+      "rotation": [
+        [
+          0.9999999681794347,
+          0.0002522719358957349,
+          0.0
+        ],
+        [
+          -0.0002522719358957349,
+          0.9999999681794347,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "translation": [
+        -0.00043549312307261873,
+        0.0015021584839494636,
+        0.011135108768939972
+      ],
+      "covariance_policy": "unknown_temporal_correlation_bound_v1",
+      "initial_covariance": [
+        [
+          0.007745762870913368,
+          -0.0013886543164953469,
+          -0.0017202332041424595,
+          -5.002922019741489e-05,
+          0.00048384609915581834,
+          -0.0003453177604415951
+        ],
+        [
+          -0.0013886543164953467,
+          0.005344288307262884,
+          0.0004535981134293533,
+          0.0001409901947980562,
+          -0.00011110869746753159,
+          0.0012348168193201457
+        ],
+        [
+          -0.0017202332041424593,
+          0.00045359811342935336,
+          0.005247452363084704,
+          -0.000145085074493004,
+          -0.001357331728507977,
+          0.00010363954074657194
+        ],
+        [
+          -5.00292201974149e-05,
+          0.0001409901947980562,
+          -0.00014508507449300398,
+          0.000738211132157769,
+          5.1936018853894925e-05,
+          4.9038074037356006e-05
+        ],
+        [
+          0.0004838460991558183,
+          -0.00011110869746753161,
+          -0.0013573317285079766,
+          5.1936018853894925e-05,
+          0.00045531737773250744,
+          -2.4125547477249638e-05
+        ],
+        [
+          -0.00034531776044159515,
+          0.0012348168193201457,
+          0.00010363954074657192,
+          4.9038074037356006e-05,
+          -2.4125547477249638e-05,
+          0.0003720271536562707
+        ]
+      ],
+      "initial_yaw_jacobian": [
+        0.0008317087324402098,
+        2.0981677871056807e-07,
+        1.0
+      ],
+      "alignment_id": "a57dfa80650c89b05a972aa7d77c6cf0f077d38a299b44f8712e1651815e83b8"
+    },
+    "quality_policy": "bounded_gap",
+    "dropped_aligned_uncertainty": 0,
+    "input_count": 848,
+    "observed_count": 848,
+    "fused_samples": {
+      "ev_pos": 843,
+      "ev_hgt": 843,
+      "ev_yaw": 843
+    },
+    "graph_violations": [],
+    "control_diagnostics": [],
+    "endpoint_identity_modes": [
+      "unique_graph_only"
+    ],
+    "longest_ready_s": 40.139853290995234,
+    "gate_reasons": {
+      "VIO_TELEMETRY_MISSING": 241,
+      "VIO_EKF_FLAGS_INVALID": 3,
+      "VIO_EKF_NOT_FUSED:ev_pos": 2,
+      "VIO_STABILIZING": 100,
+      "READY": 2008
+    },
+    "sole_gateway_observed": true,
+    "last_sample": {
+      "sec": 43,
+      "nanosec": 440000000
+    }
+  },
+  "root_exit_codes": {
+    "agent": -2,
+    "gazebo": 0,
+    "sensor_bridge": 0,
+    "vio": 0,
+    "normalizer": 0,
+    "px4": 0,
+    "qgc": -9,
+    "flight_gateway": -2
+  },
+  "remaining_owned_processes": [],
+  "cleanup_confirmed": true,
+  "sdk_runtime_receipt": {
+    "schema": 1,
+    "passed": true,
+    "expected": {
+      "image_buffer_size": 100,
+      "imu_buffer_size": 144,
+      "image_qos": "DEFAULT",
+      "image_qos_depth": 1,
+      "tracking_mode": 1,
+      "num_cameras": 2,
+      "min_num_images": 2,
+      "camera_optical_frames": [
+        "vio_left_optical",
+        "vio_right_optical"
+      ]
+    },
+    "actual": {
+      "image_buffer_size": 100,
+      "imu_buffer_size": 144,
+      "image_qos": "DEFAULT",
+      "image_qos_depth": 1,
+      "tracking_mode": 1,
+      "num_cameras": 2,
+      "min_num_images": 2,
+      "camera_optical_frames": [
+        "vio_left_optical",
+        "vio_right_optical"
+      ]
+    },
+    "error": null,
+    "scope": "SDK parameter service snapshot; configured subscription depth, not queue occupancy"
+  }
+}

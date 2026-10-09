@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "requested": "nvidia",
+  "fresh_log": true,
+  "vendor": "NVIDIA Corporation",
+  "renderer": "NVIDIA GeForce RTX 4070 Laptop GPU/PCIe/SSE2",
+  "source": "/home/nuc/.gz/rendering/ogre2.log",
+  "mtime_ns": 1791547563697030582,
+  "sha256": "773e9f67f95aaccbd6361b13b8c2e91773db8bed2eb5a141e8a39c6a3125f1ca"
+}

@@ -1,0 +1,2540 @@
+[
+  {
+    "mono": 86989.975028656,
+    "message": {
+      "timestamp": 8904000,
+      "timestamp_sample": 8880000,
+      "pose_frame": 1,
+      "position": [
+        3.7834979593753815e-09,
+        4.1674823314519216e-13,
+        0.0
+      ],
+      "q": [
+        0.7071067690849304,
+        5.036679795011878e-05,
+        0.00017849888536147773,
+        0.7071067690849304
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05462464690208435,
+        0.048403989523649216,
+        0.05229053646326065
+      ],
+      "orientation_variance": [
+        0.0014911926118656993,
+        0.0015275470213964581,
+        0.0025470105465501547
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.026647984,
+    "message": {
+      "timestamp": 8944000,
+      "timestamp_sample": 8920000,
+      "pose_frame": 1,
+      "position": [
+        7.566995918750763e-09,
+        8.334965205004929e-13,
+        0.0
+      ],
+      "q": [
+        0.7071067690849304,
+        5.032747867517173e-05,
+        0.00017845966794993728,
+        0.7071067690849304
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.0546533428132534,
+        0.04842604324221611,
+        0.05229085311293602
+      ],
+      "orientation_variance": [
+        0.001494945609010756,
+        0.0015278493519872427,
+        0.0025490950793027878
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.070590458,
+    "message": {
+      "timestamp": 8980000,
+      "timestamp_sample": 8960000,
+      "pose_frame": 1,
+      "position": [
+        1.1350493878126144e-08,
+        1.2502448078557937e-12,
+        0.0
+      ],
+      "q": [
+        0.7071067690849304,
+        5.040442556492053e-05,
+        0.000178536371095106,
+        0.7071067690849304
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05459054186940193,
+        0.04835822060704231,
+        0.052242957055568695
+      ],
+      "orientation_variance": [
+        0.0014885962009429932,
+        0.0015239102067425847,
+        0.0025447506923228502
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.125418796,
+    "message": {
+      "timestamp": 9020000,
+      "timestamp_sample": 9000000,
+      "pose_frame": 1,
+      "position": [
+        1.5133991837501526e-08,
+        1.6669930410009859e-12,
+        0.0
+      ],
+      "q": [
+        0.7071067690849304,
+        5.036289439885877e-05,
+        0.00017853089957498014,
+        0.7071067690849304
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05464236065745354,
+        0.048366181552410126,
+        0.05228336155414581
+      ],
+      "orientation_variance": [
+        0.0014924323186278343,
+        0.0015286238631233573,
+        0.002548802178353071
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.172601283,
+    "message": {
+      "timestamp": 9060000,
+      "timestamp_sample": 9040000,
+      "pose_frame": 1,
+      "position": [
+        1.8917489796876907e-08,
+        2.0837413825663953e-12,
+        0.0
+      ],
+      "q": [
+        0.70710688829422,
+        5.040962059865706e-05,
+        0.0001785025669960305,
+        0.7071066498756409
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054652921855449677,
+        0.0483214408159256,
+        0.052285220474004745
+      ],
+      "orientation_variance": [
+        0.001489127054810524,
+        0.001528506283648312,
+        0.0025485793594270945
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.212253381,
+    "message": {
+      "timestamp": 9092000,
+      "timestamp_sample": 9080000,
+      "pose_frame": 1,
+      "position": [
+        2.270098775625229e-08,
+        2.5004896157115875e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.04063609696459e-05,
+        0.0001784755731932819,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.0546780526638031,
+        0.04841198772192001,
+        0.05233161896467209
+      ],
+      "orientation_variance": [
+        0.0014927588636055589,
+        0.0015306047862395644,
+        0.002549597295001149
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.273449851,
+    "message": {
+      "timestamp": 9140000,
+      "timestamp_sample": 9120000,
+      "pose_frame": 1,
+      "position": [
+        2.648448571562767e-08,
+        2.9172378488567796e-12,
+        0.0
+      ],
+      "q": [
+        0.70710688829422,
+        5.0457394536351785e-05,
+        0.00017853319877758622,
+        0.7071066498756409
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05466802790760994,
+        0.04845275729894638,
+        0.052320897579193115
+      ],
+      "orientation_variance": [
+        0.0014975429512560368,
+        0.0015306869754567742,
+        0.0025506301317363977
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.339504298,
+    "message": {
+      "timestamp": 9192000,
+      "timestamp_sample": 9160000,
+      "pose_frame": 1,
+      "position": [
+        3.026798367500305e-08,
+        3.3339860820019718e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0382001063553616e-05,
+        0.00017855265468824655,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05466856807470322,
+        0.04849847033619881,
+        0.052292026579380035
+      ],
+      "orientation_variance": [
+        0.0015025496250018477,
+        0.0015290995361283422,
+        0.002551482291892171
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.360296478,
+    "message": {
+      "timestamp": 9212000,
+      "timestamp_sample": 9200000,
+      "pose_frame": 1,
+      "position": [
+        3.405148163437843e-08,
+        3.7507345319875984e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.037649680161849e-05,
+        0.00017855812620837241,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054611679166555405,
+        0.04838152602314949,
+        0.05224134027957916
+      ],
+      "orientation_variance": [
+        0.0014961373526602983,
+        0.0015270966105163097,
+        0.002549072727560997
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.41346291,
+    "message": {
+      "timestamp": 9252000,
+      "timestamp_sample": 9240000,
+      "pose_frame": 1,
+      "position": [
+        3.7834979593753815e-08,
+        4.1674827651327906e-12,
+        0.0
+      ],
+      "q": [
+        0.70710688829422,
+        5.037342998548411e-05,
+        0.0001785559143172577,
+        0.7071066498756409
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05466846376657486,
+        0.04851721599698067,
+        0.052317846566438675
+      ],
+      "orientation_variance": [
+        0.0015025641769170761,
+        0.0015309930313378572,
+        0.00255134841427207
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.480805742,
+    "message": {
+      "timestamp": 9308000,
+      "timestamp_sample": 9280000,
+      "pose_frame": 1,
+      "position": [
+        4.1618477553129196e-08,
+        4.584230998277983e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.037211303715594e-05,
+        0.0001785203639883548,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05466696247458458,
+        0.048532359302043915,
+        0.052313994616270065
+      ],
+      "orientation_variance": [
+        0.0015031051589176059,
+        0.0015304912813007832,
+        0.0025513703003525734
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.516333352,
+    "message": {
+      "timestamp": 9336000,
+      "timestamp_sample": 9320000,
+      "pose_frame": 1,
+      "position": [
+        4.540197551250458e-08,
+        5.000979231423175e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.034791320213117e-05,
+        0.00017854456382337958,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054676249623298645,
+        0.04854648560285568,
+        0.052306268364191055
+      ],
+      "orientation_variance": [
+        0.001506112632341683,
+        0.0015311016468331218,
+        0.0025531055871397257
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.571385856,
+    "message": {
+      "timestamp": 9380000,
+      "timestamp_sample": 9360000,
+      "pose_frame": 1,
+      "position": [
+        4.918547347187996e-08,
+        5.417727464568367e-12,
+        0.0
+      ],
+      "q": [
+        0.70710688829422,
+        5.0368169468129054e-05,
+        0.00017853091412689537,
+        0.7071066498756409
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05465903878211975,
+        0.04849134758114815,
+        0.052293531596660614
+      ],
+      "orientation_variance": [
+        0.0015011843061074615,
+        0.001529166242107749,
+        0.002551624784246087
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.612494968,
+    "message": {
+      "timestamp": 9412000,
+      "timestamp_sample": 9400000,
+      "pose_frame": 1,
+      "position": [
+        5.296897143125534e-08,
+        5.834475697713559e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.031878026784398e-05,
+        0.00017855265468824655,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471029877662659,
+        0.04852288216352463,
+        0.052293356508016586
+      ],
+      "orientation_variance": [
+        0.0015066966880112886,
+        0.0015299179358407855,
+        0.002555228304117918
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.664017577,
+    "message": {
+      "timestamp": 9452000,
+      "timestamp_sample": 9440000,
+      "pose_frame": 1,
+      "position": [
+        5.675246939063072e-08,
+        6.251223930858751e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.033524212194607e-05,
+        0.0001785572530934587,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054675858467817307,
+        0.04849530756473541,
+        0.05231199786067009
+      ],
+      "orientation_variance": [
+        0.0015001889551058412,
+        0.001529522123746574,
+        0.0025516455061733723
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.727470981,
+    "message": {
+      "timestamp": 9504000,
+      "timestamp_sample": 9480000,
+      "pose_frame": 1,
+      "position": [
+        6.05359673500061e-08,
+        6.6679721640039435e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.031333785154857e-05,
+        0.0001785369822755456,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054732512682676315,
+        0.04853200912475586,
+        0.05237394943833351
+      ],
+      "orientation_variance": [
+        0.0015035390388220549,
+        0.0015347484732046723,
+        0.0025555675383657217
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.801280975,
+    "message": {
+      "timestamp": 9564000,
+      "timestamp_sample": 9520000,
+      "pose_frame": 1,
+      "position": [
+        6.431946530938148e-08,
+        7.084720830830005e-12,
+        0.0
+      ],
+      "q": [
+        0.7071067690849304,
+        5.030559987062588e-05,
+        0.00017853418830782175,
+        0.7071067690849304
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054693374782800674,
+        0.048479221761226654,
+        0.052341993898153305
+      ],
+      "orientation_variance": [
+        0.0015000635758042336,
+        0.0015328871086239815,
+        0.0025532126892358065
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.811279104,
+    "message": {
+      "timestamp": 9572000,
+      "timestamp_sample": 9560000,
+      "pose_frame": 1,
+      "position": [
+        6.810296326875687e-08,
+        7.501469063975197e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0420567276887596e-05,
+        0.00017863839457277209,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054660242050886154,
+        0.0483676977455616,
+        0.05228981003165245
+      ],
+      "orientation_variance": [
+        0.0014936188235878944,
+        0.0015297698555514216,
+        0.0025514045264571905
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.885851563,
+    "message": {
+      "timestamp": 9632000,
+      "timestamp_sample": 9600000,
+      "pose_frame": 1,
+      "position": [
+        7.188646122813225e-08,
+        7.918217297120389e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0393562560202554e-05,
+        0.0001786115171853453,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05470661073923111,
+        0.048464614897966385,
+        0.05237482860684395
+      ],
+      "orientation_variance": [
+        0.0014972391072660685,
+        0.0015352199552580714,
+        0.0025534972082823515
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.92239011,
+    "message": {
+      "timestamp": 9660000,
+      "timestamp_sample": 9640000,
+      "pose_frame": 1,
+      "position": [
+        7.566995918750763e-08,
+        8.334965530265581e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.038147355662659e-05,
+        0.00017860055959317833,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05473974347114563,
+        0.048534173518419266,
+        0.05238618329167366
+      ],
+      "orientation_variance": [
+        0.0015027724439278245,
+        0.0015357539523392916,
+        0.002555754268541932
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86990.980911051,
+    "message": {
+      "timestamp": 9708000,
+      "timestamp_sample": 9680000,
+      "pose_frame": 1,
+      "position": [
+        7.945345714688301e-08,
+        8.751713763410773e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0457481847843155e-05,
+        0.00017867586575448513,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05467915162444115,
+        0.04846661910414696,
+        0.05233367905020714
+      ],
+      "orientation_variance": [
+        0.0014980292180553079,
+        0.0015316152712330222,
+        0.0025523260701447725
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.022127183,
+    "message": {
+      "timestamp": 9740000,
+      "timestamp_sample": 9720000,
+      "pose_frame": 1,
+      "position": [
+        8.323695510625839e-08,
+        9.168461996555965e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0394817662891e-05,
+        0.00017861386004369706,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471571534872055,
+        0.04854491725564003,
+        0.05233801156282425
+      ],
+      "orientation_variance": [
+        0.0015071873785927892,
+        0.0015334623167291284,
+        0.002556217834353447
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.088422131,
+    "message": {
+      "timestamp": 9792000,
+      "timestamp_sample": 9760000,
+      "pose_frame": 1,
+      "position": [
+        8.702045306563377e-08,
+        9.585210229701158e-12,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.038366361986846e-05,
+        0.0001786036737030372,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054712310433387756,
+        0.048526033759117126,
+        0.05234614014625549
+      ],
+      "orientation_variance": [
+        0.0015068638604134321,
+        0.0015358555829152465,
+        0.002557234140112996
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.120783133,
+    "message": {
+      "timestamp": 9820000,
+      "timestamp_sample": 9800000,
+      "pose_frame": 1,
+      "position": [
+        9.080395102500916e-08,
+        1.000195846284635e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.038503513787873e-05,
+        0.00017860226216726005,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05473989620804787,
+        0.0486140139400959,
+        0.05238567292690277
+      ],
+      "orientation_variance": [
+        0.0015114620327949524,
+        0.0015377392992377281,
+        0.002558863488957286
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.16324994,
+    "message": {
+      "timestamp": 9852000,
+      "timestamp_sample": 9840000,
+      "pose_frame": 1,
+      "position": [
+        9.458744898438454e-08,
+        1.0418706695991542e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.039221650804393e-05,
+        0.0001786101929610595,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054720960557460785,
+        0.04856518656015396,
+        0.052388548851013184
+      ],
+      "orientation_variance": [
+        0.0015068609500303864,
+        0.0015376603696495295,
+        0.0025569237768650055
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.213958646,
+    "message": {
+      "timestamp": 9892000,
+      "timestamp_sample": 9880000,
+      "pose_frame": 1,
+      "position": [
+        9.837094694375992e-08,
+        1.0835454929136734e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.038715244154446e-05,
+        0.0001786054199328646,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05476952716708183,
+        0.04854302480816841,
+        0.05239678546786308
+      ],
+      "orientation_variance": [
+        0.0015058433637022972,
+        0.001536878407932818,
+        0.0025577598717063665
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.261230293,
+    "message": {
+      "timestamp": 9932000,
+      "timestamp_sample": 9920000,
+      "pose_frame": 1,
+      "position": [
+        1.021544449031353e-07,
+        1.1252203162281926e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0383892812533304e-05,
+        0.0001786023349268362,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05469106510281563,
+        0.048435088247060776,
+        0.05232101306319237
+      ],
+      "orientation_variance": [
+        0.0015000172425061464,
+        0.0015328327426686883,
+        0.0025539372581988573
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.339518644,
+    "message": {
+      "timestamp": 9996000,
+      "timestamp_sample": 9960000,
+      "pose_frame": 1,
+      "position": [
+        1.0593794286251068e-07,
+        1.1668951395427118e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.032006811234169e-05,
+        0.00017853813187684864,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05470939725637436,
+        0.048548340797424316,
+        0.052350964397192
+      ],
+      "orientation_variance": [
+        0.0015050399815663695,
+        0.0015333305345848203,
+        0.0025546448305249214
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.361408787,
+    "message": {
+      "timestamp": 10012000,
+      "timestamp_sample": 10000000,
+      "pose_frame": 1,
+      "position": [
+        1.0972144082188606e-07,
+        1.208569962857231e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0296628614887595e-05,
+        0.00017851483426056802,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054704420268535614,
+        0.048469576984643936,
+        0.05236194282770157
+      ],
+      "orientation_variance": [
+        0.0014983739238232374,
+        0.0015338133089244366,
+        0.0025533970911055803
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.433151898,
+    "message": {
+      "timestamp": 10068000,
+      "timestamp_sample": 10040000,
+      "pose_frame": 1,
+      "position": [
+        1.1350493878126144e-07,
+        1.2502447861717503e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.02830880577676e-05,
+        0.00017850141739472747,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054693739861249924,
+        0.04843584820628166,
+        0.05234570428729057
+      ],
+      "orientation_variance": [
+        0.0014959349064156413,
+        0.0015325602144002914,
+        0.0025527176912873983
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.466779122,
+    "message": {
+      "timestamp": 10096000,
+      "timestamp_sample": 10080000,
+      "pose_frame": 1,
+      "position": [
+        1.1728843674063683e-07,
+        1.2919196094862695e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0276627007406205e-05,
+        0.0001785104686859995,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05470234155654907,
+        0.04841640591621399,
+        0.05236262083053589
+      ],
+      "orientation_variance": [
+        0.0014957251260057092,
+        0.0015350612811744213,
+        0.0025537521578371525
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.520806721,
+    "message": {
+      "timestamp": 10140000,
+      "timestamp_sample": 10120000,
+      "pose_frame": 1,
+      "position": [
+        1.210719347000122e-07,
+        1.3335944328007887e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.032157423556782e-05,
+        0.00017853993631433696,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05470845848321915,
+        0.04844224825501442,
+        0.05232339724898338
+      ],
+      "orientation_variance": [
+        0.001500271144323051,
+        0.0015324753476306796,
+        0.0025546918623149395
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.566714703,
+    "message": {
+      "timestamp": 10176000,
+      "timestamp_sample": 10160000,
+      "pose_frame": 1,
+      "position": [
+        1.248554326593876e-07,
+        1.375269256115308e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.026865255786106e-05,
+        0.00017848689458332956,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054711226373910904,
+        0.048539403825998306,
+        0.05235785245895386
+      ],
+      "orientation_variance": [
+        0.0015033716335892677,
+        0.0015344106359407306,
+        0.002554739359766245
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.615490975,
+    "message": {
+      "timestamp": 10216000,
+      "timestamp_sample": 10200000,
+      "pose_frame": 1,
+      "position": [
+        1.2863893061876297e-07,
+        1.416944166166001e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.020485332352109e-05,
+        0.00017848744755610824,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.0547415055334568,
+        0.04856572300195694,
+        0.05237742140889168
+      ],
+      "orientation_variance": [
+        0.0015066778287291527,
+        0.001536581665277481,
+        0.0025570299476385117
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.673804121,
+    "message": {
+      "timestamp": 10264000,
+      "timestamp_sample": 10240000,
+      "pose_frame": 1,
+      "position": [
+        1.3242242857813835e-07,
+        1.45861898948052e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.023234916734509e-05,
+        0.0001785021013347432,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05469603091478348,
+        0.04850219935178757,
+        0.052345506846904755
+      ],
+      "orientation_variance": [
+        0.0015027513727545738,
+        0.0015342672122642398,
+        0.0025545971002429724
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.711910717,
+    "message": {
+      "timestamp": 10292000,
+      "timestamp_sample": 10280000,
+      "pose_frame": 1,
+      "position": [
+        1.3620592653751373e-07,
+        1.5002938127950394e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0208138418383896e-05,
+        0.00017847359413281083,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471904203295708,
+        0.04847192019224167,
+        0.052344124764204025
+      ],
+      "orientation_variance": [
+        0.001503068138845265,
+        0.0015349170425906777,
+        0.0025565719697624445
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.774997468,
+    "message": {
+      "timestamp": 10344000,
+      "timestamp_sample": 10320000,
+      "pose_frame": 1,
+      "position": [
+        1.3998942449688911e-07,
+        1.5419686361095586e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.022140976507217e-05,
+        0.00017846246191766113,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054717205464839935,
+        0.04857014864683151,
+        0.052371904253959656
+      ],
+      "orientation_variance": [
+        0.0015066355699673295,
+        0.0015350559260696173,
+        0.0025558932684361935
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.81207504,
+    "message": {
+      "timestamp": 10372000,
+      "timestamp_sample": 10360000,
+      "pose_frame": 1,
+      "position": [
+        1.437729224562645e-07,
+        1.5836434594240778e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.023387348046526e-05,
+        0.00017847504932433367,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054734066128730774,
+        0.04859354346990585,
+        0.05237463861703873
+      ],
+      "orientation_variance": [
+        0.0015081651508808136,
+        0.0015351373003795743,
+        0.002556460676714778
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.862911851,
+    "message": {
+      "timestamp": 10412000,
+      "timestamp_sample": 10400000,
+      "pose_frame": 1,
+      "position": [
+        1.4755642041563988e-07,
+        1.625318282738597e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0337883294560015e-05,
+        0.00017857890634331852,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054674215614795685,
+        0.04851238429546356,
+        0.05232548341155052
+      ],
+      "orientation_variance": [
+        0.0015028729103505611,
+        0.0015325124841183424,
+        0.002553580328822136
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.918402468,
+    "message": {
+      "timestamp": 10456000,
+      "timestamp_sample": 10440000,
+      "pose_frame": 1,
+      "position": [
+        1.5133991837501526e-07,
+        1.6669931060531162e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.030297324992716e-05,
+        0.00017855792248155922,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05472380295395851,
+        0.0485333576798439,
+        0.05234406888484955
+      ],
+      "orientation_variance": [
+        0.0015055336989462376,
+        0.0015331022441387177,
+        0.0025559919886291027
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86991.968649481,
+    "message": {
+      "timestamp": 10496000,
+      "timestamp_sample": 10480000,
+      "pose_frame": 1,
+      "position": [
+        1.5512341633439064e-07,
+        1.7086679293676355e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.030731699662283e-05,
+        0.00017854830366559327,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471054092049599,
+        0.04846186935901642,
+        0.05233505740761757
+      ],
+      "orientation_variance": [
+        0.0015007719630375504,
+        0.0015327970031648874,
+        0.002554691629484296
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.023898432,
+    "message": {
+      "timestamp": 10540000,
+      "timestamp_sample": 10520000,
+      "pose_frame": 1,
+      "position": [
+        1.5890691429376602e-07,
+        1.7503427526821547e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.031541513744742e-05,
+        0.0001785560161806643,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471981689333916,
+        0.04856017976999283,
+        0.0523575022816658
+      ],
+      "orientation_variance": [
+        0.0015064512845128775,
+        0.0015345276333391666,
+        0.00255577196367085
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.078658066,
+    "message": {
+      "timestamp": 10584000,
+      "timestamp_sample": 10560000,
+      "pose_frame": 1,
+      "position": [
+        1.626904122531414e-07,
+        1.792017575996674e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0297039706492797e-05,
+        0.0001785401109373197,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05471477657556534,
+        0.04851919412612915,
+        0.052383389323949814
+      ],
+      "orientation_variance": [
+        0.0015026050386950374,
+        0.001536492258310318,
+        0.002555249258875847
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.114841748,
+    "message": {
+      "timestamp": 10616000,
+      "timestamp_sample": 10600000,
+      "pose_frame": 1,
+      "position": [
+        1.6647391021251678e-07,
+        1.833692399311193e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.030574538977817e-05,
+        0.0001785445783752948,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054736435413360596,
+        0.048501837998628616,
+        0.052373256534338
+      ],
+      "orientation_variance": [
+        0.0015034450916573405,
+        0.001536004594527185,
+        0.0025566210970282555
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.21423267,
+    "message": {
+      "timestamp": 10692000,
+      "timestamp_sample": 10640000,
+      "pose_frame": 1,
+      "position": [
+        1.7025740817189217e-07,
+        1.8753672226257123e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.029950989410281e-05,
+        0.0001785402710083872,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.0546984039247036,
+        0.04842925816774368,
+        0.05234115198254585
+      ],
+      "orientation_variance": [
+        0.0014992477372288704,
+        0.0015349694294854999,
+        0.0025550383143126965
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.221890027,
+    "message": {
+      "timestamp": 10700000,
+      "timestamp_sample": 10680000,
+      "pose_frame": 1,
+      "position": [
+        1.7404090613126755e-07,
+        1.9170420459402315e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0288897909922525e-05,
+        0.0001785298518370837,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05474871024489403,
+        0.04854980483651161,
+        0.0524059496819973
+      ],
+      "orientation_variance": [
+        0.001504813670180738,
+        0.0015381473349407315,
+        0.002557133324444294
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.265604388,
+    "message": {
+      "timestamp": 10736000,
+      "timestamp_sample": 10720000,
+      "pose_frame": 1,
+      "position": [
+        1.7782440409064293e-07,
+        1.9587168692547507e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0289549108128995e-05,
+        0.00017852916789706796,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05474676564335823,
+        0.04852994903922081,
+        0.052411168813705444
+      ],
+      "orientation_variance": [
+        0.0015027784975245595,
+        0.001538329292088747,
+        0.0025563451927155256
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.315339259,
+    "message": {
+      "timestamp": 10776000,
+      "timestamp_sample": 10760000,
+      "pose_frame": 1,
+      "position": [
+        1.816079020500183e-07,
+        2.00039169256927e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.021652759751305e-05,
+        0.00017845646652858704,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05470890551805496,
+        0.04850900545716286,
+        0.0523560605943203
+      ],
+      "orientation_variance": [
+        0.0015021836152300239,
+        0.0015343478880822659,
+        0.0025548578705638647
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.379586784,
+    "message": {
+      "timestamp": 10824000,
+      "timestamp_sample": 10800000,
+      "pose_frame": 1,
+      "position": [
+        1.853914000093937e-07,
+        2.0420665158837892e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.026028520660475e-05,
+        0.00017850047152023762,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05468965321779251,
+        0.04848550632596016,
+        0.05233480781316757
+      ],
+      "orientation_variance": [
+        0.0015029042260721326,
+        0.001534470822662115,
+        0.002555262064561248
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.430670271,
+    "message": {
+      "timestamp": 10868000,
+      "timestamp_sample": 10840000,
+      "pose_frame": 1,
+      "position": [
+        1.8917489796876907e-07,
+        2.0837413391983084e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.037840674049221e-05,
+        0.0001786182401701808,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.0547272153198719,
+        0.04847834259271622,
+        0.05233623459935188
+      ],
+      "orientation_variance": [
+        0.0015028422931209207,
+        0.0015334831550717354,
+        0.0025561575312167406
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.473122184,
+    "message": {
+      "timestamp": 10900000,
+      "timestamp_sample": 10880000,
+      "pose_frame": 1,
+      "position": [
+        1.9295839592814445e-07,
+        2.1254161625128276e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.033969500800595e-05,
+        0.00017857943021226674,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054700449109077454,
+        0.04857639595866203,
+        0.05233269929885864
+      ],
+      "orientation_variance": [
+        0.0015067633939906955,
+        0.0015319022350013256,
+        0.0025547146797180176
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.514472795,
+    "message": {
+      "timestamp": 10932000,
+      "timestamp_sample": 10920000,
+      "pose_frame": 1,
+      "position": [
+        1.9674189388751984e-07,
+        2.1670909858273468e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.0453567382646725e-05,
+        0.00017871285672299564,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.054731886833906174,
+        0.048621054738759995,
+        0.05236192047595978
+      ],
+      "orientation_variance": [
+        0.0015119174495339394,
+        0.0015347632579505444,
+        0.0025572951417416334
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.581963864,
+    "message": {
+      "timestamp": 10988000,
+      "timestamp_sample": 10960000,
+      "pose_frame": 1,
+      "position": [
+        2.0052539184689522e-07,
+        2.208765809141866e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.052363849245012e-05,
+        0.0001787630026228726,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05468573793768883,
+        0.04851406812667847,
+        0.05233953520655632
+      ],
+      "orientation_variance": [
+        0.0015039780410006642,
+        0.001533683855086565,
+        0.002554677426815033
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  },
+  {
+    "mono": 86992.616411058,
+    "message": {
+      "timestamp": 11016000,
+      "timestamp_sample": 11000000,
+      "pose_frame": 1,
+      "position": [
+        2.043088898062706e-07,
+        2.2504406324563853e-11,
+        0.0
+      ],
+      "q": [
+        0.7071068286895752,
+        5.048722596256994e-05,
+        0.00017872640455607325,
+        0.7071067094802856
+      ],
+      "velocity_frame": 0,
+      "velocity": [
+        null,
+        null,
+        null
+      ],
+      "angular_velocity": [
+        null,
+        null,
+        null
+      ],
+      "position_variance": [
+        0.05472737178206444,
+        0.048511747270822525,
+        0.052330005913972855
+      ],
+      "orientation_variance": [
+        0.0015075441915541887,
+        0.0015343297272920609,
+        0.0025576509069651365
+      ],
+      "velocity_variance": [
+        null,
+        null,
+        null
+      ],
+      "reset_counter": 0,
+      "quality": 100
+    }
+  }
+]

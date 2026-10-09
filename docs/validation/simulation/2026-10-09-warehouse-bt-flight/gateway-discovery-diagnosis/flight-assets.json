@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "partition": "uav_warehouse_flight_4e0e4573-40dc-4bb2-b8c8-5d23d610ca53",
+  "calibration_id": "f20dbd77bfa479dfcefe33e073f756a661c8fb79fff838ca7ed7b539ea1f5c0b",
+  "region_sha256": "c3cb03f7d29af05d48befd8434f3e180b98229d54931be20c424d95f7a3d78ca",
+  "files": {
+    "assets/default.sdf": "7441ede9cbeb5b698e77a444295e3530e66b5cfbcd675f66c5a966d81f066b3e",
+    "assets/x500_vio_ref/model.sdf": "321b55978c7e4beba9fda6a74c6dc1fd31d9efc2513593822323da482dab31ff",
+    "assets/frames.json": "11464820b73d504417f989c77b1f632ba2aefc71d4f7d8bcfb27309ad4bcf4ce",
+    "vio-params.yaml": "06fd33771979b2125155f2c37126521dfce4d3a6d82026726099fe204127ab2f",
+    "assets/warehouse-layout.json": "2b5d0a312047e7890609b4da99467af24a4bb08b10e87b26f2749d1a6c2491a7",
+    "assets/warehouse_textures/materials/textures/column_nw.png": "181852e0dfd324877a87b21f3742ea3d47d122363a35151290c7f6c80c4b56ea",
+    "assets/warehouse_textures/materials/textures/column_sw.png": "7c032ce36d08b78df6064c999de7299b3952caa2311be5d43a589fc84450a0fd",
+    "assets/warehouse_textures/materials/textures/crate_east.png": "bd04c2b195ffe8e2ac4bc1f04b6ce44d1badd9e67c15a6936c20b37a811b95f6",
+    "assets/warehouse_textures/materials/textures/crate_west.png": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e",
+    "assets/warehouse_textures/materials/textures/door_lintel.png": "2698fe639409688510c8effa0515f9980217ad29e15ea71d936dd559deb2336f",
+    "assets/warehouse_textures/materials/textures/floor.png": "2426e105878cad543f4006dbd87782a2a9e7ad2c5fe75d091ff8d0f798f98fbc",
+    "assets/warehouse_textures/materials/textures/rack_north.png": "15b0b4f06cf83c3f344e030617bf1086b8d2281eefa67fea2e62a93df46dc4c3",
+    "assets/warehouse_textures/materials/textures/rack_room.png": "75e6d752ac770741e7096e5ccd8c7a1265646ad56b781cd2161961c25bdbe430",
+    "assets/warehouse_textures/materials/textures/rack_south.png": "2188f49708e6c0f857f5adac939c6fc6f9086df3fcab333db455b21556c4c061",
+    "assets/warehouse_textures/materials/textures/room_partition_north.png": "c74b0846b6cea253ae3fb5a63cbb7ce0dbc79100b4df50a1d59a4f03ca0c64cf",
+    "assets/warehouse_textures/materials/textures/room_partition_south.png": "2c9d28fa4cb00f909215105697ebd985f684cfa1677b9a47c0aac4cce4537b3f",
+    "assets/warehouse_textures/materials/textures/wall_east.png": "af079227ebf61024dc25d4f3739fc2693b37ade6bc096f467167d657c1176fc3",
+    "assets/warehouse_textures/materials/textures/wall_north.png": "c0578856b767032b2233ffcd4406df70be85ef9c42800cd0fdbbf5b48039600a",
+    "assets/warehouse_textures/materials/textures/wall_south.png": "89de658bbbc7605c71ea93a99030bee86341b9a3cd7a88c8f65834c77504ad71",
+    "assets/warehouse_textures/materials/textures/wall_west.png": "b46fad7e4639e112fc3d24165e68a4ec3936afd1759d81e9767bce10a0d9211e",
+    "calibration.json": "f20dbd77bfa479dfcefe33e073f756a661c8fb79fff838ca7ed7b539ea1f5c0b",
+    "anchor.json": "2c4c4f6b6f6c67764086e817a1a3ef4ce39181dde136bd9e662f976927e3edd3"
+  }
+}

@@ -58,11 +58,11 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 
 预定航点配置为 [warehouse_vio_sequence.json](../simulation/missions/warehouse_vio_sequence.json)：
 起飞 1.5 m→悬停 15 s→(1.25,1,1.5)→悬停 10 s→(-1.25,1,1.5)→返航→悬停 5 s→降落。
-该配置目前是待验收任务，**尚未接入仓库飞行启动器**。不要把它传入原 W0 场景并称为
+该配置已接入 `--flight sequence`，**仍是待验收任务**，1.5 m 悬停当前失败。不要把它传入原 W0 场景并称为
 仓库/VIO验证。原 W0 的 hash 与独立控制链路保留。
 
-后续需要带同机传感器模型的飞行 profile、持续 EV 写入会话及唯一 FlightServer
-控制输出；VIO 在着地时仅初始化一次，飞行中继续使用原采样，失效锁存且不重发旧值。
+同机传感器模型的飞行 profile、持续 EV 写入会话及唯一 FlightServer
+控制输出已接入；VIO 在着地时仅初始化一次，飞行中继续使用原采样，失效锁存且不重发旧值。
 真值只能用于审计。源前置检查未通过时不得进入飞行；导航/避障也仍为独立待实现阶段。
 
 显式 `--sdk-debug-dump` 将 SDK 实际消费的图像／IMU及外参写入缓存 `sdk-input`，
@@ -72,4 +72,22 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 
 同低负载配置 WH-V02 已完成 120 s 运动验收，RMSE 2.60 cm、最大 3.78 cm，
 原始证据与重放见 [运动报告](validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)。
-空中持续原样本的纯流策略已有单元验证，实际持续 EV/仓库 BT 飞行接入仍待完成。
+实际持续 EV/仓库 BT 飞行已接入，0.8 m 初始闭环连续两轮通过；1.5 m 仍未通过。
+
+## 初始低高度 BT 闭环
+
+0.8 m 起飞→15 s 悬停→原生降落连续两轮通过，最大悬停真值漂移 10.82/8.73 cm。
+这是 WH-F01-low，**不替代原定 1.5 m WH-F01**，也不代表导航／避障通过。
+完整配置和 8 个失败／2 个成功轮见 [飞行报告](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
+
+```bash
+./scripts/sim.sh px4-vio-sensors --flight hover-low --normalize --scene warehouse \
+  --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --ekf-delay-max-ms 160
+```
+
+该显式飞行入口先复核源前置证据、当前场景与标定摘要，唯一网关在未解锁地面
+预发送固定参考；PX4 原生预检通过后由 BT 解锁。EV 会话不写控制命令，真值仅审计。
+`--flight hover` 为 1.5 m 失败复现配方，修复其持续协方差超限后再验收航点／返航。
+飞行观察随任务结束，280 s 为上限；`--duration` 是未解锁审计参数。
