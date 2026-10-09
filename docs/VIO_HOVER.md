@@ -1,10 +1,14 @@
 # OAK-D Pro W 辅助室内悬停
 
+当前相机固定下偏 **5°**，暂停角度对照调参；先推进完整 PX4 任务与导航／避障实现。下列 15°／30° 历史运行仅作为诊断证据，不能证明 5° 通过。5° 的 VIO 飞行源前置尚未验收，默认 VIO flight 命令会拒绝；完整控制任务使用 `./scripts/sim.sh px4-flight --bt --ui`，定位来源为官方 SITL GNSS／惯性 EKF。
+
 2026-10-09 最新实测：仓库同机实际双目/IMU→VIO→PX4 EKF→唯一 FlightServer→BT
 已完成 **0.8 m 起飞→15 s 悬停→原生降落两轮闭环**，最大真值漂移 10.82/8.73 cm，
 真实着地并解除武装。1.5 m 仍因持续对齐协方差超限失败，S6 完整验收不计完成；
 航点/返航与避障尚未执行，OAK-D Pro W 实机标定/飞行仍未验收。见
 [最新飞行与失败记录](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
+追加两轮带四窗口 UI 的 1.5 m 诊断，均失败后自动降落、锁定；保存了实际起飞／悬停双目画面，离线候选角点不足以证明 SDK 跟踪质量。见 [UI 画面诊断](validation/simulation/2026-10-09-vio-flight-ui/REPORT.md)。
+追加 30°／新纹理源验证：运动 RMSE 1.29 cm，但同机地面融合只有约 30.18 s 连续 READY，原始 SDK 高不确定度导致源撤销；新配置未获飞行准入。见 [下俯与纹理报告](validation/simulation/2026-10-09-vio-pitch-texture/REPORT.md)。
 下文保留历史阶段记录。
 
 最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。

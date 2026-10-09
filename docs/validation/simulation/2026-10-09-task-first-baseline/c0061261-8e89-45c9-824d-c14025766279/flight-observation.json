@@ -1,0 +1,118 @@
+{
+  "passed": false,
+  "scenario": "full",
+  "vio_required": false,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        12.144810584229525,
+        -1.059726746419864,
+        2.299070793390274
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 30.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        7.447947019992631,
+        -2.7742157836971204,
+        2.299070793390274
+      ]
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "recipe_sha256": "8ec8a848d47e9a37ce195239dd6a49d89176a5b672338d8bffd41b3887853ddc",
+  "outputs_at_action_result": 24,
+  "landing_cancel_rejected": false,
+  "action_status": 6,
+  "result": {
+    "code": "ABORTED",
+    "reason": "STALE_OR_INVALID_AIRCRAFT_STATE",
+    "cleanup_confirmed": false,
+    "mock": false
+  },
+  "mission_uuid": "408393c9-a02a-76e3-677d-2e3bc74f0994",
+  "home_enu": [
+    0.0229897890239954,
+    0.026561615988612175,
+    -0.0009292066097259521
+  ],
+  "home_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "phases": [
+    "PRESTREAM",
+    "FAULT"
+  ],
+  "max_truth_displacement_m": 0.0,
+  "hovers": [],
+  "waypoint_truth": [],
+  "source_sha256": {
+    "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+    "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+    "src/uav_mission/uav_mission/px4_flight.py": "ba32dc8daed0f42942d7f20cb39c0019495490263972d6313d6ce9c8d67b6fe8",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/uav_mission/uav_mission/flight_profiles.py": "41fed312dda5b93e8b9944baa47b36e6fa1affc90fb79f6a1e4dedbbac27534b",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "5e5d4d465e4808dab9918424a3959cda359ba983b7edf7fa00fbea029077b42b",
+    "scripts/run_px4_sitl_smoke.py": "dcce5104d37d8ec7579ea1d64addd270eedad6e12098adadfa39207a533368e0",
+    "src/uav_bt/src/mission_runner.cpp": "a4d490024072fda407ce3c86791e5cc5dc01493448a9ff2fc0ed32d8338f9553",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "566cb9c7cc73edba01498097e6da966eb39698cb3ad8d28f2cadee3708c2a785"
+  },
+  "final_truth": [
+    -3.2019145359451337e-18,
+    5.906204581639557e-19,
+    -0.013000184415735444
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [],
+  "bt_exit_code": 1,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0
+  ],
+  "bt_step_completes": [],
+  "bt_progress": {
+    "samples": 4,
+    "max_gap_s": 0.10524526399967726,
+    "handshake_s": 0.10456177299784031,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 24,
+  "localized_odometry": {
+    "samples": 141,
+    "sessions": [
+      "3c6a3ba5-f3a0-4291-b9df-bb1f5d7e3260"
+    ],
+    "valid": true
+  }
+}

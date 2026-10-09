@@ -1,0 +1,9 @@
+{
+  "system_ns": 1791548955869053062,
+  "image_stamp": 24.08,
+  "sdk_pose": {
+    "stamp": 24.16,
+    "z_variance": 0.1033417209982872
+  },
+  "px4_local": null
+}

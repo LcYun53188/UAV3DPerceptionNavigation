@@ -1,5 +1,16 @@
 # PX4 官方链路三阶段集成
 
+2026-10-09 开发顺序调整（用户指定）：**优先实现完整任务与导航／避障链路，再细化 VIO 稳定性；相机固定下偏 5°**。相机参考 profile 与默认生成器已使用 5°，Camera pose / optical TF 同步生成。0°／15°／30° 仅保留历史复现入口，不再作为当前调参方向。5° 尚未通过 VIO 飞行源验收，历史角度的通过证据不迁移到新配置。
+
+功能开发先使用官方 PX4 SITL 的 GNSS／惯性 EKF 定位，复用唯一 FlightServer 和现有 BT；VIO 作为独立集成／验收工作。所有运行显式记录定位来源，定位源不得运行中静默切换。S6 的 VIO 验收继续保持未完成。
+
+当前基础任务已实现起飞、航点、悬停、返航、原生降落及暂停／取消／Runner 故障语义。后续优先补齐：同机 5° 深度／CameraInfo／TF 与 nvblox 地图会话；EGO 曲线到 PX4 local 的采样跟踪与控制权绑定；暂停／取消／重规划交接；绕障、不可达、地图过期与最终落地独立验收。W0 已知区域航点不能作为 EGO 避障验收。开发不再等待 VIO 稳定性，但地图／未知空间／碰撞／控制新鲜度门限继续执行。
+
+本轮官方 EKF 无界面完整 BT 任务回归通过（起飞／两航点／悬停／返航／降落），带 UI 轮在解锁前触发时间／状态保护。见 [任务优先基线回归](validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。
+
+以下较早的阶段记录保留为历史证据。
+
+
 640×400 仓库 VIO 同低负载配置 120 s 运动验证已通过（RMSE 2.60 cm，最大 3.78 cm），显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败。仓库 0.8 m BT VIO 起飞／15 s 悬停／原生降落连续两轮通过，1.5 m 仍因对齐协方差失败，导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
 
 低负载运动与空中持续流策略的验证边界见 [运动报告](validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)。空中持续 EV、独立场景摘要准入、唯一 FlightServer/BT 已接入；低高度真实飞行已通过，原定高度仍待验收。见 [最新飞行报告](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
@@ -107,7 +118,7 @@ SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 re
 
 ## 阶段三：导航与避障
 
-在阶段二的真实定位与飞行闭环上接入深度感知、nvblox、EGO 和任务编排：
+按当前优先级，先在官方 SITL GNSS／惯性 EKF 与已验证 FlightServer 上实现深度感知、nvblox、EGO 和任务编排；VIO 飞行稳定性不再是功能开发前提。真实 VIO 版本仍需单独通过阶段二验收：
 
 1. 验证深度/CameraInfo/TF/定位时间一致及可观测起点安全体积，再建立地图会话。
    不能将算法仿真的真值定位或零重力 cmd_vel 路径直接接入 PX4。

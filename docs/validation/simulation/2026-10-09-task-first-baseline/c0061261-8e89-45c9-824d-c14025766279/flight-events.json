@@ -1,0 +1,30 @@
+[
+  {
+    "phase": "PRESTREAM",
+    "reason": "",
+    "mono": 94913.879789682,
+    "ros": 19.076,
+    "generation": 1,
+    "step_index": -1,
+    "position_enu": [
+      0.02204296737909317,
+      0.02242375910282135,
+      -0.0002722740173339844
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "FAULT",
+    "reason": "STALE_OR_INVALID_AIRCRAFT_STATE",
+    "mono": 94914.378626765,
+    "ros": 19.496,
+    "generation": 2,
+    "step_index": -1,
+    "position_enu": [
+      0.020420238375663757,
+      0.0038023535162210464,
+      0.012313932180404663
+    ],
+    "target_enu": null
+  }
+]
