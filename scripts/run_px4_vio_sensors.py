@@ -20,6 +20,7 @@ from px4_vio_sensor_audit import SensorAudit
 from px4_vio_pose_audit import PoseAudit
 from px4_vio_motion_audit import MotionAudit
 from vio_sdk_parameters import stream_parameters
+from vio_sdk_runtime import SdkRuntimeReceipt
 from vio_render_device import environment as render_environment,capture as capture_renderer
 
 
@@ -124,7 +125,7 @@ def main():
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
     inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
-              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_pose_window.py',
+              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
               ROOT/'src/isaac_ros_common/isaac_ros_common/src/qos.cpp',
@@ -194,6 +195,9 @@ def main():
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node = rclpy.create_node('vio_sensor_observer')
     audit = SensorAudit(node,profile,frames,allow_pose_fusion=args.fuse_pose)
+    runtime_receipt=SdkRuntimeReceipt(node,{k:params[k] for k in (
+        "image_buffer_size","imu_buffer_size","image_qos","image_qos_depth",
+        "tracking_mode","num_cameras","min_num_images","camera_optical_frames")})
     fusion_audit=None
     pose_audit = PoseAudit(node) if args.normalize or args.diagnostic_visual_only else None
     motion_audit = MotionAudit(node) if args.motion else None
@@ -346,6 +350,9 @@ def main():
         result['remaining_owned_processes'] = live
         result['cleanup_confirmed'] = not live and all(p.poll() is not None for p in processes)
         result['passed'] &= result['cleanup_confirmed']
+        result['sdk_runtime_receipt']=runtime_receipt.result()
+        write_json(out/'sdk-runtime-receipt.json',result['sdk_runtime_receipt'])
+        result['passed'] &= result['sdk_runtime_receipt']['passed']
         if args.sdk_debug_dump:
             result['sdk_dump_checks_passed']=result['passed']
             result['passed']=False  # Recording load is diagnostic, never qualification.
