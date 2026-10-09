@@ -1,0 +1,173 @@
+{
+  "passed": true,
+  "checks": {
+    "UXRCE_DDS_SYNCT": true,
+    "EKF2_EV_CTRL": true,
+    "EKF2_GPS_CTRL": true,
+    "EKF2_MAG_TYPE": true,
+    "EKF2_OF_CTRL": true,
+    "EKF2_HGT_REF": true,
+    "EKF2_EV_NOISE_MD": true,
+    "SENS_IMU_MODE": true,
+    "EKF2_MULTI_IMU": true,
+    "EKF2_MULTI_MAG": true,
+    "EKF2_RNG_CTRL": true,
+    "EKF2_AGP_CTRL": true,
+    "EKF2_DRAG_CTRL": true,
+    "EKF2_BARO_CTRL": true,
+    "EKF2_DELAY_MAX": true,
+    "COM_RC_IN_MODE": true,
+    "COM_OF_LOSS_T": true,
+    "COM_OBL_RC_ACT": true,
+    "COM_DISARM_LAND": true,
+    "EKF2_EV_DELAY": true
+  },
+  "parameters": {
+    "COM_DISARM_LAND": 2.0,
+    "COM_OBL_RC_ACT": 4,
+    "COM_OF_LOSS_T": 0.5,
+    "COM_RC_IN_MODE": 4,
+    "EKF2_AGP_CTRL": 0,
+    "EKF2_BARO_CTRL": 1,
+    "EKF2_DELAY_MAX": 160.0,
+    "EKF2_DRAG_CTRL": 0,
+    "EKF2_EV_CTRL": 11,
+    "EKF2_EV_DELAY": 0.0,
+    "EKF2_EV_NOISE_MD": 0,
+    "EKF2_GPS_CTRL": 0,
+    "EKF2_HGT_REF": 3,
+    "EKF2_MAG_TYPE": 5,
+    "EKF2_MULTI_IMU": 1,
+    "EKF2_MULTI_MAG": 0,
+    "EKF2_OF_CTRL": 0,
+    "EKF2_RNG_CTRL": 0,
+    "SENS_IMU_MODE": 0,
+    "UXRCE_DDS_SYNCT": 0
+  },
+  "history": {
+    "COM_DISARM_LAND": [
+      {
+        "offset": 45967,
+        "value": 2.0
+      }
+    ],
+    "COM_OBL_RC_ACT": [
+      {
+        "offset": 46799,
+        "value": 4
+      }
+    ],
+    "COM_OF_LOSS_T": [
+      {
+        "offset": 46829,
+        "value": 0.5
+      }
+    ],
+    "COM_RC_IN_MODE": [
+      {
+        "offset": 47178,
+        "value": 4
+      }
+    ],
+    "EKF2_AGP_CTRL": [
+      {
+        "offset": 47821,
+        "value": 0
+      }
+    ],
+    "EKF2_BARO_CTRL": [
+      {
+        "offset": 48074,
+        "value": 1
+      }
+    ],
+    "EKF2_DELAY_MAX": [
+      {
+        "offset": 48329,
+        "value": 160.0
+      }
+    ],
+    "EKF2_DRAG_CTRL": [
+      {
+        "offset": 48357,
+        "value": 0
+      }
+    ],
+    "EKF2_EV_CTRL": [
+      {
+        "offset": 48605,
+        "value": 11
+      }
+    ],
+    "EKF2_EV_DELAY": [
+      {
+        "offset": 48633,
+        "value": 0.0
+      }
+    ],
+    "EKF2_EV_NOISE_MD": [
+      {
+        "offset": 48660,
+        "value": 0
+      }
+    ],
+    "EKF2_GPS_CTRL": [
+      {
+        "offset": 48949,
+        "value": 0
+      }
+    ],
+    "EKF2_HGT_REF": [
+      {
+        "offset": 49435,
+        "value": 3
+      }
+    ],
+    "EKF2_MAG_TYPE": [
+      {
+        "offset": 49897,
+        "value": 5
+      }
+    ],
+    "EKF2_MULTI_IMU": [
+      {
+        "offset": 49976,
+        "value": 1
+      }
+    ],
+    "EKF2_MULTI_MAG": [
+      {
+        "offset": 50006,
+        "value": 0
+      }
+    ],
+    "EKF2_OF_CTRL": [
+      {
+        "offset": 50097,
+        "value": 0
+      }
+    ],
+    "EKF2_RNG_CTRL": [
+      {
+        "offset": 50879,
+        "value": 0
+      }
+    ],
+    "SENS_IMU_MODE": [
+      {
+        "offset": 62357,
+        "value": 0
+      }
+    ],
+    "UXRCE_DDS_SYNCT": [
+      {
+        "offset": 67022,
+        "value": 0
+      }
+    ]
+  },
+  "source": "/tmp/warehouse-flight-parameters.ulg",
+  "source_sha256": "c4da264693dae96baec06bb0079413e2f862f3fc457f038b0f7f4b76b822c320",
+  "initial_header_bytes": 102217,
+  "scope": "actual ULog parameter records; no camera or flight claim"
+}

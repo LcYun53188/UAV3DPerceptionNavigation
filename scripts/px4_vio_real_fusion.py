@@ -31,12 +31,13 @@ def json_message(message):
 
 
 class RealPoseFusionAudit:
+    stream_class=AlignedPoseStream
     input_topics=('/uav/vio/pose','/uav/vio/pose_status')
     control_names=('vehicle_command','trajectory_setpoint','offboard_control_mode')
 
-    def __init__(self,node,calibration,anchor,anchor_id):
+    def __init__(self,node,calibration,anchor,anchor_id,*,quality_policy="strict"):
         self.node=node
-        self.stream=AlignedPoseStream(calibration,anchor['position_enu'],anchor['yaw_enu'],anchor_id)
+        self.stream=self.stream_class(calibration,anchor['position_enu'],anchor['yaw_enu'],anchor_id,quality_policy=quality_policy)
         self.gate=VioGate(calibration,fusion_profile='aligned_pose_v1')
         self.pending=OrderedDict();self.statuses=OrderedDict()
         self.gid_modes=set();self.graph_violations=[];self.timing=SourceTiming()
@@ -85,6 +86,11 @@ class RealPoseFusionAudit:
             if (m is None or now-self.received[key]>age or not -.05<=ros-m.timestamp/1e6<=age
                     or len(self.node.get_publishers_info_by_topic(self.topics[key]))!=1):return False
         return self.last['vehicle'].arming_state==1 and self.last['land'].landed
+
+    def state_keywords(self):return dict(ground=self.ground())
+
+    def controls_valid(self):
+        return not any(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n) for n in self.control_names)
 
     def gid(self,topic,info=None):
         endpoints=self.node.get_publishers_info_by_topic(topic)
@@ -137,7 +143,7 @@ class RealPoseFusionAudit:
                     self.stream.reject('VIO_PAIR_STALE');continue
                 previous=self.stream.alignment.last_stamp if self.stream.bound else None
                 result=self.stream.accept(pose,status,self.ros(),time.monotonic(),pose_gid=pose_gid,
-                    status_gid=status_gid,ground=self.ground())
+                    status_gid=status_gid,**self.state_keywords())
                 if self.stream.fault:
                     self.timing.record('accept_fault',self.ros(),stamp_s(pose.header.stamp),reason=self.stream.fault,previous=previous)
                 if result is not None:
@@ -146,7 +152,7 @@ class RealPoseFusionAudit:
                     # Graph ownership is checked immediately before the only FMU write.
                     if (len(self.node.get_publishers_info_by_topic(self.ev_topic))!=1
                             or len(self.node.get_publishers_info_by_topic('/uav/vio/status'))!=1
-                            or any(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n) for n in self.control_names)):
+                            or not self.controls_valid()):
                         self.stream.reject('VIO_OUTPUT_WRITER_COUNT');return
                     self.output.publish(converted);self.last_sample=aligned.header.stamp
                     self.outputs.append(dict(mono=time.monotonic(),aligned=aligned,ev=converted))
@@ -163,11 +169,11 @@ class RealPoseFusionAudit:
         # accepted sample. Incoming data must pass all admission checks first.
         self.drain()
         old_fault=self.stream.fault
-        self.stream.check(ros,now,ground=self.ground())
+        self.stream.check(ros,now,**self.state_keywords())
         if self.stream.fault and not old_fault:
             self.timing.record('watchdog_fault',ros,self.stream.alignment.last_stamp if self.stream.bound else None,reason=self.stream.fault)
         graph={n:len(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n)) for n in self.control_names}
-        if (any(graph.values()) or len(self.node.get_publishers_info_by_topic(self.ev_topic))!=1
+        if (not self.controls_valid() or len(self.node.get_publishers_info_by_topic(self.ev_topic))!=1
                 or len(self.node.get_publishers_info_by_topic('/uav/vio/status'))!=1):
             self.graph_violations.append(dict(mono=now,controls=graph))
             self.stream.reject('VIO_OUTPUT_WRITER_COUNT')

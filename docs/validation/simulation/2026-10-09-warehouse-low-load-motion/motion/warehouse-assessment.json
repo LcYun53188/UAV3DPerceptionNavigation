@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": "ad713ed2-73b9-41bf-9771-ee06dde79db4",
+  "case": "WH-V02",
+  "passed": true,
+  "checks": {
+    "warehouse_scene": true,
+    "generated_assets_match": true,
+    "clearance_matches": true,
+    "layout_current": true,
+    "texture_integrity": true,
+    "disarmed": true,
+    "cleanup": true,
+    "raw_passed": true,
+    "full_duration": true,
+    "bounded_rmse": true,
+    "bounded_max": true,
+    "bounded_orientation": true
+  },
+  "raw_passed": true,
+  "flight_authorized": false,
+  "pending_cases": [
+    "WH-F01",
+    "WH-F02",
+    "WH-F03",
+    "WH-N01"
+  ],
+  "scope": "source prerequisite only; flight/hover/navigation not evaluated",
+  "artifacts": {
+    "world_sha256": "71ccf38084b22e9249e00c2beaabe96e8fb3081bc04fe11bbc5185c564588b81",
+    "model_sha256": "0a3bb3c422bcc1a999dba57497350e8b892ea028d6184a295276406a7c275a55"
+  }
+}

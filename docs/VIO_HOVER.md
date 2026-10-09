@@ -1,5 +1,12 @@
 # OAK-D Pro W 辅助室内悬停
 
+2026-10-09 最新实测：仓库同机实际双目/IMU→VIO→PX4 EKF→唯一 FlightServer→BT
+已完成 **0.8 m 起飞→15 s 悬停→原生降落两轮闭环**，最大真值漂移 10.82/8.73 cm，
+真实着地并解除武装。1.5 m 仍因持续对齐协方差超限失败，S6 完整验收不计完成；
+航点/返航与避障尚未执行，OAK-D Pro W 实机标定/飞行仍未验收。见
+[最新飞行与失败记录](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
+下文保留历史阶段记录。
+
 最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。
 
 新增仓库场景与 staged 验收入口；六轮 VIO 前置实测均失败，仓库悬停／导航未执行。

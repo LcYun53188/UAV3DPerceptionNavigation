@@ -1,0 +1,403 @@
+{
+  "passed": false,
+  "checks": {
+    "runtime_tf:vio_left_optical": true,
+    "runtime_tf:vio_right_optical": true,
+    "runtime_tf:vio_imu": true,
+    "present:clock": true,
+    "writer:clock": true,
+    "fresh:clock": true,
+    "present:left": true,
+    "writer:left": true,
+    "fresh:left": true,
+    "present:right": true,
+    "writer:right": true,
+    "fresh:right": true,
+    "present:left_info": true,
+    "writer:left_info": true,
+    "fresh:left_info": true,
+    "present:right_info": true,
+    "writer:right_info": true,
+    "fresh:right_info": true,
+    "present:imu": true,
+    "writer:imu": true,
+    "fresh:imu": true,
+    "present:odom": true,
+    "writer:odom": true,
+    "fresh:odom": true,
+    "present:pose_cov": true,
+    "writer:pose_cov": true,
+    "fresh:pose_cov": true,
+    "present:tracking": true,
+    "writer:tracking": true,
+    "fresh:tracking": true,
+    "present:vehicle": true,
+    "writer:vehicle": true,
+    "fresh:vehicle": true,
+    "present:land": true,
+    "writer:land": true,
+    "fresh:land": true,
+    "image:left": true,
+    "image_age:left": true,
+    "calibration:left": true,
+    "image:right": true,
+    "image_age:right": true,
+    "calibration:right": true,
+    "quality:left": true,
+    "quality:right": true,
+    "quality:imu": true,
+    "quality:odom": true,
+    "quality:stereo": true,
+    "quality:static_imu": true,
+    "imu_frame": true,
+    "tracking_continuous": true,
+    "tracking_ok": true,
+    "tracking_window": true,
+    "static_drift": true,
+    "odometry_age": true,
+    "frames": true,
+    "disarmed": true,
+    "landed": true,
+    "only_pose_fmu_input": false
+  },
+  "scope": "disarmed same-aircraft sensors with explicitly enabled pose EV audit",
+  "runtime_mounts": {
+    "vio_left_optical": {
+      "parent": "base_link",
+      "position": [
+        0.12,
+        0.0375,
+        0.242
+      ],
+      "quaternion": [
+        -0.560985526796931,
+        0.5609855267969309,
+        -0.4304593345768794,
+        0.43045933457687946
+      ]
+    },
+    "vio_right_optical": {
+      "parent": "base_link",
+      "position": [
+        0.12,
+        -0.0375,
+        0.242
+      ],
+      "quaternion": [
+        -0.560985526796931,
+        0.5609855267969309,
+        -0.4304593345768794,
+        0.43045933457687946
+      ]
+    },
+    "vio_imu": {
+      "parent": "base_link",
+      "position": [
+        0.12,
+        0.0,
+        0.242
+      ],
+      "quaternion": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "counts": {
+    "clock": 2850,
+    "imu": 2185,
+    "left_info": 220,
+    "right_info": 219,
+    "left": 219,
+    "right": 219,
+    "odom": 218,
+    "pose_cov": 218,
+    "tracking": 218,
+    "vehicle": 12,
+    "land": 7
+  },
+  "images": {
+    "left": {
+      "width": 640,
+      "height": 400,
+      "encoding": "rgb8",
+      "step": 1920,
+      "frame": "vio_left_optical",
+      "stamp": 11.36,
+      "byte_std": 60.02763986246856
+    },
+    "right": {
+      "width": 640,
+      "height": 400,
+      "encoding": "rgb8",
+      "step": 1920,
+      "frame": "vio_right_optical",
+      "stamp": 11.36,
+      "byte_std": 61.37878957269152
+    }
+  },
+  "calibration": {
+    "left": {
+      "frame": "vio_left_optical",
+      "stamp": 11.4,
+      "width": 640,
+      "height": 400,
+      "distortion_model": "plumb_bob",
+      "k": [
+        462.76058197021484,
+        0.0,
+        320.0,
+        0.0,
+        462.760591506958,
+        200.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        462.76058197021484,
+        0.0,
+        320.0,
+        0.0,
+        0.0,
+        462.760591506958,
+        200.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    "right": {
+      "frame": "vio_right_optical",
+      "stamp": 11.36,
+      "width": 640,
+      "height": 400,
+      "distortion_model": "plumb_bob",
+      "k": [
+        462.76058197021484,
+        0.0,
+        320.0,
+        0.0,
+        462.760591506958,
+        200.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        462.76058197021484,
+        0.0,
+        320.0,
+        -34.70704364776611,
+        0.0,
+        462.760591506958,
+        200.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "quality": {
+    "left": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 124,
+      "span_s": 4.919999999999999,
+      "rate_hz": 25.000000000000004,
+      "max_gap_s": 0.040000000000000924
+    },
+    "right": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 124,
+      "span_s": 4.919999999999999,
+      "rate_hz": 25.000000000000004,
+      "max_gap_s": 0.040000000000000924
+    },
+    "imu": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 1251,
+      "span_s": 5.0,
+      "rate_hz": 250.0,
+      "max_gap_s": 0.004000000000001336
+    },
+    "odom": {
+      "passed": true,
+      "checks": {
+        "finite": true,
+        "ordered": true,
+        "span": true,
+        "rate": true,
+        "gap": true,
+        "fresh": true
+      },
+      "count": 124,
+      "span_s": 4.919999999999999,
+      "rate_hz": 25.000000000000004,
+      "max_gap_s": 0.040000000000000924
+    },
+    "stereo": {
+      "passed": true,
+      "matched_fraction": 1.0,
+      "max_error_s": 0.0
+    },
+    "static_imu": {
+      "passed": true,
+      "mean": [
+        -8.288664806517537e-10,
+        -7.59287264966739e-16,
+        9.799998274770306,
+        -9.664298422518096e-18,
+        -1.4147035149443688e-13,
+        3.3129198196523302e-18
+      ]
+    }
+  },
+  "static_drift_m": 0.00603638251042113,
+  "raw_odometry_numeric_conversion": {
+    "accepted": false,
+    "reason": "VIO_UNCERTAINTY_INVALID"
+  },
+  "px4_source_contract_verified": false,
+  "observer_imu_qos": {
+    "depth": 100,
+    "reliability": "BEST_EFFORT"
+  },
+  "arming_states": [
+    1
+  ],
+  "control_publishers": {
+    "vehicle_command": 1,
+    "trajectory_setpoint": 1,
+    "offboard_control_mode": 1,
+    "vehicle_visual_odometry": 1
+  },
+  "last_odometry": {
+    "mono": 87633.974381171,
+    "stamp": 11.36,
+    "position": [
+      -0.0031810388900339603,
+      0.015257940627634525,
+      -0.0070929513312876225
+    ],
+    "pose_variance": [
+      0.0,
+      2.5760643618255585e-16,
+      0.0,
+      6.040333450842964e-15,
+      6.638487514723433e-15,
+      2.4913224025751713e-15
+    ],
+    "velocity_variance": [
+      3.764543961777612e-20,
+      2.179559572253238e-25,
+      3.173560178221361e-26,
+      1.7107977948310398e-13,
+      2.0158476142446932e-13,
+      1.0682950592213601e-13
+    ]
+  },
+  "sdk_pose_covariance": [
+    0.011328445747494698,
+    -0.0004476459580473602,
+    -0.0022711544297635555,
+    -1.9730907297343947e-05,
+    0.0006270746234804392,
+    -0.00014244054909795523,
+    -0.0004476460162550211,
+    0.013323651626706123,
+    5.814993710373528e-05,
+    0.00018444607849232852,
+    -8.720881851331796e-06,
+    0.0027338790241628885,
+    -0.002271154662594199,
+    5.81499443796929e-05,
+    0.012595027685165405,
+    -7.492396980524063e-05,
+    -0.00290541909635067,
+    1.8610155166243203e-05,
+    -1.9730907297343947e-05,
+    0.00018444607849232852,
+    -7.492397708119825e-05,
+    0.0007475130842067301,
+    2.3661819795961492e-05,
+    5.473264172906056e-05,
+    0.000627074739895761,
+    -8.720880941837095e-06,
+    -0.0029054193291813135,
+    2.3661821614950895e-05,
+    0.000769060745369643,
+    -3.0941880595491966e-06,
+    -0.00014244054909795523,
+    0.002733878791332245,
+    1.8610149709274992e-05,
+    5.473264172906056e-05,
+    -3.0941885142965475e-06,
+    0.000644678482785821
+  ]
+}

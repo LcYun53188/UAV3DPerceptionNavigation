@@ -1,0 +1,94 @@
+[
+  {
+    "phase": "VIO_GROUND_PRESTREAM",
+    "reason": "",
+    "mono": 87812.304212813,
+    "ros": 10.784,
+    "generation": 1,
+    "step_index": -1,
+    "position_enu": [
+      -0.0012178175384178758,
+      0.0030219571199268103,
+      -0.00013145944103598595
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "PRESTREAM",
+    "reason": "",
+    "mono": 87814.696861806,
+    "ros": 12.696,
+    "generation": 2,
+    "step_index": -1,
+    "position_enu": [
+      -0.0013882812345400453,
+      0.006966073997318745,
+      0.0010095549514517188
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "OFFBOARD_REQUEST",
+    "reason": "",
+    "mono": 87816.206883806,
+    "ros": 13.904,
+    "generation": 2,
+    "step_index": -1,
+    "position_enu": [
+      -0.00022652429470326751,
+      0.007295827381312847,
+      0.0016478761099278927
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "ARM_REQUEST",
+    "reason": "",
+    "mono": 87816.226529748,
+    "ros": 13.92,
+    "generation": 2,
+    "step_index": -1,
+    "position_enu": [
+      -0.00022027644445188344,
+      0.007290967274457216,
+      0.0016461367486044765
+    ],
+    "target_enu": null
+  },
+  {
+    "phase": "TAKEOFF",
+    "reason": "",
+    "mono": 87816.245999276,
+    "ros": 13.936,
+    "generation": 2,
+    "step_index": 0,
+    "position_enu": [
+      -0.00020927877631038427,
+      0.007280382327735424,
+      0.0016424476634711027
+    ],
+    "target_enu": [
+      -0.0013882812345400453,
+      0.006966073997318745,
+      1.5010095549514517
+    ]
+  },
+  {
+    "phase": "FAULT",
+    "reason": "VIO_HEALTH_LOST:VIO_SOURCE_LOST",
+    "mono": 87825.205592989,
+    "ros": 21.104,
+    "generation": 3,
+    "step_index": 0,
+    "position_enu": [
+      0.002352906856685877,
+      0.001791084185242653,
+      1.2225749492645264
+    ],
+    "target_enu": [
+      -0.0013882812345400453,
+      0.006966073997318745,
+      1.5010095549514517
+    ]
+  }
+]

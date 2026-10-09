@@ -1,0 +1,23 @@
+[
+  {
+    "command": 176,
+    "param1": 1,
+    "param2": 6,
+    "ros": 11.804,
+    "phase": "VIO_GROUND_PRESTREAM"
+  },
+  {
+    "command": 176,
+    "param1": 1,
+    "param2": 6,
+    "ros": 13.836,
+    "phase": "PRESTREAM"
+  },
+  {
+    "command": 400,
+    "param1": 1,
+    "param2": 0.0,
+    "ros": 13.852,
+    "phase": "OFFBOARD_REQUEST"
+  }
+]

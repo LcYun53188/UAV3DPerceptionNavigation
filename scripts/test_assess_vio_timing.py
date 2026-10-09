@@ -62,3 +62,22 @@ def test_invalid_sdk_duration_does_not_become_latency_evidence(tmp_path):
     sdk=assess(tmp_path)['sdk_execution']
     assert sdk['valid_count']==0 and sdk['invalid_count']==2
     assert sdk['track']['count']==0 and sdk['outside_callback_lower_bound']['count']==0
+
+
+def test_later_clock_jump_does_not_invalidate_explicit_earlier_window(tmp_path):
+    sensor=[record('left',.002,0.),record('right',.003,.001),record('pose_cov',.042,.041)]
+    late=record('pose_rx',3.,2.99);late['system_ns']+=500000000
+    write(tmp_path,sensor,[record('pose_rx',.043,.041),late])
+    assert not assess(tmp_path)['host_clock_stable']
+    early=assess(tmp_path,after_mono=100.,before_mono=100.1)
+    assert early['host_clock_stable'] and early['trace_complete']
+    assert abs(early['stereo_to_sdk_publish']['max_s']-.04)<1e-9
+    assert not assess(tmp_path)['host_clock_stable']  # Input and full interpretation unchanged.
+
+
+def test_window_spanning_clock_jump_still_rejects_pipeline(tmp_path):
+    sensor=[record('left',.002,0.),record('right',.003,.001),record('pose_cov',.042,.041)]
+    late=record('pose_rx',.043,.041);late['system_ns']+=500000000
+    write(tmp_path,sensor,[late])
+    result=assess(tmp_path,after_mono=100.,before_mono=100.1)
+    assert not result['host_clock_stable'] and result['stereo_to_sdk_publish'] is None

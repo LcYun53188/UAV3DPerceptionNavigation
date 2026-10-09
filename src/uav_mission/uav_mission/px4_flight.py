@@ -22,7 +22,7 @@ from rclpy.node import Node
 from rclpy.task import Future
 from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
-                          BatteryStatus, VehicleCommandAck, OffboardControlMode,
+                          BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode,
                           TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
                           EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus)
 from nav_msgs.msg import Odometry
@@ -41,15 +41,9 @@ class FlightServer(Node):
     def __init__(self):
         super().__init__('px4_flight_gateway')
         self.nonce = os.environ.get('UAV_SITL_AUTHORIZATION', '')
-        if (not self.nonce or os.environ.get('ROS_DOMAIN_ID') != '78'
-                or not os.environ.get('GZ_PARTITION', '').startswith('uav_px4_s0_')):
-            raise RuntimeError('Requires owned local SITL supervisor, domain 78 and nonce')
+        from .flight_profiles import load_region
         root = Path(os.environ['UAV_WORKSPACE'])
-        self.config = json.loads((root/'simulation/safe_regions/W0.json').read_text())
-        for name, digest in self.config['scene_files'].items():
-            path = root/'.deps/PX4-Autopilot/Tools/simulation/gz'/name
-            if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
-                raise RuntimeError('W0 scene/model hash mismatch: '+name)
+        self.config = load_region(root,os.environ)
         self.alignment = Alignment(self.config['map_translation'], self.config['map_yaw_rad'])
         self.lock, self.group = threading.RLock(), ReentrantCallbackGroup()
         self.state_group = MutuallyExclusiveCallbackGroup()
@@ -73,6 +67,7 @@ class FlightServer(Node):
         self.clock_last, self.clock_advance = None, time.monotonic()
         self.clock_observed = False
         self.clock_fault_latched=False
+        self.preflight_fault_latched=False
         self.last_command = 0.
         self.stable_since = None
         self.segment = None
@@ -93,8 +88,9 @@ class FlightServer(Node):
                                  10, callback_group=self.state_group)
         for name, kind in [('vehicle_status', VehicleStatus), ('vehicle_local_position', VehicleLocalPosition),
                            ('vehicle_land_detected', VehicleLandDetected), ('battery_status', BatteryStatus),
-                           ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry)]:
-            suffix = f'_v{kind.MESSAGE_VERSION}' if kind.MESSAGE_VERSION else ''
+                           ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry), ('failsafe_flags',FailsafeFlags)]:
+            version=getattr(kind,'MESSAGE_VERSION',0)
+            suffix = f'_v{version}' if version else ''
             self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
                                      qos_profile_sensor_data, callback_group=self.state_group)
         self.vio_gate = None
@@ -214,7 +210,8 @@ class FlightServer(Node):
         msg = self.samples.get(name)
         now = time.monotonic()
         ros = self.get_clock().now().nanoseconds/1e9
-        return bool(msg and now-self.received[name] <= age and -.05 <= ros-msg.timestamp/1e6 <= age)
+        receive_age=self.config.get('land_receive_max_age_s',age) if name=='vehicle_land_detected' else age
+        return bool(msg and now-self.received[name] <= receive_age and -.05 <= ros-msg.timestamp/1e6 <= age)
 
     def vio_healthy(self):
         gate = getattr(self, 'vio_gate', None)
@@ -248,6 +245,39 @@ class FlightServer(Node):
                 and p.heading_good_for_control and p.xy_valid and p.z_valid and p.v_xy_valid and p.v_z_valid and not p.dead_reckoning
                 and all(math.isfinite(v) for v in (p.x,p.y,p.z,p.vx,p.vy,p.vz,p.eph,p.epv))
                 and 0 <= p.eph <= 1 and 0 <= p.epv <= 1 and b.connected and b.warning == 0 and b.remaining > .2)
+
+    def prepare_vio_ground_mode(self):
+        """Ground-only Offboard preparation; PX4 must pass prechecks before BT arms."""
+        if (self.config['scene']!='warehouse' or self.active_goal or self.reserved or self.owner!='NONE'
+                or self.preflight_fault_latched or self.clock_fault_latched or self.result is not None
+                or not self.healthy(ground=True) or not self.fresh('vehicle_land_detected',1.2)):
+            return False
+        status=self.samples['vehicle_status'];land=self.samples['vehicle_land_detected']
+        if status.arming_state!=1 or not land.landed or not self.region(self.position()) or self.speed()>.1:
+            return False
+        if any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+t))!=1
+               for t in ('offboard_control_mode','trajectory_setpoint','vehicle_command')):
+            return False
+        self.reference=self.position();self.yaw=float(self.samples['vehicle_local_position'].heading)
+        self.reset_baseline=self.resets();self.initial_mode=status.nav_state
+        self.owner='PREFLIGHT';self.session=UUID(uuid=list(uuid.uuid4().bytes));self.generation+=1
+        self.preflight_until=time.monotonic()+15.
+        self.change('VIO_GROUND_PRESTREAM')
+        return True
+
+    def preflight_tick(self,now):
+        status=self.samples.get('vehicle_status');land=self.samples.get('vehicle_land_detected')
+        if (self.clock_fault_latched or not self.healthy(ground=True) or not status or not land
+                or status.arming_state!=1 or not land.landed or not self.fresh('vehicle_land_detected',1.2)
+                or self.resets()!=self.reset_baseline or not self.region(self.position())
+                or now>=self.preflight_until or status.nav_state not in (self.initial_mode,14)
+                or any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+t))!=1
+                       for t in ('offboard_control_mode','trajectory_setpoint','vehicle_command'))):
+            self.preflight_fault_latched=True
+            self.fault('VIO_GROUND_PRESTREAM_FAILED');return
+        self.stream()  # Fixed ground reference only; no ARM command in this state.
+        if now-self.phase_started>=1.2 and status.nav_state!=14 and now-self.last_command>1.:
+            self.command(176,1,6)
 
     def position(self):
         p = self.samples['vehicle_local_position']
@@ -337,7 +367,8 @@ class FlightServer(Node):
 
     def goal(self, request):
         with self.lock:
-            if self.clock_fault_latched or self.active_goal or self.reserved or self.owner != 'NONE' or not self.healthy(ground=True):
+            if (self.clock_fault_latched or getattr(self,'preflight_fault_latched',False) or self.active_goal or self.reserved
+                    or self.owner not in ('NONE','PREFLIGHT') or not self.healthy(ground=True)):
                 return FlightServer.reject_goal(self, 'CLOCK_BUSY_OR_HEALTH')
             status, land = self.samples['vehicle_status'], self.samples['vehicle_land_detected']
             if status.arming_state != 1 or not land.landed or not status.pre_flight_checks_pass or self.speed() > .1:
@@ -607,7 +638,9 @@ class FlightServer(Node):
             backwards = self.update_clock_watchdog(now, ros)
             self.publish_control(now)
             if not self.active_goal or self.result:
-                if self.owner=='HOLD_CONTROLLER' and hasattr(self,'final_hold_until'):
+                if self.owner=='PREFLIGHT':
+                    self.preflight_tick(now)
+                elif self.owner=='HOLD_CONTROLLER' and hasattr(self,'final_hold_until'):
                     if backwards or now-self.clock_advance>.5 or not self.healthy() or self.resets()!=self.reset_baseline:
                         self.owner='NONE';self.change('FAULT','FINAL_HOLD_HEALTH_LOST')
                     elif self.samples['vehicle_status'].nav_state!=14:

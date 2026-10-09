@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "scope": "fixed configured local launch origin, disarmed same-aircraft audit only",
+  "position_enu": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "yaw_enu": 0.0,
+  "height_reference": "launch body origin, not terrain altitude",
+  "calibration_id": "df7892e8ed55b76ec4ec87fbe94d88c0fa74eed9a6a5e76daaddcb5bd5f5ed76",
+  "scene_sha256": "7441ede9cbeb5b698e77a444295e3530e66b5cfbcd675f66c5a966d81f066b3e",
+  "model_sha256": "321b55978c7e4beba9fda6a74c6dc1fd31d9efc2513593822323da482dab31ff",
+  "fusion_profile_sha256": "3f9bb8c0e89122d8a07bdb2d620d46f337f653e407a6a7731a023393e635f7b8"
+}

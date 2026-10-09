@@ -1,0 +1,72 @@
+{
+  "gateway-discovery-first": {
+    "run_id": "f0c88e87-3a7f-4969-8367-cbdaa28e6500",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": "VIO_OUTPUT_WRITER_COUNT"
+  },
+  "gateway-discovery-diagnosis": {
+    "run_id": "4e0e4573-40dc-4bb2-b8c8-5d23d610ca53",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": "VIO_OUTPUT_WRITER_COUNT"
+  },
+  "no-gnss-preflight": {
+    "run_id": "5a1bade3-ba7e-4f45-8bb1-610755b6aeb6",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": "VIO_OUTPUT_WRITER_COUNT"
+  },
+  "failsafe-message-version": {
+    "run_id": "031a511e-463a-4891-b7d7-70472ee1e7f1",
+    "passed": false,
+    "flight": null,
+    "error": "Warehouse flight deadline exceeded or gateway exit",
+    "source_fault": ""
+  },
+  "position-mode-no-rc": {
+    "run_id": "28874090-60a0-42df-bb71-eb01aa46abf7",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": ""
+  },
+  "hover15-strict-alignment": {
+    "run_id": "3aa848c4-cdd7-46bb-b4b6-8cf41843cd01",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": "VIO_UNCERTAINTY_INVALID"
+  },
+  "hover15-bounded-alignment": {
+    "run_id": "18263fb1-06d1-44f6-bdbd-a7fce02ac6a8",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": "VIO_RECEIVE_GAP"
+  },
+  "hover08-land-receive-gap": {
+    "run_id": "2631415c-f7ba-43b7-b676-5c3e820b8d27",
+    "passed": false,
+    "flight": false,
+    "error": null,
+    "source_fault": ""
+  },
+  "hover08-pass": {
+    "run_id": "7280d119-ebaf-4019-8927-89bb99dfdc8c",
+    "passed": true,
+    "flight": true,
+    "error": null,
+    "source_fault": ""
+  },
+  "hover08-pass-repeat": {
+    "run_id": "273b5b5f-0efb-4787-88ef-751d600f9fa2",
+    "passed": true,
+    "flight": true,
+    "error": null,
+    "source_fault": ""
+  }
+}

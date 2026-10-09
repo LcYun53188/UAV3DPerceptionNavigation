@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "flight_authorized": false,
+  "first_fusion_fault": null,
+  "first_normalizer_retirement": null,
+  "scope": "Recorded callback chronology only; no resumed source, predicted pose or acceptance change",
+  "stop_request_mono": 84499.008384463,
+  "fault_phase": "none"
+}

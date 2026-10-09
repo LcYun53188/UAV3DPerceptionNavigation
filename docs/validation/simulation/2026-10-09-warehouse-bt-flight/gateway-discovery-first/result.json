@@ -1,0 +1,658 @@
+{
+  "passed": false,
+  "scope": "warehouse BT actual VIO takeoff/hover/native landing",
+  "flight": {
+    "passed": false,
+    "scenario": "full",
+    "vio_required": true,
+    "profile": "known_region_control",
+    "scope": "real x500 takeoff/navigation/hover/return/native landing",
+    "mock": false,
+    "truth_frames": [
+      "5010_motor_base_0",
+      "5010_motor_base_1",
+      "5010_motor_base_2",
+      "5010_motor_base_3",
+      "NXP_FMUK66_FRONT",
+      "NXP_FMUK66_TOP",
+      "RDDRONE_FMUK66_TOP",
+      "base_link",
+      "base_link_visual",
+      "column_nw",
+      "column_sw",
+      "crate_east",
+      "crate_west",
+      "door_lintel",
+      "feature_0_0",
+      "feature_0_1",
+      "feature_0_10",
+      "feature_0_11",
+      "feature_0_2",
+      "feature_0_3",
+      "feature_0_4",
+      "feature_0_5",
+      "feature_0_6",
+      "feature_0_7",
+      "feature_0_8",
+      "feature_0_9",
+      "feature_1_0",
+      "feature_1_1",
+      "feature_1_10",
+      "feature_1_11",
+      "feature_1_2",
+      "feature_1_3",
+      "feature_1_4",
+      "feature_1_5",
+      "feature_1_6",
+      "feature_1_7",
+      "feature_1_8",
+      "feature_1_9",
+      "feature_2_0",
+      "feature_2_1",
+      "feature_2_10",
+      "feature_2_11",
+      "feature_2_2",
+      "feature_2_3",
+      "feature_2_4",
+      "feature_2_5",
+      "feature_2_6",
+      "feature_2_7",
+      "feature_2_8",
+      "feature_2_9",
+      "feature_3_0",
+      "feature_3_1",
+      "feature_3_10",
+      "feature_3_11",
+      "feature_3_2",
+      "feature_3_3",
+      "feature_3_4",
+      "feature_3_5",
+      "feature_3_6",
+      "feature_3_7",
+      "feature_3_8",
+      "feature_3_9",
+      "floor_surface",
+      "ground_plane",
+      "link",
+      "paint",
+      "paint_0",
+      "paint_1",
+      "paint_10",
+      "paint_11",
+      "paint_12",
+      "paint_13",
+      "paint_14",
+      "paint_15",
+      "paint_16",
+      "paint_17",
+      "paint_18",
+      "paint_19",
+      "paint_2",
+      "paint_20",
+      "paint_21",
+      "paint_22",
+      "paint_23",
+      "paint_24",
+      "paint_25",
+      "paint_26",
+      "paint_27",
+      "paint_28",
+      "paint_29",
+      "paint_3",
+      "paint_30",
+      "paint_31",
+      "paint_32",
+      "paint_33",
+      "paint_34",
+      "paint_35",
+      "paint_36",
+      "paint_37",
+      "paint_38",
+      "paint_39",
+      "paint_4",
+      "paint_40",
+      "paint_41",
+      "paint_42",
+      "paint_43",
+      "paint_44",
+      "paint_45",
+      "paint_46",
+      "paint_47",
+      "paint_48",
+      "paint_49",
+      "paint_5",
+      "paint_50",
+      "paint_51",
+      "paint_52",
+      "paint_53",
+      "paint_54",
+      "paint_55",
+      "paint_56",
+      "paint_57",
+      "paint_58",
+      "paint_59",
+      "paint_6",
+      "paint_60",
+      "paint_61",
+      "paint_62",
+      "paint_63",
+      "paint_64",
+      "paint_65",
+      "paint_66",
+      "paint_67",
+      "paint_68",
+      "paint_69",
+      "paint_7",
+      "paint_70",
+      "paint_71",
+      "paint_72",
+      "paint_73",
+      "paint_74",
+      "paint_75",
+      "paint_76",
+      "paint_77",
+      "paint_78",
+      "paint_79",
+      "paint_8",
+      "paint_80",
+      "paint_81",
+      "paint_82",
+      "paint_83",
+      "paint_84",
+      "paint_85",
+      "paint_86",
+      "paint_87",
+      "paint_88",
+      "paint_89",
+      "paint_9",
+      "paint_90",
+      "paint_91",
+      "paint_92",
+      "paint_93",
+      "paint_94",
+      "paint_95",
+      "paint_96",
+      "paint_97",
+      "paint_98",
+      "paint_99",
+      "rack_north",
+      "rack_room",
+      "rack_south",
+      "room_partition_north",
+      "room_partition_south",
+      "rotor_0",
+      "rotor_0_visual",
+      "rotor_0_visual_motor_bell",
+      "rotor_1",
+      "rotor_1_visual",
+      "rotor_1_visual_motor_top",
+      "rotor_2",
+      "rotor_2_visual",
+      "rotor_2_visual_motor_top",
+      "rotor_3",
+      "rotor_3_visual",
+      "rotor_3_visual_motor_top",
+      "shelf_marker_0",
+      "shelf_marker_1",
+      "shelf_marker_2",
+      "structure",
+      "sunUTC",
+      "sunUTCVisual",
+      "surface",
+      "vio_rig_link",
+      "visual",
+      "wall_east",
+      "wall_north",
+      "wall_south",
+      "wall_west",
+      "warehouse_floor_features",
+      "warehouse_textured_floor",
+      "x500_vio_ref_7"
+    ],
+    "preflight_healthy": false,
+    "vio_gate_reason": "VIO_TELEMETRY_MISSING",
+    "preflight_fields": {
+      "vehicle_status": {
+        "arming_state": 1,
+        "nav_state": 4,
+        "system_id": 8,
+        "pre_flight_checks_pass": false,
+        "failsafe": false
+      },
+      "battery_status": {
+        "connected": true,
+        "remaining": 0.9999465942382812,
+        "warning": 0
+      },
+      "vehicle_local_position": {
+        "xy_valid": false,
+        "z_valid": true,
+        "v_xy_valid": false,
+        "v_z_valid": true,
+        "eph": 0.015221484005451202,
+        "epv": 0.27049484848976135
+      }
+    },
+    "error": "Preflight/truth unavailable: ['battery_status', 'vehicle_local_position', 'vehicle_odometry', 'vehicle_command_ack', 'vehicle_status', 'vehicle_land_detected']",
+    "outputs_at_end": 0,
+    "final_truth": [
+      -1.1144630690357808e-12,
+      1.4315438184568396e-18,
+      -0.013000184424629663
+    ],
+    "final_arming": 1,
+    "final_land": true,
+    "localized_odometry": {
+      "samples": 1543,
+      "sessions": [
+        "610180a8-31c1-4d4a-b844-4a2847eb7a9e"
+      ],
+      "valid": true
+    }
+  },
+  "qgc_connected": true,
+  "renderer": {
+    "passed": true,
+    "requested": "nvidia",
+    "fresh_log": true,
+    "vendor": "NVIDIA Corporation",
+    "renderer": "NVIDIA GeForce RTX 4070 Laptop GPU/PCIe/SSE2",
+    "source": "/home/nuc/.gz/rendering/ogre2.log",
+    "mtime_ns": 1791545963194664033,
+    "sha256": "8f36efddaecb0ae98631acd7ea1ce9e0c91e3d7a6d0bb795a1a3c1bd47d1b4b8"
+  },
+  "flight_pose_session": {
+    "scope": "continuous actual stereo/IMU EV for owned warehouse flight",
+    "source_fault": "VIO_OUTPUT_WRITER_COUNT",
+    "source_reason": "VIO_OUTPUT_WRITER_COUNT",
+    "alignment": {
+      "schema": 1,
+      "profile": "aligned_pose_v1",
+      "anchor_config_id": "2c4c4f6b6f6c67764086e817a1a3ef4ce39181dde136bd9e662f976927e3edd3",
+      "source_session": "23e42b19-1a67-4807-a25a-33c95f1a30fe",
+      "calibration_id": "f20dbd77bfa479dfcefe33e073f756a661c8fb79fff838ca7ed7b539ea1f5c0b",
+      "reset_counter": 0,
+      "sample_stamp": 8.84,
+      "position_enu": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_enu": 0.0,
+      "rotation": [
+        [
+          0.9999999939336061,
+          0.0001101489351711987,
+          0.0
+        ],
+        [
+          -0.0001101489351711987,
+          0.9999999939336061,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "translation": [
+        0.00032561820199264517,
+        0.0006616556136409119,
+        0.010634617879986763
+      ],
+      "covariance_policy": "unknown_temporal_correlation_bound_v1",
+      "initial_covariance": [
+        [
+          0.012078506713453813,
+          -0.0011642341112047918,
+          -0.0024605813630990208,
+          -3.097710505247454e-07,
+          0.0006697378606114129,
+          -0.00023785652238004349
+        ],
+        [
+          -0.0011642341112047918,
+          0.013648760754983157,
+          0.0002766355307286192,
+          0.00016695952359577153,
+          -6.0850092987326743e-05,
+          0.0027550104469445005
+        ],
+        [
+          -0.0024605813630990208,
+          0.0002766355307286192,
+          0.013056374994949091,
+          -0.00021663120354420437,
+          -0.0029537388915378796,
+          4.1451036046002575e-05
+        ],
+        [
+          -3.0977105052474543e-07,
+          0.00016695952359577147,
+          -0.00021663120354420434,
+          0.0007451776280954608,
+          5.0199883654324956e-05,
+          5.2664999098890557e-05
+        ],
+        [
+          0.0006697378606114129,
+          -6.0850092987326743e-05,
+          -0.002953738891537879,
+          5.019988365432495e-05,
+          0.0007625080961944142,
+          -8.546942675043298e-06
+        ],
+        [
+          -0.00023785652238004349,
+          0.0027550104469444997,
+          4.145103604600257e-05,
+          5.266499909889055e-05,
+          -8.546942675043296e-06,
+          0.0006366902663206949
+        ]
+      ],
+      "initial_yaw_jacobian": [
+        -0.00018120637900233472,
+        -1.995968981441917e-08,
+        1.0
+      ],
+      "alignment_id": "af4580332fd4ae8ecb52b1813dcbfd4863a2c5c95c48f0d7fbb3604c844c4e8d"
+    },
+    "input_count": 54,
+    "observed_count": 54,
+    "fused_samples": {
+      "ev_pos": 51,
+      "ev_hgt": 51,
+      "ev_yaw": 51
+    },
+    "graph_violations": [
+      {
+        "mono": 86992.684467856,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.704312678,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.724049383,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.744056739,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.764086182,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.784003157,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.804011178,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.824061973,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.844050004,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.864392816,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.884137688,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.90406278,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.92406445,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.944006468,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.964349649,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86992.984035458,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86993.004036822,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86993.024062774,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86993.04405345,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 86993.064119524,
+        "controls": {
+          "vehicle_command": 1,
+          "trajectory_setpoint": 1,
+          "offboard_control_mode": 1
+        }
+      },
+      {
+        "mono": 87012.724375027,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.74403826,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.763940711,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.784001962,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.804352111,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.824052255,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.844053429,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      },
+      {
+        "mono": 87012.864164762,
+        "controls": {
+          "vehicle_command": 0,
+          "trajectory_setpoint": 0,
+          "offboard_control_mode": 0
+        }
+      }
+    ],
+    "endpoint_identity_modes": [
+      "unique_graph_only"
+    ],
+    "longest_ready_s": 0.46026625800004695,
+    "gate_reasons": {
+      "VIO_TELEMETRY_MISSING": 196,
+      "VIO_EKF_FLAGS_INVALID": 3,
+      "VIO_EKF_NOT_FUSED:ev_pos": 2,
+      "VIO_STABILIZING": 101,
+      "READY": 24,
+      "VIO_SOURCE_LOST": 28,
+      "VIO_EKF_LOCAL_RESET": 981
+    },
+    "sole_gateway_observed": true,
+    "last_sample": {
+      "sec": 11,
+      "nanosec": 0
+    }
+  },
+  "root_exit_codes": {
+    "agent": -2,
+    "gazebo": 0,
+    "sensor_bridge": 0,
+    "vio": 0,
+    "normalizer": 0,
+    "px4": 0,
+    "qgc": -9,
+    "flight_gateway": 1
+  },
+  "remaining_owned_processes": [],
+  "cleanup_confirmed": true,
+  "sdk_runtime_receipt": {
+    "schema": 1,
+    "passed": true,
+    "expected": {
+      "image_buffer_size": 100,
+      "imu_buffer_size": 144,
+      "image_qos": "DEFAULT",
+      "image_qos_depth": 1,
+      "tracking_mode": 1,
+      "num_cameras": 2,
+      "min_num_images": 2,
+      "camera_optical_frames": [
+        "vio_left_optical",
+        "vio_right_optical"
+      ]
+    },
+    "actual": {
+      "image_buffer_size": 100,
+      "imu_buffer_size": 144,
+      "image_qos": "DEFAULT",
+      "image_qos_depth": 1,
+      "tracking_mode": 1,
+      "num_cameras": 2,
+      "min_num_images": 2,
+      "camera_optical_frames": [
+        "vio_left_optical",
+        "vio_right_optical"
+      ]
+    },
+    "error": null,
+    "scope": "SDK parameter service snapshot; configured subscription depth, not queue occupancy"
+  }
+}

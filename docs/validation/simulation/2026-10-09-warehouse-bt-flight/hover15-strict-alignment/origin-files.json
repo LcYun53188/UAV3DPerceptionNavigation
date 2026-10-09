@@ -1,0 +1,337 @@
+{
+  "sensor-timing.json": {
+    "archive": "sensor-timing.json.gz",
+    "bytes": 1115954,
+    "sha256": "d1e03294e32be0cef994f96cd3d69a85a67a1c40ce493c5423cd5fbe9b4f64e7"
+  },
+  "fusion-dds-echoes.json": {
+    "archive": "fusion-dds-echoes.json.gz",
+    "bytes": 293476,
+    "sha256": "8ba0ff1f8553ecd85937f5c71cdbcdbd99424fc3dc01363f1dab501979b1eede"
+  },
+  "odometry.json": {
+    "archive": "odometry.json.gz",
+    "bytes": 344461,
+    "sha256": "952a6a97aa8fe471aab35787b3aef5ae004f59a4e0869691bbdc3e6fcd8648ba"
+  },
+  "normalized-poses.json": {
+    "archive": "normalized-poses.json.gz",
+    "bytes": 801907,
+    "sha256": "683c0b4de9d31a5f3fdb162b98c6fe3769c869ce6536ad1b633cbc6f3bc0e698"
+  },
+  "localized-odometry.json": {
+    "archive": "localized-odometry.json.gz",
+    "bytes": 438818,
+    "sha256": "fac46de1cb2209a11b7b3e5ac8f85239803671cc41706321279c830fd9e532dc"
+  },
+  "gazebo.log": {
+    "archive": "gazebo.log.gz",
+    "bytes": 1590,
+    "sha256": "644987e784e7eb7bfa5fe0158a7a77389496cba5417f0b59e3479444ad22f2a7"
+  },
+  "bt-progress.json": {
+    "archive": "bt-progress.json",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "vio-params.yaml": {
+    "archive": "vio-params.yaml",
+    "bytes": 962,
+    "sha256": "06fd33771979b2125155f2c37126521dfce4d3a6d82026726099fe204127ab2f"
+  },
+  "flight-commands.json": {
+    "archive": "flight-commands.json",
+    "bytes": 343,
+    "sha256": "503c1741d8f02f191200dcfcaa4d9890d3387fa29abb6dd75716310ac172decc"
+  },
+  "renderer-info.json": {
+    "archive": "renderer-info.json",
+    "bytes": 327,
+    "sha256": "ab44b179826126f780588ac6fea1cd79c892aaba59ec56628d8e088b77a7e8e6"
+  },
+  "flight-truth.json": {
+    "archive": "flight-truth.json.gz",
+    "bytes": 223068,
+    "sha256": "431fe3cdade8e9100d1e279aa43ae48b922e1ef581ca7fe45c483283a0b75132"
+  },
+  "source-prerequisites.json": {
+    "archive": "source-prerequisites.json",
+    "bytes": 2687,
+    "sha256": "fd01d1923e342248f76bf891699a93dd4cc0fae0a1c02644c4dc2393920c04cd"
+  },
+  "qgc.log": {
+    "archive": "qgc.log.gz",
+    "bytes": 70137,
+    "sha256": "f587dd9a5510168e2c9c7238b359f3a4099e8efc468defc8dcba224691d7c7ac"
+  },
+  "flight_gateway.log": {
+    "archive": "flight_gateway.log.gz",
+    "bytes": 1995,
+    "sha256": "64b40533f6e8a4c7d422e64cf469e13c3871417885466c9a8acbbb5601740f7f"
+  },
+  "flight-diagnostics.json": {
+    "archive": "flight-diagnostics.json",
+    "bytes": 4295,
+    "sha256": "11ea6b2ee81f2a0b058e9c75b0723cddf10d22c94871330fb2e253c389ec7226"
+  },
+  "anchor.json": {
+    "archive": "anchor.json",
+    "bytes": 566,
+    "sha256": "2c4c4f6b6f6c67764086e817a1a3ef4ce39181dde136bd9e662f976927e3edd3"
+  },
+  "sensor_bridge.log": {
+    "archive": "sensor_bridge.log.gz",
+    "bytes": 1333,
+    "sha256": "76bf8cca65ec01b5a2e01bec2fd101ba232ccb5f9ef4ed69835c47f81a5a3a28"
+  },
+  "flight-status-history.json": {
+    "archive": "flight-status-history.json",
+    "bytes": 10238,
+    "sha256": "510cac62b4eca94e1b2dea6f3c22291f044da2c5695db46a7a61d347446f090c"
+  },
+  "fusion-timing.json": {
+    "archive": "fusion-timing.json.gz",
+    "bytes": 638542,
+    "sha256": "ce7c6db28adafcb29d06b770b79c4efd69c2d5c042ce80056841ab56101de793"
+  },
+  "normalizer-timing.json": {
+    "archive": "normalizer-timing.json.gz",
+    "bytes": 1095720,
+    "sha256": "b95a57f592a37d94415c4aa6ca99e2622cc6036a05447828fda99b5e033249a5"
+  },
+  "flight-assets.json": {
+    "archive": "flight-assets.json",
+    "bytes": 2989,
+    "sha256": "b7a7f18f772fecd99616ab8e59bf0ff616400e6d20c9d237fc81e5e606c595d2"
+  },
+  "px4.log": {
+    "archive": "px4.log.gz",
+    "bytes": 6699,
+    "sha256": "2e08058027869ef38ac36afa574bef0a865b8d806577a42111c0fe4a8b92f934"
+  },
+  "sdk-runtime-receipt.json": {
+    "archive": "sdk-runtime-receipt.json",
+    "bytes": 734,
+    "sha256": "b32e7f6391060303e02fd5a3480ea9097c389e89fac9ebdb3868b83f4d805b3e"
+  },
+  "flight-trace.json": {
+    "archive": "flight-trace.json.gz",
+    "bytes": 218390,
+    "sha256": "7b64927ae31bba151ab1417cf49b6b5bcce9063e72c73ade5361762a1087b08e"
+  },
+  "result.json": {
+    "archive": "result.json",
+    "bytes": 8904,
+    "sha256": "d5e1796b3dfd464e363d8804d8d93235ff9517000f0315c689014815adc1894c"
+  },
+  "samples.json": {
+    "archive": "samples.json",
+    "bytes": 97875,
+    "sha256": "6593c5aeed3787e799dae89e25c9cdde3e3edd980e7662b53c45502ba950bf33"
+  },
+  "sdk-poses.json": {
+    "archive": "sdk-poses.json.gz",
+    "bytes": 828559,
+    "sha256": "935baf19d4973c7a214c8076133485f5bb4d8b08ab705b1900507328f42c9054"
+  },
+  "vio.log": {
+    "archive": "vio.log.gz",
+    "bytes": 2560,
+    "sha256": "50f0327127096237ee5c202a15fbde55e3952843bce73ef851b0480a631facb0"
+  },
+  "truth-reader.log": {
+    "archive": "truth-reader.log.gz",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "normalizer.log": {
+    "archive": "normalizer.log.gz",
+    "bytes": 300,
+    "sha256": "56bd2bfa4978ed80030bf6a0909ec7f3ff7950cf026601c3eb4708dbd41e411e"
+  },
+  "agent.log": {
+    "archive": "agent.log.gz",
+    "bytes": 35943,
+    "sha256": "450d430f05ddc4639b48ae72dd2a47d8fc202ad12562e0f3b464ac3f7cba6f0a"
+  },
+  "flight-events.json": {
+    "archive": "flight-events.json",
+    "bytes": 1910,
+    "sha256": "146c72c0acd546f3c0db203e175dfadee04b2f7203a036ea16ae199310fd9298"
+  },
+  "fusion-outputs.json": {
+    "archive": "fusion-outputs.json.gz",
+    "bytes": 836365,
+    "sha256": "c0df5c7668d948c75c5b4304b7c0456d153d1f010754cd3917e8ee495d3ebc6b"
+  },
+  "right.ppm": {
+    "archive": "right.ppm.gz",
+    "bytes": 768015,
+    "sha256": "d991469281e7a5249e69b9d4bc8cc04e16b25b177057822f8fd02a84d744915d"
+  },
+  "release-flight-gateway": {
+    "archive": "release-flight-gateway",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "manifest.json": {
+    "archive": "manifest.json",
+    "bytes": 28792,
+    "sha256": "947de6b641ca996232392843806e7f78a7613d1f14f589936856a192671bc7e8"
+  },
+  "sensor-preflight.json": {
+    "archive": "sensor-preflight.json",
+    "bytes": 8438,
+    "sha256": "0ed4ebc7f7977de1b93402451d373b83705b10766cf71bd5ebdc8c7d0dd00495"
+  },
+  "flight-admission.json": {
+    "archive": "flight-admission.json",
+    "bytes": 123,
+    "sha256": "d7f9baa198e9fd65f051f6b79de5f794f657f25db1de99481e599fbdd6343202"
+  },
+  "renderer.log": {
+    "archive": "renderer.log.gz",
+    "bytes": 157178,
+    "sha256": "e856d8e3266caed0faf496de3761281a6b54b6c08aa89f6186a6366c6829b8cf"
+  },
+  "bt-runner.log": {
+    "archive": "bt-runner.log.gz",
+    "bytes": 577,
+    "sha256": "cc9529bb905f53d248cbd0554c0f97dff0897f81799661ed97582cd46b8645fe"
+  },
+  "normalized-status.json": {
+    "archive": "normalized-status.json.gz",
+    "bytes": 368247,
+    "sha256": "f4ba54990316e0cdefab07cf8228ec1a070fa8565f3e3f8da1f77ffba98f187c"
+  },
+  "bt-flight-tree.xml": {
+    "archive": "bt-flight-tree.xml",
+    "bytes": 247,
+    "sha256": "a9c9bc65bee3cdd9c07a84b11b88ba7c0af44f67016ce66fb5d1cdf9af238f49"
+  },
+  "left.ppm": {
+    "archive": "left.ppm.gz",
+    "bytes": 768015,
+    "sha256": "0d390d68dd5bf784a9ef460a653173307244c9500098be3e955b98362ae37bc8"
+  },
+  "flight-observation.json": {
+    "archive": "flight-observation.json",
+    "bytes": 3755,
+    "sha256": "a737d4919f6d84e714ecca72feeffd638e2cd81a57a86c5e702b0f3869c6d77a"
+  },
+  "calibration.json": {
+    "archive": "calibration.json",
+    "bytes": 2891,
+    "sha256": "f20dbd77bfa479dfcefe33e073f756a661c8fb79fff838ca7ed7b539ea1f5c0b"
+  },
+  "fusion-telemetry.json": {
+    "archive": "fusion-telemetry.json.gz",
+    "bytes": 5804520,
+    "sha256": "a394a31bd3387798498c721181b16a483b70352b0702e02a30a7f085d79f0ab3"
+  },
+  "assets/warehouse-layout.json": {
+    "archive": "assets/warehouse-layout.json",
+    "bytes": 6271,
+    "sha256": "2b5d0a312047e7890609b4da99467af24a4bb08b10e87b26f2749d1a6c2491a7"
+  },
+  "assets/default.sdf": {
+    "archive": "assets/default.sdf",
+    "bytes": 220993,
+    "sha256": "7441ede9cbeb5b698e77a444295e3530e66b5cfbcd675f66c5a966d81f066b3e"
+  },
+  "assets/frames.json": {
+    "archive": "assets/frames.json",
+    "bytes": 484,
+    "sha256": "11464820b73d504417f989c77b1f632ba2aefc71d4f7d8bcfb27309ad4bcf4ce"
+  },
+  "assets/x500_vio_ref/model.sdf": {
+    "archive": "assets/x500_vio_ref/model.sdf",
+    "bytes": 2237,
+    "sha256": "321b55978c7e4beba9fda6a74c6dc1fd31d9efc2513593822323da482dab31ff"
+  },
+  "assets/x500_vio_ref/model.config": {
+    "archive": "assets/x500_vio_ref/model.config",
+    "bytes": 94,
+    "sha256": "1de639e3b0249ab8c81495115c412a891775997cf7f438440d68668544673238"
+  },
+  "assets/warehouse_textures/materials/textures/rack_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_south.png",
+    "bytes": 19423,
+    "sha256": "2188f49708e6c0f857f5adac939c6fc6f9086df3fcab333db455b21556c4c061"
+  },
+  "assets/warehouse_textures/materials/textures/door_lintel.png": {
+    "archive": "assets/warehouse_textures/materials/textures/door_lintel.png",
+    "bytes": 19399,
+    "sha256": "2698fe639409688510c8effa0515f9980217ad29e15ea71d936dd559deb2336f"
+  },
+  "assets/warehouse_textures/materials/textures/column_sw.png": {
+    "archive": "assets/warehouse_textures/materials/textures/column_sw.png",
+    "bytes": 19624,
+    "sha256": "7c032ce36d08b78df6064c999de7299b3952caa2311be5d43a589fc84450a0fd"
+  },
+  "assets/warehouse_textures/materials/textures/room_partition_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/room_partition_south.png",
+    "bytes": 19250,
+    "sha256": "2c9d28fa4cb00f909215105697ebd985f684cfa1677b9a47c0aac4cce4537b3f"
+  },
+  "assets/warehouse_textures/materials/textures/rack_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_north.png",
+    "bytes": 19608,
+    "sha256": "15b0b4f06cf83c3f344e030617bf1086b8d2281eefa67fea2e62a93df46dc4c3"
+  },
+  "assets/warehouse_textures/materials/textures/wall_east.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_east.png",
+    "bytes": 19354,
+    "sha256": "af079227ebf61024dc25d4f3739fc2693b37ade6bc096f467167d657c1176fc3"
+  },
+  "assets/warehouse_textures/materials/textures/room_partition_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/room_partition_north.png",
+    "bytes": 20111,
+    "sha256": "c74b0846b6cea253ae3fb5a63cbb7ce0dbc79100b4df50a1d59a4f03ca0c64cf"
+  },
+  "assets/warehouse_textures/materials/textures/floor.png": {
+    "archive": "assets/warehouse_textures/materials/textures/floor.png",
+    "bytes": 19524,
+    "sha256": "2426e105878cad543f4006dbd87782a2a9e7ad2c5fe75d091ff8d0f798f98fbc"
+  },
+  "assets/warehouse_textures/materials/textures/wall_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_north.png",
+    "bytes": 19487,
+    "sha256": "c0578856b767032b2233ffcd4406df70be85ef9c42800cd0fdbbf5b48039600a"
+  },
+  "assets/warehouse_textures/materials/textures/wall_west.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_west.png",
+    "bytes": 19870,
+    "sha256": "b46fad7e4639e112fc3d24165e68a4ec3936afd1759d81e9767bce10a0d9211e"
+  },
+  "assets/warehouse_textures/materials/textures/crate_east.png": {
+    "archive": "assets/warehouse_textures/materials/textures/crate_east.png",
+    "bytes": 19727,
+    "sha256": "bd04c2b195ffe8e2ac4bc1f04b6ce44d1badd9e67c15a6936c20b37a811b95f6"
+  },
+  "assets/warehouse_textures/materials/textures/column_nw.png": {
+    "archive": "assets/warehouse_textures/materials/textures/column_nw.png",
+    "bytes": 19597,
+    "sha256": "181852e0dfd324877a87b21f3742ea3d47d122363a35151290c7f6c80c4b56ea"
+  },
+  "assets/warehouse_textures/materials/textures/rack_room.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_room.png",
+    "bytes": 20116,
+    "sha256": "75e6d752ac770741e7096e5ccd8c7a1265646ad56b781cd2161961c25bdbe430"
+  },
+  "assets/warehouse_textures/materials/textures/wall_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_south.png",
+    "bytes": 19366,
+    "sha256": "89de658bbbc7605c71ea93a99030bee86341b9a3cd7a88c8f65834c77504ad71"
+  },
+  "assets/warehouse_textures/materials/textures/crate_west.png": {
+    "archive": "assets/warehouse_textures/materials/textures/crate_west.png",
+    "bytes": 19834,
+    "sha256": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e"
+  },
+  "rootfs/log/2026-10-09/11_53_03.ulg": {
+    "archive": "rootfs/log/2026-10-09/11_53_03.ulg.gz",
+    "bytes": 7473146,
+    "sha256": "b02fb33c9ae5b8822bc8d9c2f1fb428d8edf9832a4589c6405ee71b3c658f57e"
+  }
+}
