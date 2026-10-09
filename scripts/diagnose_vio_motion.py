@@ -8,6 +8,28 @@ from assess_vio_warehouse import read
 from assess_vio_motion_evidence import rotation
 
 
+def imu_residual(truth,imu,offset):
+    """Approximate specific acceleration from differentiated body/rig truth.
+
+    Original timestamps, no lag/bias fitting. Interior samples exclude numerical
+    differentiation boundaries; this is not an IMU calibration or sync proof.
+    """
+    ts=np.asarray([p['stamp'] for p in truth])
+    rs=np.asarray([rotation(p['quaternion']) for p in truth])
+    xyz=np.asarray([p['position'] for p in truth])+rs@np.asarray(offset)
+    acceleration=np.gradient(np.gradient(xyz,ts,axis=0),ts,axis=0)
+    predicted=np.einsum('nji,nj->ni',rs,acceleration+np.array([0,0,9.8]))
+    residual=[]
+    for sample in imu:
+        if max(20.,ts[2])<=sample['stamp']<=ts[-3]:
+            estimate=np.array([np.interp(sample['stamp'],ts,predicted[:,k]) for k in range(3)])
+            residual.append(np.asarray(sample['values'][:3])-estimate)
+    a=np.asarray(residual)
+    return dict(samples=len(a),rms_mps2=np.sqrt(np.mean(a*a,axis=0)).tolist(),
+        mean_mps2=np.mean(a,axis=0).tolist(),
+        scope='approximate original-time residual only; no bias/lag fitting or physical calibration claim')
+
+
 def diagnose(folder):
     truth=read(folder,'truth.json');raw=read(folder,'sdk-poses.json')
     norm=read(folder,'normalized-poses.json');reported=read(folder,'result.json')['motion_raw_sdk_diagnostic']
@@ -40,7 +62,9 @@ def diagnose(folder):
             rmse_m=float(np.sqrt(np.mean([r['error_m']**2 for r in selected]))),
             mean_error_enu_m=np.mean([r['error_enu_m'] for r in selected],axis=0).tolist(),
             max_world_variance=float(max(max(r['world_variances']) for r in selected))))
-    return dict(scope='SDK error/covariance diagnosis; not source confidence or flight acceptance',
+    return dict(imu_truth_residual=(imu_residual(truth,read(folder,'motion-imu.json'),read(folder,'assets/frames.json')['vio_imu']['position'])
+        if (folder/'motion-imu.json').exists() or (folder/'motion-imu.json.gz').exists() else None),
+        scope='SDK error/covariance diagnosis; not source confidence or flight acceptance',
         alignment_stamp=rows[0]['stamp'],position_rmse_m=rmse,
         per_axis_rmse_m=np.sqrt(np.mean(errors**2,axis=0)).tolist(),
         metrics_match=abs(rmse-reported['position_rmse_m'])<1e-9,

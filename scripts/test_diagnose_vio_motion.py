@@ -21,3 +21,14 @@ def test_error_is_not_removed_by_trajectory_fitting(tmp_path):
     assert report['samples'][-1]['error_enu_m']==[0.,.2,0.]
     assert report['samples'][0]['normalized_present'] and not report['samples'][-1]['normalized_present']
     assert report['samples'][-1]['world_variances']==[.1]*6
+
+
+def test_imu_residual_keeps_axis_sign_error_visible():
+    from diagnose_vio_motion import imu_residual
+    truth=[dict(stamp=i*.1,position=[.5*(i*.1)**2,0,0],quaternion=[0,0,0,1]) for i in range(401)]
+    imu=[dict(stamp=i*.1,values=[1,0,9.8,0,0,0]) for i in range(401)]
+    good=imu_residual(truth,imu,[.12,0,.242])
+    assert max(good['rms_mps2'])<1e-9
+    for sample in imu:sample['values'][0]=-1
+    bad=imu_residual(truth,imu,[.12,0,.242])
+    assert abs(bad['rms_mps2'][0]-2)<1e-9
