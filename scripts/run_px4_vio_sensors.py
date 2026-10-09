@@ -19,6 +19,7 @@ from prepare_vio_sensor_assets import assets,PROFILE
 from px4_vio_sensor_audit import SensorAudit
 from px4_vio_pose_audit import PoseAudit
 from px4_vio_motion_audit import MotionAudit
+from vio_render_device import environment as render_environment,capture as capture_renderer
 
 
 def main():
@@ -27,11 +28,17 @@ def main():
     parser.add_argument('--scene',choices=('planar','layered'),default='planar')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion')
+    parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
     parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion only')
     parser.add_argument('--fuse-pose',action='store_true',help='Same-aircraft actual SDK pose -> PX4 EV; disarmed audit with source stop')
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.headless_rendering and not args.fuse_pose:
+        parser.error('--headless-rendering requires --fuse-pose')
+    if args.render_device!='default' and not args.fuse_pose:
+        parser.error('--render-device nvidia requires --fuse-pose')
     if args.real_time_factor is not None and (not args.fuse_pose or not .8<=args.real_time_factor<=1.):
         parser.error('--real-time-factor requires --fuse-pose and a value within [0.8,1.0]')
     if args.fuse_pose and (not args.normalize or args.motion or args.reset_source or args.duration<40):
@@ -100,7 +107,8 @@ def main():
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
     inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
-              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',
+              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',
+              ROOT/'src/px4_comm_bridge/px4_comm_bridge/source_timing.py',
               PROFILE,upstream_world,models/'x500/model.sdf',models/'x500_base/model.sdf',
               out/'assets/default.sdf',out/'assets'/profile['model']/'model.sdf',out/'assets/frames.json',
               out/'vio-params.yaml',ROOT/'simulation/px4/server_control.config',binary,
@@ -126,7 +134,7 @@ def main():
             ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/cuvslam_ros_conversion.cpp',
             ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp']
     write_json(out/'calibration.json',dict(schema=1,profile=profile,frames=frames,parameters=params,
-        source_contract='cuvslam15_right_tangent_base_link_v1',
+        source_contract='cuvslam15_right_tangent_base_link_v1',render_device=args.render_device,headless_rendering=args.headless_rendering,
         native_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs
                        if 'libvisual_slam_node.so' in str(p) or 'libcuvslam.so' in str(p)
                        or 'cuvslam2.h' in str(p) or str(p).endswith('cuvslam_ros_conversion.cpp')
@@ -147,7 +155,7 @@ def main():
             build/'bin/px4',build/'vio-build.json']
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
-        requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
+        render_device=args.render_device,headless_rendering=args.headless_rendering,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
@@ -156,7 +164,7 @@ def main():
         process = subprocess.Popen(list(map(str,command)),cwd=ROOT,env=environment,
             stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         processes.append(process)
-        manifest['processes'][name] = dict(pid=process.pid,command=list(map(str,command)))
+        manifest['processes'][name] = dict(pid=process.pid,command=list(map(str,command)),started_system_ns=time.time_ns())
         write_json(out/'manifest.json',manifest)
         return process
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
@@ -168,8 +176,9 @@ def main():
     result = dict(passed=False)
     try:
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
-        launch('gazebo',['gz','sim','-r','-s',out/'assets/default.sdf'])
-        if args.ui: launch('gazebo_gui',['gz','sim','-g'])
+        gazebo_env=render_environment(env,args.render_device)
+        launch('gazebo',['gz','sim','-r','-s']+(['--headless-rendering'] if args.headless_rendering else [])+[out/'assets/default.sdf'],gazebo_env)
+        if args.ui: launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
         launch('sensor_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
             '/vio/left/image@sensor_msgs/msg/Image[gz.msgs.Image',
@@ -189,7 +198,8 @@ def main():
             if args.normalize:
                 normalizer=launch('normalizer',['ros2','run','px4_comm_bridge','cuvslam_pose_node','--ros-args',
                     '-p','use_sim_time:=true','-p','calibration_id:='+calibration,
-                    '-p','source_contract:=cuvslam15_right_tangent_base_link_v1'])
+                    '-p','source_contract:=cuvslam15_right_tangent_base_link_v1']+
+                    (['-p','timing_path:='+str(out/'normalizer-timing.json')] if args.fuse_pose else []))
         # A stationary VIO-only SDK can retain its unknown initial covariance.
         # Observe the aircraft's physical spawn/settling; never fabricate motion.
         if not args.motion: launch_vio()
@@ -262,13 +272,21 @@ def main():
         result.update(passed=False,error=str(exc))
     finally:
         if fusion_audit is not None:
+            renderer_log=Path.home()/'.gz/rendering/ogre2.log'
+            renderer=capture_renderer(renderer_log,manifest['processes']['gazebo']['started_system_ns'],args.render_device)
+            write_json(out/'renderer-info.json',renderer)
+            if renderer_log.is_file():(out/'renderer.log').write_bytes(renderer_log.read_bytes())
+            result['renderer']=renderer
+            result['passed'] &= renderer['passed']
             result['real_pose_fusion']=fusion_audit.result()
             result['passed'] &= result['real_pose_fusion']['passed']
         node.destroy_node();rclpy.try_shutdown()
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
         try:
+            if audit.timing is not None:audit.timing.write(out/'sensor-timing.json')
             if fusion_audit is not None:
+                fusion_audit.timing.write(out/'fusion-timing.json')
                 for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
             write_json(out/'odometry.json',list(audit.records))
             write_json(out/'samples.json',{k:list(v) for k,v in audit.samples.items()})

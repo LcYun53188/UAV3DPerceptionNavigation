@@ -13,6 +13,7 @@ from rclpy.qos import qos_profile_sensor_data, qos_profile_default, QoSProfile, 
 from tf2_ros import StaticTransformBroadcaster
 from px4_comm_bridge.vio_input import convert_vio
 from vio_sensor_quality import sample_window, stereo_pairs, static_imu
+from px4_comm_bridge.source_timing import SourceTiming
 
 
 def stamp(message):
@@ -23,6 +24,7 @@ def stamp(message):
 class SensorAudit:
     def __init__(self,node,profile,frames,*,allow_pose_fusion=False):
         self.allow_pose_fusion=allow_pose_fusion
+        self.timing=SourceTiming(40000) if allow_pose_fusion else None
         self.node,self.profile = node,profile
         self.last,self.receive,self.counts,self.topics = {},{},Counter(),{}
         self.records = deque(maxlen=5000)
@@ -51,10 +53,13 @@ class SensorAudit:
         for key,topic,kind in entries:
             self.topics[key] = topic
             def receiver(name):
-                def callback(message):
+                def callback(message,info):
                     now = time.monotonic()
                     self.last[name],self.receive[name] = message,now
                     self.counts[name] += 1
+                    if self.timing is not None and (name in ('left','right','tracking','pose_cov') or
+                            (name=='imu' and self.counts[name]%10==0)):
+                        self.timing.record(name,self.node.get_clock().now().nanoseconds/1e9,stamp(message),info)
                     if name in self.samples: self.samples[name].append(stamp(message))
                     if name == 'tracking': self.tracking_states.append((stamp(message),int(message.vo_state)))
                     if name == 'imu':

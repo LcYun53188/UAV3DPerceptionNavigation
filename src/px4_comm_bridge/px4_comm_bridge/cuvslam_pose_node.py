@@ -19,6 +19,7 @@ from isaac_ros_visual_slam_interfaces.srv import Reset
 from uav_nav_interfaces.msg import VioStatus
 from .vio_input import SourceContinuity, stamp_s
 from .cuvslam_pose import CONTRACT, SOURCE_PARAMETERS, normalize_pose
+from .source_timing import SourceTiming
 
 
 class CuvslamPose(Node):
@@ -27,6 +28,9 @@ class CuvslamPose(Node):
 
     def __init__(self):
         super().__init__('cuvslam_pose')
+        self.declare_parameter('timing_path','')
+        self.timing_path=self.get_parameter('timing_path').value
+        self.timing=SourceTiming() if self.timing_path else None
         self.declare_parameter('calibration_id','')
         self.declare_parameter('source_contract','unverified')
         self.calibration = self.get_parameter('calibration_id').value
@@ -61,7 +65,12 @@ class CuvslamPose(Node):
         self.create_timer(.05,self.tick,callback_group=self.clients_group,
                           clock=Clock(clock_type=ClockType.STEADY_TIME))
 
+    def trace(self,stage,sample=None,info=None,**details):
+        if self.timing is not None:
+            self.timing.record(stage,self.get_clock().now().nanoseconds/1e9,sample,info,**details)
+
     def retire(self, reason):
+        if not self.fault:self.trace('retire',stamp_s(self.sample) if self.sample is not None else None,reason=reason)
         if not self.fault: self.get_logger().warning('Source retired: '+reason)
         self.fault = self.fault or reason
         self.reason = self.fault
@@ -107,7 +116,9 @@ class CuvslamPose(Node):
         if len(self.get_publishers_info_by_topic('/uav/vio/pose')) != 1:
             raise ValueError('VIO_OUTPUT_WRITER_COUNT')
 
-    def on_tracking(self, message):
+    def on_tracking(self, message, info):
+        started=time.monotonic()
+        self.trace('tracking_rx',stamp_s(message.header.stamp),info)
         try:
             gid = self.publisher(self.tracking_topic)
             if self.bound and self.tracking_gid != gid:
@@ -121,8 +132,11 @@ class CuvslamPose(Node):
             self.drain()
         except ValueError as exc:
             self.reject(str(exc))
+        finally:self.trace('tracking_done',stamp_s(message.header.stamp),elapsed_s=time.monotonic()-started)
 
-    def on_pose(self,message):
+    def on_pose(self,message,info):
+        started=time.monotonic()
+        self.trace('pose_rx',stamp_s(message.header.stamp),info)
         if self.fault: return
         try:
             gid = self.publisher(self.pose_topic)
@@ -135,6 +149,7 @@ class CuvslamPose(Node):
             self.pending[key] = (message,time.monotonic())
             self.drain()
         except ValueError as exc: self.reject(str(exc))
+        finally:self.trace('pose_done',stamp_s(message.header.stamp),elapsed_s=time.monotonic()-started)
 
     def drain(self):
         for key in sorted(self.pending):
@@ -167,6 +182,7 @@ class CuvslamPose(Node):
             self.bound = True
             self.reason = ''
             self.pose_pub.publish(normalized)
+            self.trace('pose_emit',stamp_s(normalized.header.stamp))
         except ValueError as exc:
             self.reject(str(exc))
         self.publish_status()
@@ -221,6 +237,7 @@ class CuvslamPose(Node):
             reason = reason or str(exc)
             if self.bound and not self.fault:
                 self.fault = reason
+                self.trace('retire',stamp_s(self.sample) if self.sample is not None else None,reason=reason)
                 self.get_logger().warning('Source retired: '+reason)
         if not self.bound: reason = reason or 'VIO_STABILIZING'
         status = VioStatus(localization_session=self.session,calibration_id=self.calibration,
@@ -237,5 +254,6 @@ def main(args=None):
     try: rclpy.spin(node)
     except (KeyboardInterrupt,ExternalShutdownException): pass
     finally:
+        if node.timing is not None:node.timing.write(node.timing_path)
         node.destroy_node()
         rclpy.try_shutdown()

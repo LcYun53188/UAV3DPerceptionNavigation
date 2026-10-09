@@ -17,6 +17,7 @@ from rosidl_runtime_py.convert import message_to_ordereddict
 from px4_comm_bridge.pose_stream import AlignedPoseStream,stamp_ns
 from px4_comm_bridge.pose_fusion import FRAME
 from px4_comm_bridge.vio_input import stamp_s
+from px4_comm_bridge.source_timing import SourceTiming
 from uav_mission.vio_gate import VioGate
 
 
@@ -38,7 +39,7 @@ class RealPoseFusionAudit:
         self.stream=AlignedPoseStream(calibration,anchor['position_enu'],anchor['yaw_enu'],anchor_id)
         self.gate=VioGate(calibration,fusion_profile='aligned_pose_v1')
         self.pending=OrderedDict();self.statuses=OrderedDict()
-        self.gid_modes=set();self.graph_violations=[]
+        self.gid_modes=set();self.graph_violations=[];self.timing=SourceTiming()
         self.last={};self.received={};self.topics={}
         self.history=[];self.outputs=[];self.echoes=[];self.reasons=Counter();self.fused=Counter()
         self.ready_count=0;self.ready_since=None;self.longest_ready_s=0.
@@ -100,6 +101,7 @@ class RealPoseFusionAudit:
         return gid
 
     def on_pose(self,m,info):
+        self.timing.record('pose_rx',self.ros(),stamp_s(m.header.stamp),info)
         if self.stream.fault:return
         try:
             gid=self.gid(self.input_topics[0],info);key=stamp_ns(m.header.stamp)
@@ -110,6 +112,7 @@ class RealPoseFusionAudit:
         except ValueError as exc:self.stream.reject(str(exc))
 
     def on_status(self,m,info):
+        self.timing.record('status_rx',self.ros(),stamp_s(m.sample_stamp),info)
         if self.stream.fault:return
         try:
             gid=self.gid(self.input_topics[1],info)
@@ -132,9 +135,13 @@ class RealPoseFusionAudit:
                 status,status_received,status_gid=self.statuses[key]
                 if time.monotonic()-status_received>.2:
                     self.stream.reject('VIO_PAIR_STALE');continue
+                previous=self.stream.alignment.last_stamp if self.stream.bound else None
                 result=self.stream.accept(pose,status,self.ros(),time.monotonic(),pose_gid=pose_gid,
                     status_gid=status_gid,ground=self.ground())
+                if self.stream.fault:
+                    self.timing.record('accept_fault',self.ros(),stamp_s(pose.header.stamp),reason=self.stream.fault,previous=previous)
                 if result is not None:
+                    self.timing.record('accepted',self.ros(),stamp_s(pose.header.stamp),previous=previous)
                     aligned,converted=result
                     # Graph ownership is checked immediately before the only FMU write.
                     if (len(self.node.get_publishers_info_by_topic(self.ev_topic))!=1
@@ -152,7 +159,13 @@ class RealPoseFusionAudit:
     def tick(self):
         ros=self.ros();now=time.monotonic()
         if ros<=0:return
+        # Process exact, ready source pairs before timing out the previous
+        # accepted sample. Incoming data must pass all admission checks first.
+        self.drain()
+        old_fault=self.stream.fault
         self.stream.check(ros,now,ground=self.ground())
+        if self.stream.fault and not old_fault:
+            self.timing.record('watchdog_fault',ros,self.stream.alignment.last_stamp if self.stream.bound else None,reason=self.stream.fault)
         graph={n:len(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n)) for n in self.control_names}
         if (any(graph.values()) or len(self.node.get_publishers_info_by_topic(self.ev_topic))!=1
                 or len(self.node.get_publishers_info_by_topic('/uav/vio/status'))!=1):
