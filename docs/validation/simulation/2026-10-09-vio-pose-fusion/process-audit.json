@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "root_exit_confirmed": {
+    "default-four-aids": true,
+    "pose-three-aids": true,
+    "diagnostic-stop-policy": true,
+    "w0-full": true
+  },
+  "remaining_owned_processes": []
+}

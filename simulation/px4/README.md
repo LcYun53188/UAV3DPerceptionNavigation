@@ -202,3 +202,16 @@ Gazebo 力/力矩驱动独立立体相机/IMU 载台，官方 x500/PX4 保持未
 `--reset-source` 混用；省略 `--scene layered` 使用原平面纹理场景作对照。
 原静止入口和 W0 飞行入口保持独立，未给载台场景授予飞行控制权限。
 详见 [运动验证报告](../../docs/validation/simulation/2026-10-09-vio-motion/REPORT.md)。
+
+
+## 显式仅位姿融合审计
+
+```bash
+./scripts/sim.sh px4-vision-audit --vision-fusion-profile aligned_pose_v1 --duration 35
+```
+
+独立合成位姿经过固定初始化对齐、保守协方差传播和 ENU/FLU→NED/FRD 转换，
+速度保持 NaN/UNKNOWN；检查实际位置/高度/航向融合及 PX4 自身速度健康。
+默认四类融合模式不变，不能用此选项启动飞行；尚未接入实际 cuVSLAM 位姿。
+参数、停更与回归证据见
+[位姿融合报告](../../docs/validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。

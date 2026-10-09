@@ -1,0 +1,10 @@
+{
+  "all_current": false,
+  "checks": {
+    "scripts/run_px4_sitl_smoke.py": true,
+    "scripts/px4_vision_audit.py": false,
+    "src/uav_mission/uav_mission/vio_gate.py": false,
+    "simulation/px4/vio/pose_fusion.json": false,
+    "src/px4_comm_bridge/px4_comm_bridge/pose_fusion.py": false
+  }
+}

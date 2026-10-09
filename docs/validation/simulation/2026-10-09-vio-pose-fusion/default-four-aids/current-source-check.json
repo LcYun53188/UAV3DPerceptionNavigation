@@ -1,0 +1,8 @@
+{
+  "all_current": true,
+  "checks": {
+    "scripts/run_px4_sitl_smoke.py": true,
+    "scripts/px4_vision_audit.py": true,
+    "src/uav_mission/uav_mission/vio_gate.py": true
+  }
+}

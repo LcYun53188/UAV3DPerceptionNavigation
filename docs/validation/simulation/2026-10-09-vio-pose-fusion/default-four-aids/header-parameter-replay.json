@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "checks": {
+    "UXRCE_DDS_SYNCT": true,
+    "EKF2_EV_CTRL": true,
+    "EKF2_GPS_CTRL": true,
+    "EKF2_MAG_TYPE": true,
+    "EKF2_HGT_REF": true,
+    "SENS_IMU_MODE": true,
+    "EKF2_MULTI_IMU": true,
+    "EKF2_MULTI_MAG": true
+  },
+  "parameters": {
+    "EKF2_EV_CTRL": 15,
+    "EKF2_GPS_CTRL": 0,
+    "EKF2_HGT_REF": 3,
+    "EKF2_MAG_TYPE": 5,
+    "EKF2_MULTI_IMU": 1,
+    "EKF2_MULTI_MAG": 0,
+    "SENS_IMU_MODE": 0,
+    "UXRCE_DDS_SYNCT": 0
+  },
+  "history": {
+    "EKF2_EV_CTRL": [
+      {
+        "offset": 50028,
+        "value": 15
+      }
+    ],
+    "EKF2_GPS_CTRL": [
+      {
+        "offset": 50372,
+        "value": 0
+      }
+    ],
+    "EKF2_HGT_REF": [
+      {
+        "offset": 50858,
+        "value": 3
+      }
+    ],
+    "EKF2_MAG_TYPE": [
+      {
+        "offset": 51320,
+        "value": 5
+      }
+    ],
+    "EKF2_MULTI_IMU": [
+      {
+        "offset": 51399,
+        "value": 1
+      }
+    ],
+    "EKF2_MULTI_MAG": [
+      {
+        "offset": 51429,
+        "value": 0
+      }
+    ],
+    "SENS_IMU_MODE": [
+      {
+        "offset": 63780,
+        "value": 0
+      }
+    ],
+    "UXRCE_DDS_SYNCT": [
+      {
+        "offset": 68445,
+        "value": 0
+      }
+    ]
+  },
+  "source": "docs/validation/simulation/2026-10-09-vio-pose-fusion/default-four-aids/effective-parameters.ulog-header",
+  "source_sha256": "14d77ab897ba5d46dc33c86767e43842cb288ac7a952494f989f39a755281124",
+  "initial_header_bytes": null,
+  "scope": "actual ULog parameter records; no camera or flight claim"
+}

@@ -1,0 +1,351 @@
+{
+  "passed": true,
+  "fusion_profile": "full_odometry",
+  "alignment": null,
+  "unknown_velocity_samples": 0,
+  "first_stop_rejection": null,
+  "local_before_stop": null,
+  "observed_input_count": null,
+  "last_observed_input": null,
+  "scope": "synthetic external vision -> actual PX4 EKF, disarmed; NOT camera/VIO acceptance",
+  "other_aiding_before_stop": {
+    "cs_gnss_pos": false,
+    "cs_gnss_vel": false,
+    "cs_gnss_yaw": false,
+    "cs_gps_hgt": false,
+    "cs_mag_hdg": false,
+    "cs_mag_3d": false,
+    "cs_mag": false,
+    "cs_opt_flow": false,
+    "cs_baro_hgt": true,
+    "cs_ev_pos": true,
+    "cs_ev_hgt": true,
+    "cs_ev_vel": true,
+    "cs_ev_yaw": true
+  },
+  "nonfinite_telemetry_encoding": "null",
+  "input_count": 912,
+  "received": {
+    "source": 912,
+    "ev_pos": 707,
+    "ev_hgt": 707,
+    "ev_yaw": 707,
+    "flags": 34,
+    "ev_vel": 705,
+    "selector": 31
+  },
+  "fused_samples": {
+    "ev_pos": 705,
+    "ev_hgt": 705,
+    "ev_vel": 705,
+    "ev_yaw": 705
+  },
+  "ready_count": 13351,
+  "reasons": {
+    "VIO_TELEMETRY_WRITER_COUNT": 2028,
+    "VIO_TELEMETRY_MISSING": 572,
+    "VIO_STABILIZING": 1185,
+    "READY": 13444,
+    "VIO_SOURCE_INVALID": 138,
+    "VIO_TELEMETRY_STALE:source": 2517
+  },
+  "final_gate_reason": "VIO_TELEMETRY_STALE:source",
+  "ready_before_stop": true,
+  "last_fuse_at_stop": {
+    "ev_pos": 32592000,
+    "ev_hgt": 32592000,
+    "ev_vel": 32592000,
+    "ev_yaw": 32592000
+  },
+  "last_fuse_after_drain": {
+    "ev_pos": 32736000,
+    "ev_hgt": 32736000,
+    "ev_vel": 32736000,
+    "ev_yaw": 32736000
+  },
+  "last_fuse_at_end": {
+    "ev_pos": 32736000,
+    "ev_hgt": 32736000,
+    "ev_vel": 32736000,
+    "ev_yaw": 32736000
+  },
+  "fusion_stopped": true,
+  "writers": {
+    "source": 1,
+    "flags": 1,
+    "selector": 1,
+    "ev_pos": 1,
+    "ev_hgt": 1,
+    "ev_vel": 1,
+    "ev_yaw": 1
+  },
+  "control_publishers": {
+    "vehicle_command": 0,
+    "trajectory_setpoint": 0,
+    "offboard_control_mode": 0
+  },
+  "last_messages": {
+    "source": {
+      "header": {
+        "stamp": {
+          "sec": 32,
+          "nanosec": 736000000
+        },
+        "frame_id": "odom"
+      },
+      "sample_stamp": {
+        "sec": 32,
+        "nanosec": 736000000
+      },
+      "localization_session": "synthetic-ev:54fa41eb-8699-4d73-887b-c70f1ae1866c",
+      "calibration_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reset_counter": 0,
+      "valid": true,
+      "reason": ""
+    },
+    "ev_pos": {
+      "timestamp": 32888000,
+      "timestamp_sample": 32732000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32736000,
+      "observation": [
+        0.0,
+        0.0
+      ],
+      "observation_variance": [
+        0.010000000707805157,
+        0.010000000707805157
+      ],
+      "innovation": [
+        4.37865819549188e-05,
+        2.884277364501031e-06
+      ],
+      "innovation_filtered": [
+        3.787591776927002e-05,
+        1.7103471691370942e-05
+      ],
+      "innovation_variance": [
+        0.010350935161113739,
+        0.010350936092436314
+      ],
+      "test_ratio": [
+        7.40904937401865e-09,
+        3.2148030765233315e-11
+      ],
+      "test_ratio_filtered": [
+        5.902060618012683e-09,
+        2.6290614130175527e-09
+      ],
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "ev_hgt": {
+      "timestamp": 32888000,
+      "timestamp_sample": 32732000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32736000,
+      "observation": -0.0,
+      "observation_variance": 0.010000000707805157,
+      "innovation": 0.001110871322453022,
+      "innovation_filtered": 0.0010939021594822407,
+      "innovation_variance": 0.010338786989450455,
+      "test_ratio": 4.774390163220232e-06,
+      "test_ratio_filtered": 4.630503099178895e-06,
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "ev_yaw": {
+      "timestamp": 32888000,
+      "timestamp_sample": 32732000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32736000,
+      "observation": 1.5707963705062866,
+      "observation_variance": 0.10000000149011612,
+      "innovation": -3.3974647521972656e-05,
+      "innovation_filtered": -6.499384471680969e-05,
+      "innovation_variance": 0.10031183063983917,
+      "test_ratio": 1.7022020459833698e-09,
+      "test_ratio_filtered": -6.7010557103230894e-09,
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "flags": {
+      "timestamp": 38296000,
+      "timestamp_sample": 38144000,
+      "control_status_changes": 8,
+      "cs_tilt_align": true,
+      "cs_yaw_align": true,
+      "cs_gnss_pos": false,
+      "cs_opt_flow": false,
+      "cs_mag_hdg": false,
+      "cs_mag_3d": false,
+      "cs_mag_dec": false,
+      "cs_in_air": false,
+      "cs_wind": false,
+      "cs_baro_hgt": true,
+      "cs_rng_hgt": false,
+      "cs_gps_hgt": false,
+      "cs_ev_pos": false,
+      "cs_ev_yaw": false,
+      "cs_ev_hgt": false,
+      "cs_fuse_beta": false,
+      "cs_mag_field_disturbed": false,
+      "cs_fixed_wing": false,
+      "cs_mag_fault": false,
+      "cs_fuse_aspd": false,
+      "cs_gnd_effect": false,
+      "cs_rng_stuck": false,
+      "cs_gnss_yaw": false,
+      "cs_mag_aligned_in_flight": false,
+      "cs_ev_vel": false,
+      "cs_synthetic_mag_z": false,
+      "cs_vehicle_at_rest": true,
+      "cs_gnss_yaw_fault": false,
+      "cs_rng_fault": false,
+      "cs_inertial_dead_reckoning": true,
+      "cs_wind_dead_reckoning": false,
+      "cs_rng_kin_consistent": false,
+      "cs_fake_pos": false,
+      "cs_fake_hgt": false,
+      "cs_gravity_vector": true,
+      "cs_mag": false,
+      "cs_ev_yaw_fault": false,
+      "cs_mag_heading_consistent": false,
+      "cs_aux_gpos": false,
+      "cs_rng_terrain": false,
+      "cs_opt_flow_terrain": false,
+      "cs_valid_fake_pos": true,
+      "cs_constant_pos": false,
+      "cs_baro_fault": false,
+      "cs_gnss_vel": false,
+      "fault_status_changes": 0,
+      "fs_bad_mag_x": false,
+      "fs_bad_mag_y": false,
+      "fs_bad_mag_z": false,
+      "fs_bad_hdg": false,
+      "fs_bad_mag_decl": false,
+      "fs_bad_airspeed": false,
+      "fs_bad_sideslip": false,
+      "fs_bad_optflow_x": false,
+      "fs_bad_optflow_y": false,
+      "fs_bad_acc_vertical": false,
+      "fs_bad_acc_clipping": false,
+      "innovation_fault_status_changes": 0,
+      "reject_hor_vel": false,
+      "reject_ver_vel": false,
+      "reject_hor_pos": false,
+      "reject_ver_pos": false,
+      "reject_yaw": false,
+      "reject_airspeed": false,
+      "reject_sideslip": false,
+      "reject_hagl": false,
+      "reject_optflow_x": false,
+      "reject_optflow_y": false
+    },
+    "ev_vel": {
+      "timestamp": 32888000,
+      "timestamp_sample": 32732000,
+      "estimator_instance": 0,
+      "device_id": 0,
+      "time_last_fuse": 32736000,
+      "observation": [
+        0.0,
+        -0.0,
+        -0.0
+      ],
+      "observation_variance": [
+        0.010000000707805157,
+        0.010000000707805157,
+        0.010000000707805157
+      ],
+      "innovation": [
+        -1.5862797226873226e-05,
+        -0.0003074525739066303,
+        0.002961644669994712
+      ],
+      "innovation_filtered": [
+        -4.170101601630449e-05,
+        -0.00018420524429529905,
+        0.0029713690746575594
+      ],
+      "innovation_variance": [
+        0.010732168331742287,
+        0.010732168331742287,
+        0.010584047995507717
+      ],
+      "test_ratio": [
+        2.6051309998109673e-09,
+        9.786475629880442e-07,
+        9.208135452354327e-05
+      ],
+      "test_ratio_filtered": [
+        -4.679628418102766e-08,
+        -5.066162316325062e-07,
+        9.29852612898685e-05
+      ],
+      "innovation_rejected": false,
+      "fused": true
+    },
+    "selector": {
+      "timestamp": 38528000,
+      "primary_instance": 0,
+      "instances_available": 1,
+      "instance_changed_count": 1,
+      "last_instance_change": 4272000,
+      "accel_device_id": 1310988,
+      "baro_device_id": 6619404,
+      "gyro_device_id": 1310988,
+      "mag_device_id": 197388,
+      "combined_test_ratio": [
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "relative_test_ratio": [
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "healthy": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "accumulated_gyro_error": [
+        0.0,
+        null,
+        null,
+        null
+      ],
+      "accumulated_accel_error": [
+        0.0,
+        null,
+        null,
+        null
+      ],
+      "gyro_fault_detected": false,
+      "accel_fault_detected": false
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "checks": {
+    "UXRCE_DDS_SYNCT": true,
+    "EKF2_EV_CTRL": true,
+    "EKF2_GPS_CTRL": true,
+    "EKF2_MAG_TYPE": true,
+    "EKF2_HGT_REF": true,
+    "SENS_IMU_MODE": true,
+    "EKF2_MULTI_IMU": true,
+    "EKF2_MULTI_MAG": true
+  },
+  "parameters": {
+    "EKF2_EV_CTRL": 15,
+    "EKF2_GPS_CTRL": 0,
+    "EKF2_HGT_REF": 3,
+    "EKF2_MAG_TYPE": 5,
+    "EKF2_MULTI_IMU": 1,
+    "EKF2_MULTI_MAG": 0,
+    "SENS_IMU_MODE": 0,
+    "UXRCE_DDS_SYNCT": 0
+  },
+  "history": {
+    "EKF2_EV_CTRL": [
+      {
+        "offset": 50028,
+        "value": 15
+      }
+    ],
+    "EKF2_GPS_CTRL": [
+      {
+        "offset": 50372,
+        "value": 0
+      }
+    ],
+    "EKF2_HGT_REF": [
+      {
+        "offset": 50858,
+        "value": 3
+      }
+    ],
+    "EKF2_MAG_TYPE": [
+      {
+        "offset": 51320,
+        "value": 5
+      }
+    ],
+    "EKF2_MULTI_IMU": [
+      {
+        "offset": 51399,
+        "value": 1
+      }
+    ],
+    "EKF2_MULTI_MAG": [
+      {
+        "offset": 51429,
+        "value": 0
+      }
+    ],
+    "SENS_IMU_MODE": [
+      {
+        "offset": 63780,
+        "value": 0
+      }
+    ],
+    "UXRCE_DDS_SYNCT": [
+      {
+        "offset": 68445,
+        "value": 0
+      }
+    ]
+  },
+  "source": ".cache/simulation/sitl/d42c15e9-447d-4862-8036-6c69064d49f0/rootfs/log/2026-10-09/03_42_51.ulg",
+  "source_sha256": "add8b4ee6eb051cce9211363b3c2c58f779de37d20640204cb0140a899bca506",
+  "initial_header_bytes": 103639,
+  "scope": "actual ULog parameter records; no camera or flight claim"
+}

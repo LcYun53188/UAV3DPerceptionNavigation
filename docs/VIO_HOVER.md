@@ -231,3 +231,46 @@ QGC 就绪，再启动 VIO，避免把载台先于 PX4 出现带来的初始化�
 [运动验证报告](validation/simulation/2026-10-09-vio-motion/REPORT.md)。
 下一步是显式位姿融合配置与初始化对齐，再验证实际 EKF 和 BT 悬停；当前未发布
 PX4 EV，也未改变现有默认四类融合门控或伪造速度观测。
+
+
+## 显式仅位姿融合配置与固定初始化对齐
+
+```bash
+./scripts/build_px4_flight.sh
+./scripts/sim.sh px4-vision-audit --vision-fusion-profile aligned_pose_v1 --duration 35
+# 默认仍为原四类融合审计：
+./scripts/sim.sh px4-vision-audit --duration 35
+```
+
+`pose_fusion.py` 已交付固定初始化对齐与仅位姿转换；`pose_fusion.json` 固定
+EV_CTRL=11（位置/高度/航向，关闭 EV 速度）、GNSS/磁/光流/测距高度/辅助全球
+位置/阻力辅助关闭，气压高度辅助保留。入口只做未解锁的独立合成输入审计。
+目前没有把实际 `/uav/vio/pose` 自动接入 PX4，也未给 FlightServer 增加该模式的
+飞行入口；现有 `--require-vio` 仍要求默认完整 Odometry 和四类融合。
+
+对齐要求明确的已知仿真起点/航向及配置标识、未解锁着地、至少 2 s 静止位姿，
+最大平移 0.03 m、转角 0.03 rad、初始倾斜 ≤10°。只冻结 yaw 与平移，不重设
+重力方向、不逐段拟合、不读 PX4 估计作回灌。会话/标定/reset、时间或协方差异常
+锁存，需要新实例重新初始化；首次输出使用绑定后的下一原始样本。
+`anchor_config_id` 和 `calibration_id` 是调用方配置绑定，64 位摘要格式本身不证明
+标定正确。当前审计明确使用合成身份和精确已知仿真锚点，实机锚点误差尚未建模。
+
+SDK 没有跨时刻联合协方差，不能把初始化位姿误差当作零，也不能假设与当前误差
+独立。对齐传播初始位置/yaw 的影响及 yaw 到位移的耦合，使用未知相关下的保守
+一阶上界 2·(J_current C_current J_currentᵀ + J_initial C_initial J_initialᵀ)。
+传播后的方差仍须 ≤0.25，可能因此拒绝原始 SDK 尚未超限的样本，不会截断方差。
+新的位置/姿态输出为 `px4_local_enu`，转换到 PX4 NED/FRD；速度、角速度和速度
+方差均为 NaN，速度 frame 为 UNKNOWN。航向方差按 PX4 Euler yaw 的固定轴
+Jacobian 从完整角度协方差计算，避免将旋转扰动 z 方差直接当成倾斜时的 yaw 方差。
+
+只有显式 `VioGate(..., fusion_profile='aligned_pose_v1')` 才要求三类 EV aid 加
+PX4 local position：位置/速度有效、有限、未航位推算、航向可控，位置/速度 sigma
+均在 (0,0.5]，heading_var 在 (0,0.25]，采样 ≤0.5 s。源采样仍 ≤0.2 s、稳定
+窗口仍 2 s，旗标/selector 时限不变。额外定位辅助或 EV 速度启用就拒绝；绑定后的
+local 五类 reset 计数变化在回调中锁存。PX4 估计速度用于健康检查，不作为 EV 观测。
+
+已通过仅位姿的实际 PX4 合成输入融合与停更审计，并回归默认四类融合。详见
+[对齐与位姿融合报告](validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
+下一步将实际 SDK 源健康、对齐会话和独立配置接入受管监视/融合流程，先验证未解锁
+的实际相机 VIO→EKF，再冻结对应场景/机体的飞行安全区域并接入 BT；现有载台场景
+没有飞行许可，不能拿独立载台的移动观测去融合到另一架静止 x500。

@@ -1,0 +1,1444 @@
+[
+  {
+    "mono": 58624.354221184,
+    "ros": 18.256,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58624.858408604,
+    "ros": 18.76,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58625.363229617,
+    "ros": 19.264,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58625.374165162,
+    "ros": 19.276,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58625.877920169,
+    "ros": 19.78,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58626.381967405,
+    "ros": 20.284,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58626.862188162,
+    "ros": 20.764,
+    "nav_state": 4,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58626.873962575,
+    "ros": 20.776,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58626.886090509,
+    "ros": 20.788,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58627.390142232,
+    "ros": 21.292,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58627.894224613,
+    "ros": 21.796,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58628.398437148,
+    "ros": 22.3,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58628.902176226,
+    "ros": 22.804,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58629.406008986,
+    "ros": 23.308,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58629.910154912,
+    "ros": 23.812,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58630.414314178,
+    "ros": 24.316,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58630.918400729,
+    "ros": 24.82,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58631.422630903,
+    "ros": 25.324,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58631.926506984,
+    "ros": 25.828,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58632.430230378,
+    "ros": 26.332,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58632.934270681,
+    "ros": 26.836,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58633.438137238,
+    "ros": 27.34,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58633.94211122,
+    "ros": 27.844,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58634.446104809,
+    "ros": 28.348,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58634.950336956,
+    "ros": 28.852,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58635.454306397,
+    "ros": 29.356,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58635.958291475,
+    "ros": 29.86,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58636.462216983,
+    "ros": 30.364,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58636.966366316,
+    "ros": 30.868,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58637.470010473,
+    "ros": 31.372,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58637.974179606,
+    "ros": 31.876,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58638.478288368,
+    "ros": 32.38,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58638.982078823,
+    "ros": 32.884,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58639.486352077,
+    "ros": 33.388,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58639.990114265,
+    "ros": 33.892,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58640.494120368,
+    "ros": 34.396,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58640.998300362,
+    "ros": 34.9,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58641.50206322,
+    "ros": 35.404,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58642.006378988,
+    "ros": 35.908,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58642.510085744,
+    "ros": 36.412,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58643.014230384,
+    "ros": 36.916,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58643.518338615,
+    "ros": 37.42,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58644.022311379,
+    "ros": 37.924,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58644.526448228,
+    "ros": 38.428,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58645.030330183,
+    "ros": 38.932,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58645.534220503,
+    "ros": 39.436,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58646.038139506,
+    "ros": 39.94,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58646.542280615,
+    "ros": 40.444,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58647.046070677,
+    "ros": 40.948,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58647.550373474,
+    "ros": 41.452,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58648.054127439,
+    "ros": 41.956,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58648.55899745,
+    "ros": 42.46,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58649.062284937,
+    "ros": 42.964,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58649.566253878,
+    "ros": 43.468,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58650.070595883,
+    "ros": 43.972,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58650.574092349,
+    "ros": 44.476,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58651.078365941,
+    "ros": 44.98,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58651.581879822,
+    "ros": 45.484,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58652.086400802,
+    "ros": 45.988,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58652.590272246,
+    "ros": 46.492,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58653.094477451,
+    "ros": 46.996,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58653.598328886,
+    "ros": 47.5,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58654.102285734,
+    "ros": 48.004,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58654.60648474,
+    "ros": 48.508,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58655.110008729,
+    "ros": 49.012,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58655.614195376,
+    "ros": 49.516,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58656.118276888,
+    "ros": 50.02,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58656.622214691,
+    "ros": 50.524,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58657.126236895,
+    "ros": 51.028,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58657.630389198,
+    "ros": 51.532,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58658.13448032,
+    "ros": 52.036,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58658.638351081,
+    "ros": 52.54,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58659.142322303,
+    "ros": 53.044,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58659.646335385,
+    "ros": 53.548,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58660.149926289,
+    "ros": 54.052,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58660.654221544,
+    "ros": 54.556,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58661.15806433,
+    "ros": 55.06,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58661.662148012,
+    "ros": 55.564,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58662.166462783,
+    "ros": 56.068,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58662.670060701,
+    "ros": 56.572,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58663.17410539,
+    "ros": 57.076,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58663.677906275,
+    "ros": 57.58,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58664.18199093,
+    "ros": 58.084,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58664.686082961,
+    "ros": 58.588,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58665.190533617,
+    "ros": 59.092,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58665.69430249,
+    "ros": 59.596,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58666.198026144,
+    "ros": 60.1,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58666.702212387,
+    "ros": 60.604,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58667.206333932,
+    "ros": 61.108,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58667.710052071,
+    "ros": 61.612,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58668.214043678,
+    "ros": 62.116,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58668.717844259,
+    "ros": 62.62,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58669.22199229,
+    "ros": 63.124,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58669.726247776,
+    "ros": 63.628,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58670.23014067,
+    "ros": 64.132,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58670.734186847,
+    "ros": 64.636,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58671.23833458,
+    "ros": 65.14,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58671.742110347,
+    "ros": 65.644,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58672.246252285,
+    "ros": 66.148,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58672.750237621,
+    "ros": 66.652,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58673.254009774,
+    "ros": 67.156,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58673.757819456,
+    "ros": 67.66,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58674.262086282,
+    "ros": 68.164,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58674.766651684,
+    "ros": 68.668,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58675.270173712,
+    "ros": 69.172,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58675.774136268,
+    "ros": 69.676,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58676.278169065,
+    "ros": 70.18,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58676.782515276,
+    "ros": 70.684,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58677.286070927,
+    "ros": 71.188,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58677.790322511,
+    "ros": 71.692,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58678.294185139,
+    "ros": 72.196,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58678.798333449,
+    "ros": 72.7,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58679.302203483,
+    "ros": 73.204,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58679.806151399,
+    "ros": 73.708,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58680.310077749,
+    "ros": 74.212,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58680.813871368,
+    "ros": 74.716,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58681.318162294,
+    "ros": 75.22,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58681.822166812,
+    "ros": 75.724,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58682.32596478,
+    "ros": 76.228,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58682.830262293,
+    "ros": 76.732,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58683.334295801,
+    "ros": 77.236,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58683.838128623,
+    "ros": 77.74,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58684.341759632,
+    "ros": 78.244,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58684.846128668,
+    "ros": 78.748,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58685.350034137,
+    "ros": 79.252,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58685.854144514,
+    "ros": 79.756,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58686.358067246,
+    "ros": 80.26,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58686.862249712,
+    "ros": 80.764,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58687.366133794,
+    "ros": 81.268,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58687.870106166,
+    "ros": 81.772,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58688.37432593,
+    "ros": 82.276,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58688.878122231,
+    "ros": 82.78,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58689.382106349,
+    "ros": 83.284,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58689.885861606,
+    "ros": 83.788,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58690.390107169,
+    "ros": 84.292,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58690.894480426,
+    "ros": 84.796,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58691.398530189,
+    "ros": 85.3,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58691.902193861,
+    "ros": 85.804,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58692.406323083,
+    "ros": 86.308,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58692.910158894,
+    "ros": 86.812,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58693.414243114,
+    "ros": 87.316,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58693.918148307,
+    "ros": 87.82,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58694.422195147,
+    "ros": 88.324,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58694.926219628,
+    "ros": 88.828,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58695.430244109,
+    "ros": 89.332,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58695.93412818,
+    "ros": 89.836,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58696.438371639,
+    "ros": 90.34,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58696.942233634,
+    "ros": 90.844,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58697.44618516,
+    "ros": 91.348,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58697.950380984,
+    "ros": 91.852,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58698.454143155,
+    "ros": 92.356,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58698.957921835,
+    "ros": 92.86,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58699.462215874,
+    "ros": 93.364,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58699.966066472,
+    "ros": 93.868,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58700.470216884,
+    "ros": 94.372,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58700.974520771,
+    "ros": 94.876,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58701.47815432,
+    "ros": 95.38,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58701.98187185,
+    "ros": 95.884,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58702.486163057,
+    "ros": 96.388,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58702.990095014,
+    "ros": 96.892,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58703.494107871,
+    "ros": 97.396,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58703.998294925,
+    "ros": 97.9,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58704.502049493,
+    "ros": 98.404,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58705.006054362,
+    "ros": 98.908,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58705.510139164,
+    "ros": 99.412,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58706.014083923,
+    "ros": 99.916,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58706.518538245,
+    "ros": 100.42,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58707.022115737,
+    "ros": 100.924,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58707.526276531,
+    "ros": 101.428,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58708.030220757,
+    "ros": 101.932,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58708.534116283,
+    "ros": 102.436,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58709.038144277,
+    "ros": 102.94,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58709.542031058,
+    "ros": 103.444,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58710.046279182,
+    "ros": 103.948,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58710.550181958,
+    "ros": 104.452,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58711.054144962,
+    "ros": 104.956,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58711.558215787,
+    "ros": 105.46,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58712.06199214,
+    "ros": 105.964,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58712.566179657,
+    "ros": 106.468,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58713.070214013,
+    "ros": 106.972,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58713.574244707,
+    "ros": 107.476,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58714.078048157,
+    "ros": 107.98,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58714.582300439,
+    "ros": 108.484,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58715.086190925,
+    "ros": 108.988,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58715.590209496,
+    "ros": 109.492,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58716.094524593,
+    "ros": 109.996,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58716.19016359,
+    "ros": 110.092,
+    "nav_state": 14,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58716.202156606,
+    "ros": 110.104,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58716.214126949,
+    "ros": 110.116,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58716.718118639,
+    "ros": 110.62,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58717.221838401,
+    "ros": 111.124,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58717.72624056,
+    "ros": 111.628,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58718.230458604,
+    "ros": 112.132,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58718.734400161,
+    "ros": 112.636,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58719.237870855,
+    "ros": 113.14,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58719.742222885,
+    "ros": 113.644,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58720.246190877,
+    "ros": 114.148,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58720.750719419,
+    "ros": 114.652,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58721.253933007,
+    "ros": 115.156,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58721.75810969,
+    "ros": 115.66,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58722.262131864,
+    "ros": 116.164,
+    "nav_state": 18,
+    "arming_state": 2,
+    "failsafe": false
+  },
+  {
+    "mono": 58722.718393927,
+    "ros": 116.62,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58723.222265887,
+    "ros": 117.124,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58723.726182471,
+    "ros": 117.628,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58724.229969506,
+    "ros": 118.132,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  },
+  {
+    "mono": 58724.734113926,
+    "ros": 118.636,
+    "nav_state": 14,
+    "arming_state": 1,
+    "failsafe": false
+  }
+]
