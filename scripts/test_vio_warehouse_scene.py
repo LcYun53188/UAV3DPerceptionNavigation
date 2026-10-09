@@ -63,3 +63,17 @@ def test_floor_texture_does_not_change_any_obstacle_or_camera(tmp_path):
     floor=b.find('.//model[@name="warehouse_textured_floor"]')
     assert floor is not None and floor.find('.//collision') is None
     assert floor.findtext('.//albedo_map').endswith('/floor.png')
+
+
+def test_unique_atlas_preserves_collision_and_sensor_calibration(tmp_path):
+    world=tmp_path/'world.sdf';world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    for name,style in [('a','corners'),('b','unique'),('c','unique')]:
+        assets(tmp_path/name,world,scene='warehouse',warehouse_floor_texture=True,warehouse_texture_style=style,camera_pitch_deg=30)
+    for name in ['b','c']:
+        assert (tmp_path/'a/x500_vio_ref/model.sdf').read_bytes()==(tmp_path/name/'x500_vio_ref/model.sdf').read_bytes()
+        assert (tmp_path/'a/frames.json').read_bytes()==(tmp_path/name/'frames.json').read_bytes()
+        a=ET.parse(tmp_path/'a/default.sdf');b=ET.parse(tmp_path/name/'default.sdf')
+        assert [ET.tostring(e) for e in a.findall('.//collision')]==[ET.tostring(e) for e in b.findall('.//collision')]
+    relative='warehouse_textures/materials/textures/floor.png'
+    assert (tmp_path/'a'/relative).read_bytes()!=(tmp_path/'b'/relative).read_bytes()
+    assert (tmp_path/'b'/relative).read_bytes()==(tmp_path/'c'/relative).read_bytes()

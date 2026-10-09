@@ -76,7 +76,27 @@ def corner_texture(path, rng):
                     chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
 
 
-def add_warehouse(world, directory, *, floor_texture=False):
+def unique_floor_texture(path, rng):
+    """A seeded 2048 px atlas of irregular rectangles, without a periodic cell grid."""
+    width=2048
+    pixels=bytearray([180]*(width*width*3))
+    for _ in range(2200):
+        x,y=rng.randrange(width),rng.randrange(width)
+        w,h=min(rng.randint(8,110),width-x),min(rng.randint(8,110),width-y)
+        value=rng.choice((20,50,90,125,210,240))
+        row=bytes([value])*3*w
+        for yy in range(y,y+h):
+            start=(yy*width+x)*3;pixels[start:start+len(row)]=row
+    raw=b''.join(b'\x00'+pixels[y*width*3:(y+1)*width*3] for y in range(width))
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',width,width,8,2,0,0,0))+
+                    chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
+
+
+def add_warehouse(world, directory, *, floor_texture=False, texture_style="corners"):
+    if texture_style not in ("corners","unique"):raise ValueError("Unsupported floor texture style")
+    if texture_style!="corners" and not floor_texture:raise ValueError("Unique texture requires textured floor")
     layout = json.loads(LAYOUT.read_text())
     clearance = box_clearance(layout)
     rng = random.Random(layout['seed'])
@@ -115,7 +135,7 @@ def add_warehouse(world, directory, *, floor_texture=False):
                 box(link,f'shelf_marker_{level}',[0,0,(level-1)*.8],[size[0]+.005,size[1]+.005,.05],[.8,.6,.15])
     if floor_texture:
         texture=textures/'floor.png'
-        corner_texture(texture,random.Random(layout['seed']+1000))
+        (unique_floor_texture if texture_style=='unique' else corner_texture)(texture,random.Random(layout['seed']+1000))
         texture_hashes[str(texture.relative_to(directory))]=hashlib.sha256(texture.read_bytes()).hexdigest()
         floor_surface=ET.SubElement(world,'model',name='warehouse_textured_floor')
         ET.SubElement(floor_surface,'static').text='true'

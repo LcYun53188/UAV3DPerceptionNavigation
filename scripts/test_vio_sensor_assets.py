@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
 import numpy as np
+import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from prepare_vio_sensor_assets import assets
 
@@ -99,10 +100,11 @@ def test_reduced_resolution_regenerates_camera_geometry(tmp_path):
         assert image.findtext('width')=='480' and image.findtext('height')=='300'
 
 
-def test_downward_pitch_keeps_optical_tf_consistent_with_rendered_sensor(tmp_path):
+@pytest.mark.parametrize("degrees",[15,30])
+def test_downward_pitch_keeps_optical_tf_consistent_with_rendered_sensor(tmp_path,degrees):
     world=tmp_path/'world.sdf';world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
-    profile,frames=assets(tmp_path/'pitched',world,camera_pitch_deg=15)
-    theta=math.radians(15)
+    profile,frames=assets(tmp_path/'pitched',world,camera_pitch_deg=degrees)
+    theta=math.radians(degrees)
     ry=np.array([[math.cos(theta),0,math.sin(theta)],[0,1,0],[-math.sin(theta),0,math.cos(theta)]])
     original=np.array([[0,0,1],[-1,0,0],[0,-1,0]])
     for side in ('left','right'):
@@ -111,7 +113,7 @@ def test_downward_pitch_keeps_optical_tf_consistent_with_rendered_sensor(tmp_pat
         rz=np.array([[math.cos(yaw),-math.sin(yaw),0],[math.sin(yaw),math.cos(yaw),0],[0,0,1]])
         assert pitch==0 and np.allclose(rz@rx,ry@original)
     assert frames['vio_imu']['rpy']==[0,0,0]
-    assert profile['camera_pitch_deg']==15
+    assert profile['camera_pitch_deg']==degrees
     model=ET.parse(tmp_path/'pitched'/profile['model']/'model.sdf')
     for camera in model.findall('.//sensor[@type="camera"]'):
         assert float(camera.findtext('pose').split()[4])==theta

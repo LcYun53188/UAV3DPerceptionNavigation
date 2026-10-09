@@ -9,14 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=0):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=0, warehouse_texture_style="corners"):
     if scene not in ('planar','layered','warehouse'):
         raise ValueError('Unknown reference scene')
     if warehouse_floor_texture and scene!='warehouse':
         raise ValueError('Floor texture comparison requires warehouse scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
-    if camera_pitch_deg not in (0,15):raise ValueError('Unsupported reference camera pitch')
+    if warehouse_texture_style!="corners" and (scene!="warehouse" or not warehouse_floor_texture):raise ValueError("Unique texture requires warehouse floor texture")
+    if camera_pitch_deg not in (0,15,30):raise ValueError('Unsupported reference camera pitch')
     p = json.loads(PROFILE.read_text())
     pitch=math.radians(camera_pitch_deg)
     if camera_pitch_deg:p['camera_pitch_deg']=camera_pitch_deg
@@ -106,8 +107,9 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         physics.find('real_time_update_rate').text=str(real_time_factor/step)
     if scene=='warehouse':
         from vio_warehouse_scene import add_warehouse
-        add_warehouse(root,directory,floor_texture=warehouse_floor_texture)
+        add_warehouse(root,directory,floor_texture=warehouse_floor_texture,texture_style=warehouse_texture_style)
         p['warehouse_floor_texture']=warehouse_floor_texture
+        if warehouse_texture_style!='corners':p['warehouse_texture_style']=warehouse_texture_style
         world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
         (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
         return p,frames

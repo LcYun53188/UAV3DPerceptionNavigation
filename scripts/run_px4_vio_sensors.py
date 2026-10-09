@@ -31,8 +31,9 @@ def main():
     parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
     parser.add_argument('--duration',type=float,default=45.,help='Disarmed observation duration only; flight stops at task terminal with a 280 s cap')
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
-    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
+    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15,30),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
+    parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--diagnostic-ui',action='store_true',help='Explicit UI flight observation; never qualifies the headless flight baseline')
@@ -55,6 +56,7 @@ def main():
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
+    if args.warehouse_texture_style!="corners" and (args.scene!="warehouse" or not args.warehouse_floor_texture):parser.error("Unique texture requires warehouse floor texture")
     if args.warehouse_floor_texture and args.scene!='warehouse':
         parser.error('--warehouse-floor-texture requires --scene warehouse')
     if args.ekf_delay_max_ms is not None and not pose_fusion_mode:
@@ -103,7 +105,7 @@ def main():
         for name,digest in receipt.items():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg,warehouse_texture_style=args.warehouse_texture_style)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION=('uav_warehouse_flight_' if args.flight else 'uav_vio_sensors_')+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
@@ -208,7 +210,7 @@ def main():
         # Exact checked source configuration only; UI/realtime are still unqualified.
         if not (args.headless_rendering and (not args.ui or args.diagnostic_ui) and args.render_device=='nvidia' and
                 args.sdk_image_depth==1 and args.real_time_factor==.8 and args.ekf_delay_max_ms==160 and
-                args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
+                args.warehouse_texture_style=='corners' and args.camera_pitch_deg==15 and args.image_resolution=='640x400' and
                 args.warehouse_floor_texture and args.quality_policy=='bounded_gap'):
             raise RuntimeError('Warehouse flight requires explicitly qualified low-load configuration')
         prerequisite_receipts=[]
