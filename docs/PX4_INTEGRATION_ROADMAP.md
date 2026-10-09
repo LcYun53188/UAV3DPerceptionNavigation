@@ -8,6 +8,8 @@
 
 本轮官方 EKF 无界面完整 BT 任务回归通过（起飞／两航点／悬停／返航／降落），带 UI 轮在解锁前触发时间／状态保护。见 [任务优先基线回归](validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。
 
+新增同机固定 5° RGBD → PX4 EKF 历史 TF → nvblox ESDF 的未解锁验证入口 `sim.sh px4-depth-map`。真实深度建图已通过；EGO 的地图／对齐会话绑定与同机飞行监督仍待接入。见 [建图验证](validation/simulation/2026-10-09-px4-depth-mapping/REPORT.md)。
+
 以下较早的阶段记录保留为历史证据。
 
 

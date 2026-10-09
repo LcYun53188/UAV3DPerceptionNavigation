@@ -1,0 +1,3 @@
+not found: "/home/nuc/Program/uav_nav_ws/install_uav/isaac_ros_image_proc/share/isaac_ros_image_proc/local_setup.bash"
+[WARN] [1791557600.876688344] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791557600.876705025] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.

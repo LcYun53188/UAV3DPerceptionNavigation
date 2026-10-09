@@ -1,0 +1,23 @@
+not found: "/home/nuc/Program/uav_nav_ws/install_uav/isaac_ros_image_proc/share/isaac_ros_image_proc/local_setup.bash"
+[WARN] [1791557601.145198975] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791557601.145281416] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[WARN] [1791557602.776567155] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557603.239171240] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557603.737865862] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557604.238518238] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557604.738299728] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557605.237585114] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557606.837679640] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557607.336884995] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557607.837020723] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557608.347096153] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557608.837671502] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557609.347221674] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557609.848247140] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557610.338564562] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557610.849402056] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557611.347214922] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557611.837130940] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557612.336499200] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557612.836698294] [uav_map_session]: ESDF unavailable: No observed voxels
+[WARN] [1791557613.336270665] [uav_map_session]: ESDF unavailable: No observed voxels

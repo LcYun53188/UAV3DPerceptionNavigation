@@ -1,0 +1,5 @@
+[WARN] [1791557235.712795926] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1791557235.712824243] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1791557235.744315104] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/px4_reference/rgbd/depth_image (gz.msgs.Image) -> /px4_reference/rgbd/depth_image (sensor_msgs/msg/Image)] (Lazy 0)
+[INFO] [1791557235.745984160] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/px4_reference/rgbd/camera_info (gz.msgs.CameraInfo) -> /px4_reference/rgbd/camera_info (sensor_msgs/msg/CameraInfo)] (Lazy 0)
+[INFO] [1791557289.234303999] [rclcpp]: signal_handler(SIGINT/SIGTERM)
