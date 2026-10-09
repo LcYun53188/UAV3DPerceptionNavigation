@@ -51,6 +51,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--vision-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry')
     parser.add_argument('--vision-fusion-smoke', action='store_true', help='Separate disarmed build: synthetic EV input and actual EKF fusion telemetry')
+    parser.add_argument('--vio-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry',help='Explicit VIO admission profile; existing W0 scene authorization still required')
     parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
     parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
     parser.add_argument('--depth-camera', action='store_true', help='Audit pinned x500_depth camera, disarmed only')
@@ -63,6 +64,8 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.vio_fusion_profile!='full_odometry' and not args.require_vio:
+        parser.error('--vio-fusion-profile requires --require-vio')
     if args.vision_fusion_profile!='full_odometry' and not args.vision_fusion_smoke:
         parser.error('--vision-fusion-profile requires --vision-fusion-smoke')
     if args.vision_fusion_smoke and (args.flight or args.bt or args.depth_camera or args.aircraft_state or args.mission_file or args.flight_scenario != 'full'):
@@ -129,14 +132,19 @@ def main():
                    UAV_VIO_CALIBRATION_ID=args.vio_calibration_id, UAV_WORKSPACE=str(ROOT),
                    UAV_FLIGHT_MISSION_FILE=str(args.mission_file.resolve()) if args.mission_file else '',
                    UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
-                   UAV_FLIGHT_BT='1' if args.bt else '0', PX4_PARAM_COM_RC_IN_MODE='4',
+                   UAV_FLIGHT_BT='1' if args.bt else '0', UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
+    if args.require_vio and args.vio_fusion_profile=='aligned_pose_v1':
+        pose_profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
+        if pose_profile['schema']!=1 or pose_profile['profile']!=args.vio_fusion_profile:
+            raise RuntimeError('Unsupported flight VIO profile')
+        env.update({'PX4_PARAM_'+name:str(value) for name,value in pose_profile['parameters'].items()})
     manifest = dict(run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
                     domain=domain, partition=env['GZ_PARTITION'], instance=instance,
                     xrce_port=xrce_port, gcs_port=14550, px4_gcs_local_port=18577,
                     model=f'{model_name}_7', namespace='/px4_7', versions=lock,
                     flight_recipe_sha256=file_hash(args.mission_file.resolve() if args.mission_file else ROOT/'simulation/missions/W0_flight_sequence.json') if args.flight else None,
-                    flight_profile_sha256=file_hash(ROOT/'simulation/safe_regions/W0.json') if args.flight else None,
+                    vio_fusion_profile=args.vio_fusion_profile,flight_profile_sha256=file_hash(ROOT/'simulation/safe_regions/W0.json') if args.flight else None,
                     px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
                     tool_sha256=file_hash(Path(__file__)),
                     world_sha256=file_hash(worlds / 'default.sdf'),
