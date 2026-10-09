@@ -1,5 +1,27 @@
 # PX4 官方链路三阶段集成
 
+最新优化增加 480×300 仿真双目与显式 `bounded_gap` 协方差坏样本拒绝策略，
+保留 200 ms 原有效样本期限。最终 0.8×、120 s 未解锁融合一轮通过（连续 READY
+114.2 s），同配置仍有跟踪新鲜度失败；120 s 独立运动通过。FlightServer 已接入
+显式 `aligned_pose_v1` 准入门控，持续 EV 飞行会话与真实悬停仍待验收。见
+[负载优化与准入接入报告](validation/simulation/2026-10-09-vio-optimization/REPORT.md)。
+
+SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建及 222 项测试通过。
+实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
+1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
+[同步器与审计时钟修复报告](validation/simulation/2026-10-09-sync-clock-fix/REPORT.md)。
+
+SDK 分段时序现已采集：默认实时轮存在至少约 388 ms 的 UpdatePose 回调外延迟，
+缩短图像队列后有所下降，但四轮整体仍未通过。另复现同步器毫秒/纳秒阈值不匹配，
+以及减速审计的墙钟计数边界；修复与重跑仍待推进。见
+[SDK 时序及接口复现](validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md)。
+
+本轮继续修复新鲜度交接：接收路径检查当前样本，watchdog 保留旧样本期限与失效锁存。
+新增被动 DDS/回调时序记录和 NVIDIA GLX/EGL 对照；实时延迟已定位到 SDK 位姿发布之前，
+内部同步/跟踪/调度原因仍待剖析。当前 0.8 倍速 120 s 融合（2329 输入）和实际 reset
+回归通过，实时长时及 S6/VIO 悬停仍未通过；平面场景协方差失败保留。见
+[新鲜度修复与时序报告](validation/simulation/2026-10-09-vio-timing/REPORT.md)。
+
 按用户指定顺序推进，使用本机 PX4 官方 SITL + Gazebo Harmonic + QGroundControl；
 当前固定 PX4 v1.16.2、ROS 2 Jazzy。Jetson 延期，不依赖实机或接收机供电。
 每阶段单独配置、证据和 Git 提交；前阶段通过不替代后阶段验收。

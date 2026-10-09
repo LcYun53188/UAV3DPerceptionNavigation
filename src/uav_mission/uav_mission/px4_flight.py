@@ -105,7 +105,7 @@ class FlightServer(Node):
             calibration = os.environ.get('UAV_VIO_CALIBRATION_ID', '')
             if not re.fullmatch('[0-9a-f]{64}', calibration):
                 raise RuntimeError('VIO mission requires reviewed calibration/config SHA256')
-            self.vio_gate = VioGate(calibration)
+            self.vio_gate = VioGate(calibration,fusion_profile=os.environ.get('UAV_VIO_FUSION_PROFILE','full_odometry'))
             inputs = [('source', '/uav/vio/status', VioStatus),
                       ('flags', '/px4_7/fmu/out/estimator_status_flags', EstimatorStatusFlags),
                       ('selector', '/px4_7/fmu/out/estimator_selector_status', EstimatorSelectorStatus),
@@ -113,6 +113,9 @@ class FlightServer(Node):
                       ('ev_hgt', '/px4_7/fmu/out/estimator_aid_src_ev_hgt', EstimatorAidSource1d),
                       ('ev_vel', '/px4_7/fmu/out/estimator_aid_src_ev_vel', EstimatorAidSource3d),
                       ('ev_yaw', '/px4_7/fmu/out/estimator_aid_src_ev_yaw', EstimatorAidSource1d)]
+            if self.vio_gate.pose_only:
+                inputs=[item for item in inputs if item[0]!='ev_vel']
+                inputs.append(('local','/px4_7/fmu/out/vehicle_local_position',VehicleLocalPosition))
             for name, topic, kind in inputs:
                 version = getattr(kind, 'MESSAGE_VERSION', 0)
                 topic += f'_v{version}' if version else ''
@@ -121,6 +124,7 @@ class FlightServer(Node):
                     def receive(message):
                         self.vio_gate.receive(key, message, time.monotonic())
                     return receive
+                if name=='local':continue  # Existing aircraft-state callback forwards this sample.
                 self.input_subscriptions['vio_'+name] = self.create_subscription(
                     kind, topic, receiver(name),
                     qos_profile_sensor_data, callback_group=self.state_group)
@@ -148,6 +152,11 @@ class FlightServer(Node):
         self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
         self.create_timer(.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME), callback_group=self.state_group)
 
+    def forward_vio_local(self,name,message,now):
+        gate=getattr(self,'vio_gate',None)
+        if name=='vehicle_local_position' and gate is not None and gate.pose_only:
+            gate.receive('local',message,now)
+
     def callback(self, name):
         def receive(msg):
             with self.lock:
@@ -157,6 +166,7 @@ class FlightServer(Node):
                         self.fault('SOURCE_TIME_RESET')
                     return
                 self.samples[name], self.received[name] = msg, time.monotonic()
+                FlightServer.forward_vio_local(self,name,msg,self.received[name])
                 if name in ('vehicle_local_position', 'vehicle_odometry'):
                     self.check_localization_reset()
                 if name=='vehicle_status':self.status_history.append(dict(mono=time.monotonic(),ros=msg.timestamp/1e6,nav_state=msg.nav_state,arming_state=msg.arming_state,failsafe=msg.failsafe))

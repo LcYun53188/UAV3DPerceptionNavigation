@@ -9,12 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None):
     if scene not in ('planar','layered'):
         raise ValueError('Unknown reference scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
     p = json.loads(PROFILE.read_text())
+    if resolution is not None:
+        if resolution not in ((640,400),(480,300)):
+            raise ValueError('Unsupported reference image resolution')
+        p['width'],p['height']=resolution
     if real_time_factor is not None:p['real_time_factor']=real_time_factor
     if motion_plugin is not None or scene!='planar': p['scene'] = scene
     if p['schema'] != 1 or not 0 < p['baseline_m'] < 1:
