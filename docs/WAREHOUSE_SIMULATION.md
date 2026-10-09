@@ -1,5 +1,7 @@
 # 仓库场景与分阶段 VIO 验证
 
+最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。
+
 已实测六轮，VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。
 详见 [原始结果与重放](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
 

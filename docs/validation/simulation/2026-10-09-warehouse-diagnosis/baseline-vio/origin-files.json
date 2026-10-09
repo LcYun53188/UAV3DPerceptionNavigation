@@ -1,0 +1,217 @@
+{
+  "odometry.json": {
+    "archive": "odometry.json.gz",
+    "bytes": 1656537,
+    "sha256": "36b325ef16e42ddb93a87c2e7094ec5dba8f72e7fb9e35f80bc54598a247e850"
+  },
+  "normalized-poses.json": {
+    "archive": "normalized-poses.json",
+    "bytes": 3,
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "gazebo.log": {
+    "archive": "gazebo.log.gz",
+    "bytes": 1626,
+    "sha256": "35d7c4554ccdd043195f092a0511a65fad57a0884dcb0ddd6eb259a3db7dc7cb"
+  },
+  "vio-params.yaml": {
+    "archive": "vio-params.yaml",
+    "bytes": 963,
+    "sha256": "739a5e66376a9fc9f4019f965b007ac2335e5eb7df07358d083d64330386e525"
+  },
+  "gazebo_gui.log": {
+    "archive": "gazebo_gui.log.gz",
+    "bytes": 1273,
+    "sha256": "8c9788252906fe9bd2b6d6754ab5faefb36831f2cb3e23340c4a09085a0197e1"
+  },
+  "qgc.log": {
+    "archive": "qgc.log.gz",
+    "bytes": 70217,
+    "sha256": "d8a865d25342d432df62236bc37ee959cc2770ee07cabea9fad04e039407212a"
+  },
+  "sensor_bridge.log": {
+    "archive": "sensor_bridge.log.gz",
+    "bytes": 1484,
+    "sha256": "269cd522f31e3b4cef44811956414081032cbce6d9add19702da1bdc34861f31"
+  },
+  "motion-independent-assessment.json": {
+    "archive": "motion-independent-assessment.json",
+    "bytes": 450,
+    "sha256": "2e8194896eafe810c030c4f57379ab761007613a21aa2ed4d04547d54a79c80b"
+  },
+  "motion-imu.json": {
+    "archive": "motion-imu.json.gz",
+    "bytes": 6718003,
+    "sha256": "544f72f62712dc332797a9888508d87fa7844f93da38ef87c29603196315533d"
+  },
+  "px4.log": {
+    "archive": "px4.log.gz",
+    "bytes": 5280,
+    "sha256": "094f49c7ec8bb629269c37fa4795b16b05e15708e0868b4226c9657fd78ab475"
+  },
+  "truth.json": {
+    "archive": "truth.json.gz",
+    "bytes": 3321622,
+    "sha256": "291f33980ac8337b2c253273ad2922a81f13207d821acbad65e1e075f09244f9"
+  },
+  "motion-diagnosis.json": {
+    "archive": "motion-diagnosis.json.gz",
+    "bytes": 1262838,
+    "sha256": "a1ec7bc811c96fd4a1ae39b2842ec5d859f17817fd677465573654ed8762a799"
+  },
+  "result.json": {
+    "archive": "result.json",
+    "bytes": 10280,
+    "sha256": "a72300f9187ca4ba1f4239328f8f9dd273483f89ba12c20911bb6f74c94a1b6d"
+  },
+  "warehouse-assessment.json": {
+    "archive": "warehouse-assessment.json",
+    "bytes": 873,
+    "sha256": "68eea29bf44522a6426cafcc52c277bb65b3902813829f9a3c85e044391f68e8"
+  },
+  "samples.json": {
+    "archive": "samples.json.gz",
+    "bytes": 513985,
+    "sha256": "18eaebefb6b533d199defefd70526e518ae5e274a0228916b54c8095e233fccc"
+  },
+  "sdk-poses.json": {
+    "archive": "sdk-poses.json.gz",
+    "bytes": 3782133,
+    "sha256": "fd41f29ec2253e3380cf23997c3e48190d204d0616534ecdafe09c972e0573b8"
+  },
+  "vio.log": {
+    "archive": "vio.log.gz",
+    "bytes": 2691,
+    "sha256": "8e35ac348fe1551f08cd76999ac1aa7841258e58992af0e37c7479ea619d9d7c"
+  },
+  "normalizer.log": {
+    "archive": "normalizer.log.gz",
+    "bytes": 300,
+    "sha256": "685b8183b9e9d638a82b3afbe4660db7cb661001d70b428f9e0d60815b3997b6"
+  },
+  "agent.log": {
+    "archive": "agent.log.gz",
+    "bytes": 32833,
+    "sha256": "95890caa67a77030213c38a4d77c743dad08ae81b50710baef484a68e0507a74"
+  },
+  "right.ppm": {
+    "archive": "right.ppm.gz",
+    "bytes": 432015,
+    "sha256": "812d9b5c3a9fa45c39ce42a10c50b9b03bc77539b87e47908e8aa16b337b7c85"
+  },
+  "manifest.json": {
+    "archive": "manifest.json",
+    "bytes": 23437,
+    "sha256": "a89c049602824fb395953de8d22ec2d35a1e1408ecf4e5d08adce2facd87f987"
+  },
+  "normalized-status.json": {
+    "archive": "normalized-status.json.gz",
+    "bytes": 1574505,
+    "sha256": "382546fee00d8e6b8c39bf8f21f3d25f9575ad37a4bee4e4be9c410380ae256d"
+  },
+  "left.ppm": {
+    "archive": "left.ppm.gz",
+    "bytes": 432015,
+    "sha256": "47a64b1a0fbc663974f97d598ea674bae00b4a367a7ae98667d065fb84da9588"
+  },
+  "calibration.json": {
+    "archive": "calibration.json",
+    "bytes": 2803,
+    "sha256": "308cc564e941c0ca0ee9086da924d345a3f20551504ea56b521c1d576f6c28e0"
+  },
+  "assets/warehouse-layout.json": {
+    "archive": "assets/warehouse-layout.json",
+    "bytes": 6148,
+    "sha256": "2fc5675655282b258f2e2f7a81c51027267b77639ae7e40bdb5eb9bc6aa82b24"
+  },
+  "assets/default.sdf": {
+    "archive": "assets/default.sdf.gz",
+    "bytes": 220657,
+    "sha256": "9301e0d852042dd1375304387a7b3d00d75f13138952c19cb8ab9b979519df9c"
+  },
+  "assets/frames.json": {
+    "archive": "assets/frames.json",
+    "bytes": 486,
+    "sha256": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761"
+  },
+  "assets/vio_motion_carrier/model.sdf": {
+    "archive": "assets/vio_motion_carrier/model.sdf",
+    "bytes": 3127,
+    "sha256": "7814e93b271878b2bd96f127e9eb7639b3b2da7efbc12bf145239c495917a600"
+  },
+  "assets/vio_motion_carrier/model.config": {
+    "archive": "assets/vio_motion_carrier/model.config",
+    "bytes": 100,
+    "sha256": "4d81bd841b8953fc1bae50f84d2d3849c3b79b1d406d63ec58bd1ef5879317cd"
+  },
+  "assets/warehouse_textures/materials/textures/rack_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_south.png",
+    "bytes": 19423,
+    "sha256": "2188f49708e6c0f857f5adac939c6fc6f9086df3fcab333db455b21556c4c061"
+  },
+  "assets/warehouse_textures/materials/textures/door_lintel.png": {
+    "archive": "assets/warehouse_textures/materials/textures/door_lintel.png",
+    "bytes": 19399,
+    "sha256": "2698fe639409688510c8effa0515f9980217ad29e15ea71d936dd559deb2336f"
+  },
+  "assets/warehouse_textures/materials/textures/column_sw.png": {
+    "archive": "assets/warehouse_textures/materials/textures/column_sw.png",
+    "bytes": 19624,
+    "sha256": "7c032ce36d08b78df6064c999de7299b3952caa2311be5d43a589fc84450a0fd"
+  },
+  "assets/warehouse_textures/materials/textures/room_partition_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/room_partition_south.png",
+    "bytes": 19250,
+    "sha256": "2c9d28fa4cb00f909215105697ebd985f684cfa1677b9a47c0aac4cce4537b3f"
+  },
+  "assets/warehouse_textures/materials/textures/rack_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_north.png",
+    "bytes": 19608,
+    "sha256": "15b0b4f06cf83c3f344e030617bf1086b8d2281eefa67fea2e62a93df46dc4c3"
+  },
+  "assets/warehouse_textures/materials/textures/wall_east.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_east.png",
+    "bytes": 19354,
+    "sha256": "af079227ebf61024dc25d4f3739fc2693b37ade6bc096f467167d657c1176fc3"
+  },
+  "assets/warehouse_textures/materials/textures/room_partition_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/room_partition_north.png",
+    "bytes": 20111,
+    "sha256": "c74b0846b6cea253ae3fb5a63cbb7ce0dbc79100b4df50a1d59a4f03ca0c64cf"
+  },
+  "assets/warehouse_textures/materials/textures/wall_north.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_north.png",
+    "bytes": 19487,
+    "sha256": "c0578856b767032b2233ffcd4406df70be85ef9c42800cd0fdbbf5b48039600a"
+  },
+  "assets/warehouse_textures/materials/textures/wall_west.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_west.png",
+    "bytes": 19870,
+    "sha256": "b46fad7e4639e112fc3d24165e68a4ec3936afd1759d81e9767bce10a0d9211e"
+  },
+  "assets/warehouse_textures/materials/textures/crate_east.png": {
+    "archive": "assets/warehouse_textures/materials/textures/crate_east.png",
+    "bytes": 19727,
+    "sha256": "bd04c2b195ffe8e2ac4bc1f04b6ce44d1badd9e67c15a6936c20b37a811b95f6"
+  },
+  "assets/warehouse_textures/materials/textures/column_nw.png": {
+    "archive": "assets/warehouse_textures/materials/textures/column_nw.png",
+    "bytes": 19597,
+    "sha256": "181852e0dfd324877a87b21f3742ea3d47d122363a35151290c7f6c80c4b56ea"
+  },
+  "assets/warehouse_textures/materials/textures/rack_room.png": {
+    "archive": "assets/warehouse_textures/materials/textures/rack_room.png",
+    "bytes": 20116,
+    "sha256": "75e6d752ac770741e7096e5ccd8c7a1265646ad56b781cd2161961c25bdbe430"
+  },
+  "assets/warehouse_textures/materials/textures/wall_south.png": {
+    "archive": "assets/warehouse_textures/materials/textures/wall_south.png",
+    "bytes": 19366,
+    "sha256": "89de658bbbc7605c71ea93a99030bee86341b9a3cd7a88c8f65834c77504ad71"
+  },
+  "assets/warehouse_textures/materials/textures/crate_west.png": {
+    "archive": "assets/warehouse_textures/materials/textures/crate_west.png",
+    "bytes": 19834,
+    "sha256": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e"
+  }
+}

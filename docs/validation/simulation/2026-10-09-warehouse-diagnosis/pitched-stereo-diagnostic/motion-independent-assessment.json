@@ -1,0 +1,15 @@
+{
+  "scope": "raw SDK error replay only, not confidence or flight acceptance",
+  "position_rmse_m": 0.0870228442964267,
+  "position_max_m": 0.16571990117923022,
+  "samples": 2878,
+  "error_limits_met": true,
+  "reported_metrics_agree": true,
+  "alignment_stamp": 11.76,
+  "retirement": null,
+  "original_overall_passed": false,
+  "cleanup_confirmed": true,
+  "fmu_inputs_absent": true,
+  "normalized_last_stamp": null,
+  "raw_last_stamp": 126.84
+}

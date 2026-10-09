@@ -1,5 +1,7 @@
 # OAK-D Pro W 辅助室内悬停
 
+最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。
+
 新增仓库场景与 staged 验收入口；六轮 VIO 前置实测均失败，仓库悬停／导航未执行。
 见 [仓库说明](WAREHOUSE_SIMULATION.md) 与 [原始证据](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
 
