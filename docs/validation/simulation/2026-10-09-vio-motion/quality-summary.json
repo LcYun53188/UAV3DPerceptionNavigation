@@ -1,0 +1,65 @@
+{
+  "planar-90": {
+    "overall_passed": false,
+    "raw_window_start": 20.08,
+    "raw_window_end": 96.8,
+    "normalized_window_start": 20.08,
+    "normalized_window_end": 20.88,
+    "normalized_samples": 21,
+    "valid_status_span_wall_s": 0.8302533919995767,
+    "status_continuous_after_binding": false,
+    "raw_max_world_variances": [
+      0.11116415236093566,
+      0.5571545791291063,
+      0.7853253260393581,
+      0.007220172181831711,
+      0.04373544814909807,
+      0.03065412090080015
+    ],
+    "raw_covariance_limit_exceeded_samples": 867,
+    "raw_samples": 1919,
+    "cleanup_confirmed": true
+  },
+  "layered-90": {
+    "overall_passed": true,
+    "raw_window_start": 17.28,
+    "raw_window_end": 96.76,
+    "normalized_window_start": 17.28,
+    "normalized_window_end": 96.76,
+    "normalized_samples": 1988,
+    "valid_status_span_wall_s": 79.5089891839998,
+    "status_continuous_after_binding": true,
+    "raw_max_world_variances": [
+      0.036888127676506316,
+      0.09988073241718817,
+      0.11210271418948041,
+      0.0026132808604186547,
+      0.007837686165432591,
+      0.006049991300349233
+    ],
+    "raw_covariance_limit_exceeded_samples": 0,
+    "raw_samples": 1988,
+    "cleanup_confirmed": true
+  },
+  "layered-120": {
+    "overall_passed": true,
+    "raw_window_start": 17.2,
+    "raw_window_end": 126.68,
+    "normalized_window_start": 17.2,
+    "normalized_window_end": 126.68,
+    "normalized_samples": 2738,
+    "valid_status_span_wall_s": 109.49056088699581,
+    "status_continuous_after_binding": true,
+    "raw_max_world_variances": [
+      0.046392740589101325,
+      0.0936443257984913,
+      0.12732636315791995,
+      0.0031420387144317843,
+      0.008632006072762,
+      0.005757402289619092
+    ],
+    "raw_covariance_limit_exceeded_samples": 0,
+    "raw_samples": 2738,
+    "cleanup_confirmed": true
+  }
+}

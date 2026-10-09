@@ -1,0 +1,29 @@
+{
+  "original_run": "e8c624ab-1149-4d98-88c2-8b93aaefe241",
+  "source_sha256": {
+    "manifest.json": "3f59d7434a07b5d6de3ff488b587cba6255aca47975f6d5e0c8d137f2c33e95c",
+    "result.json": "e8cf8473b429f837c094186fccc98ceb8589e94e937c7dd9ed42c5f50fbc1b19",
+    "calibration.json": "aef43d7aba703877fc1570c423bd4c34d1db242f47b81d633f928d6b705c034a",
+    "vio-params.yaml": "1c6368755c923902bd4961cc1a0f72460f1b86c08c2d7b2245b72235d9259af2",
+    "agent.log": "075c95eeb81c069ffcc22bde88a353fcae8fb1c55f516e76818ba0bcbcea33b5",
+    "gazebo.log": "dd9134e9417705b3060cd72ec5efbd1227c5e33c1594ea1501d375579bc9e6c9",
+    "sensor_bridge.log": "2b948dd70db4e6d6cea639b296c1c371311f7049826b3e7cc0e3d67c0261b3ee",
+    "vio.log": "3e29e5994a3538c1904e796ab404b0e3a36d3c6eeb71779295040b89bbdc348f",
+    "normalizer.log": "93be44192dcf2321d2d520a5c52913efce9e680318120fe76b097e43fe5780e5",
+    "px4.log": "8a84f3e5ce1d4d9f06cf810bf2eabfb54c56b8a740936069314ed9e04b1b78e1",
+    "qgc.log": "fb45b0a7cfaccdc70cfa003e9628366598bd95c13692e3e5ec45618407772dd4",
+    "samples.json": "ef027118644456a32e2e1c515798f4f5c838ebb07a5e7e9d80ec22b0d43cad4e",
+    "sdk-poses.json": "ce6a17780398b106bc84d0432e6f7bdb2a362aa374273ef932b0872d0c563ba7",
+    "normalized-poses.json": "f2458801114be021ba49af21bb118a31e8783d6e6d5d06c673c67097c25dfeab",
+    "normalized-status.json": "0150405a5462837350528521070c1a12f8aba2afa6cbed281dee27a0b488029e",
+    "truth.json": "f27b4d66f54a729d0e093eca0c2e40bc80e3d2ee3339018e232ab6227abd6a48",
+    "motion-imu.json": "c064e659184a50415449939e4038c029c63a28b3a7b7570f7562f6a82a46268c",
+    "odometry.json": "9b252f3b2108f563a45a018cd442347c3f29662ec47334eb6c89c187c404420f",
+    "assets/default.sdf": "9478f90bc22a9b4de037f4e310d5611a5cd7865e1fe533b2906c9e9eb6e87565",
+    "assets/frames.json": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761",
+    "assets/vio_motion_carrier/model.sdf": "b88e417c5aee83b52ab1eaabd03c624d2380ad554c33782bf6962e9d074a411a",
+    "assets/vio_motion_carrier/model.config": "4d81bd841b8953fc1bae50f84d2d3849c3b79b1d406d63ec58bd1ef5879317cd",
+    "left.ppm": "7c2ea7dfe883d0591855ab5fea138a5ee390ed3012fb31cc345f8a6ed8f9085e",
+    "right.ppm": "f3dd4b088d285a55e4ad128684c94fd594e304ebdd73580fd47a2d5450faa6a1"
+  }
+}

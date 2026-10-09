@@ -42,8 +42,11 @@ StartFlight → FlightStep[0..6] → AwaitFlightResult。根 Action 只提交一
 原始 cuVSLAM Odometry 的滑窗协方差不作为 EKF 观测不确定性；当前禁止直接适配。
 SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 reset 撤销验证通过；
 90 s 检查因 SDK 协方差超限失败，旧源按设计锁存失效。尚无标准速度观测及 PX4
-初始化对齐，也未进行独立运动误差或 VIO 飞行验收，见
+初始化对齐，尚未进行 VIO 飞行验收，见
 [位姿与 reset 记录](validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+独立力驱动载台已完成实际 VIO 三轴/转向运动验证，多深度场景通过，平面场景
+仍因协方差超限失效；不代表 PX4 闭环或 Pro W 标定，见
+[运动对照报告](validation/simulation/2026-10-09-vio-motion/REPORT.md)。
 
 1. 固定模拟双目和 IMU、CameraInfo、内外参、安装 TF、采样率与共同仿真时钟。
    Pro W 是目标硬件；参考模型必须标明与真实广角/基线/IMU 的差异。

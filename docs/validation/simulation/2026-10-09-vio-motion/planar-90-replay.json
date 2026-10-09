@@ -1,0 +1,29 @@
+{
+  "scope": "raw SDK error replay only, not confidence or flight acceptance",
+  "position_rmse_m": 0.08281361488668908,
+  "position_max_m": 0.15941312170952776,
+  "samples": 1919,
+  "error_limits_met": true,
+  "reported_metrics_agree": true,
+  "alignment_stamp": 20.08,
+  "retirement": {
+    "reason": "VIO_UNCERTAINTY_INVALID",
+    "stamp": 20.944,
+    "latched": true,
+    "no_late_output": true,
+    "next_sdk_stamp": 20.92,
+    "next_world_variances": [
+      0.01772521673165627,
+      0.12066726090065004,
+      0.2767180061332958,
+      0.0012699113951765654,
+      0.015283865727413519,
+      0.0056348003291530994
+    ]
+  },
+  "original_overall_passed": false,
+  "cleanup_confirmed": true,
+  "fmu_inputs_absent": true,
+  "normalized_last_stamp": 20.88,
+  "raw_last_stamp": 96.8
+}

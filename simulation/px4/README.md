@@ -186,3 +186,19 @@ cuVSLAM 原始 Odometry 的滑窗协方差不能直接用于 PX4：现有适配�
 当前 90 s 持续检查出现协方差超限并正确停发，尚未达到飞行条件。
 配置指纹、短时通过与持续失败的原始证据见
 [位姿与 reset 报告](../../docs/validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+
+
+## 独立载台运动验证
+
+```bash
+./scripts/build_vio_motion.sh
+./scripts/sim.sh px4-vio-sensors --normalize --motion --scene layered --duration 120
+```
+
+Gazebo 力/力矩驱动独立立体相机/IMU 载台，官方 x500/PX4 保持未解锁着地。
+真值仅经 `/vio/truth` 提供给误差审计，不输入 VIO 或 PX4；载台插件读取自身
+物理状态作反馈控制。采样时间对齐后只作一次初始刚体变换，检查三轴/转向误差、
+连续跟踪及 SDK 协方差。`--motion` 要求 `--normalize`、时长至少 50 s 且不与
+`--reset-source` 混用；省略 `--scene layered` 使用原平面纹理场景作对照。
+原静止入口和 W0 飞行入口保持独立，未给载台场景授予飞行控制权限。
+详见 [运动验证报告](../../docs/validation/simulation/2026-10-09-vio-motion/REPORT.md)。
