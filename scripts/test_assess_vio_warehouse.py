@@ -54,3 +54,10 @@ def test_visual_only_diagnostic_cannot_qualify_even_with_raw_pass_flag(tmp_path)
     r['motion']=dict(position_rmse_m=.01,position_max_m=.02,orientation_max_deg=1.)
     (run/'manifest.json').write_text(json.dumps(m));(run/'result.json').write_text(json.dumps(r))
     report=assess(run);assert not report['passed'] and not report['checks']['raw_passed']
+
+
+def test_sdk_input_dump_is_diagnostic_and_cannot_qualify(tmp_path):
+    run,m,_=case(tmp_path);m['sdk_debug_dump']=True
+    (run/'manifest.json').write_text(json.dumps(m))
+    report=assess(run)
+    assert not report['passed'] and not report['checks']['raw_passed']

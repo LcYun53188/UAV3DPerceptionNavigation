@@ -25,6 +25,7 @@ from vio_render_device import environment as render_environment,capture as captu
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sdk-debug-dump',action='store_true',help='Explicit SDK-consumed input dump; diagnostic load, not VIO qualification')
     parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
     parser.add_argument('--duration',type=float,default=45.)
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
@@ -116,10 +117,13 @@ def main():
         base_frame='base_link',odom_frame='odom',map_frame='map',imu_frame='vio_imu',
         camera_optical_frames=['vio_left_optical','vio_right_optical'],
         publish_map_to_odom_tf=False,publish_odom_to_base_tf=False)
+    if args.sdk_debug_dump:
+        (out/'sdk-input').mkdir()
+        params.update(enable_debug_mode=True,debug_dump_path=str(out/'sdk-input'))
     params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
-    inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -176,7 +180,7 @@ def main():
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
-        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
+        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
     def launch(name,command,environment=env):
@@ -342,6 +346,9 @@ def main():
         result['remaining_owned_processes'] = live
         result['cleanup_confirmed'] = not live and all(p.poll() is not None for p in processes)
         result['passed'] &= result['cleanup_confirmed']
+        if args.sdk_debug_dump:
+            result['sdk_dump_checks_passed']=result['passed']
+            result['passed']=False  # Recording load is diagnostic, never qualification.
         write_json(out/'result.json',result)
     print('Stereo/IMU VIO:', 'PASS' if result['passed'] else 'FAIL',out,flush=True)
     return 0 if result['passed'] else 1
