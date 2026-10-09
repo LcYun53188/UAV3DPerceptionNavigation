@@ -5,6 +5,7 @@
 真实着地并解除武装。1.5 m 仍因持续对齐协方差超限失败，S6 完整验收不计完成；
 航点/返航与避障尚未执行，OAK-D Pro W 实机标定/飞行仍未验收。见
 [最新飞行与失败记录](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
+追加两轮带四窗口 UI 的 1.5 m 诊断，均失败后自动降落、锁定；保存了实际起飞／悬停双目画面，离线候选角点不足以证明 SDK 跟踪质量。见 [UI 画面诊断](validation/simulation/2026-10-09-vio-flight-ui/REPORT.md)。
 下文保留历史阶段记录。
 
 最新按轴诊断发现仓库 VIO 误差主要沿 Y 累积；地面纹理／下倾对照仍未通过。纯双目诊断运动误差达标，但不具备 VIO 准入资格。见 [模式对照报告](validation/simulation/2026-10-09-warehouse-diagnosis/REPORT.md)。
