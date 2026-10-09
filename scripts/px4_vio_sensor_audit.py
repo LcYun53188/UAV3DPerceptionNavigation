@@ -59,7 +59,11 @@ class SensorAudit:
                     self.counts[name] += 1
                     if self.timing is not None and (name in ('left','right','tracking','pose_cov') or
                             (name=='imu' and self.counts[name]%10==0)):
-                        self.timing.record(name,self.node.get_clock().now().nanoseconds/1e9,stamp(message),info)
+                        details={}
+                        if name=='tracking':
+                            details=dict(sdk_track_s=float(message.track_execution_time),
+                                sdk_callback_s=float(message.node_callback_execution_time))
+                        self.timing.record(name,self.node.get_clock().now().nanoseconds/1e9,stamp(message),info,**details)
                     if name in self.samples: self.samples[name].append(stamp(message))
                     if name == 'tracking': self.tracking_states.append((stamp(message),int(message.vo_state)))
                     if name == 'imu':

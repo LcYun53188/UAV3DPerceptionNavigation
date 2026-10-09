@@ -57,7 +57,7 @@ def assess(folder):
         for label,data in (('observer',sensor),('normalizer',normalizer)):
             around[label]=[r for r in data['records'] if fault['mono']-.5<=r['mono']<=fault['mono']+.3
                 and r['stage']!='imu']
-    return dict(schema=1,host_clock_stable=stable,host_clock_offset_range_s=max(offsets)-min(offsets) if offsets else None,
+    result=dict(schema=1,host_clock_stable=stable,host_clock_offset_range_s=max(offsets)-min(offsets) if offsets else None,
         trace_complete=all(d['total']==d['retained'] for d,_ in streams),
         fusion_faults=fusion_faults[:5],fresh_pairs_with_expired_previous=len(expired_previous),
         fresh_pair_examples=expired_previous[:5],
@@ -65,6 +65,26 @@ def assess(folder):
         metrics=metrics,stereo_to_sdk_publish=summary([p['delay_s'] for p in pipeline]) if stable else None,
         worst_pipeline=sorted(pipeline,key=lambda p:p['delay_s'],reverse=True)[:20] if stable else [],
         first_source_retirement=fault,around_retirement=around)
+    sdk=[r for r in sensor['records'] if r['stage']=='tracking' and 'sdk_track_s' in r]
+    if sdk:
+        valid=[r for r in sdk if all(np.isfinite(r.get(k,float('nan'))) and r[k]>=0
+            for k in ('sdk_track_s','sdk_callback_s')) and r['sdk_callback_s']>=r['sdk_track_s']]
+        matched=[]
+        timing_by_sample={round(r['sample']*1e9):r for r in valid if r['sample'] is not None}
+        for p in pipeline:
+            r=timing_by_sample.get(round(p['sample']*1e9))
+            if r is not None:
+                matched.append(dict(sample=p['sample'],pipeline_s=p['delay_s'],
+                    track_s=r['sdk_track_s'],callback_s=r['sdk_callback_s'],
+                    outside_callback_lower_bound_s=max(0.,p['delay_s']-r['sdk_callback_s'])))
+        result['sdk_execution']=dict(valid_count=len(valid),invalid_count=len(sdk)-len(valid),
+            track=summary([r['sdk_track_s'] for r in valid]),
+            callback=summary([r['sdk_callback_s'] for r in valid]),
+            callback_without_track=summary([r['sdk_callback_s']-r['sdk_track_s'] for r in valid]),
+            outside_callback_lower_bound=summary([r['outside_callback_lower_bound_s'] for r in matched]) if stable else None,
+            worst_pipeline=sorted(matched,key=lambda r:r['pipeline_s'],reverse=True)[:20] if stable else [],
+            scope='SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time')
+    return result
 
 
 if __name__=='__main__':

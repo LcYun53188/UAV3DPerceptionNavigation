@@ -19,6 +19,7 @@ from prepare_vio_sensor_assets import assets,PROFILE
 from px4_vio_sensor_audit import SensorAudit
 from px4_vio_pose_audit import PoseAudit
 from px4_vio_motion_audit import MotionAudit
+from vio_sdk_parameters import stream_parameters
 from vio_render_device import environment as render_environment,capture as capture_renderer
 
 
@@ -28,6 +29,7 @@ def main():
     parser.add_argument('--scene',choices=('planar','layered'),default='planar')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
+    parser.add_argument('--sdk-image-depth',type=int,choices=range(1,11),default=None,help='Explicit SDK image subscription depth for disarmed fusion timing comparison')
     parser.add_argument('--headless-rendering',action='store_true',help='Use Gazebo native offscreen renderer for disarmed VIO fusion')
     parser.add_argument('--render-device',choices=('default','nvidia'),default='default',help='Select owned Gazebo renderer; NVIDIA requires fresh driver confirmation')
     parser.add_argument('--real-time-factor',type=float,default=None,help='Explicit [0.8,1.0] simulation pacing for disarmed pose fusion only')
@@ -35,6 +37,8 @@ def main():
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.sdk_image_depth is not None and not args.fuse_pose:
+        parser.error('--sdk-image-depth requires --fuse-pose')
     if args.headless_rendering and not args.fuse_pose:
         parser.error('--headless-rendering requires --fuse-pose')
     if args.render_device!='default' and not args.fuse_pose:
@@ -95,19 +99,22 @@ def main():
         env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion_profile['parameters'].items()})
     os.environ.update({k:env[k] for k in ('ROS_DOMAIN_ID','ROS_LOCALHOST_ONLY','GZ_PARTITION','GZ_IP')})
     params = dict(use_sim_time=True,num_cameras=2,min_num_images=2,tracking_mode=1,
-        image_qos='DEFAULT',
         enable_localization_n_mapping=False,rectified_images=True,
         sync_matching_threshold_ms=1.,image_jitter_threshold_ms=60.,imu_jitter_threshold_ms=12.,
-        calibration_frequency=float(profile['imu_rate_hz']),image_buffer_size=100,imu_buffer_size=400,
+        calibration_frequency=float(profile['imu_rate_hz']),
         gyro_noise_density=.000244,gyro_random_walk=.000019393,
         accel_noise_density=.001862,accel_random_walk=.003,
         base_frame='base_link',odom_frame='odom',map_frame='map',imu_frame='vio_imu',
         camera_optical_frames=['vio_left_optical','vio_right_optical'],
         publish_map_to_odom_tf=False,publish_odom_to_base_tf=False)
+    params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
     inputs = [Path(__file__),ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
-              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',
+              ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',
+              ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
+              ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
+              ROOT/'src/isaac_ros_common/isaac_ros_common/src/qos.cpp',
               ROOT/'src/px4_comm_bridge/px4_comm_bridge/source_timing.py',
               PROFILE,upstream_world,models/'x500/model.sdf',models/'x500_base/model.sdf',
               out/'assets/default.sdf',out/'assets'/profile['model']/'model.sdf',out/'assets/frames.json',
@@ -155,7 +162,7 @@ def main():
             build/'bin/px4',build/'vio-build.json']
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
-        render_device=args.render_device,headless_rendering=args.headless_rendering,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
+        render_device=args.render_device,headless_rendering=args.headless_rendering,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
