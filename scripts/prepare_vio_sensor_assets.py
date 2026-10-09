@@ -9,12 +9,17 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=0):
     if scene not in ('planar','layered','warehouse'):
         raise ValueError('Unknown reference scene')
+    if warehouse_floor_texture and scene!='warehouse':
+        raise ValueError('Floor texture comparison requires warehouse scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
+    if camera_pitch_deg not in (0,15):raise ValueError('Unsupported reference camera pitch')
     p = json.loads(PROFILE.read_text())
+    pitch=math.radians(camera_pitch_deg)
+    if camera_pitch_deg:p['camera_pitch_deg']=camera_pitch_deg
     if resolution is not None:
         if resolution not in ((640,400),(480,300)):
             raise ValueError('Unsupported reference image resolution')
@@ -59,9 +64,9 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
     for side,sign in (('left',1),('right',-1)):
         frame = 'vio_'+side+'_optical'
         center = [p['rig_position_flu_m'][0],p['rig_position_flu_m'][1]+sign*p['baseline_m']/2,p['rig_position_flu_m'][2]]
-        frames[frame] = dict(position=center,rpy=[-math.pi/2,0.,-math.pi/2])
+        frames[frame] = dict(position=center,rpy=[-math.pi/2-pitch,0.,-math.pi/2])
         sensor = ET.SubElement(rig,'sensor',name=side,type='camera')
-        ET.SubElement(sensor,'pose').text = f"0 {sign*p['baseline_m']/2} 0 0 0 0"
+        ET.SubElement(sensor,'pose').text = f"0 {sign*p['baseline_m']/2} 0 0 {pitch} 0"
         ET.SubElement(sensor,'always_on').text = 'true'
         ET.SubElement(sensor,'update_rate').text = str(p['image_rate_hz'])
         ET.SubElement(sensor,'topic').text = '/vio/'+side+'/image'
@@ -101,7 +106,8 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         physics.find('real_time_update_rate').text=str(real_time_factor/step)
     if scene=='warehouse':
         from vio_warehouse_scene import add_warehouse
-        add_warehouse(root,directory)
+        add_warehouse(root,directory,floor_texture=warehouse_floor_texture)
+        p['warehouse_floor_texture']=warehouse_floor_texture
         world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
         (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
         return p,frames

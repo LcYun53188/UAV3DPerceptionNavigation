@@ -47,3 +47,10 @@ def test_missing_motion_metrics_are_failed_checks_not_type_errors(tmp_path):
     (run/'manifest.json').write_text(json.dumps(m));(run/'result.json').write_text(json.dumps(r))
     report=assess(run);assert not report['passed']
     assert not report['checks']['bounded_rmse'] and not report['checks']['bounded_max']
+
+
+def test_visual_only_diagnostic_cannot_qualify_even_with_raw_pass_flag(tmp_path):
+    run,m,r=case(tmp_path);m['fuse_pose']=False;m['motion']=True;m['diagnostic_visual_only']=True
+    r['motion']=dict(position_rmse_m=.01,position_max_m=.02,orientation_max_deg=1.)
+    (run/'manifest.json').write_text(json.dumps(m));(run/'result.json').write_text(json.dumps(r))
+    report=assess(run);assert not report['passed'] and not report['checks']['raw_passed']

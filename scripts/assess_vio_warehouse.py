@@ -38,12 +38,12 @@ def assess(folder):
         disarmed=r.get('arming_states')==[1],cleanup=r.get('cleanup_confirmed') is True)
     if m.get('fuse_pose'):
         case='WH-V01';fusion=r.get('real_pose_fusion',{})
-        checks=dict(common,raw_passed=r.get('passed') is True,
+        checks=dict(common,raw_passed=r.get('passed') is True and not m.get('diagnostic_visual_only',False),
             full_duration=m['duration_s']>=cfg['required_fusion_duration_s'],
             sustained_ready=fusion.get('longest_ready_s',0)>=cfg['required_continuous_ready_s'])
     elif m.get('motion'):
         case='WH-V02';motion=r.get('motion',{})
-        checks=dict(common,raw_passed=r.get('passed') is True,
+        checks=dict(common,raw_passed=r.get('passed') is True and not m.get('diagnostic_visual_only',False),
             full_duration=m['duration_s']>=120,
             bounded_rmse=isinstance(motion.get('position_rmse_m'),(int,float)) and 0<=motion['position_rmse_m']<=cfg['position_rmse_max_m'],
             bounded_max=isinstance(motion.get('position_max_m'),(int,float)) and 0<=motion['position_max_m']<=cfg['position_error_max_m'],

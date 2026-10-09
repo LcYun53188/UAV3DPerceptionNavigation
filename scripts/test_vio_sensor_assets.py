@@ -35,7 +35,7 @@ def test_stereo_triangulation_and_imu_mount(tmp_path):
     cameras = model.findall('.//sensor[@type="camera"]')
     origins = [float(c.findtext('pose').split()[1]) for c in cameras]
     assert abs(origins[0]-origins[1]-profile['baseline_m']) < 1e-12
-    # CameraInfo P does not carry a second baseline: the algorithm uses TF.
+    # SDK FillIntrinsics reads K; FillExtrinsics uses TF, independently of CameraInfo P.
     assert [c.findtext('gz_frame_id') for c in cameras] == ['vio_left_optical','vio_right_optical']
 
 
@@ -97,3 +97,23 @@ def test_reduced_resolution_regenerates_camera_geometry(tmp_path):
     assert profile['width']==480 and profile['height']==300 and profile['image_rate_hz']==25
     for image in model.findall('.//camera/image'):
         assert image.findtext('width')=='480' and image.findtext('height')=='300'
+
+
+def test_downward_pitch_keeps_optical_tf_consistent_with_rendered_sensor(tmp_path):
+    world=tmp_path/'world.sdf';world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    profile,frames=assets(tmp_path/'pitched',world,camera_pitch_deg=15)
+    theta=math.radians(15)
+    ry=np.array([[math.cos(theta),0,math.sin(theta)],[0,1,0],[-math.sin(theta),0,math.cos(theta)]])
+    original=np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    for side in ('left','right'):
+        roll,pitch,yaw=frames['vio_'+side+'_optical']['rpy']
+        rx=np.array([[1,0,0],[0,math.cos(roll),-math.sin(roll)],[0,math.sin(roll),math.cos(roll)]])
+        rz=np.array([[math.cos(yaw),-math.sin(yaw),0],[math.sin(yaw),math.cos(yaw),0],[0,0,1]])
+        assert pitch==0 and np.allclose(rz@rx,ry@original)
+    assert frames['vio_imu']['rpy']==[0,0,0]
+    assert profile['camera_pitch_deg']==15
+    model=ET.parse(tmp_path/'pitched'/profile['model']/'model.sdf')
+    for camera in model.findall('.//sensor[@type="camera"]'):
+        assert float(camera.findtext('pose').split()[4])==theta
+    # Optical forward ray now points below the horizon; identical stereo baseline.
+    assert (ry@original)[2,2]<0 and profile['baseline_m']==.075

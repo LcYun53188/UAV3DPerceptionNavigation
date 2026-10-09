@@ -25,8 +25,11 @@ from vio_render_device import environment as render_environment,capture as captu
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--diagnostic-visual-only',action='store_true',help='Motion-only SDK stereo comparison; no normalized source, no VIO acceptance')
     parser.add_argument('--duration',type=float,default=45.)
     parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
+    parser.add_argument('--camera-pitch-deg',type=int,choices=(0,15),default=0,help='Explicit sensor pitch comparison with regenerated optical TF')
+    parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
@@ -39,6 +42,10 @@ def main():
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     args = parser.parse_args()
+    if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
+        parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
+    if args.warehouse_floor_texture and args.scene!='warehouse':
+        parser.error('--warehouse-floor-texture requires --scene warehouse')
     if args.sdk_image_depth is not None and not args.fuse_pose:
         parser.error('--sdk-image-depth requires --fuse-pose')
     if args.headless_rendering and not args.fuse_pose:
@@ -51,7 +58,7 @@ def main():
         parser.error('--fuse-pose requires --normalize, duration >=40 s, no carrier motion or reset')
     if args.scene!='planar' and not (args.motion or args.fuse_pose):
         parser.error('--scene layered/warehouse requires --motion or disarmed --fuse-pose')
-    if args.motion and (not args.normalize or args.reset_source or args.duration < 50):
+    if args.motion and (not (args.normalize or args.diagnostic_visual_only) or args.reset_source or args.duration < 50):
         parser.error('--motion requires --normalize, duration >=50 s, and no reset')
     if args.reset_source and (not args.normalize or args.duration < 35):
         parser.error('--reset-source requires --normalize and duration >=35 s')
@@ -83,7 +90,7 @@ def main():
         for name,digest in receipt.items():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))))
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg)
     env = dict(os.environ,ROS_DOMAIN_ID='78',ROS_LOCALHOST_ONLY='1',GZ_DISTRO='harmonic',
         GZ_PARTITION='uav_vio_sensors_'+run_id,GZ_IP='127.0.0.1',
         PX4_SIM_MODEL='gz_'+('x500' if args.motion else profile['model']),PX4_SYS_AUTOSTART='4001',
@@ -100,7 +107,7 @@ def main():
             raise RuntimeError('Unsupported pose fusion profile')
         env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion_profile['parameters'].items()})
     os.environ.update({k:env[k] for k in ('ROS_DOMAIN_ID','ROS_LOCALHOST_ONLY','GZ_PARTITION','GZ_IP')})
-    params = dict(use_sim_time=True,num_cameras=2,min_num_images=2,tracking_mode=1,
+    params = dict(use_sim_time=True,num_cameras=2,min_num_images=2,tracking_mode=0 if args.diagnostic_visual_only else 1,
         enable_localization_n_mapping=False,rectified_images=True,
         sync_matching_threshold_ms=1.,image_jitter_threshold_ms=60.,imu_jitter_threshold_ms=12.,
         calibration_frequency=float(profile['imu_rate_hz']),
@@ -169,7 +176,7 @@ def main():
     manifest = dict(run_id=run_id,scope='disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight',
         partition=env['GZ_PARTITION'],domain=78,duration_s=args.duration,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,requested_sdk_image_depth=args.sdk_image_depth,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
-        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,reset_source=args.reset_source,calibration_id=calibration,
+        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
     processes,logs = [],[]
     def launch(name,command,environment=env):
@@ -184,7 +191,7 @@ def main():
     node = rclpy.create_node('vio_sensor_observer')
     audit = SensorAudit(node,profile,frames,allow_pose_fusion=args.fuse_pose)
     fusion_audit=None
-    pose_audit = PoseAudit(node) if args.normalize else None
+    pose_audit = PoseAudit(node) if args.normalize or args.diagnostic_visual_only else None
     motion_audit = MotionAudit(node) if args.motion else None
     result = dict(passed=False)
     try:
@@ -262,10 +269,16 @@ def main():
                 quaternion=[m.pose.pose.orientation.x,m.pose.pose.orientation.y,m.pose.pose.orientation.z,m.pose.pose.orientation.w])
                 for t,m in pose_audit.raw.items() if t>=first]
             result['motion_raw_sdk_diagnostic'] = motion_audit.result(raw_poses)
+            if args.diagnostic_visual_only:
+                result['motion']=result['motion_raw_sdk_diagnostic']
+                result['scope']='diagnostic visual-only SDK motion; no normalized VIO source or acceptance'
             result['passed'] = all(result['checks'].values()) and result['motion']['passed']
-        if pose_audit is not None:
+        if args.normalize:
             result['normalized_pose'] = pose_audit.result(calibration)
             result['passed'] &= result['normalized_pose']['passed']
+        if args.diagnostic_visual_only:
+            result['diagnostic_passed']=result['passed']
+            result['passed']=False  # A diagnostic never qualifies warehouse VIO.
         result['qgc_connected'] = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2',
                                                      (out/'qgc.log').read_text(errors='replace')))
         result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes)

@@ -76,7 +76,7 @@ def corner_texture(path, rng):
                     chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
 
 
-def add_warehouse(world, directory):
+def add_warehouse(world, directory, *, floor_texture=False):
     layout = json.loads(LAYOUT.read_text())
     clearance = box_clearance(layout)
     rng = random.Random(layout['seed'])
@@ -113,6 +113,18 @@ def add_warehouse(world, directory):
         if obstacle['name'].startswith('rack'):
             for level in range(3):
                 box(link,f'shelf_marker_{level}',[0,0,(level-1)*.8],[size[0]+.005,size[1]+.005,.05],[.8,.6,.15])
+    if floor_texture:
+        texture=textures/'floor.png'
+        corner_texture(texture,random.Random(layout['seed']+1000))
+        texture_hashes[str(texture.relative_to(directory))]=hashlib.sha256(texture.read_bytes()).hexdigest()
+        floor_surface=ET.SubElement(world,'model',name='warehouse_textured_floor')
+        ET.SubElement(floor_surface,'static').text='true'
+        surface=box(ET.SubElement(floor_surface,'link',name='paint'),'floor_surface',
+                    [0,0,.001],[13.8,13.8,.002],[1,1,1])
+        metal=ET.SubElement(ET.SubElement(surface.find('material'),'pbr'),'metal')
+        ET.SubElement(metal,'albedo_map').text='model://warehouse_textures/materials/textures/floor.png'
+        ET.SubElement(metal,'metalness').text='0'
+        ET.SubElement(metal,'roughness').text='1'
     floor = ET.SubElement(world,'model',name='warehouse_floor_features')
     ET.SubElement(floor,'static').text = 'true'
     link = ET.SubElement(floor,'link',name='paint')

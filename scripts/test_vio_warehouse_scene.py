@@ -48,3 +48,18 @@ def test_warehouse_generation_deterministic_without_upstream_changes(tmp_path):
     for name in ('default.sdf','warehouse-layout.json','frames.json'):
         assert (tmp_path/'a'/name).read_bytes()==(tmp_path/'b'/name).read_bytes()
     assert world.read_text()==raw
+
+
+def test_floor_texture_does_not_change_any_obstacle_or_camera(tmp_path):
+    world=tmp_path/'world.sdf';world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
+    assets(tmp_path/'a',world,scene='warehouse')
+    profile,_=assets(tmp_path/'b',world,scene='warehouse',warehouse_floor_texture=True)
+    assert profile['warehouse_floor_texture']
+    a=ET.parse(tmp_path/'a/default.sdf');b=ET.parse(tmp_path/'b/default.sdf')
+    for obstacle in json.loads(LAYOUT.read_text())['obstacles']:
+        query=f'.//model[@name="{obstacle["name"]}"]'
+        assert ET.tostring(a.find(query))==ET.tostring(b.find(query))
+    assert (tmp_path/'a/x500_vio_ref/model.sdf').read_bytes()==(tmp_path/'b/x500_vio_ref/model.sdf').read_bytes()
+    floor=b.find('.//model[@name="warehouse_textured_floor"]')
+    assert floor is not None and floor.find('.//collision') is None
+    assert floor.findtext('.//albedo_map').endswith('/floor.png')
