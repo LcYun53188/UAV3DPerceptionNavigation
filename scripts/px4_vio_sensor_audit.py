@@ -9,7 +9,7 @@ from nav_msgs.msg import Odometry
 from rosgraph_msgs.msg import Clock
 from px4_msgs.msg import VehicleStatus,VehicleLandDetected
 from isaac_ros_visual_slam_interfaces.msg import VisualSlamStatus
-from rclpy.qos import qos_profile_sensor_data, qos_profile_default
+from rclpy.qos import qos_profile_sensor_data, qos_profile_default, QoSProfile, ReliabilityPolicy
 from tf2_ros import StaticTransformBroadcaster
 from px4_comm_bridge.vio_input import convert_vio
 from vio_sensor_quality import sample_window, stereo_pairs, static_imu
@@ -21,7 +21,8 @@ def stamp(message):
 
 
 class SensorAudit:
-    def __init__(self,node,profile,frames):
+    def __init__(self,node,profile,frames,*,allow_pose_fusion=False):
+        self.allow_pose_fusion=allow_pose_fusion
         self.node,self.profile = node,profile
         self.last,self.receive,self.counts,self.topics = {},{},Counter(),{}
         self.records = deque(maxlen=5000)
@@ -66,8 +67,12 @@ class SensorAudit:
                             pose_variance=[float(message.pose.covariance[i*7]) for i in range(6)],
                             velocity_variance=[float(message.twist.covariance[i*7]) for i in range(6)]))
                 return callback
-            node.create_subscription(kind,topic,receiver(key),
-                qos_profile_default if key in ('left','right') else qos_profile_sensor_data)
+            # This observer also records EKF telemetry. Five IMU slots only
+            # cover 20 ms; retain source stamps across ordinary callback bursts.
+            # Original gap/freshness acceptance remains unchanged.
+            qos=(QoSProfile(depth=100,reliability=ReliabilityPolicy.BEST_EFFORT) if key=='imu' else
+                 qos_profile_default if key in ('left','right') else qos_profile_sensor_data)
+            node.create_subscription(kind,topic,receiver(key),qos)
 
     def result(self):
         now = time.monotonic()
@@ -129,12 +134,17 @@ class SensorAudit:
         checks['landed'] = 'land' in self.last and self.last['land'].landed
         controls = {name:len(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+name))
                     for name in ('vehicle_command','trajectory_setpoint','offboard_control_mode','vehicle_visual_odometry')}
-        checks['no_fmu_inputs'] = not any(controls.values())
+        if self.allow_pose_fusion:
+            checks['only_pose_fmu_input'] = controls['vehicle_visual_odometry']==1 and not any(
+                controls[n] for n in ('vehicle_command','trajectory_setpoint','offboard_control_mode'))
+        else:checks['no_fmu_inputs'] = not any(controls.values())
         return dict(passed=bool(checks) and all(checks.values()),checks=checks,
-            scope='disarmed physical simulated stereo/IMU -> actual cuVSLAM; no EV emission or flight acceptance',
+            scope=('disarmed same-aircraft sensors with explicitly enabled pose EV audit' if self.allow_pose_fusion else
+                'disarmed physical simulated stereo/IMU -> actual cuVSLAM; no EV emission or flight acceptance'),
             counts=dict(self.counts),images=images,calibration=calibration,quality=quality,
             static_drift_m=drift,raw_odometry_numeric_conversion=adapter,
             px4_source_contract_verified=False,
+            observer_imu_qos=dict(depth=100,reliability='BEST_EFFORT'),
             arming_states=sorted(self.states),control_publishers=controls,
             last_odometry=recent[-1] if recent else None,
             sdk_pose_covariance=list(self.last['pose_cov'].pose.covariance) if 'pose_cov' in self.last else None)

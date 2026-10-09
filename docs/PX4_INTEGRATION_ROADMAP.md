@@ -41,9 +41,20 @@ StartFlight → FlightStep[0..6] → AwaitFlightResult。根 Action 只提交一
 [传感器跟踪报告](validation/simulation/2026-10-08-vio-sensors/REPORT.md)。
 原始 cuVSLAM Odometry 的滑窗协方差不作为 EKF 观测不确定性；当前禁止直接适配。
 SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 reset 撤销验证通过；
-90 s 检查因 SDK 协方差超限失败，旧源按设计锁存失效。尚无标准速度观测及 PX4
-初始化对齐，也未进行独立运动误差或 VIO 飞行验收，见
+90 s 检查因 SDK 协方差超限失败，旧源按设计锁存失效。尚无标准速度观测，当时也未交付 PX4
+初始化对齐；尚未进行 VIO 飞行验收，见
 [位姿与 reset 记录](validation/simulation/2026-10-08-vio-pose/REPORT.md)。
+独立力驱动载台已完成实际 VIO 三轴/转向运动验证，多深度场景通过，平面场景
+仍因协方差超限失效；不代表 PX4 闭环或 Pro W 标定，见
+[运动对照报告](validation/simulation/2026-10-09-vio-motion/REPORT.md)。
+固定仿真锚点的初始化对齐、保守协方差传播和显式仅位姿门控已实现，未解锁的
+合成仅位姿输入已通过实际 EKF 融合/停更审计，见
+[位姿融合报告](validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
+
+实际同机 SDK 位姿现已接入未解锁的受管融合入口：0.8 倍目标速度、120 s 墙钟检查
+通过三类实际融合、PX4 速度健康及停止源后的锁存失效；默认无 EV 观察入口回归通过。
+两轮实时长时检查因源超时失败，故实时性能、同机运动、VIO 飞行与故障落地仍待验收，见
+[实际融合记录](validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。
 
 1. 固定模拟双目和 IMU、CameraInfo、内外参、安装 TF、采样率与共同仿真时钟。
    Pro W 是目标硬件；参考模型必须标明与真实广角/基线/IMU 的差异。
@@ -52,7 +63,7 @@ SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 re
 3. 使用独立 VIO PX4 构建导出的 selector 和四类 EV aid；实际 fused、创新、
    最后融合时间和源健康连续 2 s 才准入，源年龄 ≤0.2 s。
    flags/selector 约 1 Hz，接收/源年龄 ≤1.5 s；其余融合遥测 ≤0.5 s。
-   若选择仅融合 SDK 位姿，需另行实现显式位姿融合配置及对应门控，核验实际位置/
+   若选择仅融合 SDK 位姿，显式审计配置已完成同机未解锁融合，飞行准入前仍须核验位置/
    高度/航向融合与 PX4 估计速度；保留当前四类门控的默认要求，不伪造速度观测。
 4. 冻结 GNSS、磁、光流等辅助的启用状态，并在实际 EKF 中核对。气压高度若保留，
    明确报告；不能将 GNSS 悬停称为 VIO 悬停。
