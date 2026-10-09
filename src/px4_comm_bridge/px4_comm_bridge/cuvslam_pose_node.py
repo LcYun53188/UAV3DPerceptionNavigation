@@ -18,7 +18,7 @@ from isaac_ros_visual_slam_interfaces.msg import VisualSlamStatus
 from isaac_ros_visual_slam_interfaces.srv import Reset
 from uav_nav_interfaces.msg import VioStatus
 from .vio_input import SourceContinuity, stamp_s
-from .cuvslam_pose import CONTRACT, SOURCE_PARAMETERS, normalize_pose
+from .cuvslam_pose import CONTRACT, SOURCE_PARAMETERS, normalize_pose, fresh_stamp
 from .source_timing import SourceTiming
 from .pose_dropout import can_drop
 
@@ -99,7 +99,8 @@ class CuvslamPose(Node):
         return bytes(endpoints[0].endpoint_gid).hex()
 
     def validate_tracking(self, sample=None, pair=None):
-        now = self.get_clock().now().nanoseconds/1e9
+        now_ns = self.get_clock().now().nanoseconds
+        now = now_ns/1e9
         if self.last_clock is not None and now < self.last_clock:
             raise ValueError('VIO_CLOCK_RESET')
         self.last_clock = now
@@ -110,7 +111,7 @@ class CuvslamPose(Node):
         tracking,received = pair if pair is not None else (self.tracking,self.tracking_receive)
         if (tracking is None or tracking.vo_state != 1
                 or time.monotonic()-received > .2
-                or not -.05 <= now-stamp_s(tracking.header.stamp) <= .2
+                or not fresh_stamp(now_ns,tracking.header.stamp)
                 or (sample is not None and abs(sample-stamp_s(tracking.header.stamp)) > .001)):
             if self.bound and not self.fault:
                 self.get_logger().warning('Tracking rejected: '+str(dict(ros=now,
@@ -179,7 +180,8 @@ class CuvslamPose(Node):
             if self.receive is not None and time.monotonic()-self.receive > .2:
                 raise ValueError('VIO_RECEIVE_GAP')
             self.validate_tracking(stamp_s(message.header.stamp),pair)
-            normalized = normalize_pose(message,self.get_clock().now().nanoseconds/1e9)
+            now_ns=self.get_clock().now().nanoseconds
+            normalized = normalize_pose(message,now_ns/1e9,now_ns=now_ns)
             self.continuity.accept(message,self.publisher(self.pose_topic))
             self.sample,self.receive = message.header.stamp,time.monotonic()
             if self.stable_since is None: self.stable_since = self.receive
@@ -243,7 +245,7 @@ class CuvslamPose(Node):
         try:
             self.validate_tracking()
             if (self.receive is None or time.monotonic()-self.receive > .2
-                    or not -.05 <= self.get_clock().now().nanoseconds/1e9-stamp_s(self.sample) <= .2):
+                    or not fresh_stamp(self.get_clock().now().nanoseconds,self.sample)):
                 raise ValueError('VIO_SAMPLE_STALE')
             if self.publisher(self.pose_topic) != self.continuity.publisher:
                 raise ValueError('VIO_PUBLISHER_CHANGED')
