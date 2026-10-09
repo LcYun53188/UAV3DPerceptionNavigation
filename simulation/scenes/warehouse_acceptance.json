@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scene_id": "vio_warehouse_v1",
+  "scope": "staged simulation acceptance; no implicit authorization to fly",
+  "source_max_age_s": 0.2,
+  "required_fusion_duration_s": 120,
+  "required_continuous_ready_s": 110,
+  "position_rmse_max_m": 0.15,
+  "position_error_max_m": 0.30,
+  "orientation_error_max_deg": 10,
+  "hover_drift_max_m": 0.15,
+  "cases": [
+    {"id": "WH-V01", "type": "disarmed_same_aircraft_fusion", "required": true},
+    {"id": "WH-V02", "type": "independent_motion", "required": true},
+    {"id": "WH-F01", "type": "bt_vio_takeoff_hover_land", "required": true},
+    {"id": "WH-F02", "type": "bt_vio_waypoints_return_land", "required": true},
+    {"id": "WH-F03", "type": "vio_loss_reset_control_handover", "required": true},
+    {"id": "WH-N01", "type": "depth_mapping_navigation_obstacle_avoidance", "required": true}
+  ],
+  "notes": "110 s continuous READY within a 120 s wall observation leaves 10 s for startup; explicit new warehouse qualification, not reinterpretation of previous shorter passes. Motion fixture does not qualify flying-aircraft EKF or hover. F/N cases pending implementation must remain NOT_RUN."
+}

@@ -26,7 +26,7 @@ from vio_render_device import environment as render_environment,capture as captu
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration',type=float,default=45.)
-    parser.add_argument('--scene',choices=('planar','layered'),default='planar')
+    parser.add_argument('--scene',choices=('planar','layered','warehouse'),default='planar')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
@@ -50,7 +50,7 @@ def main():
     if args.fuse_pose and (not args.normalize or args.motion or args.reset_source or args.duration<40):
         parser.error('--fuse-pose requires --normalize, duration >=40 s, no carrier motion or reset')
     if args.scene!='planar' and not (args.motion or args.fuse_pose):
-        parser.error('--scene layered requires --motion or disarmed --fuse-pose')
+        parser.error('--scene layered/warehouse requires --motion or disarmed --fuse-pose')
     if args.motion and (not args.normalize or args.reset_source or args.duration < 50):
         parser.error('--motion requires --normalize, duration >=50 s, and no reset')
     if args.reset_source and (not args.normalize or args.duration < 35):
@@ -123,6 +123,10 @@ def main():
               out/'vio-params.yaml',ROOT/'simulation/px4/server_control.config',binary,
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so',
               ROOT/'install_uav/isaac_ros_visual_slam/lib/libcuvslam.so']
+    if args.scene=='warehouse':
+        from vio_warehouse_scene import LAYOUT
+        inputs += [LAYOUT,ROOT/'scripts/vio_warehouse_scene.py',out/'assets/warehouse-layout.json']
+        inputs += sorted((out/'assets/warehouse_textures').rglob('*.png'))
     if args.motion:
         inputs += [motion_plugin,ROOT/'simulation/px4/vio/motion/MotionCarrier.cc',
                    ROOT/'simulation/px4/vio/motion/CMakeLists.txt',ROOT/'scripts/build_vio_motion.sh',

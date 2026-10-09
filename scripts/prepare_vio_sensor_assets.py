@@ -10,7 +10,7 @@ PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
 def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None):
-    if scene not in ('planar','layered'):
+    if scene not in ('planar','layered','warehouse'):
         raise ValueError('Unknown reference scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
@@ -99,6 +99,12 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         step=float(physics.findtext('max_step_size'))
         physics.find('real_time_factor').text=str(real_time_factor)
         physics.find('real_time_update_rate').text=str(real_time_factor/step)
+    if scene=='warehouse':
+        from vio_warehouse_scene import add_warehouse
+        add_warehouse(root,directory)
+        world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
+        (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
+        return p,frames
     # Seeded geometry gives real stereo parallax and image features, never odometry.
     rng = random.Random(68078)
     for wall in range(3):
