@@ -1,6 +1,6 @@
 # 仓库场景与分阶段 VIO 验证
 
-已修复运行时静态 TF 忽略相机下倾的问题。640×400 仓库 VIO 的 120 秒三轴运动／转向与归一化源检查通过，位置 RMSE 1.64 cm；480×300 仍有协方差／时效失败。同机 120 秒融合仍未通过，结果与边界见 [运行时外参报告](validation/simulation/2026-10-09-runtime-mount-fix/REPORT.md)。仓库悬停和导航尚未执行。
+640×400 仓库 VIO 运动验证已通过，显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败，仓库悬停和导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
 
 初始六轮实测的 VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。
 详见 [原始结果与重放](validation/simulation/2026-10-09-warehouse-vio/REPORT.md)。
@@ -21,22 +21,24 @@
 ## 已可执行的传感器检查
 
 ```bash
-# 同一架未解锁 x500：双目/IMU -> 实际 cuVSLAM -> 归一化 -> 固定对齐 -> PX4 EKF
+# 两轮通过的无界面未解锁配置：实际双目/IMU -> cuVSLAM -> PX4 EKF
 ./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene warehouse \
   --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
-  --quality-policy bounded_gap --real-time-factor .8 --duration 120 --ui
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --ekf-delay-max-ms 160 --duration 120
 
 # 独立载台三轴移动/转向：真值仅供误差审计，PX4 不解锁、不接收 EV
 ./scripts/sim.sh px4-vio-sensors --normalize --motion --scene warehouse \
   --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
-  --quality-policy bounded_gap --duration 120 --ui
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --duration 120
 
 # 只读验收；传入脚本输出的缓存目录
 python3 scripts/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
   --output /tmp/warehouse-assessment.json
 ```
 
-`--ui` 显示本次 Gazebo/QGC，检查完成后关闭所属窗口。仿真模型为理想针孔双目/
+`--ui` 显示本次 Gazebo/QGC，检查完成后关闭所属窗口；带 UI 的长时融合仍失败。仿真模型为理想针孔双目/
 IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解锁着地；严禁与
 现有 FlightServer 混开以绕过审计。SDK 新鲜度/协方差、reset 等门限保持不变。
 
@@ -56,14 +58,36 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 
 预定航点配置为 [warehouse_vio_sequence.json](../simulation/missions/warehouse_vio_sequence.json)：
 起飞 1.5 m→悬停 15 s→(1.25,1,1.5)→悬停 10 s→(-1.25,1,1.5)→返航→悬停 5 s→降落。
-该配置目前是待验收任务，**尚未接入仓库飞行启动器**。不要把它传入原 W0 场景并称为
+该配置已接入 `--flight sequence`，**仍是待验收任务**，1.5 m 悬停当前失败。不要把它传入原 W0 场景并称为
 仓库/VIO验证。原 W0 的 hash 与独立控制链路保留。
 
-后续需要带同机传感器模型的飞行 profile、持续 EV 写入会话及唯一 FlightServer
-控制输出；VIO 在着地时仅初始化一次，飞行中继续使用原采样，失效锁存且不重发旧值。
+同机传感器模型的飞行 profile、持续 EV 写入会话及唯一 FlightServer
+控制输出已接入；VIO 在着地时仅初始化一次，飞行中继续使用原采样，失效锁存且不重发旧值。
 真值只能用于审计。源前置检查未通过时不得进入飞行；导航/避障也仍为独立待实现阶段。
 
 显式 `--sdk-debug-dump` 将 SDK 实际消费的图像／IMU及外参写入缓存 `sdk-input`，
 只供诊断，退出码为 1、整体验收标记恒为 false。输入摘要可用
 `python3 scripts/audit_vio_sdk_dump.py <run>/sdk-input --output /tmp/sdk-input-receipt.json` 生成；
 记录负载不代表正常运行性能，尚未实现原生 SDK 的同输入回放对照。
+
+同低负载配置 WH-V02 已完成 120 s 运动验收，RMSE 2.60 cm、最大 3.78 cm，
+原始证据与重放见 [运动报告](validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)。
+实际持续 EV/仓库 BT 飞行已接入，0.8 m 初始闭环连续两轮通过；1.5 m 仍未通过。
+
+## 初始低高度 BT 闭环
+
+0.8 m 起飞→15 s 悬停→原生降落连续两轮通过，最大悬停真值漂移 10.82/8.73 cm。
+这是 WH-F01-low，**不替代原定 1.5 m WH-F01**，也不代表导航／避障通过。
+完整配置和 8 个失败／2 个成功轮见 [飞行报告](validation/simulation/2026-10-09-warehouse-bt-flight/REPORT.md)。
+
+```bash
+./scripts/sim.sh px4-vio-sensors --flight hover-low --normalize --scene warehouse \
+  --warehouse-floor-texture --camera-pitch-deg 15 --image-resolution 640x400 \
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --ekf-delay-max-ms 160
+```
+
+该显式飞行入口先复核源前置证据、当前场景与标定摘要，唯一网关在未解锁地面
+预发送固定参考；PX4 原生预检通过后由 BT 解锁。EV 会话不写控制命令，真值仅审计。
+`--flight hover` 为 1.5 m 失败复现配方，修复其持续协方差超限后再验收航点／返航。
+飞行观察随任务结束，280 s 为上限；`--duration` 是未解锁审计参数。

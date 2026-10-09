@@ -1,10 +1,11 @@
 """Paired normalized VIO source -> fixed launch alignment, with terminal retirement.
 
 No ROS graph access or publishers. The caller supplies verified endpoint GIDs and
-fresh ground state. This stream is deliberately disarmed-audit-only.
+fresh aircraft state. The default stream is deliberately disarmed-audit-only.
 """
 from .pose_fusion import PoseAlignment, checked_pose, convert_aligned_pose
 from .vio_input import SourceContinuity, stamp_s
+from .pose_dropout import can_drop
 
 
 def stamp_ns(stamp):
@@ -12,7 +13,12 @@ def stamp_ns(stamp):
 
 
 class AlignedPoseStream:
-    def __init__(self,calibration,position,yaw,anchor_id):
+    flight_continuity = False
+
+    def __init__(self,calibration,position,yaw,anchor_id,*,quality_policy="strict"):
+        if quality_policy not in ("strict","bounded_gap"):raise ValueError("Unknown quality policy")
+        self.quality_policy=quality_policy
+        self.dropped_uncertain=0
         self.calibration=calibration
         self.alignment=PoseAlignment(position,yaw,anchor_id)
         self.continuity=SourceContinuity()
@@ -37,12 +43,13 @@ class AlignedPoseStream:
             self.last_receive=None
         return None
 
-    def check(self,ros,mono,*,ground,incoming_sample=None):
+    def check(self,ros,mono,*,ground,armed=False,incoming_sample=None):
         if self.last_clock is not None and ros<self.last_clock:
             self.fault=self.fault or 'VIO_CLOCK_RESET'
         self.last_clock=ros
         if self.fault: return self.reject(self.fault)
-        if not ground: return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
+        if not ground and not (self.flight_continuity and self.bound and armed):
+            return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
         if self.bound and (self.last_receive is None or mono-self.last_receive>.2):
             return self.reject('VIO_RECEIVE_GAP')
         sample=self.alignment.last_stamp if self.bound and incoming_sample is None else incoming_sample
@@ -50,8 +57,9 @@ class AlignedPoseStream:
             return self.reject('VIO_SAMPLE_STALE')
         return True
 
-    def accept(self,pose,status,ros,mono,*,pose_gid,status_gid,ground):
-        if not self.check(ros,mono,ground=ground,incoming_sample=stamp_s(pose.header.stamp)): return None
+    def accept(self,pose,status,ros,mono,*,pose_gid,status_gid,ground,armed=False):
+        if not self.check(ros,mono,ground=ground,armed=armed,incoming_sample=stamp_s(pose.header.stamp)): return None
+        previous_stamp=self.alignment.last_stamp if self.bound else None
         try:
             if (not status.valid or status.reason or status.header.frame_id!='odom'
                     or status.calibration_id!=self.calibration or not status.localization_session
@@ -67,10 +75,10 @@ class AlignedPoseStream:
             checked_pose(pose,ros,'odom')
             self.continuity.accept(pose,pose_gid)
             self.identity=identity
-            self.last_receive=mono
             kw=dict(source_session=status.localization_session,calibration_id=status.calibration_id,
                     reset_counter=status.reset_counter)
             if not self.bound:
+                self.last_receive=mono
                 self.window.append(pose)
                 while len(self.window)>1 and stamp_s(pose.header.stamp)-stamp_s(self.window[1].header.stamp)>=2.:
                     self.window.pop(0)
@@ -78,10 +86,29 @@ class AlignedPoseStream:
                 if len(self.window)>=40 and stamp_s(pose.header.stamp)-stamp_s(self.window[0].header.stamp)>=2.:
                     self.alignment.bind(self.window,ros,**kw,disarmed=ground,landed=ground)
                 return None  # Never emit the anchor sample twice.
-            aligned=self.alignment.apply(pose,ros,**kw)
+            aligned=self.alignment.apply(pose,ros,**kw,allow_uncertainty_drop=self.quality_policy=="bounded_gap")
             converted=convert_aligned_pose(aligned,ros,status.reset_counter)
+            self.last_receive=mono
             self.reason=''
             self.count+=1
             return aligned,converted
         except ValueError as exc:
+            if can_drop(self.quality_policy,str(exc),bound=self.bound,ros=ros,mono=mono,
+                        last_sample=previous_stamp,last_receive=self.last_receive):
+                self.alignment.last_stamp=previous_stamp
+                self.dropped_uncertain+=1
+                return None  # No EV output; watchdog still uses the last accepted sample.
             return self.reject(str(exc))
+
+
+class FlightAlignedPoseStream(AlignedPoseStream):
+    """Ground initialization followed by continuous original-time flight poses.
+
+    This pure policy publishes nothing and grants no flight authorization. A flight
+    supervisor must supply fresh, unique PX4 state: ground means disarmed AND
+    landed, armed means armed with fresh land state. Missing/stale state supplies
+    neither. Only an already bound ground alignment can continue armed; all
+    original identity, covariance, clock and freshness faults remain terminal.
+    The disarmed audit must continue using AlignedPoseStream.
+    """
+    flight_continuity = True

@@ -18,12 +18,19 @@ def read(folder,name):
     with gzip.open(str(path)+'.gz','rt') as stream:return json.load(stream)
 
 
-def assess(folder):
+def assess(folder, *, after_mono=None, before_mono=None):
     sensor=read(folder,'sensor-timing.json')
     normalizer=read(folder,'normalizer-timing.json')
     fusion_path=folder/'fusion-timing.json'
     fusion=read(folder,'fusion-timing.json') if fusion_path.is_file() or Path(str(fusion_path)+'.gz').is_file() else None
     streams=[(sensor,'observer'),(normalizer,'normalizer')]+([(fusion,'fusion')] if fusion is not None else [])
+    if after_mono is not None or before_mono is not None:
+        if after_mono is not None and before_mono is not None and after_mono>before_mono:
+            raise ValueError('Invalid monotonic observation window')
+        for data,_ in streams:
+            data['records']=[r for r in data['records']
+                if (after_mono is None or r['mono']>=after_mono) and
+                   (before_mono is None or r['mono']<=before_mono)]
     rows=[r for data,_ in streams for r in data['records']]
     # All owned processes use the same host system clock. Reject interpretation
     # if that clock jumps relative to monotonic reception time.
@@ -84,11 +91,15 @@ def assess(folder):
             outside_callback_lower_bound=summary([r['outside_callback_lower_bound_s'] for r in matched]) if stable else None,
             worst_pipeline=sorted(matched,key=lambda r:r['pipeline_s'],reverse=True)[:20] if stable else [],
             scope='SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time')
+    if after_mono is not None or before_mono is not None:
+        result['observation_window']=dict(after_mono=after_mono,before_mono=before_mono,
+            scope='Explicit monotonic window only; full-run clock stability and acceptance unchanged')
     return result
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('folder',type=Path);parser.add_argument('--output',type=Path)
-    args=parser.parse_args();result=assess(args.folder);text=json.dumps(result,indent=2)+'\n'
+    parser.add_argument('--after-mono',type=float);parser.add_argument('--before-mono',type=float)
+    args=parser.parse_args();result=assess(args.folder,after_mono=args.after_mono,before_mono=args.before_mono);text=json.dumps(result,indent=2)+'\n'
     if args.output:args.output.write_text(text)
     else:print(text,end='')

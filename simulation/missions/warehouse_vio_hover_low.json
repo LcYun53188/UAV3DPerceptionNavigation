@@ -1,0 +1,8 @@
+{
+  "scope": "initial 0.8 m flight closure only; does not qualify planned 1.5 m warehouse mission",
+  "steps": [
+    {"type": "TAKEOFF", "height_m": 0.8},
+    {"type": "HOVER", "duration_s": 15},
+    {"type": "LAND"}
+  ]
+}

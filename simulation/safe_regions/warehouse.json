@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scene": "warehouse",
+  "model": "x500_vio_ref",
+  "profile": "known_region_control",
+  "frame": "px4_local_enu",
+  "alignment_id": "warehouse-fixed-launch-enu-v1",
+  "map_translation": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "map_yaw_rad": 0.0,
+  "source": "Generated warehouse scene with fixed launch alignment; central box only",
+  "scene_files": {
+    "worlds/default.sdf": "457a363a22c437b788a4aaf1e2335aa149efce4e5b988cdc108065663cd879b2",
+    "models/x500/model.sdf": "76d8668c9c1a10348f9b7011d892203f319e5051dc8c0eb06c62e52db8e6714e",
+    "models/x500_base/model.sdf": "d97e53de8c50f167b0b3a4f86dc21413236387f7b72cb817549362b63534e83c"
+  },
+  "bounds_min": [
+    -4.0,
+    -4.0,
+    -0.4
+  ],
+  "bounds_max": [
+    4.0,
+    4.0,
+    3.8
+  ],
+  "support_plane_world_z": 0.0,
+  "body_radius_m": 0.5,
+  "tracking_margin_m": 0.3,
+  "braking_margin_m": 1.2,
+  "max_speed_mps": 0.6,
+  "max_acceleration_mps2": 0.5,
+  "max_jerk_mps3": 0.6,
+  "position_tolerance_m": 0.2,
+  "stopped_speed_mps": 0.1,
+  "stable_duration_s": 2.0,
+  "status_max_age_s": 0.75,
+  "local_max_age_s": 0.1,
+  "land_max_age_s": 1.2,
+  "clock_stall_s": 0.5,
+  "notes": "SITL only; known static warehouse free volume, not depth perception or obstacle avoidance",
+  "estimator_profile": "EKF2_MAG_TYPE=6: initial magnetic yaw, gyro/GNSS thereafter; avoids automatic in-air magnetic yaw reinitialization; heading quality/reset gates remain enabled",
+  "runner_progress_max_age_s": 0.5,
+  "runner_handshake_timeout_s": 5.0,
+  "land_receive_max_age_s": 1.5
+}
