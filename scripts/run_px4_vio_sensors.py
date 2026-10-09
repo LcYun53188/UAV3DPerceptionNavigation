@@ -21,6 +21,7 @@ from px4_vio_pose_audit import PoseAudit
 from px4_vio_motion_audit import MotionAudit
 from vio_sdk_parameters import stream_parameters
 from vio_sdk_runtime import SdkRuntimeReceipt
+from vio_ui_lifecycle import grounded_for_viewers
 from vio_render_device import environment as render_environment,capture as capture_renderer
 
 
@@ -36,7 +37,7 @@ def main():
     parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--ui',action='store_true')
-    parser.add_argument('--diagnostic-ui',action='store_true',help='Explicit UI flight observation; never qualifies the headless flight baseline')
+    parser.add_argument('--diagnostic-ui',action='store_true',help='Explicit UI fusion/flight observation; never qualifies the headless baseline')
     parser.add_argument('--ui-hold-seconds',type=float,default=0.,help='Keep owned viewers after confirmed landed/disarmed terminal; stop via run directory close-ui file')
     parser.add_argument('--image-resolution',choices=('640x400','480x300'),default='640x400',help='Explicit simulated stereo resolution with regenerated calibration')
     parser.add_argument('--quality-policy',choices=('strict','bounded_gap'),default='strict',help='Explicit covariance sample rejection policy; no freshness extension')
@@ -51,7 +52,7 @@ def main():
     args = parser.parse_args()
     if args.flight and (args.scene!='warehouse' or not args.normalize or args.fuse_pose or args.motion or args.reset_source or args.sdk_debug_dump or args.diagnostic_visual_only):
         parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
-    if args.diagnostic_ui and not (args.ui and args.flight):parser.error('--diagnostic-ui requires --ui and --flight')
+    if args.diagnostic_ui and not (args.ui and (args.flight or args.fuse_pose)):parser.error('--diagnostic-ui requires --ui and --flight or --fuse-pose')
     if not 0<=args.ui_hold_seconds<=3600 or (args.ui_hold_seconds and not args.diagnostic_ui):parser.error('UI hold requires diagnostic UI flight and 0..3600 seconds')
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
@@ -139,7 +140,7 @@ def main():
     params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
-    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -409,10 +410,10 @@ def main():
             result['diagnostic_checks_passed']=result['passed']
             result['passed']=False
             result['scope']='UI diagnostic only; no headless flight qualification'
-        if args.ui_hold_seconds and (out/'flight-observation.json').exists():
-            terminal=read(out/'flight-observation.json')
-            if terminal.get('final_land') and terminal.get('final_arming')==1:
-                stop(flight_process)
+        if args.ui_hold_seconds:
+            terminal=read(out/'flight-observation.json') if (out/'flight-observation.json').exists() else dict(scope='disarmed fusion diagnostic; no mission',final_arming=getattr(audit.last.get('vehicle'),'arming_state',None),final_land=getattr(audit.last.get('land'),'landed',False))
+            if terminal.get('final_land') and terminal.get('final_arming')==1 and grounded_for_viewers(audit.last,audit.receive,time.monotonic()):
+                if flight_process is not None:stop(flight_process)
                 if normalizer is not None:stop(normalizer)
                 fusion_audit.timing.write(out/'fusion-timing.json')
                 for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
@@ -421,7 +422,9 @@ def main():
                 write_json(out/'ui-session.json',dict(result_snapshot=result,state='LANDED_DISARMED_VIEWERS_OPEN',diagnostic=True,qualification=False,close_file=str(out/'close-ui'),terminal=terminal))
                 # No observer spins or EV publishing after the mission terminal.
                 until_ui=time.monotonic()+args.ui_hold_seconds
-                while time.monotonic()<until_ui and not (out/'close-ui').exists():time.sleep(.2)
+                try:
+                    while time.monotonic()<until_ui and not (out/'close-ui').exists():time.sleep(.2)
+                except KeyboardInterrupt:pass  # Continue owned cleanup.
         for process in reversed(processes): stop(process)
         for log in logs: log.close()
         try:
