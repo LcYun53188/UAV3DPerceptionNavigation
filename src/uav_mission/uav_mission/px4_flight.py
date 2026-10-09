@@ -26,10 +26,10 @@ from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetect
                           TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
                           EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus)
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, PoseStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus
+from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus, MapSnapshot, LocalizationAlignment, ContextTrajectory
 from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
@@ -146,6 +146,17 @@ class FlightServer(Node):
         self.create_service(PauseMission, '/uav/px4/pause', self.pause, callback_group=self.group)
         self.create_service(ResumeMission, '/uav/px4/resume', self.resume, callback_group=self.group)
         self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
+        self.planned=None
+        self.navigation_backend='DIRECT'
+        if os.environ.get('UAV_ENABLE_EGO_NAV')=='1':
+            from .ego_execution import EgoExecution
+            self.planned=EgoExecution(self.alignment,self.region,self.config['body_radius_m']+self.config['tracking_margin_m'],braking_margin=self.config['braking_margin_m'])
+            self.planning_goal_pub=self.create_publisher(PoseStamped,'/planning/source/goal',10)
+            for name,topic,kind in [('map','/planning/source/map',MapSnapshot),('alignment','/planning/source/alignment',LocalizationAlignment)]:
+                def receive(message,key=name):
+                    with self.lock:self.planned.gate.update(key,message,time.monotonic())
+                self.create_subscription(kind,topic,receive,10,callback_group=self.state_group)
+            self.create_subscription(ContextTrajectory,'/planning/bound_trajectory',self.planned_result,10,callback_group=self.state_group)
         self.create_timer(.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME), callback_group=self.state_group)
 
     def forward_vio_local(self,name,message,now):
@@ -175,7 +186,9 @@ class FlightServer(Node):
                         self.odom_valid = True
                         self.odom_pub.publish(odom)
                         if 'vehicle_local_position' in self.samples:
-                            self.localized_odom_pub.publish(self.localized_odometry(odom))
+                            localized=self.localized_odometry(odom)
+                            self.localized_odom_pub.publish(localized)
+                            if getattr(self,'planned',None) is not None:self.planned.gate.update('odom',localized,time.monotonic())
                         t=TransformStamped();t.header=odom.header;t.child_frame_id=odom.child_frame_id
                         t.transform.translation.x=odom.pose.pose.position.x
                         t.transform.translation.y=odom.pose.pose.position.y
@@ -186,6 +199,29 @@ class FlightServer(Node):
                         if self.active_goal:
                             self.fault('INVALID_ODOMETRY_FRAME')
         return receive
+
+    def planning_authorization(self):
+        return (self.instance,bytes(self.active_goal.goal_id.uuid),bytes(self.session.uuid),self.generation,
+                self.owner,bytes(self.child.uuid),self.step_index)
+
+    def planning_ready(self):
+        topics=('/planning/source/map','/planning/source/alignment','/planning/bound_trajectory')
+        endpoints={topic:self.get_publishers_info_by_topic(topic) for topic in topics}
+        if any(len(items)!=1 for items in endpoints.values()):raise ValueError('NON_UNIQUE_PLANNING_SOURCE')
+        gids={topic:bytes(items[0].endpoint_gid) for topic,items in endpoints.items()}
+        if getattr(self,'planning_gids',{}) and self.planning_gids!=gids:raise ValueError('PLANNING_WRITER_REPLACED')
+        self.planning_gids=gids
+        self.planned.ready(self.get_clock().now().nanoseconds/1e9,time.monotonic())
+
+    def planned_result(self,message):
+        with self.lock:
+            if not self.active_goal or self.result or self.phase not in ('PLAN_REQUEST','NAVIGATE','RETURN'):return
+            try:
+                self.planning_ready()
+                self.planned.admit(message,self.planning_authorization(),self.get_clock().now().nanoseconds/1e9,time.monotonic())
+                self.change(self.steps[self.step_index]['type'])
+            except ValueError as error:
+                self.diagnostics.append(dict(planning_rejected=str(error)))
 
     def localized_odometry(self, odometry):
         return LocalizedOdometry(header=odometry.header,localization_session=self.instance,
@@ -334,6 +370,11 @@ class FlightServer(Node):
             raise ValueError('Invalid step control flag')
         if params.get('step_controlled') and not params.get('runner_progress_required'):
             raise ValueError('Step control requires bound runner progress')
+        navigation=params.get('navigation_backend','DIRECT')
+        if navigation not in ('DIRECT','EGO'):raise ValueError('Unsupported navigation backend')
+        if navigation=='EGO':
+            if getattr(self,'planned',None) is None:raise ValueError('EGO execution is not enabled by supervisor')
+            self.planning_ready()
         steps = params['steps']
         if not isinstance(steps,list) or not 2 <= len(steps) <= 20:
             raise ValueError('Invalid steps')
@@ -400,6 +441,7 @@ class FlightServer(Node):
     def accept(self, handle):
         with self.lock:
             self.steps = self.parse(handle.request)
+            self.navigation_backend=json.loads(handle.request.parameters_json).get('navigation_backend','DIRECT')
             self.runner_required = json.loads(handle.request.parameters_json).get('runner_progress_required', False)
             self.step_controlled = json.loads(handle.request.parameters_json).get('step_controlled', False)
             self.step_grant = None
@@ -458,7 +500,7 @@ class FlightServer(Node):
                     response.accepted=False;response.reason='REQUEST_ID_CONFLICT';response.phase=self.phase
                 return response
             accepted=False;reason='INVALID_PHASE'
-            if verb == 'pause' and self.phase in ('NAVIGATE','RETURN','HOVER'):
+            if verb == 'pause' and self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER'):
                 self.saved_step=self.step_index
                 self.saved_hover=max(0.,self.hover_until-now) if self.phase=='HOVER' else None
                 self.begin_stop('PAUSING')
@@ -544,6 +586,7 @@ class FlightServer(Node):
 
     def begin_stop(self, phase):
         self.segment = None  # Retire old reference timeline before braking.
+        if getattr(self,'planned',None) is not None:self.planned.retire()
         self.child=UUID()
         p=self.position()
         v=ned_enu((self.samples['vehicle_local_position'].vx,self.samples['vehicle_local_position'].vy,
@@ -555,6 +598,7 @@ class FlightServer(Node):
         self.change(phase)
 
     def next_step(self, resuming=False):
+        if getattr(self,'planned',None) is not None:self.planned.retire()
         if self.step_controlled and not resuming:
             if self.step_grant != self.step_index+1:
                 self.segment = None
@@ -573,6 +617,17 @@ class FlightServer(Node):
             else: target=(self.home[0],self.home[1],self.reference[2])
             if not self.region(target):
                 self.fault('TARGET_OUTSIDE_W0');return
+            if kind in ('NAVIGATE','RETURN') and getattr(self,'navigation_backend','DIRECT')=='EGO':
+                self.target=target
+                goal=PoseStamped();goal.header.frame_id='map';goal.header.stamp=self.get_clock().now().to_msg()
+                goal.pose.position.x,goal.pose.position.y,goal.pose.position.z=self.alignment.to_map(target)
+                goal.pose.orientation.w=1.
+                try:
+                    self.planning_ready()
+                    if self.planning_goal_pub.get_subscription_count()!=1:raise ValueError('NON_UNIQUE_PLANNING_GOAL_READER')
+                    self.planned.start(goal,self.planning_authorization(),self.get_clock().now().nanoseconds/1e9,time.monotonic())
+                except ValueError as error:self.fault('EGO_ADMISSION:'+str(error));return
+                self.planning_goal_pub.publish(goal);self.change('PLAN_REQUEST');return
             self.segment=Segment(self.position(),target)
             self.target=target
             self.segment_start=self.get_clock().now().nanoseconds/1e9
@@ -603,6 +658,7 @@ class FlightServer(Node):
         self.output_count+=1
 
     def fault(self, reason):
+        if getattr(self,'planned',None) is not None:self.planned.retire()
         now=time.monotonic();ros=self.get_clock().now().nanoseconds/1e9
         self.diagnostics.append(dict(reason=reason,ages={n:dict(receive=now-self.received[n],source=ros-m.timestamp/1e6) for n,m in self.samples.items()},local=str(self.samples.get('vehicle_local_position')),status=str(self.samples.get('vehicle_status')),battery=str(self.samples.get('battery_status'))))
         if self.phase not in ('FAULT','COMPLETE'):
@@ -701,6 +757,16 @@ class FlightServer(Node):
                 if status.arming_state==2:self.next_step()
                 elif now-self.phase_started > 8:self.fault('ARM_REJECTED')
                 elif now-self.last_command > 1:self.command(400,1)
+            elif phase in ('PLAN_REQUEST','NAVIGATE','RETURN') and getattr(self,'navigation_backend','DIRECT')=='EGO':
+                try:
+                    self.planning_ready()
+                    reference,finished=self.planned.sample(self.planning_authorization(),ros,now)
+                    if reference is not None:
+                        self.reference=reference
+                        if distance(self.position(),reference)>self.config['tracking_margin_m']:raise ValueError('TRACKING_ENVELOPE_EXCEEDED')
+                    if finished and self.stable(self.target,now):self.next_step()
+                    elif now-self.phase_started>50:self.fault('PLANNED_WAYPOINT_TIMEOUT')
+                except ValueError as error:self.fault('EGO_EXECUTION:'+str(error));return
             elif phase in ('TAKEOFF','NAVIGATE','RETURN'):
                 elapsed=ros-self.segment_start
                 self.reference=self.segment.at(elapsed)
@@ -743,7 +809,7 @@ class FlightServer(Node):
             p=self.position()
             self.trace.append(dict(mono=now,ros=ros,phase=self.phase,position_enu=p,reference=self.reference,
                                    speed=self.speed(),nav_state=status.nav_state,armed=status.arming_state,
-                                   generation=self.generation,owner=self.owner))
+                                   generation=self.generation,owner=self.owner,navigation_backend=getattr(self,'navigation_backend','DIRECT'),trajectory_id=getattr(getattr(self,'planned',None),'trajectory_id',0) if getattr(getattr(self,'planned',None),'curve',None) is not None else 0))
 
     def publish_control(self,now):
         mode='UNKNOWN'

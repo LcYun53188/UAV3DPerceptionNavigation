@@ -8,6 +8,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 当前优先 **完整 BT 任务 → PX4 导航／避障集成**，使用官方 SITL GNSS／惯性 EKF 定位进行功能开发；VIO 稳定性单独优化与验收。相机默认固定下偏 **5°**。本轮无界面完整 BT 飞行回归通过，见 [基线回归](docs/validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。完整任务实现不代表 VIO 或避障已验收，见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
 
+新增显式 EGO 导航／返航执行分支：网关复检已绑定曲线并转换到 PX4 local，地图／会话／控制权变化撤销旧曲线。115 项回归、真实规划输出准入及缺少规划源时 SITL 解锁前拒绝已通过；同机深度地图与实际曲线飞行尚未验收，见 [执行前置报告](docs/validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
+
 新增室内仓库场景（墙、门洞、立柱、货架及纹理），可通过 `px4-vio-sensors --scene warehouse` 验证实际双目／IMU VIO；仓库 0.8 m 初始 VIO 飞行闭环已通过，完整高度任务与避障尚待验收。入口和门槛见 [仓库场景说明](docs/WAREHOUSE_SIMULATION.md)。
 
 仓库 VIO 已通过同低负载配置 120 秒运动验证（RMSE 2.60 cm，最大 3.78 cm），同机 120 秒融合在显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 延迟缓冲 160 ms 配置下连续两轮通过（READY 约 114.02 s）。默认／带 UI 配置仍有失败，仓库 0.8 m BT VIO 起飞／悬停／降落连续两轮通过，1.5 m 悬停仍失败，导航尚未执行。运动证据见 [最新运动报告](docs/validation/simulation/2026-10-09-warehouse-low-load-motion/REPORT.md)，融合证据见 [最新融合报告](docs/validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
@@ -29,6 +31,8 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 显式仅位姿融合已增加固定初始化对齐和独立审计：`./scripts/sim.sh px4-vision-audit --vision-fusion-profile aligned_pose_v1 --duration 35`。合成位姿已通过实际 PX4 位置/高度/航向融合与停更检查，速度为 NaN；默认四类融合门控保留；实际 SDK 源的受管入口见下文。见 [位姿融合报告](docs/validation/simulation/2026-10-09-vio-pose-fusion/REPORT.md)。
 
 实际 VIO→PX4 未解锁融合：`./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene layered --real-time-factor .8 --duration 120`。同一架 x500 的双目/IMU 经 cuVSLAM、固定对齐进入实际 EKF，2326 个样本、三类融合及停止源后的失效检查通过。此结果使用 0.8 倍目标仿真速度；实时长时试验仍出现超时，不能视为实时飞行或 VIO 悬停通过。见 [实际融合报告](docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。 最新新鲜度交接修复、2329 样本回归及实时延迟对照见 [时序报告](docs/validation/simulation/2026-10-09-vio-timing/REPORT.md)。 后续 [SDK 分段诊断](docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md) 复现同步器单位问题；本轮四个整体检查仍失败，不代表稳定性通过。 最新 [单位与时钟修复](docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md) 已通过 reset、运动和短时融合，120 秒融合仍未通过。
+
+同机 5° 深度建图入口：`./scripts/sim.sh px4-depth-map --duration 40`。该入口受管启动官方 x500＋理想 RGBD 参考相机、只读 PX4 EKF TF、nvblox 和地图会话，全程未解锁；它验证实际深度形成 ESDF，尚未授权 EGO 飞行，也不是 OAK-D Pro W 标定或 VIO 验收。见 [同机深度建图报告](docs/validation/simulation/2026-10-09-px4-depth-mapping/REPORT.md)。
 
 相机实机型号为 **OAK-D Pro W**。`./scripts/sim.sh px4-depth --ui` 单独验收 PX4 深度传感器到 ROS 的数据链路，使用上游 OakD-Lite 参考模型，不能作为 Pro W 的视场、标定或 VIO 验证。它全程保持未解锁，不与 W0 飞行模式混用。详见 [相机仿真说明](simulation/px4/README.md#深度相机参考链路)。
 

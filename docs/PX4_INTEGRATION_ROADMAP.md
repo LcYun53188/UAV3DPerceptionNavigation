@@ -8,6 +8,8 @@
 
 本轮官方 EKF 无界面完整 BT 任务回归通过（起飞／两航点／悬停／返航／降落），带 UI 轮在解锁前触发时间／状态保护。见 [任务优先基线回归](validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。
 
+新增同机固定 5° RGBD → PX4 EKF 历史 TF → nvblox ESDF 的未解锁验证入口 `sim.sh px4-depth-map`。真实深度建图已通过；EGO 的地图／对齐会话绑定与同机飞行监督仍待接入。见 [建图验证](validation/simulation/2026-10-09-px4-depth-mapping/REPORT.md)。
+
 以下较早的阶段记录保留为历史证据。
 
 
@@ -131,5 +133,7 @@ SDK 位姿协方差归一化及 reset 代理已交付，短时静止与实际 re
 5. 在独立障碍场景验收可达航点、绕障、不可达、地图过期、定位退化、规划超时、
    暂停/取消、返航通路变化和最终落地。记录实际位移、独立真值净空及任务终态。
 
-现有 EGO 影子规划保留为前置测试，输出不控制 PX4。
+默认 EGO 影子规划保留为前置测试。显式 EGO 网关执行准入／采样分支已接入导航和返航，
+115 项回归、真实 C++ EGO 输出准入及缺源时实际 SITL 解锁前拒绝通过；
+同机深度地图／实际曲线飞行尚待验收。见 [执行前置报告](validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
 详见 [规划上下文](PLANNING_CONTEXT.md) 与 [完整仿真计划](SIMULATION_DEVELOPMENT_PLAN.md)。

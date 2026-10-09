@@ -4,7 +4,8 @@ import numpy as np
 
 
 class DepthAudit:
-    def __init__(self):
+    def __init__(self, profile=None):
+        self.profile = profile or dict(width=640, height=480, horizontal_fov_rad=1.274, near_m=.2, far_m=19.1)
         self.images = 0
         self.infos = 0
         self.valid_images = 0
@@ -24,7 +25,7 @@ class DepthAudit:
     def image(self, message, now):
         self.images += 1
         try:
-            if message.encoding != '32FC1' or (message.width, message.height) != (640, 480):
+            if message.encoding != '32FC1' or (message.width, message.height) != (self.profile['width'], self.profile['height']):
                 raise ValueError('Unexpected depth encoding or dimensions')
             if message.step < message.width * 4 or len(message.data) != message.step * message.height:
                 raise ValueError('Invalid depth buffer layout')
@@ -34,7 +35,7 @@ class DepthAudit:
             values = np.ndarray((message.height, message.width), dtype=dtype,
                                 buffer=bytes(message.data), strides=(message.step, 4))
             finite = values[np.isfinite(values)]
-            if not len(finite) or np.any(finite < .2) or np.any(finite > 19.1):
+            if not len(finite) or np.any(finite < self.profile['near_m'] - 1e-5) or np.any(finite > self.profile['far_m'] + 1e-5):
                 raise ValueError('No finite depth or depth outside pinned sensor clip')
             stamp = self.stamp(message)
             if stamp <= 0:
@@ -56,16 +57,17 @@ class DepthAudit:
 
     def info(self, message, now):
         self.infos += 1
-        expected_focal = 640 / (2 * math.tan(1.274 / 2))
-        expected_k = [expected_focal, 0., 320., 0., expected_focal, 240., 0., 0., 1.]
-        expected_p = [expected_focal, 0., 320., 0., 0., expected_focal, 240., 0., 0., 0., 1., 0.]
+        width, height = self.profile['width'], self.profile['height']
+        expected_focal = width / (2 * math.tan(self.profile['horizontal_fov_rad'] / 2))
+        expected_k = [expected_focal, 0., width / 2, 0., expected_focal, height / 2, 0., 0., 1.]
+        expected_p = [expected_focal, 0., width / 2, 0., 0., expected_focal, height / 2, 0., 0., 0., 1., 0.]
         expected_r = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 
         def matches(actual, expected):
             return len(actual) == len(expected) and all(
                 math.isfinite(a) and abs(a - e) < 1e-4 for a, e in zip(actual, expected))
 
-        valid = ((message.width, message.height) == (640, 480)
+        valid = ((message.width, message.height) == (self.profile['width'], self.profile['height'])
                  and bool(message.header.frame_id) and self.stamp(message) > 0
                  and matches(message.k, expected_k) and matches(message.p, expected_p)
                  and matches(message.r, expected_r)
