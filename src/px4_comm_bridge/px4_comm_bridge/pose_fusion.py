@@ -75,7 +75,7 @@ class PoseAlignment:
         self.last_stamp=float(ts[-1])
         return copy.deepcopy(self.binding)
 
-    def apply(self,m,now,*,source_session,calibration_id,reset_counter=0):
+    def apply(self,m,now,*,source_session,calibration_id,reset_counter=0,allow_uncertainty_drop=False):
         if self.fault: raise ValueError(self.fault)
         if self.binding is None: raise ValueError('VIO_ALIGNMENT_MISSING')
         try:
@@ -105,7 +105,8 @@ class PoseAlignment:
             self.last_stamp=stamp_s(m.header.stamp)
             return out
         except ValueError as exc:
-            self.fault=str(exc)
+            if not (allow_uncertainty_drop and str(exc)=='VIO_UNCERTAINTY_INVALID'):
+                self.fault=str(exc)
             raise
 
 
