@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.9">
+  <model name="x500_vio_ref">
+    <include merge="true">
+      <uri>model://x500</uri>
+    </include>
+    <link name="vio_rig_link">
+      <pose>0.12 0.0 0.242 0 0 0</pose>
+      <inertial>
+        <mass>0.001</mass>
+        <inertia>
+          <ixx>0.000001</ixx>
+          <iyy>0.000001</iyy>
+          <izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <sensor name="left" type="camera">
+        <pose>0 0.0375 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>25</update_rate>
+        <topic>/vio/left/image</topic>
+        <gz_frame_id>vio_left_optical</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.21</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>400</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+          <camera_info_topic>/vio/left/camera_info</camera_info_topic>
+          <optical_frame_id>vio_left_optical</optical_frame_id>
+        </camera>
+      </sensor>
+      <sensor name="right" type="camera">
+        <pose>0 -0.0375 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>25</update_rate>
+        <topic>/vio/right/image</topic>
+        <gz_frame_id>vio_right_optical</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.21</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>400</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+          <camera_info_topic>/vio/right/camera_info</camera_info_topic>
+          <optical_frame_id>vio_right_optical</optical_frame_id>
+        </camera>
+      </sensor>
+      <sensor name="vio_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>250</update_rate>
+        <topic>/vio/imu</topic>
+        <gz_frame_id>vio_imu</gz_frame_id>
+      </sensor>
+    </link>
+    <joint name="vio_rig_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>vio_rig_link</child>
+    </joint>
+  </model>
+</sdf>

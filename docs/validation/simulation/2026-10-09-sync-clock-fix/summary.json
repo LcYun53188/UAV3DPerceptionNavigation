@@ -1,0 +1,657 @@
+{
+  "realtime-depth-one": {
+    "run_id": "1f8458b6-5a66-4fe4-be4a-06ea15b00696",
+    "passed": false,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {
+      "quality:odom": false
+    },
+    "fusion": {
+      "input_count": 1801,
+      "longest_ready_s": 42.099951580996276,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "fused_samples": {
+        "ev_pos": 1798,
+        "ev_hgt": 1798,
+        "ev_yaw": 1798
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.0043660889932652935,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 3134,
+        "min_s": 0.001222882,
+        "p50_s": 0.02687717,
+        "p95_s": 0.06114488149999999,
+        "p99_s": 0.09668600726000019,
+        "max_s": 0.255722493
+      },
+      "fresh_pairs_with_expired_previous": 1,
+      "sdk_execution": {
+        "valid_count": 3134,
+        "invalid_count": 0,
+        "track": {
+          "count": 3134,
+          "min_s": 0.000366549,
+          "p50_s": 0.019973648,
+          "p95_s": 0.04884115779999999,
+          "p99_s": 0.07980218828,
+          "max_s": 0.243782498
+        },
+        "callback": {
+          "count": 3134,
+          "min_s": 0.000594461,
+          "p50_s": 0.020641601500000002,
+          "p95_s": 0.04964660449999999,
+          "p99_s": 0.08094684635999999,
+          "max_s": 0.244835845
+        },
+        "callback_without_track": {
+          "count": 3134,
+          "min_s": 6.211599999999997e-05,
+          "p50_s": 0.00041476000000000013,
+          "p95_s": 0.0012810622999999998,
+          "p99_s": 0.0013345605300000014,
+          "max_s": 0.0022916759999999994
+        },
+        "outside_callback_lower_bound": {
+          "count": 3134,
+          "min_s": 0.0004294170000000014,
+          "p50_s": 0.010577524499999998,
+          "p95_s": 0.01873469354999999,
+          "p99_s": 0.027805204960000034,
+          "max_s": 0.03395160500000001
+        },
+        "worst_pipeline": [
+          {
+            "sample": 130.52,
+            "pipeline_s": 0.255722493,
+            "track_s": 0.243782498,
+            "callback_s": 0.244835845,
+            "outside_callback_lower_bound_s": 0.010886647999999999
+          },
+          {
+            "sample": 129.92,
+            "pipeline_s": 0.18072295,
+            "track_s": 0.168676989,
+            "callback_s": 0.16887951,
+            "outside_callback_lower_bound_s": 0.011843439999999983
+          },
+          {
+            "sample": 83.64,
+            "pipeline_s": 0.168828653,
+            "track_s": 0.144105901,
+            "callback_s": 0.14510076,
+            "outside_callback_lower_bound_s": 0.023727893
+          },
+          {
+            "sample": 130.88,
+            "pipeline_s": 0.167772649,
+            "track_s": 0.156916716,
+            "callback_s": 0.157135625,
+            "outside_callback_lower_bound_s": 0.010637023999999995
+          },
+          {
+            "sample": 125.04,
+            "pipeline_s": 0.162497681,
+            "track_s": 0.151419776,
+            "callback_s": 0.151862806,
+            "outside_callback_lower_bound_s": 0.010634875000000016
+          },
+          {
+            "sample": 131.12,
+            "pipeline_s": 0.155560766,
+            "track_s": 0.143678177,
+            "callback_s": 0.144298282,
+            "outside_callback_lower_bound_s": 0.01126248399999999
+          },
+          {
+            "sample": 129.08,
+            "pipeline_s": 0.138189814,
+            "track_s": 0.127270392,
+            "callback_s": 0.12748813,
+            "outside_callback_lower_bound_s": 0.010701683999999989
+          },
+          {
+            "sample": 126.92,
+            "pipeline_s": 0.134531934,
+            "track_s": 0.121349384,
+            "callback_s": 0.12240224,
+            "outside_callback_lower_bound_s": 0.012129693999999996
+          },
+          {
+            "sample": 130.36,
+            "pipeline_s": 0.132718594,
+            "track_s": 0.108045932,
+            "callback_s": 0.108953178,
+            "outside_callback_lower_bound_s": 0.023765415999999998
+          },
+          {
+            "sample": 128.84,
+            "pipeline_s": 0.132555044,
+            "track_s": 0.120743401,
+            "callback_s": 0.121699358,
+            "outside_callback_lower_bound_s": 0.010855686000000017
+          },
+          {
+            "sample": 85.4,
+            "pipeline_s": 0.128118801,
+            "track_s": 0.093681042,
+            "callback_s": 0.094167196,
+            "outside_callback_lower_bound_s": 0.03395160500000001
+          },
+          {
+            "sample": 84.52,
+            "pipeline_s": 0.123901772,
+            "track_s": 0.116881818,
+            "callback_s": 0.117777126,
+            "outside_callback_lower_bound_s": 0.0061246459999999975
+          },
+          {
+            "sample": 49.36,
+            "pipeline_s": 0.123800524,
+            "track_s": 0.119954723,
+            "callback_s": 0.121076435,
+            "outside_callback_lower_bound_s": 0.002724088999999999
+          },
+          {
+            "sample": 84.96,
+            "pipeline_s": 0.122208684,
+            "track_s": 0.097442532,
+            "callback_s": 0.097645854,
+            "outside_callback_lower_bound_s": 0.024562829999999994
+          },
+          {
+            "sample": 123.04,
+            "pipeline_s": 0.118466031,
+            "track_s": 0.106344737,
+            "callback_s": 0.107410153,
+            "outside_callback_lower_bound_s": 0.011055878000000005
+          },
+          {
+            "sample": 124.84,
+            "pipeline_s": 0.108447938,
+            "track_s": 0.087591836,
+            "callback_s": 0.087789716,
+            "outside_callback_lower_bound_s": 0.02065822199999999
+          },
+          {
+            "sample": 23.72,
+            "pipeline_s": 0.107819372,
+            "track_s": 0.095771901,
+            "callback_s": 0.097018142,
+            "outside_callback_lower_bound_s": 0.010801229999999995
+          },
+          {
+            "sample": 84.84,
+            "pipeline_s": 0.10679048,
+            "track_s": 0.09150825,
+            "callback_s": 0.091744582,
+            "outside_callback_lower_bound_s": 0.015045897999999988
+          },
+          {
+            "sample": 63.84,
+            "pipeline_s": 0.104601834,
+            "track_s": 0.092900268,
+            "callback_s": 0.09379568,
+            "outside_callback_lower_bound_s": 0.010806153999999998
+          },
+          {
+            "sample": 86.68,
+            "pipeline_s": 0.103642774,
+            "track_s": 0.084318038,
+            "callback_s": 0.084514613,
+            "outside_callback_lower_bound_s": 0.01912816099999999
+          }
+        ],
+        "scope": "SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time"
+      }
+    }
+  },
+  "paced-current": {
+    "run_id": "301b2b34-c190-4dad-bc7d-d69391268ac2",
+    "passed": false,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 1761,
+      "longest_ready_s": 86.07997702799912,
+      "source_fault": "VIO_SAMPLE_STALE",
+      "fused_samples": {
+        "ev_pos": 1759,
+        "ev_hgt": 1759,
+        "ev_yaw": 1759
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.006631629992625676,
+        "reason": "VIO_EKF_LOCAL_RESET"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 2579,
+        "min_s": 0.001127535,
+        "p50_s": 0.024420605,
+        "p95_s": 0.05868739549999999,
+        "p99_s": 0.07721578009999987,
+        "max_s": 0.158491186
+      },
+      "fresh_pairs_with_expired_previous": 0,
+      "sdk_execution": {
+        "valid_count": 2579,
+        "invalid_count": 0,
+        "track": {
+          "count": 2579,
+          "min_s": 0.000336176,
+          "p50_s": 0.016978187,
+          "p95_s": 0.04678411509999998,
+          "p99_s": 0.06440372867999962,
+          "max_s": 0.156140055
+        },
+        "callback": {
+          "count": 2579,
+          "min_s": 0.000497877,
+          "p50_s": 0.017872297,
+          "p95_s": 0.047801043,
+          "p99_s": 0.0654094014199996,
+          "max_s": 0.157685305
+        },
+        "callback_without_track": {
+          "count": 2579,
+          "min_s": 6.191399999999999e-05,
+          "p50_s": 0.0008623160000000019,
+          "p95_s": 0.0012911009000000008,
+          "p99_s": 0.0013322164400000024,
+          "max_s": 0.001697790000000001
+        },
+        "outside_callback_lower_bound": {
+          "count": 2579,
+          "min_s": 0.000399937000000003,
+          "p50_s": 0.0031364560000000027,
+          "p95_s": 0.011506665000000001,
+          "p99_s": 0.025830650739999874,
+          "max_s": 0.043340131999999996
+        },
+        "worst_pipeline": [
+          {
+            "sample": 78.72,
+            "pipeline_s": 0.158491186,
+            "track_s": 0.156140055,
+            "callback_s": 0.157685305,
+            "outside_callback_lower_bound_s": 0.0008058810000000083
+          },
+          {
+            "sample": 79.2,
+            "pipeline_s": 0.115333396,
+            "track_s": 0.090485101,
+            "callback_s": 0.09130255,
+            "outside_callback_lower_bound_s": 0.02403084600000001
+          },
+          {
+            "sample": 79.6,
+            "pipeline_s": 0.109481862,
+            "track_s": 0.076041758,
+            "callback_s": 0.076852605,
+            "outside_callback_lower_bound_s": 0.032629256999999995
+          },
+          {
+            "sample": 66.84,
+            "pipeline_s": 0.106242642,
+            "track_s": 0.069857268,
+            "callback_s": 0.070906201,
+            "outside_callback_lower_bound_s": 0.035336440999999996
+          },
+          {
+            "sample": 61.76,
+            "pipeline_s": 0.104468469,
+            "track_s": 0.097252869,
+            "callback_s": 0.098388278,
+            "outside_callback_lower_bound_s": 0.006080190999999999
+          },
+          {
+            "sample": 78.36,
+            "pipeline_s": 0.096331858,
+            "track_s": 0.068880682,
+            "callback_s": 0.069268286,
+            "outside_callback_lower_bound_s": 0.027063572000000008
+          },
+          {
+            "sample": 78.56,
+            "pipeline_s": 0.094035579,
+            "track_s": 0.063352538,
+            "callback_s": 0.064236846,
+            "outside_callback_lower_bound_s": 0.029798732999999994
+          },
+          {
+            "sample": 78.64,
+            "pipeline_s": 0.092129298,
+            "track_s": 0.061920503,
+            "callback_s": 0.062132034,
+            "outside_callback_lower_bound_s": 0.029997263999999996
+          },
+          {
+            "sample": 79.52,
+            "pipeline_s": 0.091742437,
+            "track_s": 0.072477084,
+            "callback_s": 0.073491628,
+            "outside_callback_lower_bound_s": 0.018250808999999993
+          },
+          {
+            "sample": 67.84,
+            "pipeline_s": 0.088519114,
+            "track_s": 0.076877234,
+            "callback_s": 0.077786361,
+            "outside_callback_lower_bound_s": 0.010732752999999998
+          },
+          {
+            "sample": 72.12,
+            "pipeline_s": 0.086614794,
+            "track_s": 0.073463105,
+            "callback_s": 0.074231405,
+            "outside_callback_lower_bound_s": 0.012383388999999995
+          },
+          {
+            "sample": 66.76,
+            "pipeline_s": 0.086441604,
+            "track_s": 0.072572495,
+            "callback_s": 0.072936481,
+            "outside_callback_lower_bound_s": 0.013505123000000008
+          },
+          {
+            "sample": 63.04,
+            "pipeline_s": 0.084899261,
+            "track_s": 0.075732493,
+            "callback_s": 0.07684769,
+            "outside_callback_lower_bound_s": 0.008051571000000007
+          },
+          {
+            "sample": 66.8,
+            "pipeline_s": 0.08362435,
+            "track_s": 0.044391961,
+            "callback_s": 0.045060233,
+            "outside_callback_lower_bound_s": 0.038564117
+          },
+          {
+            "sample": 42.16,
+            "pipeline_s": 0.082978393,
+            "track_s": 0.07075599,
+            "callback_s": 0.072026105,
+            "outside_callback_lower_bound_s": 0.01095228799999999
+          },
+          {
+            "sample": 67.88,
+            "pipeline_s": 0.082679751,
+            "track_s": 0.039706021,
+            "callback_s": 0.040293391,
+            "outside_callback_lower_bound_s": 0.04238636
+          },
+          {
+            "sample": 78.32,
+            "pipeline_s": 0.081423532,
+            "track_s": 0.048037467,
+            "callback_s": 0.048223916,
+            "outside_callback_lower_bound_s": 0.03319961600000001
+          },
+          {
+            "sample": 72.16,
+            "pipeline_s": 0.081252784,
+            "track_s": 0.03909561,
+            "callback_s": 0.03982245,
+            "outside_callback_lower_bound_s": 0.04143033399999999
+          },
+          {
+            "sample": 78.44,
+            "pipeline_s": 0.081190665,
+            "track_s": 0.079657452,
+            "callback_s": 0.080584707,
+            "outside_callback_lower_bound_s": 0.0006059579999999898
+          },
+          {
+            "sample": 72.96,
+            "pipeline_s": 0.080793238,
+            "track_s": 0.075838844,
+            "callback_s": 0.076951601,
+            "outside_callback_lower_bound_s": 0.003841637000000009
+          }
+        ],
+        "scope": "SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time"
+      }
+    }
+  },
+  "reset-current": {
+    "run_id": "5028ba23-880c-48af-895f-d5377a41e6f6",
+    "passed": true,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {}
+  },
+  "motion-current": {
+    "run_id": "dcb25ccf-01ca-49cb-912e-2d1799941aac",
+    "passed": true,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {}
+  },
+  "short-paced": {
+    "run_id": "85bde9d2-d481-45a6-8912-e68566206821",
+    "passed": true,
+    "current_inputs": true,
+    "cleanup_confirmed": true,
+    "failed_checks": {},
+    "fusion": {
+      "input_count": 929,
+      "longest_ready_s": 44.20023984700674,
+      "source_fault": "VIO_WRITER_COUNT",
+      "fused_samples": {
+        "ev_pos": 927,
+        "ev_hgt": 927,
+        "ev_yaw": 927
+      },
+      "first_stop_rejection": {
+        "after_stop_s": 0.0631079500017222,
+        "reason": "VIO_SOURCE_LOST"
+      }
+    },
+    "timing": {
+      "host_clock_stable": true,
+      "trace_complete": true,
+      "stereo_to_sdk_publish": {
+        "count": 1187,
+        "min_s": 0.001323124,
+        "p50_s": 0.018171901,
+        "p95_s": 0.0349747113,
+        "p99_s": 0.04873533998000012,
+        "max_s": 0.075990302
+      },
+      "fresh_pairs_with_expired_previous": 0,
+      "sdk_execution": {
+        "valid_count": 1187,
+        "invalid_count": 0,
+        "track": {
+          "count": 1187,
+          "min_s": 0.000426614,
+          "p50_s": 0.012243215,
+          "p95_s": 0.027810357200000014,
+          "p99_s": 0.04216754100000007,
+          "max_s": 0.066140491
+        },
+        "callback": {
+          "count": 1187,
+          "min_s": 0.000613715,
+          "p50_s": 0.012929232,
+          "p95_s": 0.028896734900000016,
+          "p99_s": 0.043400971860000054,
+          "max_s": 0.067312326
+        },
+        "callback_without_track": {
+          "count": 1187,
+          "min_s": 9.109600000000058e-05,
+          "p50_s": 0.0010603179999999993,
+          "p95_s": 0.0013198203,
+          "p99_s": 0.00135409372,
+          "max_s": 0.0015829289999999998
+        },
+        "outside_callback_lower_bound": {
+          "count": 1187,
+          "min_s": 0.0004254530000000001,
+          "p50_s": 0.003705459999999999,
+          "p95_s": 0.0110083925,
+          "p99_s": 0.011425060340000006,
+          "max_s": 0.027650901999999998
+        },
+        "worst_pipeline": [
+          {
+            "sample": 44.36,
+            "pipeline_s": 0.075990302,
+            "track_s": 0.064036128,
+            "callback_s": 0.065238345,
+            "outside_callback_lower_bound_s": 0.010751956999999993
+          },
+          {
+            "sample": 39.28,
+            "pipeline_s": 0.070033745,
+            "track_s": 0.043114738,
+            "callback_s": 0.044119409,
+            "outside_callback_lower_bound_s": 0.025914335999999996
+          },
+          {
+            "sample": 39.24,
+            "pipeline_s": 0.069442826,
+            "track_s": 0.057232728,
+            "callback_s": 0.058484466,
+            "outside_callback_lower_bound_s": 0.01095836
+          },
+          {
+            "sample": 40.24,
+            "pipeline_s": 0.068091314,
+            "track_s": 0.066140491,
+            "callback_s": 0.067312326,
+            "outside_callback_lower_bound_s": 0.0007789879999999944
+          },
+          {
+            "sample": 48.76,
+            "pipeline_s": 0.066419526,
+            "track_s": 0.054302344,
+            "callback_s": 0.055487113,
+            "outside_callback_lower_bound_s": 0.010932413000000009
+          },
+          {
+            "sample": 33.12,
+            "pipeline_s": 0.058378642,
+            "track_s": 0.046567736,
+            "callback_s": 0.047414589,
+            "outside_callback_lower_bound_s": 0.010964053000000001
+          },
+          {
+            "sample": 22.24,
+            "pipeline_s": 0.057649825,
+            "track_s": 0.046521025,
+            "callback_s": 0.046831521,
+            "outside_callback_lower_bound_s": 0.010818304
+          },
+          {
+            "sample": 49.48,
+            "pipeline_s": 0.05509273,
+            "track_s": 0.043106237,
+            "callback_s": 0.044307794,
+            "outside_callback_lower_bound_s": 0.010784936000000002
+          },
+          {
+            "sample": 35.88,
+            "pipeline_s": 0.052728773,
+            "track_s": 0.040518304,
+            "callback_s": 0.041770143,
+            "outside_callback_lower_bound_s": 0.010958629999999997
+          },
+          {
+            "sample": 40.04,
+            "pipeline_s": 0.051350525,
+            "track_s": 0.039220302,
+            "callback_s": 0.040423371,
+            "outside_callback_lower_bound_s": 0.010927154000000001
+          },
+          {
+            "sample": 45.56,
+            "pipeline_s": 0.051065351,
+            "track_s": 0.049977145,
+            "callback_s": 0.050253802,
+            "outside_callback_lower_bound_s": 0.0008115490000000017
+          },
+          {
+            "sample": 41.84,
+            "pipeline_s": 0.049793533,
+            "track_s": 0.037062546,
+            "callback_s": 0.038238608,
+            "outside_callback_lower_bound_s": 0.011554925
+          },
+          {
+            "sample": 49.52,
+            "pipeline_s": 0.048563076,
+            "track_s": 0.039791751,
+            "callback_s": 0.040934066,
+            "outside_callback_lower_bound_s": 0.007629009999999999
+          },
+          {
+            "sample": 21.6,
+            "pipeline_s": 0.046536777,
+            "track_s": 0.043962606,
+            "callback_s": 0.045210904,
+            "outside_callback_lower_bound_s": 0.0013258729999999982
+          },
+          {
+            "sample": 9.6,
+            "pipeline_s": 0.045571722,
+            "track_s": 0.033296462,
+            "callback_s": 0.034584658,
+            "outside_callback_lower_bound_s": 0.010987064000000005
+          },
+          {
+            "sample": 44.4,
+            "pipeline_s": 0.045504784,
+            "track_s": 0.017661423,
+            "callback_s": 0.017853882,
+            "outside_callback_lower_bound_s": 0.027650901999999998
+          },
+          {
+            "sample": 46.48,
+            "pipeline_s": 0.045081142,
+            "track_s": 0.043282885,
+            "callback_s": 0.044367978,
+            "outside_callback_lower_bound_s": 0.0007131639999999953
+          },
+          {
+            "sample": 29.24,
+            "pipeline_s": 0.044700103,
+            "track_s": 0.032526363,
+            "callback_s": 0.033790742,
+            "outside_callback_lower_bound_s": 0.010909361
+          },
+          {
+            "sample": 43.24,
+            "pipeline_s": 0.044589673,
+            "track_s": 0.042744128,
+            "callback_s": 0.043905662,
+            "outside_callback_lower_bound_s": 0.0006840110000000052
+          },
+          {
+            "sample": 12.24,
+            "pipeline_s": 0.044187105,
+            "track_s": 0.031666266,
+            "callback_s": 0.033044297,
+            "outside_callback_lower_bound_s": 0.011142807999999997
+          }
+        ],
+        "scope": "SDK Track and UpdatePose wall duration; pipeline minus full callback is only a lower bound outside UpdatePose, not exact queue or synchronization time"
+      }
+    }
+  }
+}

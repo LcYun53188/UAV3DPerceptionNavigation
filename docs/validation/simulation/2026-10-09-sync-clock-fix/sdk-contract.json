@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "contract": "cuvslam15_right_tangent_base_link_v1",
+  "scope": "reviewed SDK pose only; no velocity or flight acceptance",
+  "expected_sha256": {
+    "install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam": "0915b3deb02f7346fcf15747a18719c583fd9764fe88a07fa58d0b1ae0b1699c",
+    "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": "dc2cf1ecdd54a737afcc69f0b93494319bd0c3641b13355957a50b70df89be8b",
+    "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": "d870759dc6d78b9fe55dbb842cac3b6cd6d804bde04dd8b546b5f2c466834f5e",
+    "src/isaac_ros_nitros/isaac_ros_nitros/lib/cuvslam/include/cuvslam/cuvslam2.h": "8c0d5b3eb38ee7b4a91b408c81dc613f7def336d79347ac502e97f464271aa81",
+    "src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/cuvslam_ros_conversion.cpp": "d3b1e3047d0a1d2acfee842fa16a3615a7f0f85ae673145d687c800d951e12e3",
+    "src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp": "c2c1d73450dfe3cb08e344aaed78d07e012c2638eefa0a9b7aee2b31ba472487"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "system_ns": 1791528453050428523,
+  "mono": 69472.641440003,
+  "domain": "78",
+  "scope": "passive graph subscription metadata; no publishers",
+  "topics": {
+    "/vio/left/image": [
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3abba9b61750000000000001504",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      }
+    ],
+    "/vio/right/image": [
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Image",
+        "gid": "010fb3abba9b61750000000000001804",
+        "depth": 0,
+        "reliability": "RELIABLE"
+      }
+    ],
+    "/vio/imu": [
+      {
+        "node": "visual_slam",
+        "namespace": "/",
+        "type": "sensor_msgs/msg/Imu",
+        "gid": "010fb3abba9b61750000000000001d04",
+        "depth": 0,
+        "reliability": "BEST_EFFORT"
+      }
+    ]
+  },
+  "sdk_parameters": {
+    "image_qos_depth": {
+      "type": 2,
+      "integer_value": 1,
+      "string_value": ""
+    },
+    "image_qos": {
+      "type": 4,
+      "integer_value": 0,
+      "string_value": "DEFAULT"
+    },
+    "imu_buffer_size": {
+      "type": 2,
+      "integer_value": 144,
+      "string_value": ""
+    },
+    "image_buffer_size": {
+      "type": 2,
+      "integer_value": 100,
+      "string_value": ""
+    }
+  }
+}

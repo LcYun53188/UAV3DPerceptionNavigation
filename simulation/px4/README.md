@@ -252,3 +252,9 @@ EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV
 原生 IMU 缓冲显式设为 144（旧 400 经 uint8_t 截断后的实际值），拒绝容量溢出。
 被动时序包含 SDK Track/UpdatePose 耗时；深度 1 单轮减少了回调外积压，但实时仍失败。
 详见 [SDK 时序及同步器接口复现](../../docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md)。
+
+
+SDK 同步器毫秒/纳秒换算与位姿审计源时钟已修复；SDK 重建及 222 项测试通过。
+实际 reset、120 s 独立载台运动（位置 RMSE 1.36 cm）和 50 s 未解锁融合通过；
+1.0/0.8 倍的 120 s 融合仍因新鲜度/协方差失败，S6/VIO 悬停仍未验收。见
+[同步器与审计时钟修复报告](../../docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md)。

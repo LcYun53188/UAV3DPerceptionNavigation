@@ -1,0 +1,172 @@
+{
+  "sensor-timing.json": {
+    "archive": "sensor-timing.json.gz",
+    "bytes": 5867286,
+    "sha256": "c942388d8ce9394fac8a819bb491e70f876050d830fa27d032af0952756824a4"
+  },
+  "fusion-dds-echoes.json": {
+    "archive": "fusion-dds-echoes.json.gz",
+    "bytes": 1737573,
+    "sha256": "57ee7f7e2f32de6b42fe75d1f9c5d5a2bc3e4bdc385330ba7ba793243c42bcf5"
+  },
+  "odometry.json": {
+    "archive": "odometry.json.gz",
+    "bytes": 1762916,
+    "sha256": "bad60eeed02bd6714a6da9eb3b053e3191ad8a1915558c227f2c614c0d799294"
+  },
+  "normalized-poses.json": {
+    "archive": "normalized-poses.json.gz",
+    "bytes": 4131345,
+    "sha256": "62472aa4ab803cfbbe248d542dedb75e12ca98b304f7361e86b3e5e6fc747ea2"
+  },
+  "gazebo.log": {
+    "archive": "gazebo.log.gz",
+    "bytes": 1590,
+    "sha256": "ab9bf16e47064610203bbf41e93c627cdbaacf6738e62f9b4a81e713ffe1c6cb"
+  },
+  "vio-params.yaml": {
+    "archive": "vio-params.yaml",
+    "bytes": 962,
+    "sha256": "06fd33771979b2125155f2c37126521dfce4d3a6d82026726099fe204127ab2f"
+  },
+  "renderer-info.json": {
+    "archive": "renderer-info.json",
+    "bytes": 301,
+    "sha256": "a156ea347ad2d26a8d28d00c55ee7e63c9e95149316d77ae072efbb4460f5bc8"
+  },
+  "qgc.log": {
+    "archive": "qgc.log.gz",
+    "bytes": 68305,
+    "sha256": "b94771da35a50bc1de6c33a502c4616d576251763f7697389d33e8386182071b"
+  },
+  "anchor.json": {
+    "archive": "anchor.json",
+    "bytes": 594,
+    "sha256": "0ba332d08dfa0358b436877c18bb31e19bfa592eab29696f3f6eb8f0f344a1eb"
+  },
+  "sensor_bridge.log": {
+    "archive": "sensor_bridge.log.gz",
+    "bytes": 1333,
+    "sha256": "675c2351d1528573db31c8cac895570e3fa3cb957ecf90b292e5a4c183503bce"
+  },
+  "fusion-timing.json": {
+    "archive": "fusion-timing.json.gz",
+    "bytes": 3339974,
+    "sha256": "f5f25ee212ae64606f7aaaa931017c6ccf3ee88c5dd0525d2eb93fd5a4fa283e"
+  },
+  "normalizer-timing.json": {
+    "archive": "normalizer-timing.json.gz",
+    "bytes": 4283078,
+    "sha256": "9e66695ef32caeb6f3db652af7158cf424a1914607385b16193aec86a7ebfbaf"
+  },
+  "px4.log": {
+    "archive": "px4.log.gz",
+    "bytes": 6215,
+    "sha256": "95041e34d911bf1cb850b1cef0902c660c2d0506739adcb8ee029e38f09499c6"
+  },
+  "sdk-runtime-receipt.json": {
+    "archive": "sdk-runtime-receipt.json",
+    "bytes": 1348,
+    "sha256": "2f20659f803d274ec148c3ddec6033e6c123f97a8f38e124a46a4b5feba38dcf"
+  },
+  "independent-assessment.json": {
+    "archive": "independent-assessment.json",
+    "bytes": 744,
+    "sha256": "b6c49f64c773a6e79f6ddd00757a9ee909412db968f09b7fcf7c103d4b0deb12"
+  },
+  "result.json": {
+    "archive": "result.json",
+    "bytes": 17809,
+    "sha256": "544454798a49ceaa5b2a86dd15eaf723d956493883b0226e742d92fe0ab5b2c4"
+  },
+  "samples.json": {
+    "archive": "samples.json.gz",
+    "bytes": 530495,
+    "sha256": "4f27da44ac1a201d83870716e9b42c10653cb86c281a0976864812f215398307"
+  },
+  "sdk-poses.json": {
+    "archive": "sdk-poses.json.gz",
+    "bytes": 4273558,
+    "sha256": "08806cb3283ddc897659e1dba042d58602fe94c947d6761c32b698e7cfac071c"
+  },
+  "vio.log": {
+    "archive": "vio.log.gz",
+    "bytes": 14726,
+    "sha256": "b445d004eb25fc332f0bc150c6ac8c0a129022e554ed754211b111ecd76585fb"
+  },
+  "normalizer.log": {
+    "archive": "normalizer.log.gz",
+    "bytes": 557,
+    "sha256": "f4689834b0f63719aa0bed131f22092443049a921758d425e06f741a2bc575c1"
+  },
+  "timing-assessment.json": {
+    "archive": "timing-assessment.json",
+    "bytes": 63167,
+    "sha256": "bfcb3883c24189d3edf716f452dcda75c243eda1eb8e253abed3d98cee334c60"
+  },
+  "agent.log": {
+    "archive": "agent.log.gz",
+    "bytes": 35943,
+    "sha256": "27ebc0c3edd8e462ccb21a9bb7b9342d83780d6a27c8d9354c664ba25cfe6161"
+  },
+  "fusion-outputs.json": {
+    "archive": "fusion-outputs.json.gz",
+    "bytes": 4964979,
+    "sha256": "f92c22b3772590b701fe0eeb4b3fe2ab914983561b4155edee217a11cf883e2c"
+  },
+  "right.ppm": {
+    "archive": "right.ppm.gz",
+    "bytes": 768015,
+    "sha256": "2aaa6895b80dbe70567987b30f041387cd2e970d4e2ed988eb679b38309cde27"
+  },
+  "manifest.json": {
+    "archive": "manifest.json",
+    "bytes": 23089,
+    "sha256": "dce24fb015bc18726dd45b4c5c93755ecdc5e8799a353fc254d6c853a34608c3"
+  },
+  "renderer.log": {
+    "archive": "renderer.log.gz",
+    "bytes": 219231,
+    "sha256": "f602a739ffd49ca5491481caf49227b0028804506bc3c925c2f9d2f17db972e4"
+  },
+  "normalized-status.json": {
+    "archive": "normalized-status.json.gz",
+    "bytes": 1529326,
+    "sha256": "e093093da70c9bd97d67c2bbef7579466f219a1216453a4199d8f7ebb1c8d8cb"
+  },
+  "left.ppm": {
+    "archive": "left.ppm.gz",
+    "bytes": 768015,
+    "sha256": "ff93eba9e64bac682abf18eb267486a3f9acae6d429030ad981fc5f72a885f55"
+  },
+  "calibration.json": {
+    "archive": "calibration.json",
+    "bytes": 2764,
+    "sha256": "67c690703e253e0b248f032acadd481039292bfa5c194dd02ae516dc92cc3edb"
+  },
+  "fusion-telemetry.json": {
+    "archive": "fusion-telemetry.json.gz",
+    "bytes": 33034658,
+    "sha256": "bd4c415e8b578d24f6e40aac0910e43d50833877c85172d5a2403e1a001d7f40"
+  },
+  "assets/default.sdf": {
+    "archive": "assets/default.sdf.gz",
+    "bytes": 352992,
+    "sha256": "b6619ea7219e70a279f76eec541beff0899b4c870cad20759d6dd4fa83792e05"
+  },
+  "assets/frames.json": {
+    "archive": "assets/frames.json",
+    "bytes": 486,
+    "sha256": "6c46cf5e4770f0ff620017cc1a0b74ca06b1ba89129e11136485febb5d75b761"
+  },
+  "assets/x500_vio_ref/model.sdf": {
+    "archive": "assets/x500_vio_ref/model.sdf",
+    "bytes": 2203,
+    "sha256": "386e028d119818a8e6d4fb52e9365d5a31e75b094da7db86fb0915665ec66269"
+  },
+  "assets/x500_vio_ref/model.config": {
+    "archive": "assets/x500_vio_ref/model.config",
+    "bytes": 94,
+    "sha256": "1de639e3b0249ab8c81495115c412a891775997cf7f438440d68668544673238"
+  }
+}
