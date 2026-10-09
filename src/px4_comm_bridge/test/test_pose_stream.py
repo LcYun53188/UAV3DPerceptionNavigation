@@ -67,3 +67,17 @@ def test_moving_window_does_not_bind():
         p,status=source(10+i*.04);p.pose.pose.position.x+=.002*i
         s.accept(p,status,10+i*.04,10+i*.04,pose_gid='pose',status_gid='status',ground=True)
     assert not s.bound and s.count==0
+
+
+def test_fresh_incoming_pair_is_checked_instead_of_old_sample_age():
+    s=bound();p,status=source(12.08)
+    # Previous sample is 205 ms old, but the new original sample is 165 ms old
+    # and the monotonic receive gap is only 40 ms. Never re-stamp either one.
+    result=s.accept(p,status,12.245,12.08,pose_gid='pose',status_gid='status',ground=True)
+    assert result is not None and result[1].timestamp_sample==12080000 and not s.fault
+
+
+def test_latched_watchdog_is_not_revived_by_a_later_fresh_pair():
+    s=bound();assert s.check(12.245,12.08,ground=True) is None
+    assert s.fault=='VIO_SAMPLE_STALE'
+    assert feed(s,12.28) is None and s.count==1

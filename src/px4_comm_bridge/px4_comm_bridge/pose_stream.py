@@ -37,7 +37,7 @@ class AlignedPoseStream:
             self.last_receive=None
         return None
 
-    def check(self,ros,mono,*,ground):
+    def check(self,ros,mono,*,ground,incoming_sample=None):
         if self.last_clock is not None and ros<self.last_clock:
             self.fault=self.fault or 'VIO_CLOCK_RESET'
         self.last_clock=ros
@@ -45,12 +45,13 @@ class AlignedPoseStream:
         if not ground: return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
         if self.bound and (self.last_receive is None or mono-self.last_receive>.2):
             return self.reject('VIO_RECEIVE_GAP')
-        if self.bound and not -.05<=ros-self.alignment.last_stamp<=.2:
+        sample=self.alignment.last_stamp if self.bound and incoming_sample is None else incoming_sample
+        if self.bound and not -.05<=ros-sample<=.2:
             return self.reject('VIO_SAMPLE_STALE')
         return True
 
     def accept(self,pose,status,ros,mono,*,pose_gid,status_gid,ground):
-        if not self.check(ros,mono,ground=ground): return None
+        if not self.check(ros,mono,ground=ground,incoming_sample=stamp_s(pose.header.stamp)): return None
         try:
             if (not status.valid or status.reason or status.header.frame_id!='odom'
                     or status.calibration_id!=self.calibration or not status.localization_session
