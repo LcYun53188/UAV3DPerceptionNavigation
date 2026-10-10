@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "region_sha256": "c57649782482c7dee693443f8cd072df2bafe05bed0eb329d2e8bf1c7b80aa5d",
+  "partition": "uav_px4_s0_53ff18b6-e1bc-4c97-bdba-6fdee0159881",
+  "localization_session": "53ff18b6-e1bc-4c97-bdba-6fdee0159881",
+  "files": {
+    "assets/default.sdf": "a37c4c9d568422da16e3a8f0f3ece8d3e6b2637addd67ff2b97b7ede6afcc3d0",
+    "assets/frames.json": "88a274b8ae2886318f29ef8b50acdc1ede0fc31a5f8e59f72bc23f4392e15cc1",
+    "assets/depth-profile.json": "8fb10fe8745b2c08aa2583815f5ee28aaa385386671b4df43927e4df673f8e67",
+    "assets/x500_depth_ref/model.sdf": "5de3dab91ee78eba49622f8ad6dd3ba6572f6b0b91a671109b854597fd71f04f",
+    "assets/x500_depth_ref/model.config": "32f934b531981b2c035331c7f05bdcae81d3dd6d8d03811e9c689f9bcf1eccfc"
+  }
+}

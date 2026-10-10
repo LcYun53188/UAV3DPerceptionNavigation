@@ -1,0 +1,28 @@
+{
+  "scope": "ideal pinhole upper bound only; not physical clearance or a control input",
+  "source_grid_sha256": "b981c2d2239efcdacf67eaefae1afe6453b5b4b518044347132b7786c321a82b",
+  "tested_cells": 28577,
+  "ideal_uncovered_cells": 0,
+  "route": [
+    [
+      0.8,
+      0.8,
+      1.3
+    ],
+    [
+      -0.8,
+      0.8,
+      2.4
+    ],
+    [
+      -0.8,
+      -0.8,
+      1.7
+    ],
+    [
+      0.8,
+      -0.8,
+      2.6
+    ]
+  ]
+}

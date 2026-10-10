@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "actual_mount_body_flu_m": [
+    0.12,
+    0.0,
+    0.242
+  ],
+  "advertised_mount_body_flu_m": [
+    0.12,
+    0.0,
+    0.242
+  ],
+  "translation_error_m": 0.0,
+  "rotation_error_rad": 3.1401849173675503e-16,
+  "scene_sha256": "814c07a510f2fe8e901560d769b512a7d8d71e43942751aa36179e8c14963bd9"
+}

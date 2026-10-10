@@ -30,7 +30,7 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 实际 VIO→PX4 未解锁融合：`./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene layered --real-time-factor .8 --duration 120`。同一架 x500 的双目/IMU 经 cuVSLAM、固定对齐进入实际 EKF，2326 个样本、三类融合及停止源后的失效检查通过。此结果使用 0.8 倍目标仿真速度；实时长时试验仍出现超时，不能视为实时飞行或 VIO 悬停通过。见 [实际融合报告](docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。 最新新鲜度交接修复、2329 样本回归及实时延迟对照见 [时序报告](docs/validation/simulation/2026-10-09-vio-timing/REPORT.md)。 后续 [SDK 分段诊断](docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md) 复现同步器单位问题；本轮四个整体检查仍失败，不代表稳定性通过。 最新 [单位与时钟修复](docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md) 已通过 reset、运动和短时融合，120 秒融合仍未通过。
 
-同机起飞与多位置观测入口：`./scripts/sim.sh px4-observe`。已实测 1／2／3 m 三点扫描并返回起点，最大跟踪误差 0.202 m；地图仍有未知／占用体素，任务按期限原生降落锁定并返回 `OBSERVATION_INSUFFICIENT`，后续 EGO 导航尚未执行。见 [多位置观测报告](docs/validation/simulation/2026-10-10-depth-multiview/REPORT.md)。
+同机起飞与多位置观测入口：`./scripts/sim.sh px4-observe`。已修复实际相机安装与 optical TF 的 0.24 m 偏差，新增解锁前物理安装校验；固定下偏 5°、四点互补高度扫描及封闭深度场景已能放行实际 EGO 曲线。已完成单轮实际起飞／观察建图／EGO 定点导航／悬停／EGO 返航／降落锁定；当前收紧半体素包络并补拍后的导航与返航独立真值误差分别约 10.7 cm／7.4 cm。另有地图新鲜度及起终点种子包络失败证据；绕障与 VIO 飞行仍待验收。见 [空间缺口与曲线飞行报告](docs/validation/simulation/2026-10-10-depth-gap-spatial/REPORT.md)。
 
 同机地图与 EGO 规划源入口：`./scripts/sim.sh px4-depth-plan --duration 40`。已验证实际深度地图绑定定位会话／六个重置计数，并受管启动 EGO shadow 图；地面飞行包络未通过，尚未执行同机轨迹飞行。见 [规划源绑定报告](docs/validation/simulation/2026-10-10-depth-planning-sources/REPORT.md)。
 

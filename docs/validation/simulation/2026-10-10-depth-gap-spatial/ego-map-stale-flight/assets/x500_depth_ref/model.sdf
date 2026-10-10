@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.9">
+  <model name="x500_depth_ref">
+    <include merge="true">
+      <uri>model://x500</uri>
+    </include>
+    <link name="vio_rig_link">
+      <pose relative_to="base_link">0.12 0.0 0.242 0 0 0</pose>
+      <inertial>
+        <mass>0.001</mass>
+        <inertia>
+          <ixx>0.000001</ixx>
+          <iyy>0.000001</iyy>
+          <izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <sensor name="mapping_rgbd" type="rgbd_camera">
+        <pose>0 0 0 0 0.08726646259971647 0</pose>
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <topic>/px4_reference/rgbd</topic>
+        <gz_frame_id>oakd_camera_optical_frame</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.21</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>400</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+          <camera_info_topic>/px4_reference/rgbd/camera_info</camera_info_topic>
+          <optical_frame_id>oakd_camera_optical_frame</optical_frame_id>
+        </camera>
+      </sensor>
+    </link>
+    <joint name="vio_rig_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>vio_rig_link</child>
+    </joint>
+  </model>
+</sdf>

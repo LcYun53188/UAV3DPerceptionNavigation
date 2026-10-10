@@ -1,0 +1,6692 @@
+[
+  {
+    "mono": 140733.491030523,
+    "ros": 0.0,
+    "data": {
+      "received": 102,
+      "forwarded": 0,
+      "expired": 100,
+      "tf_wait": 735,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.014768961002118886,
+      "parse_seconds": 0.005857420997926965,
+      "error": "No observed voxels",
+      "tf_error": "\"map\" passed to lookupTransform argument target_frame does not exist. ",
+      "tf_requested_stamp_ns": 17096000000,
+      "raw_age": 0.284,
+      "forwarded_age": null,
+      "cached_source_age": 17.512,
+      "pending_depth": 2,
+      "query_pending": false,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140733.819767873,
+    "ros": 0.0,
+    "data": {
+      "received": 103,
+      "forwarded": 0,
+      "expired": 102,
+      "tf_wait": 749,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.014768961002118886,
+      "parse_seconds": 0.005857420997926965,
+      "error": "No observed voxels",
+      "tf_error": "\"map\" passed to lookupTransform argument target_frame does not exist. ",
+      "tf_requested_stamp_ns": 17956000000,
+      "raw_age": 0.044,
+      "forwarded_age": null,
+      "cached_source_age": 18.0,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140733.838716041,
+    "ros": 0.0,
+    "data": {
+      "received": 103,
+      "forwarded": 0,
+      "expired": 102,
+      "tf_wait": 749,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.016273159999400377,
+      "parse_seconds": 0.001423362991772592,
+      "error": "No observed voxels",
+      "tf_error": "\"map\" passed to lookupTransform argument target_frame does not exist. ",
+      "tf_requested_stamp_ns": 17956000000,
+      "raw_age": 0.056,
+      "forwarded_age": null,
+      "cached_source_age": 18.012,
+      "pending_depth": 1,
+      "query_pending": false,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140734.327361736,
+    "ros": 18.508,
+    "data": {
+      "received": 104,
+      "forwarded": 0,
+      "expired": 103,
+      "tf_wait": 773,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.006218719994649291,
+      "parse_seconds": 0.0014810980064794421,
+      "error": "No observed voxels",
+      "tf_error": "\"map\" passed to lookupTransform argument target_frame does not exist. ",
+      "tf_requested_stamp_ns": 18484000000,
+      "raw_age": 0.02,
+      "forwarded_age": null,
+      "cached_source_age": 18.504,
+      "pending_depth": 1,
+      "query_pending": false,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140734.82013229,
+    "ros": 19.0,
+    "data": {
+      "received": 105,
+      "forwarded": 0,
+      "expired": 104,
+      "tf_wait": 799,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.006218719994649291,
+      "parse_seconds": 0.0014810980064794421,
+      "error": "No observed voxels",
+      "tf_error": "Lookup would require extrapolation into the past.  Requested time 18.548000 but the earliest data is at time 18.580000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 18548000000,
+      "raw_age": 0.452,
+      "forwarded_age": null,
+      "cached_source_age": 19.0,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140734.82875201,
+    "ros": 19.008,
+    "data": {
+      "received": 105,
+      "forwarded": 0,
+      "expired": 104,
+      "tf_wait": 799,
+      "source_stamp_ns": 0,
+      "source_age_at_reply": null,
+      "query_seconds": 0.006460350006818771,
+      "parse_seconds": 0.00241072298376821,
+      "error": "No observed voxels",
+      "tf_error": "Lookup would require extrapolation into the past.  Requested time 18.548000 but the earliest data is at time 18.580000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 18548000000,
+      "raw_age": 0.456,
+      "forwarded_age": null,
+      "cached_source_age": 19.004,
+      "pending_depth": 1,
+      "query_pending": false,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140735.819902808,
+    "ros": 20.0,
+    "data": {
+      "received": 107,
+      "forwarded": 2,
+      "expired": 105,
+      "tf_wait": 803,
+      "source_stamp_ns": 19012000000,
+      "source_age_at_reply": 0.504,
+      "query_seconds": 0.018881221010815352,
+      "parse_seconds": 0.002319119987078011,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 19804000000,
+      "raw_age": 0.196,
+      "forwarded_age": 0.196,
+      "cached_source_age": 0.988,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140736.820802718,
+    "ros": 21.0,
+    "data": {
+      "received": 116,
+      "forwarded": 11,
+      "expired": 105,
+      "tf_wait": 813,
+      "source_stamp_ns": 20396000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.005426035000709817,
+      "parse_seconds": 0.0010662370186764747,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 20860000000,
+      "raw_age": 0.076,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.604,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140737.819754568,
+    "ros": 22.0,
+    "data": {
+      "received": 120,
+      "forwarded": 15,
+      "expired": 105,
+      "tf_wait": 818,
+      "source_stamp_ns": 21320000000,
+      "source_age_at_reply": 0.184,
+      "query_seconds": 0.006014873011736199,
+      "parse_seconds": 0.0008946080051828176,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 21716000000,
+      "raw_age": 0.284,
+      "forwarded_age": 0.284,
+      "cached_source_age": 0.68,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140738.819833325,
+    "ros": 23.0,
+    "data": {
+      "received": 126,
+      "forwarded": 21,
+      "expired": 105,
+      "tf_wait": 824,
+      "source_stamp_ns": 22444000000,
+      "source_age_at_reply": 0.06,
+      "query_seconds": 0.006343452987493947,
+      "parse_seconds": 0.001422055996954441,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 22640000000,
+      "raw_age": 0.36,
+      "forwarded_age": 0.36,
+      "cached_source_age": 0.556,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140739.823348912,
+    "ros": 24.0,
+    "data": {
+      "received": 133,
+      "forwarded": 28,
+      "expired": 105,
+      "tf_wait": 830,
+      "source_stamp_ns": 22576000000,
+      "source_age_at_reply": 0.936,
+      "query_seconds": 0.015079460019478574,
+      "parse_seconds": 0.0010124380060005933,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 23960000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 1.424,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140740.820586847,
+    "ros": 25.0,
+    "data": {
+      "received": 139,
+      "forwarded": 34,
+      "expired": 105,
+      "tf_wait": 836,
+      "source_stamp_ns": 24356000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.005593996989773586,
+      "parse_seconds": 0.0009410610073246062,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 24488000000,
+      "raw_age": 0.512,
+      "forwarded_age": 0.512,
+      "cached_source_age": 0.644,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140741.82031867,
+    "ros": 26.0,
+    "data": {
+      "received": 146,
+      "forwarded": 41,
+      "expired": 105,
+      "tf_wait": 844,
+      "source_stamp_ns": 24488000000,
+      "source_age_at_reply": 1.044,
+      "query_seconds": 0.0036067960027139634,
+      "parse_seconds": 0.0014213170215953141,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 25940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 1.512,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140742.820211546,
+    "ros": 27.0,
+    "data": {
+      "received": 159,
+      "forwarded": 54,
+      "expired": 105,
+      "tf_wait": 855,
+      "source_stamp_ns": 26404000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.005751549993874505,
+      "parse_seconds": 0.0014774830196984112,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 26864000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.596,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140743.820377351,
+    "ros": 28.0,
+    "data": {
+      "received": 169,
+      "forwarded": 63,
+      "expired": 105,
+      "tf_wait": 865,
+      "source_stamp_ns": 27460000000,
+      "source_age_at_reply": 0.052,
+      "query_seconds": 0.015515286999288946,
+      "parse_seconds": 0.0009625719976611435,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 27.988000 but the latest data is at time 27.980000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 27988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.08,
+      "cached_source_age": 0.54,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140744.820711164,
+    "ros": 29.0,
+    "data": {
+      "received": 182,
+      "forwarded": 77,
+      "expired": 105,
+      "tf_wait": 878,
+      "source_stamp_ns": 28384000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.016012527979910374,
+      "parse_seconds": 0.0014311910199467093,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 28976000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.616,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140745.820096704,
+    "ros": 30.0,
+    "data": {
+      "received": 192,
+      "forwarded": 87,
+      "expired": 105,
+      "tf_wait": 887,
+      "source_stamp_ns": 29372000000,
+      "source_age_at_reply": 0.132,
+      "query_seconds": 0.005052394000813365,
+      "parse_seconds": 0.0009202389919664711,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 29704000000,
+      "raw_age": 0.296,
+      "forwarded_age": 0.296,
+      "cached_source_age": 0.628,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140746.82029178,
+    "ros": 31.0,
+    "data": {
+      "received": 198,
+      "forwarded": 93,
+      "expired": 105,
+      "tf_wait": 894,
+      "source_stamp_ns": 30364000000,
+      "source_age_at_reply": 0.14,
+      "query_seconds": 0.0065884480136446655,
+      "parse_seconds": 0.0009058440045919269,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 30956000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.636,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140747.820557035,
+    "ros": 32.0,
+    "data": {
+      "received": 207,
+      "forwarded": 102,
+      "expired": 105,
+      "tf_wait": 904,
+      "source_stamp_ns": 31420000000,
+      "source_age_at_reply": 0.084,
+      "query_seconds": 0.00609517001430504,
+      "parse_seconds": 0.0008969760092440993,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 31948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 0.58,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140748.820747256,
+    "ros": 33.0,
+    "data": {
+      "received": 216,
+      "forwarded": 111,
+      "expired": 105,
+      "tf_wait": 912,
+      "source_stamp_ns": 32276000000,
+      "source_age_at_reply": 0.228,
+      "query_seconds": 0.0060998949920758605,
+      "parse_seconds": 0.0010092970042023808,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 32936000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.724,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140749.820481799,
+    "ros": 34.0,
+    "data": {
+      "received": 218,
+      "forwarded": 113,
+      "expired": 105,
+      "tf_wait": 914,
+      "source_stamp_ns": 33068000000,
+      "source_age_at_reply": 0.436,
+      "query_seconds": 0.0060000550001859665,
+      "parse_seconds": 0.0009003499872051179,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 33068000000,
+      "raw_age": 0.932,
+      "forwarded_age": 0.932,
+      "cached_source_age": 0.932,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140750.825094227,
+    "ros": 35.0,
+    "data": {
+      "received": 229,
+      "forwarded": 123,
+      "expired": 105,
+      "tf_wait": 926,
+      "source_stamp_ns": 34324000000,
+      "source_age_at_reply": 0.196,
+      "query_seconds": 0.02150448801694438,
+      "parse_seconds": 0.0011098500108346343,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 34.984000 but the latest data is at time 34.976000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 34984000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.084,
+      "cached_source_age": 0.676,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140751.825306585,
+    "ros": 36.0,
+    "data": {
+      "received": 239,
+      "forwarded": 134,
+      "expired": 105,
+      "tf_wait": 942,
+      "source_stamp_ns": 35180000000,
+      "source_age_at_reply": 0.328,
+      "query_seconds": 0.011410077015170828,
+      "parse_seconds": 0.0009809320035856217,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 35908000000,
+      "raw_age": 0.092,
+      "forwarded_age": 0.092,
+      "cached_source_age": 0.82,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140752.824980295,
+    "ros": 37.0,
+    "data": {
+      "received": 245,
+      "forwarded": 140,
+      "expired": 105,
+      "tf_wait": 952,
+      "source_stamp_ns": 36436000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.011002685001585633,
+      "parse_seconds": 0.0012308039877098054,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 36632000000,
+      "raw_age": 0.368,
+      "forwarded_age": 0.368,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140753.824952784,
+    "ros": 38.0,
+    "data": {
+      "received": 247,
+      "forwarded": 142,
+      "expired": 105,
+      "tf_wait": 956,
+      "source_stamp_ns": 36568000000,
+      "source_age_at_reply": 0.94,
+      "query_seconds": 0.009805813984712586,
+      "parse_seconds": 0.0009056070121005177,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 37888000000,
+      "raw_age": 0.112,
+      "forwarded_age": 0.112,
+      "cached_source_age": 1.432,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140754.825340895,
+    "ros": 39.0,
+    "data": {
+      "received": 256,
+      "forwarded": 151,
+      "expired": 105,
+      "tf_wait": 968,
+      "source_stamp_ns": 38348000000,
+      "source_age_at_reply": 0.16,
+      "query_seconds": 0.010481699020601809,
+      "parse_seconds": 0.000971354020293802,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 38876000000,
+      "raw_age": 0.124,
+      "forwarded_age": 0.124,
+      "cached_source_age": 0.652,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140755.824823438,
+    "ros": 40.0,
+    "data": {
+      "received": 264,
+      "forwarded": 159,
+      "expired": 105,
+      "tf_wait": 981,
+      "source_stamp_ns": 39340000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.011190576013177633,
+      "parse_seconds": 0.001019021001411602,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 39932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140756.82487623,
+    "ros": 41.0,
+    "data": {
+      "received": 274,
+      "forwarded": 169,
+      "expired": 105,
+      "tf_wait": 998,
+      "source_stamp_ns": 40396000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.020200439990730956,
+      "parse_seconds": 0.0008286570082418621,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 40724000000,
+      "raw_age": 0.276,
+      "forwarded_age": 0.276,
+      "cached_source_age": 0.604,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140757.824674475,
+    "ros": 42.0,
+    "data": {
+      "received": 274,
+      "forwarded": 169,
+      "expired": 105,
+      "tf_wait": 998,
+      "source_stamp_ns": 40660000000,
+      "source_age_at_reply": 0.86,
+      "query_seconds": 0.01995578399510123,
+      "parse_seconds": 0.0009686980047263205,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 40724000000,
+      "raw_age": 1.276,
+      "forwarded_age": 1.276,
+      "cached_source_age": 1.34,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140758.826155898,
+    "ros": 43.0,
+    "data": {
+      "received": 284,
+      "forwarded": 179,
+      "expired": 105,
+      "tf_wait": 1003,
+      "source_stamp_ns": 42376000000,
+      "source_age_at_reply": 0.144,
+      "query_seconds": 0.02111619000788778,
+      "parse_seconds": 0.0014688590017613024,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 42572000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140759.824905617,
+    "ros": 44.0,
+    "data": {
+      "received": 299,
+      "forwarded": 194,
+      "expired": 105,
+      "tf_wait": 1007,
+      "source_stamp_ns": 43364000000,
+      "source_age_at_reply": 0.144,
+      "query_seconds": 0.010539014008827507,
+      "parse_seconds": 0.0009561610058881342,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 43892000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.636,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140760.824836448,
+    "ros": 45.0,
+    "data": {
+      "received": 302,
+      "forwarded": 197,
+      "expired": 105,
+      "tf_wait": 1007,
+      "source_stamp_ns": 43892000000,
+      "source_age_at_reply": 0.616,
+      "query_seconds": 0.010014047002186999,
+      "parse_seconds": 0.0008885450079105794,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 43892000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 1.108,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140761.824797336,
+    "ros": 46.0,
+    "data": {
+      "received": 317,
+      "forwarded": 212,
+      "expired": 105,
+      "tf_wait": 1011,
+      "source_stamp_ns": 45412000000,
+      "source_age_at_reply": 0.096,
+      "query_seconds": 0.010919944004854187,
+      "parse_seconds": 0.0015414699737448245,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 45940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140762.825105334,
+    "ros": 47.0,
+    "data": {
+      "received": 331,
+      "forwarded": 226,
+      "expired": 105,
+      "tf_wait": 1017,
+      "source_stamp_ns": 46400000000,
+      "source_age_at_reply": 0.12,
+      "query_seconds": 0.020464865025132895,
+      "parse_seconds": 0.0014400810177903622,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 46732000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140763.824750456,
+    "ros": 48.0,
+    "data": {
+      "received": 342,
+      "forwarded": 237,
+      "expired": 105,
+      "tf_wait": 1020,
+      "source_stamp_ns": 47392000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.021131623012479395,
+      "parse_seconds": 0.0013592530158348382,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 47852000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 0.608,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140764.824959737,
+    "ros": 49.0,
+    "data": {
+      "received": 349,
+      "forwarded": 244,
+      "expired": 105,
+      "tf_wait": 1022,
+      "source_stamp_ns": 48380000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.011002726008882746,
+      "parse_seconds": 0.0011005350097548217,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 48512000000,
+      "raw_age": 0.488,
+      "forwarded_age": 0.488,
+      "cached_source_age": 0.62,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140765.824599855,
+    "ros": 50.0,
+    "data": {
+      "received": 355,
+      "forwarded": 250,
+      "expired": 105,
+      "tf_wait": 1023,
+      "source_stamp_ns": 49040000000,
+      "source_age_at_reply": 0.468,
+      "query_seconds": 0.011586621985770762,
+      "parse_seconds": 0.001601448020664975,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 49900000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.96,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140766.825105367,
+    "ros": 51.0,
+    "data": {
+      "received": 369,
+      "forwarded": 264,
+      "expired": 105,
+      "tf_wait": 1029,
+      "source_stamp_ns": 50360000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.010889400000451133,
+      "parse_seconds": 0.0008997390104923397,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 50692000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.64,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140767.825337381,
+    "ros": 52.0,
+    "data": {
+      "received": 384,
+      "forwarded": 279,
+      "expired": 105,
+      "tf_wait": 1033,
+      "source_stamp_ns": 51352000000,
+      "source_age_at_reply": 0.156,
+      "query_seconds": 0.01043726401985623,
+      "parse_seconds": 0.0008828260179143399,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 51812000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140768.82489552,
+    "ros": 53.0,
+    "data": {
+      "received": 398,
+      "forwarded": 293,
+      "expired": 105,
+      "tf_wait": 1037,
+      "source_stamp_ns": 52408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.010218832991085947,
+      "parse_seconds": 0.0019681190024130046,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 52472000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140769.824670696,
+    "ros": 54.0,
+    "data": {
+      "received": 406,
+      "forwarded": 301,
+      "expired": 105,
+      "tf_wait": 1038,
+      "source_stamp_ns": 53464000000,
+      "source_age_at_reply": 0.044,
+      "query_seconds": 0.011087837017839774,
+      "parse_seconds": 0.0015061519807204604,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 53332000000,
+      "raw_age": 0.208,
+      "forwarded_age": 0.208,
+      "cached_source_age": 0.536,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140770.824815167,
+    "ros": 55.0,
+    "data": {
+      "received": 412,
+      "forwarded": 307,
+      "expired": 105,
+      "tf_wait": 1044,
+      "source_stamp_ns": 54388000000,
+      "source_age_at_reply": 0.12,
+      "query_seconds": 0.01111389001016505,
+      "parse_seconds": 0.0010196439980063587,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 54452000000,
+      "raw_age": 0.548,
+      "forwarded_age": 0.548,
+      "cached_source_age": 0.612,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140771.825007237,
+    "ros": 56.0,
+    "data": {
+      "received": 423,
+      "forwarded": 318,
+      "expired": 105,
+      "tf_wait": 1054,
+      "source_stamp_ns": 55376000000,
+      "source_age_at_reply": 0.132,
+      "query_seconds": 0.010914760990999639,
+      "parse_seconds": 0.001550287997815758,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 55840000000,
+      "raw_age": 0.16,
+      "forwarded_age": 0.16,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140772.824922745,
+    "ros": 57.0,
+    "data": {
+      "received": 435,
+      "forwarded": 330,
+      "expired": 105,
+      "tf_wait": 1061,
+      "source_stamp_ns": 56236000000,
+      "source_age_at_reply": 0.284,
+      "query_seconds": 0.021674821007763967,
+      "parse_seconds": 0.001061408023815602,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 56828000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.764,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140773.827366111,
+    "ros": 58.0,
+    "data": {
+      "received": 447,
+      "forwarded": 342,
+      "expired": 105,
+      "tf_wait": 1064,
+      "source_stamp_ns": 57424000000,
+      "source_age_at_reply": 0.084,
+      "query_seconds": 0.01038491100189276,
+      "parse_seconds": 0.0010239820112474263,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 57424000000,
+      "raw_age": 0.248,
+      "forwarded_age": 0.248,
+      "cached_source_age": 0.576,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140774.824923065,
+    "ros": 59.0,
+    "data": {
+      "received": 456,
+      "forwarded": 351,
+      "expired": 105,
+      "tf_wait": 1067,
+      "source_stamp_ns": 58412000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.020868763996986672,
+      "parse_seconds": 0.0009191400022245944,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 58940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140775.826774823,
+    "ros": 60.0,
+    "data": {
+      "received": 470,
+      "forwarded": 365,
+      "expired": 105,
+      "tf_wait": 1071,
+      "source_stamp_ns": 59468000000,
+      "source_age_at_reply": 0.04,
+      "query_seconds": 0.011475473991595209,
+      "parse_seconds": 0.0010032309801317751,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 59932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.532,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140776.824835999,
+    "ros": 61.0,
+    "data": {
+      "received": 478,
+      "forwarded": 373,
+      "expired": 105,
+      "tf_wait": 1071,
+      "source_stamp_ns": 60328000000,
+      "source_age_at_reply": 0.192,
+      "query_seconds": 0.02131683798506856,
+      "parse_seconds": 0.0014175749965943396,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 59932000000,
+      "raw_age": 0.212,
+      "forwarded_age": 0.212,
+      "cached_source_age": 0.672,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140777.825340513,
+    "ros": 62.0,
+    "data": {
+      "received": 492,
+      "forwarded": 387,
+      "expired": 105,
+      "tf_wait": 1080,
+      "source_stamp_ns": 61316000000,
+      "source_age_at_reply": 0.204,
+      "query_seconds": 0.020788005989743397,
+      "parse_seconds": 0.0013624650018755347,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 61912000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.684,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140778.824774413,
+    "ros": 63.0,
+    "data": {
+      "received": 499,
+      "forwarded": 394,
+      "expired": 105,
+      "tf_wait": 1082,
+      "source_stamp_ns": 62176000000,
+      "source_age_at_reply": 0.344,
+      "query_seconds": 0.020600601012120023,
+      "parse_seconds": 0.0010875669831875712,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 62572000000,
+      "raw_age": 0.164,
+      "forwarded_age": 0.164,
+      "cached_source_age": 0.824,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140779.824741169,
+    "ros": 64.0,
+    "data": {
+      "received": 508,
+      "forwarded": 403,
+      "expired": 105,
+      "tf_wait": 1090,
+      "source_stamp_ns": 63428000000,
+      "source_age_at_reply": 0.08,
+      "query_seconds": 0.011367465020157397,
+      "parse_seconds": 0.0015544880006927997,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 63892000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.572,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140780.824774986,
+    "ros": 65.0,
+    "data": {
+      "received": 520,
+      "forwarded": 415,
+      "expired": 105,
+      "tf_wait": 1094,
+      "source_stamp_ns": 64484000000,
+      "source_age_at_reply": 0.036,
+      "query_seconds": 0.021010855009080842,
+      "parse_seconds": 0.0009041430021170527,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 64948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 0.516,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140781.825614188,
+    "ros": 66.0,
+    "data": {
+      "received": 532,
+      "forwarded": 427,
+      "expired": 105,
+      "tf_wait": 1100,
+      "source_stamp_ns": 65408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.011432134982896969,
+      "parse_seconds": 0.001459558989154175,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 65872000000,
+      "raw_age": 0.128,
+      "forwarded_age": 0.128,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140782.8251208,
+    "ros": 67.0,
+    "data": {
+      "received": 542,
+      "forwarded": 437,
+      "expired": 105,
+      "tf_wait": 1103,
+      "source_stamp_ns": 66400000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.011393533990485594,
+      "parse_seconds": 0.0013057950127404183,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 66532000000,
+      "raw_age": 0.272,
+      "forwarded_age": 0.272,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140783.824951261,
+    "ros": 68.0,
+    "data": {
+      "received": 545,
+      "forwarded": 440,
+      "expired": 105,
+      "tf_wait": 1104,
+      "source_stamp_ns": 66728000000,
+      "source_age_at_reply": 0.78,
+      "query_seconds": 0.010408000991446897,
+      "parse_seconds": 0.0013202140107750893,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 67852000000,
+      "raw_age": 0.148,
+      "forwarded_age": 0.148,
+      "cached_source_age": 1.272,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140784.826204828,
+    "ros": 69.0,
+    "data": {
+      "received": 558,
+      "forwarded": 453,
+      "expired": 105,
+      "tf_wait": 1111,
+      "source_stamp_ns": 68444000000,
+      "source_age_at_reply": 0.064,
+      "query_seconds": 0.01152150600682944,
+      "parse_seconds": 0.001972780009964481,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 68972000000,
+      "raw_age": 0.028,
+      "forwarded_age": 0.028,
+      "cached_source_age": 0.556,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140785.825014367,
+    "ros": 70.0,
+    "data": {
+      "received": 568,
+      "forwarded": 463,
+      "expired": 105,
+      "tf_wait": 1112,
+      "source_stamp_ns": 69368000000,
+      "source_age_at_reply": 0.14,
+      "query_seconds": 0.012445243017282337,
+      "parse_seconds": 0.0020318650058470666,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 69632000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.632,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140786.825322971,
+    "ros": 71.0,
+    "data": {
+      "received": 580,
+      "forwarded": 475,
+      "expired": 105,
+      "tf_wait": 1120,
+      "source_stamp_ns": 70360000000,
+      "source_age_at_reply": 0.16,
+      "query_seconds": 0.02117551100673154,
+      "parse_seconds": 0.000990900007309392,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 70952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.64,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140787.824788281,
+    "ros": 72.0,
+    "data": {
+      "received": 595,
+      "forwarded": 490,
+      "expired": 105,
+      "tf_wait": 1135,
+      "source_stamp_ns": 71416000000,
+      "source_age_at_reply": 0.092,
+      "query_seconds": 0.010902167006861418,
+      "parse_seconds": 0.0012957229919265956,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 71876000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.584,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140788.825025372,
+    "ros": 73.0,
+    "data": {
+      "received": 604,
+      "forwarded": 499,
+      "expired": 105,
+      "tf_wait": 1142,
+      "source_stamp_ns": 72404000000,
+      "source_age_at_reply": 0.116,
+      "query_seconds": 0.02017461700597778,
+      "parse_seconds": 0.0013951980217825621,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 72932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.596,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140789.82485937,
+    "ros": 74.0,
+    "data": {
+      "received": 615,
+      "forwarded": 509,
+      "expired": 105,
+      "tf_wait": 1153,
+      "source_stamp_ns": 73396000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.021263619972160086,
+      "parse_seconds": 0.0010485590028110892,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 73.988000 but the latest data is at time 73.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 73988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.604,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140790.825232261,
+    "ros": 75.0,
+    "data": {
+      "received": 621,
+      "forwarded": 516,
+      "expired": 105,
+      "tf_wait": 1158,
+      "source_stamp_ns": 74452000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.011519280000356957,
+      "parse_seconds": 0.0014695590070914477,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 74980000000,
+      "raw_age": 0.02,
+      "forwarded_age": 0.02,
+      "cached_source_age": 0.548,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140791.824862656,
+    "ros": 76.0,
+    "data": {
+      "received": 630,
+      "forwarded": 525,
+      "expired": 105,
+      "tf_wait": 1165,
+      "source_stamp_ns": 75376000000,
+      "source_age_at_reply": 0.144,
+      "query_seconds": 0.022842733975267038,
+      "parse_seconds": 0.0015817619860172272,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 75508000000,
+      "raw_age": 0.296,
+      "forwarded_age": 0.296,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140792.824872274,
+    "ros": 77.0,
+    "data": {
+      "received": 639,
+      "forwarded": 534,
+      "expired": 105,
+      "tf_wait": 1174,
+      "source_stamp_ns": 76432000000,
+      "source_age_at_reply": 0.088,
+      "query_seconds": 0.021152380999410525,
+      "parse_seconds": 0.0008371470030397177,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 76892000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140793.824824617,
+    "ros": 78.0,
+    "data": {
+      "received": 650,
+      "forwarded": 545,
+      "expired": 105,
+      "tf_wait": 1186,
+      "source_stamp_ns": 77420000000,
+      "source_age_at_reply": 0.088,
+      "query_seconds": 0.011594678013352677,
+      "parse_seconds": 0.001523277984233573,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 77948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 0.58,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140794.825167127,
+    "ros": 79.0,
+    "data": {
+      "received": 665,
+      "forwarded": 560,
+      "expired": 105,
+      "tf_wait": 1197,
+      "source_stamp_ns": 78476000000,
+      "source_age_at_reply": 0.044,
+      "query_seconds": 0.020696618012152612,
+      "parse_seconds": 0.0012268790160305798,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 78940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.524,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140795.825046227,
+    "ros": 80.0,
+    "data": {
+      "received": 676,
+      "forwarded": 571,
+      "expired": 105,
+      "tf_wait": 1202,
+      "source_stamp_ns": 79268000000,
+      "source_age_at_reply": 0.252,
+      "query_seconds": 0.020994091988541186,
+      "parse_seconds": 0.0008955090015660971,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 79928000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.732,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140796.825282545,
+    "ros": 81.0,
+    "data": {
+      "received": 680,
+      "forwarded": 575,
+      "expired": 105,
+      "tf_wait": 1205,
+      "source_stamp_ns": 80128000000,
+      "source_age_at_reply": 0.38,
+      "query_seconds": 0.011380209994968027,
+      "parse_seconds": 0.0010269999911542982,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 80192000000,
+      "raw_age": 0.808,
+      "forwarded_age": 0.808,
+      "cached_source_age": 0.872,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140797.824677103,
+    "ros": 82.0,
+    "data": {
+      "received": 687,
+      "forwarded": 582,
+      "expired": 105,
+      "tf_wait": 1212,
+      "source_stamp_ns": 81380000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.012048499018419534,
+      "parse_seconds": 0.0014781839854549617,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 81908000000,
+      "raw_age": 0.092,
+      "forwarded_age": 0.092,
+      "cached_source_age": 0.62,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140798.825068868,
+    "ros": 83.0,
+    "data": {
+      "received": 691,
+      "forwarded": 586,
+      "expired": 105,
+      "tf_wait": 1213,
+      "source_stamp_ns": 82372000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.020872971013886854,
+      "parse_seconds": 0.0009229560091625899,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 82372000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.628,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140799.824726099,
+    "ros": 84.0,
+    "data": {
+      "received": 696,
+      "forwarded": 591,
+      "expired": 105,
+      "tf_wait": 1220,
+      "source_stamp_ns": 83428000000,
+      "source_age_at_reply": 0.08,
+      "query_seconds": 0.011661298020044342,
+      "parse_seconds": 0.0015063300088513643,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 83428000000,
+      "raw_age": 0.572,
+      "forwarded_age": 0.572,
+      "cached_source_age": 0.572,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140800.824748683,
+    "ros": 85.0,
+    "data": {
+      "received": 703,
+      "forwarded": 598,
+      "expired": 105,
+      "tf_wait": 1228,
+      "source_stamp_ns": 84416000000,
+      "source_age_at_reply": 0.092,
+      "query_seconds": 0.011873092997120693,
+      "parse_seconds": 0.001977943000383675,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 84944000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.584,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140801.825141381,
+    "ros": 86.0,
+    "data": {
+      "received": 710,
+      "forwarded": 605,
+      "expired": 105,
+      "tf_wait": 1234,
+      "source_stamp_ns": 85340000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.010973014024784788,
+      "parse_seconds": 0.001348773977952078,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 85672000000,
+      "raw_age": 0.328,
+      "forwarded_age": 0.328,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140802.825611205,
+    "ros": 87.0,
+    "data": {
+      "received": 717,
+      "forwarded": 612,
+      "expired": 105,
+      "tf_wait": 1238,
+      "source_stamp_ns": 86264000000,
+      "source_age_at_reply": 0.244,
+      "query_seconds": 0.011350868007866666,
+      "parse_seconds": 0.0015577120066154748,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 86860000000,
+      "raw_age": 0.14,
+      "forwarded_age": 0.14,
+      "cached_source_age": 0.736,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140803.825288481,
+    "ros": 88.0,
+    "data": {
+      "received": 723,
+      "forwarded": 618,
+      "expired": 105,
+      "tf_wait": 1244,
+      "source_stamp_ns": 86792000000,
+      "source_age_at_reply": 0.728,
+      "query_seconds": 0.020395537983858958,
+      "parse_seconds": 0.0009065170015674084,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 87980000000,
+      "raw_age": 0.02,
+      "forwarded_age": 0.02,
+      "cached_source_age": 1.208,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140804.824899579,
+    "ros": 89.0,
+    "data": {
+      "received": 724,
+      "forwarded": 619,
+      "expired": 105,
+      "tf_wait": 1244,
+      "source_stamp_ns": 88048000000,
+      "source_age_at_reply": 0.46,
+      "query_seconds": 0.010622236994095147,
+      "parse_seconds": 0.0009743529953993857,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 87980000000,
+      "raw_age": 0.952,
+      "forwarded_age": 0.952,
+      "cached_source_age": 0.952,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140805.824938341,
+    "ros": 90.0,
+    "data": {
+      "received": 730,
+      "forwarded": 625,
+      "expired": 105,
+      "tf_wait": 1250,
+      "source_stamp_ns": 89432000000,
+      "source_age_at_reply": 0.088,
+      "query_seconds": 0.02162429501186125,
+      "parse_seconds": 0.0008852820028550923,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 89828000000,
+      "raw_age": 0.172,
+      "forwarded_age": 0.172,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140806.824971702,
+    "ros": 91.0,
+    "data": {
+      "received": 738,
+      "forwarded": 633,
+      "expired": 105,
+      "tf_wait": 1257,
+      "source_stamp_ns": 90356000000,
+      "source_age_at_reply": 0.164,
+      "query_seconds": 0.02078649800387211,
+      "parse_seconds": 0.0009147970122285187,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 90952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.644,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140807.825127069,
+    "ros": 92.0,
+    "data": {
+      "received": 746,
+      "forwarded": 641,
+      "expired": 105,
+      "tf_wait": 1265,
+      "source_stamp_ns": 91280000000,
+      "source_age_at_reply": 0.228,
+      "query_seconds": 0.011476010986370966,
+      "parse_seconds": 0.0014295000000856817,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 91876000000,
+      "raw_age": 0.124,
+      "forwarded_age": 0.124,
+      "cached_source_age": 0.72,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140808.826713098,
+    "ros": 93.0,
+    "data": {
+      "received": 759,
+      "forwarded": 654,
+      "expired": 105,
+      "tf_wait": 1274,
+      "source_stamp_ns": 92272000000,
+      "source_age_at_reply": 0.236,
+      "query_seconds": 0.01004281098721549,
+      "parse_seconds": 0.001025607984047383,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 92800000000,
+      "raw_age": 0.136,
+      "forwarded_age": 0.136,
+      "cached_source_age": 0.728,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140809.825016637,
+    "ros": 94.0,
+    "data": {
+      "received": 769,
+      "forwarded": 663,
+      "expired": 105,
+      "tf_wait": 1283,
+      "source_stamp_ns": 93392000000,
+      "source_age_at_reply": 0.116,
+      "query_seconds": 0.01128148302086629,
+      "parse_seconds": 0.0012612559949047863,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 93.988000 but the latest data is at time 93.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 93988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.08,
+      "cached_source_age": 0.608,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140810.825050796,
+    "ros": 95.0,
+    "data": {
+      "received": 783,
+      "forwarded": 678,
+      "expired": 105,
+      "tf_wait": 1291,
+      "source_stamp_ns": 94448000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.021430855995276943,
+      "parse_seconds": 0.0009613830188754946,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 94912000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.552,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140811.824669026,
+    "ros": 96.0,
+    "data": {
+      "received": 790,
+      "forwarded": 685,
+      "expired": 105,
+      "tf_wait": 1299,
+      "source_stamp_ns": 95240000000,
+      "source_age_at_reply": 0.28,
+      "query_seconds": 0.021501787996385247,
+      "parse_seconds": 0.0012440969876479357,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 95900000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.76,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140812.82484007,
+    "ros": 97.0,
+    "data": {
+      "received": 801,
+      "forwarded": 696,
+      "expired": 105,
+      "tf_wait": 1309,
+      "source_stamp_ns": 96428000000,
+      "source_age_at_reply": 0.08,
+      "query_seconds": 0.010757088020909578,
+      "parse_seconds": 0.0009906500054057688,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 96956000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.572,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140813.824703515,
+    "ros": 98.0,
+    "data": {
+      "received": 811,
+      "forwarded": 706,
+      "expired": 105,
+      "tf_wait": 1316,
+      "source_stamp_ns": 97352000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.02100456299376674,
+      "parse_seconds": 0.0010212459892500192,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 97552000000,
+      "raw_age": 0.384,
+      "forwarded_age": 0.384,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140814.825139365,
+    "ros": 99.0,
+    "data": {
+      "received": 814,
+      "forwarded": 709,
+      "expired": 105,
+      "tf_wait": 1317,
+      "source_stamp_ns": 98408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.010404136992292479,
+      "parse_seconds": 0.001535073999548331,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 98476000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140815.825179312,
+    "ros": 100.0,
+    "data": {
+      "received": 823,
+      "forwarded": 718,
+      "expired": 105,
+      "tf_wait": 1325,
+      "source_stamp_ns": 99400000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.011173377017257735,
+      "parse_seconds": 0.0015242260124068707,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 99860000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140816.824902466,
+    "ros": 101.0,
+    "data": {
+      "received": 832,
+      "forwarded": 727,
+      "expired": 105,
+      "tf_wait": 1333,
+      "source_stamp_ns": 100192000000,
+      "source_age_at_reply": 0.316,
+      "query_seconds": 0.01157603898900561,
+      "parse_seconds": 0.0015324830019380897,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 100916000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 0.808,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140817.825596008,
+    "ros": 102.0,
+    "data": {
+      "received": 836,
+      "forwarded": 731,
+      "expired": 105,
+      "tf_wait": 1338,
+      "source_stamp_ns": 100916000000,
+      "source_age_at_reply": 0.604,
+      "query_seconds": 0.021026122994953766,
+      "parse_seconds": 0.000939215999096632,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 101972000000,
+      "raw_age": 0.028,
+      "forwarded_age": 0.028,
+      "cached_source_age": 1.084,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140818.82516714,
+    "ros": 103.0,
+    "data": {
+      "received": 848,
+      "forwarded": 743,
+      "expired": 105,
+      "tf_wait": 1348,
+      "source_stamp_ns": 102436000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.01153108201106079,
+      "parse_seconds": 0.001490166992880404,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 102832000000,
+      "raw_age": 0.168,
+      "forwarded_age": 0.168,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140819.824790174,
+    "ros": 104.0,
+    "data": {
+      "received": 861,
+      "forwarded": 756,
+      "expired": 105,
+      "tf_wait": 1357,
+      "source_stamp_ns": 103424000000,
+      "source_age_at_reply": 0.084,
+      "query_seconds": 0.011579548998270184,
+      "parse_seconds": 0.0015163340140134096,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 103952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.576,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140820.825254397,
+    "ros": 105.0,
+    "data": {
+      "received": 863,
+      "forwarded": 758,
+      "expired": 105,
+      "tf_wait": 1358,
+      "source_stamp_ns": 103952000000,
+      "source_age_at_reply": 0.568,
+      "query_seconds": 0.021617844991851598,
+      "parse_seconds": 0.0014186780026648194,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 104020000000,
+      "raw_age": 0.32,
+      "forwarded_age": 0.32,
+      "cached_source_age": 1.048,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140821.824938522,
+    "ros": 106.0,
+    "data": {
+      "received": 874,
+      "forwarded": 769,
+      "expired": 105,
+      "tf_wait": 1366,
+      "source_stamp_ns": 105404000000,
+      "source_age_at_reply": 0.104,
+      "query_seconds": 0.011201279005035758,
+      "parse_seconds": 0.0017155449895653874,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 105472000000,
+      "raw_age": 0.264,
+      "forwarded_age": 0.264,
+      "cached_source_age": 0.596,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140822.824990572,
+    "ros": 107.0,
+    "data": {
+      "received": 885,
+      "forwarded": 779,
+      "expired": 105,
+      "tf_wait": 1376,
+      "source_stamp_ns": 106396000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.021494343993254006,
+      "parse_seconds": 0.001020408992189914,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 106.988000 but the latest data is at time 106.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 106988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.604,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140823.825649595,
+    "ros": 108.0,
+    "data": {
+      "received": 900,
+      "forwarded": 795,
+      "expired": 105,
+      "tf_wait": 1391,
+      "source_stamp_ns": 107452000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.010901336994720623,
+      "parse_seconds": 0.0015692889865022153,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 107980000000,
+      "raw_age": 0.02,
+      "forwarded_age": 0.02,
+      "cached_source_age": 0.548,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140824.824931708,
+    "ros": 109.0,
+    "data": {
+      "received": 915,
+      "forwarded": 810,
+      "expired": 105,
+      "tf_wait": 1403,
+      "source_stamp_ns": 108376000000,
+      "source_age_at_reply": 0.132,
+      "query_seconds": 0.01135286400676705,
+      "parse_seconds": 0.0010380180028732866,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 108836000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140825.824723103,
+    "ros": 110.0,
+    "data": {
+      "received": 930,
+      "forwarded": 825,
+      "expired": 105,
+      "tf_wait": 1415,
+      "source_stamp_ns": 109432000000,
+      "source_age_at_reply": 0.088,
+      "query_seconds": 0.021072781994007528,
+      "parse_seconds": 0.0009073000110220164,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 109892000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140826.825358995,
+    "ros": 111.0,
+    "data": {
+      "received": 930,
+      "forwarded": 825,
+      "expired": 105,
+      "tf_wait": 1415,
+      "source_stamp_ns": 109960000000,
+      "source_age_at_reply": 0.568,
+      "query_seconds": 0.03124759899219498,
+      "parse_seconds": 0.0014937789819668978,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 109892000000,
+      "raw_age": 1.04,
+      "forwarded_age": 1.04,
+      "cached_source_age": 1.04,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140827.825235582,
+    "ros": 112.0,
+    "data": {
+      "received": 931,
+      "forwarded": 826,
+      "expired": 105,
+      "tf_wait": 1415,
+      "source_stamp_ns": 109960000000,
+      "source_age_at_reply": 1.56,
+      "query_seconds": 0.02042844597599469,
+      "parse_seconds": 0.0009086359932553023,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 109892000000,
+      "raw_age": 0.324,
+      "forwarded_age": 0.324,
+      "cached_source_age": 2.04,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140828.825182888,
+    "ros": 113.0,
+    "data": {
+      "received": 933,
+      "forwarded": 828,
+      "expired": 105,
+      "tf_wait": 1418,
+      "source_stamp_ns": 112204000000,
+      "source_age_at_reply": 0.304,
+      "query_seconds": 0.011619540018728003,
+      "parse_seconds": 0.0015164740034379065,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 112532000000,
+      "raw_age": 0.468,
+      "forwarded_age": 0.468,
+      "cached_source_age": 0.796,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140829.82667881,
+    "ros": 114.0,
+    "data": {
+      "received": 948,
+      "forwarded": 843,
+      "expired": 105,
+      "tf_wait": 1431,
+      "source_stamp_ns": 113456000000,
+      "source_age_at_reply": 0.064,
+      "query_seconds": 0.021636699995724484,
+      "parse_seconds": 0.0014336459862533957,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 113920000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 0.544,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140830.825104592,
+    "ros": 115.0,
+    "data": {
+      "received": 954,
+      "forwarded": 849,
+      "expired": 105,
+      "tf_wait": 1437,
+      "source_stamp_ns": 114448000000,
+      "source_age_at_reply": 0.06,
+      "query_seconds": 0.011218203988391906,
+      "parse_seconds": 0.0015300590021070093,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 114448000000,
+      "raw_age": 0.552,
+      "forwarded_age": 0.552,
+      "cached_source_age": 0.552,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140831.82488853,
+    "ros": 116.0,
+    "data": {
+      "received": 963,
+      "forwarded": 858,
+      "expired": 105,
+      "tf_wait": 1442,
+      "source_stamp_ns": 115240000000,
+      "source_age_at_reply": 0.268,
+      "query_seconds": 0.011396084999432787,
+      "parse_seconds": 0.0011851269809994847,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 115832000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.76,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140832.825070181,
+    "ros": 117.0,
+    "data": {
+      "received": 965,
+      "forwarded": 860,
+      "expired": 105,
+      "tf_wait": 1443,
+      "source_stamp_ns": 116096000000,
+      "source_age_at_reply": 0.412,
+      "query_seconds": 0.011320921999868006,
+      "parse_seconds": 0.001077580003766343,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 116032000000,
+      "raw_age": 0.904,
+      "forwarded_age": 0.904,
+      "cached_source_age": 0.904,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140833.824857742,
+    "ros": 118.0,
+    "data": {
+      "received": 975,
+      "forwarded": 870,
+      "expired": 105,
+      "tf_wait": 1453,
+      "source_stamp_ns": 117352000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.021143922000192106,
+      "parse_seconds": 0.0009142119961325079,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 117944000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140834.82511367,
+    "ros": 119.0,
+    "data": {
+      "received": 983,
+      "forwarded": 878,
+      "expired": 105,
+      "tf_wait": 1458,
+      "source_stamp_ns": 118340000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.010746369982371107,
+      "parse_seconds": 0.0011584209860302508,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 118472000000,
+      "raw_age": 0.528,
+      "forwarded_age": 0.528,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140835.824591701,
+    "ros": 120.0,
+    "data": {
+      "received": 992,
+      "forwarded": 887,
+      "expired": 105,
+      "tf_wait": 1465,
+      "source_stamp_ns": 119132000000,
+      "source_age_at_reply": 0.388,
+      "query_seconds": 0.020824356004595757,
+      "parse_seconds": 0.0008727200038265437,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 119924000000,
+      "raw_age": 0.076,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.868,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140836.825717866,
+    "ros": 121.0,
+    "data": {
+      "received": 1007,
+      "forwarded": 902,
+      "expired": 105,
+      "tf_wait": 1477,
+      "source_stamp_ns": 120452000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.010540657996898517,
+      "parse_seconds": 0.0009435380052309483,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 120980000000,
+      "raw_age": 0.02,
+      "forwarded_age": 0.02,
+      "cached_source_age": 0.548,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140837.827013739,
+    "ros": 122.0,
+    "data": {
+      "received": 1017,
+      "forwarded": 912,
+      "expired": 105,
+      "tf_wait": 1485,
+      "source_stamp_ns": 121444000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.02101862500421703,
+      "parse_seconds": 0.0009346930019091815,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 121972000000,
+      "raw_age": 0.028,
+      "forwarded_age": 0.028,
+      "cached_source_age": 0.556,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140838.82519465,
+    "ros": 123.0,
+    "data": {
+      "received": 1030,
+      "forwarded": 925,
+      "expired": 105,
+      "tf_wait": 1497,
+      "source_stamp_ns": 122368000000,
+      "source_age_at_reply": 0.152,
+      "query_seconds": 0.02137429901631549,
+      "parse_seconds": 0.000894193013664335,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 122828000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.632,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140839.824881342,
+    "ros": 124.0,
+    "data": {
+      "received": 1040,
+      "forwarded": 935,
+      "expired": 105,
+      "tf_wait": 1507,
+      "source_stamp_ns": 123424000000,
+      "source_age_at_reply": 0.096,
+      "query_seconds": 0.020621838979423046,
+      "parse_seconds": 0.0014466509746853262,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 123952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.576,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140840.824910161,
+    "ros": 125.0,
+    "data": {
+      "received": 1046,
+      "forwarded": 941,
+      "expired": 105,
+      "tf_wait": 1509,
+      "source_stamp_ns": 124216000000,
+      "source_age_at_reply": 0.304,
+      "query_seconds": 0.020506154018221423,
+      "parse_seconds": 0.0009160389890894294,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 124876000000,
+      "raw_age": 0.124,
+      "forwarded_age": 0.124,
+      "cached_source_age": 0.784,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140841.824869663,
+    "ros": 126.0,
+    "data": {
+      "received": 1058,
+      "forwarded": 953,
+      "expired": 105,
+      "tf_wait": 1516,
+      "source_stamp_ns": 125336000000,
+      "source_age_at_reply": 0.172,
+      "query_seconds": 0.011412119987653568,
+      "parse_seconds": 0.0013657129893545061,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 125932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.664,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140842.824671835,
+    "ros": 127.0,
+    "data": {
+      "received": 1064,
+      "forwarded": 958,
+      "expired": 105,
+      "tf_wait": 1523,
+      "source_stamp_ns": 126128000000,
+      "source_age_at_reply": 0.392,
+      "query_seconds": 0.020937790017342195,
+      "parse_seconds": 0.0014809989952482283,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 126.988000 but the latest data is at time 126.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 126988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.344,
+      "cached_source_age": 0.872,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140843.825246821,
+    "ros": 128.0,
+    "data": {
+      "received": 1069,
+      "forwarded": 964,
+      "expired": 105,
+      "tf_wait": 1529,
+      "source_stamp_ns": 127316000000,
+      "source_age_at_reply": 0.192,
+      "query_seconds": 0.010812263994012028,
+      "parse_seconds": 0.0014989709889050573,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 127384000000,
+      "raw_age": 0.616,
+      "forwarded_age": 0.616,
+      "cached_source_age": 0.684,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140844.824935601,
+    "ros": 129.0,
+    "data": {
+      "received": 1072,
+      "forwarded": 967,
+      "expired": 105,
+      "tf_wait": 1532,
+      "source_stamp_ns": 128308000000,
+      "source_age_at_reply": 0.212,
+      "query_seconds": 0.022004307014867663,
+      "parse_seconds": 0.0013998089998494834,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 128308000000,
+      "raw_age": 0.692,
+      "forwarded_age": 0.692,
+      "cached_source_age": 0.692,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140845.840345778,
+    "ros": 130.012,
+    "data": {
+      "received": 1074,
+      "forwarded": 969,
+      "expired": 105,
+      "tf_wait": 1533,
+      "source_stamp_ns": 129296000000,
+      "source_age_at_reply": 0.212,
+      "query_seconds": 0.011837030004244298,
+      "parse_seconds": 0.0011698750022333115,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 129296000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.704,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140846.825246722,
+    "ros": 131.0,
+    "data": {
+      "received": 1080,
+      "forwarded": 975,
+      "expired": 105,
+      "tf_wait": 1541,
+      "source_stamp_ns": 129956000000,
+      "source_age_at_reply": 0.552,
+      "query_seconds": 0.010420828009955585,
+      "parse_seconds": 0.0009923790057655424,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 130948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 1.044,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140847.82526151,
+    "ros": 132.0,
+    "data": {
+      "received": 1092,
+      "forwarded": 987,
+      "expired": 105,
+      "tf_wait": 1551,
+      "source_stamp_ns": 131408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.009886158019071445,
+      "parse_seconds": 0.000962416990660131,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 131936000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140848.825891473,
+    "ros": 133.0,
+    "data": {
+      "received": 1102,
+      "forwarded": 997,
+      "expired": 105,
+      "tf_wait": 1555,
+      "source_stamp_ns": 132400000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.010853718995349482,
+      "parse_seconds": 0.0010626959847286344,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 132532000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140849.825682393,
+    "ros": 134.0,
+    "data": {
+      "received": 1109,
+      "forwarded": 1004,
+      "expired": 105,
+      "tf_wait": 1562,
+      "source_stamp_ns": 133324000000,
+      "source_age_at_reply": 0.184,
+      "query_seconds": 0.01058833600836806,
+      "parse_seconds": 0.0009876129915937781,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 133984000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 0.676,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140850.825082695,
+    "ros": 135.0,
+    "data": {
+      "received": 1115,
+      "forwarded": 1010,
+      "expired": 105,
+      "tf_wait": 1569,
+      "source_stamp_ns": 134380000000,
+      "source_age_at_reply": 0.14,
+      "query_seconds": 0.021769390994450077,
+      "parse_seconds": 0.0015214330051094294,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 134708000000,
+      "raw_age": 0.292,
+      "forwarded_age": 0.292,
+      "cached_source_age": 0.62,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140851.825183813,
+    "ros": 136.0,
+    "data": {
+      "received": 1126,
+      "forwarded": 1021,
+      "expired": 105,
+      "tf_wait": 1577,
+      "source_stamp_ns": 135436000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.011318139004288241,
+      "parse_seconds": 0.0015634800074622035,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 135764000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140852.825145809,
+    "ros": 137.0,
+    "data": {
+      "received": 1139,
+      "forwarded": 1034,
+      "expired": 105,
+      "tf_wait": 1584,
+      "source_stamp_ns": 136360000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.011875755997607484,
+      "parse_seconds": 0.0014537259994540364,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 136952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.64,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140853.82492926,
+    "ros": 138.0,
+    "data": {
+      "received": 1145,
+      "forwarded": 1040,
+      "expired": 105,
+      "tf_wait": 1591,
+      "source_stamp_ns": 137084000000,
+      "source_age_at_reply": 0.436,
+      "query_seconds": 0.02099662699038163,
+      "parse_seconds": 0.0009924210025928915,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 137944000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.916,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140854.825186584,
+    "ros": 139.0,
+    "data": {
+      "received": 1159,
+      "forwarded": 1054,
+      "expired": 105,
+      "tf_wait": 1604,
+      "source_stamp_ns": 138340000000,
+      "source_age_at_reply": 0.18,
+      "query_seconds": 0.020467903988901526,
+      "parse_seconds": 0.0009012069785967469,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 138932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140855.824902468,
+    "ros": 140.0,
+    "data": {
+      "received": 1167,
+      "forwarded": 1062,
+      "expired": 105,
+      "tf_wait": 1608,
+      "source_stamp_ns": 139328000000,
+      "source_age_at_reply": 0.192,
+      "query_seconds": 0.021468015998834744,
+      "parse_seconds": 0.001411964010912925,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 139660000000,
+      "raw_age": 0.34,
+      "forwarded_age": 0.34,
+      "cached_source_age": 0.672,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140856.824840263,
+    "ros": 141.0,
+    "data": {
+      "received": 1176,
+      "forwarded": 1071,
+      "expired": 105,
+      "tf_wait": 1616,
+      "source_stamp_ns": 140120000000,
+      "source_age_at_reply": 0.4,
+      "query_seconds": 0.021258633001707494,
+      "parse_seconds": 0.001383672992233187,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 140912000000,
+      "raw_age": 0.088,
+      "forwarded_age": 0.088,
+      "cached_source_age": 0.88,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140857.825080956,
+    "ros": 142.0,
+    "data": {
+      "received": 1182,
+      "forwarded": 1077,
+      "expired": 105,
+      "tf_wait": 1619,
+      "source_stamp_ns": 141376000000,
+      "source_age_at_reply": 0.132,
+      "query_seconds": 0.011038895027013496,
+      "parse_seconds": 0.0010516959882806987,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 141772000000,
+      "raw_age": 0.228,
+      "forwarded_age": 0.228,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140858.824674616,
+    "ros": 143.0,
+    "data": {
+      "received": 1186,
+      "forwarded": 1081,
+      "expired": 105,
+      "tf_wait": 1622,
+      "source_stamp_ns": 142432000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.010795745009090751,
+      "parse_seconds": 0.0009916469862218946,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 142628000000,
+      "raw_age": 0.24,
+      "forwarded_age": 0.24,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140859.825383031,
+    "ros": 144.0,
+    "data": {
+      "received": 1187,
+      "forwarded": 1082,
+      "expired": 105,
+      "tf_wait": 1624,
+      "source_stamp_ns": 142760000000,
+      "source_age_at_reply": 0.748,
+      "query_seconds": 0.010825415985891595,
+      "parse_seconds": 0.0009231779840774834,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 143884000000,
+      "raw_age": 0.116,
+      "forwarded_age": 0.116,
+      "cached_source_age": 1.24,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140860.824798306,
+    "ros": 145.0,
+    "data": {
+      "received": 1198,
+      "forwarded": 1093,
+      "expired": 105,
+      "tf_wait": 1634,
+      "source_stamp_ns": 144412000000,
+      "source_age_at_reply": 0.116,
+      "query_seconds": 0.03184982898528688,
+      "parse_seconds": 0.0014280299947131425,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 144940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140861.824801898,
+    "ros": 146.0,
+    "data": {
+      "received": 1204,
+      "forwarded": 1099,
+      "expired": 105,
+      "tf_wait": 1641,
+      "source_stamp_ns": 145400000000,
+      "source_age_at_reply": 0.12,
+      "query_seconds": 0.020682186004705727,
+      "parse_seconds": 0.0008784410019870847,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 145796000000,
+      "raw_age": 0.204,
+      "forwarded_age": 0.204,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140862.824723558,
+    "ros": 147.0,
+    "data": {
+      "received": 1209,
+      "forwarded": 1104,
+      "expired": 105,
+      "tf_wait": 1645,
+      "source_stamp_ns": 146456000000,
+      "source_age_at_reply": 0.064,
+      "query_seconds": 0.02217151501099579,
+      "parse_seconds": 0.0014482389960903674,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 146588000000,
+      "raw_age": 0.28,
+      "forwarded_age": 0.28,
+      "cached_source_age": 0.544,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140863.825492928,
+    "ros": 148.0,
+    "data": {
+      "received": 1215,
+      "forwarded": 1110,
+      "expired": 105,
+      "tf_wait": 1650,
+      "source_stamp_ns": 147248000000,
+      "source_age_at_reply": 0.26,
+      "query_seconds": 0.011148121004225686,
+      "parse_seconds": 0.0009763909911271185,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 147976000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.752,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140864.82511398,
+    "ros": 149.0,
+    "data": {
+      "received": 1229,
+      "forwarded": 1124,
+      "expired": 105,
+      "tf_wait": 1661,
+      "source_stamp_ns": 148436000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.011616239993600175,
+      "parse_seconds": 0.0010820250026881695,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 148964000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140865.825006169,
+    "ros": 150.0,
+    "data": {
+      "received": 1242,
+      "forwarded": 1137,
+      "expired": 105,
+      "tf_wait": 1671,
+      "source_stamp_ns": 149360000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.011395126028219238,
+      "parse_seconds": 0.001064915006281808,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 149956000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.64,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140866.824853447,
+    "ros": 151.0,
+    "data": {
+      "received": 1249,
+      "forwarded": 1144,
+      "expired": 105,
+      "tf_wait": 1679,
+      "source_stamp_ns": 150352000000,
+      "source_age_at_reply": 0.156,
+      "query_seconds": 0.011648382991552353,
+      "parse_seconds": 0.0018211400019936264,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 150812000000,
+      "raw_age": 0.188,
+      "forwarded_age": 0.188,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140867.824872494,
+    "ros": 152.0,
+    "data": {
+      "received": 1260,
+      "forwarded": 1155,
+      "expired": 105,
+      "tf_wait": 1688,
+      "source_stamp_ns": 151408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.01078090799273923,
+      "parse_seconds": 0.0015000790008343756,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 151868000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140868.82529182,
+    "ros": 153.0,
+    "data": {
+      "received": 1266,
+      "forwarded": 1161,
+      "expired": 105,
+      "tf_wait": 1694,
+      "source_stamp_ns": 152264000000,
+      "source_age_at_reply": 0.256,
+      "query_seconds": 0.02206308499444276,
+      "parse_seconds": 0.0014892329927533865,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 152924000000,
+      "raw_age": 0.076,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.736,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140869.825305343,
+    "ros": 154.0,
+    "data": {
+      "received": 1266,
+      "forwarded": 1161,
+      "expired": 105,
+      "tf_wait": 1694,
+      "source_stamp_ns": 152924000000,
+      "source_age_at_reply": 0.584,
+      "query_seconds": 0.010870439989957958,
+      "parse_seconds": 0.0014631849771831185,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 152924000000,
+      "raw_age": 1.076,
+      "forwarded_age": 1.076,
+      "cached_source_age": 1.076,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140870.824799797,
+    "ros": 155.0,
+    "data": {
+      "received": 1266,
+      "forwarded": 1161,
+      "expired": 105,
+      "tf_wait": 1694,
+      "source_stamp_ns": 152924000000,
+      "source_age_at_reply": 1.584,
+      "query_seconds": 0.010038581996923313,
+      "parse_seconds": 0.000930921989493072,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 152924000000,
+      "raw_age": 2.076,
+      "forwarded_age": 2.076,
+      "cached_source_age": 2.076,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140870.837767595,
+    "ros": 155.012,
+    "data": {
+      "received": 1266,
+      "forwarded": 1161,
+      "expired": 105,
+      "tf_wait": 1694,
+      "source_stamp_ns": 152924000000,
+      "source_age_at_reply": 2.084,
+      "query_seconds": 0.010588117002043873,
+      "parse_seconds": 0.001086211996152997,
+      "error": "Map source data stale: source_age=2.084s, forwarded_depth_age=2.084, pending_depth=0",
+      "tf_error": null,
+      "tf_requested_stamp_ns": 152924000000,
+      "raw_age": 2.084,
+      "forwarded_age": 2.084,
+      "cached_source_age": 2.084,
+      "pending_depth": 0,
+      "query_pending": false,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140871.824816973,
+    "ros": 156.0,
+    "data": {
+      "received": 1278,
+      "forwarded": 1173,
+      "expired": 105,
+      "tf_wait": 1704,
+      "source_stamp_ns": 155432000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.011374396010069177,
+      "parse_seconds": 0.0015646519896108657,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 155828000000,
+      "raw_age": 0.04,
+      "forwarded_age": 0.04,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140872.825150085,
+    "ros": 157.0,
+    "data": {
+      "received": 1288,
+      "forwarded": 1183,
+      "expired": 105,
+      "tf_wait": 1719,
+      "source_stamp_ns": 156356000000,
+      "source_age_at_reply": 0.152,
+      "query_seconds": 0.01139938598498702,
+      "parse_seconds": 0.0011122620198875666,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 156688000000,
+      "raw_age": 0.312,
+      "forwarded_age": 0.312,
+      "cached_source_age": 0.644,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140873.825065105,
+    "ros": 158.0,
+    "data": {
+      "received": 1300,
+      "forwarded": 1195,
+      "expired": 105,
+      "tf_wait": 1729,
+      "source_stamp_ns": 157412000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.02171163901221007,
+      "parse_seconds": 0.0010212379856966436,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 157676000000,
+      "raw_age": 0.192,
+      "forwarded_age": 0.192,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140874.824951747,
+    "ros": 159.0,
+    "data": {
+      "received": 1306,
+      "forwarded": 1201,
+      "expired": 105,
+      "tf_wait": 1735,
+      "source_stamp_ns": 157808000000,
+      "source_age_at_reply": 0.712,
+      "query_seconds": 0.020655171014368534,
+      "parse_seconds": 0.0014398049970623106,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 158932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 1.192,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140875.825373823,
+    "ros": 160.0,
+    "data": {
+      "received": 1315,
+      "forwarded": 1209,
+      "expired": 105,
+      "tf_wait": 1742,
+      "source_stamp_ns": 159328000000,
+      "source_age_at_reply": 0.192,
+      "query_seconds": 0.02134309898247011,
+      "parse_seconds": 0.0010684150038287044,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 159.988000 but the latest data is at time 159.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 159988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.08,
+      "cached_source_age": 0.672,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140876.824748003,
+    "ros": 161.0,
+    "data": {
+      "received": 1321,
+      "forwarded": 1216,
+      "expired": 105,
+      "tf_wait": 1745,
+      "source_stamp_ns": 160384000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.010868672979995608,
+      "parse_seconds": 0.0010112800227943808,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 160580000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.616,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140877.824947236,
+    "ros": 162.0,
+    "data": {
+      "received": 1330,
+      "forwarded": 1225,
+      "expired": 105,
+      "tf_wait": 1752,
+      "source_stamp_ns": 161108000000,
+      "source_age_at_reply": 0.412,
+      "query_seconds": 0.020864768011961132,
+      "parse_seconds": 0.0008966870082076639,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 161900000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.892,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140878.825052843,
+    "ros": 163.0,
+    "data": {
+      "received": 1340,
+      "forwarded": 1235,
+      "expired": 105,
+      "tf_wait": 1761,
+      "source_stamp_ns": 162364000000,
+      "source_age_at_reply": 0.144,
+      "query_seconds": 0.010710423986893147,
+      "parse_seconds": 0.0009005210013128817,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 162692000000,
+      "raw_age": 0.24,
+      "forwarded_age": 0.24,
+      "cached_source_age": 0.636,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140879.82538985,
+    "ros": 164.0,
+    "data": {
+      "received": 1346,
+      "forwarded": 1241,
+      "expired": 105,
+      "tf_wait": 1769,
+      "source_stamp_ns": 163156000000,
+      "source_age_at_reply": 0.364,
+      "query_seconds": 0.020644134987378493,
+      "parse_seconds": 0.0009247889975085855,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 163948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 0.844,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140880.825077873,
+    "ros": 165.0,
+    "data": {
+      "received": 1350,
+      "forwarded": 1245,
+      "expired": 105,
+      "tf_wait": 1772,
+      "source_stamp_ns": 164344000000,
+      "source_age_at_reply": 0.164,
+      "query_seconds": 0.010673209006199613,
+      "parse_seconds": 0.0010891190031543374,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 164476000000,
+      "raw_age": 0.524,
+      "forwarded_age": 0.524,
+      "cached_source_age": 0.656,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140881.82545202,
+    "ros": 166.0,
+    "data": {
+      "received": 1354,
+      "forwarded": 1249,
+      "expired": 105,
+      "tf_wait": 1775,
+      "source_stamp_ns": 165400000000,
+      "source_age_at_reply": 0.108,
+      "query_seconds": 0.011021242011338472,
+      "parse_seconds": 0.0011275270080659539,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 165400000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.6,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140882.825399456,
+    "ros": 167.0,
+    "data": {
+      "received": 1362,
+      "forwarded": 1257,
+      "expired": 105,
+      "tf_wait": 1783,
+      "source_stamp_ns": 165928000000,
+      "source_age_at_reply": 0.6,
+      "query_seconds": 0.03158849402097985,
+      "parse_seconds": 0.0012284280091989785,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 166984000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 1.072,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140883.825306963,
+    "ros": 168.0,
+    "data": {
+      "received": 1374,
+      "forwarded": 1269,
+      "expired": 105,
+      "tf_wait": 1793,
+      "source_stamp_ns": 167444000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.021482686017407104,
+      "parse_seconds": 0.0014973169891163707,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 167708000000,
+      "raw_age": 0.16,
+      "forwarded_age": 0.16,
+      "cached_source_age": 0.556,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140884.824945387,
+    "ros": 169.0,
+    "data": {
+      "received": 1381,
+      "forwarded": 1276,
+      "expired": 105,
+      "tf_wait": 1800,
+      "source_stamp_ns": 168368000000,
+      "source_age_at_reply": 0.152,
+      "query_seconds": 0.022017698996933177,
+      "parse_seconds": 0.0014380960201378912,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 168764000000,
+      "raw_age": 0.236,
+      "forwarded_age": 0.236,
+      "cached_source_age": 0.632,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140885.824853193,
+    "ros": 170.0,
+    "data": {
+      "received": 1388,
+      "forwarded": 1283,
+      "expired": 105,
+      "tf_wait": 1802,
+      "source_stamp_ns": 169424000000,
+      "source_age_at_reply": 0.084,
+      "query_seconds": 0.012067605974152684,
+      "parse_seconds": 0.0016239319811575115,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 169952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.576,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140886.8252247,
+    "ros": 171.0,
+    "data": {
+      "received": 1402,
+      "forwarded": 1297,
+      "expired": 105,
+      "tf_wait": 1815,
+      "source_stamp_ns": 170480000000,
+      "source_age_at_reply": 0.04,
+      "query_seconds": 0.02137519500683993,
+      "parse_seconds": 0.0013995340268593282,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 170944000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.52,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140887.824634791,
+    "ros": 172.0,
+    "data": {
+      "received": 1409,
+      "forwarded": 1304,
+      "expired": 105,
+      "tf_wait": 1822,
+      "source_stamp_ns": 171340000000,
+      "source_age_at_reply": 0.18,
+      "query_seconds": 0.020378927001729608,
+      "parse_seconds": 0.0014947660092730075,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 171472000000,
+      "raw_age": 0.528,
+      "forwarded_age": 0.528,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140888.825136195,
+    "ros": 173.0,
+    "data": {
+      "received": 1421,
+      "forwarded": 1315,
+      "expired": 105,
+      "tf_wait": 1835,
+      "source_stamp_ns": 172396000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.021369904017774388,
+      "parse_seconds": 0.000913772004423663,
+      "error": null,
+      "tf_error": "Lookup would require extrapolation into the future.  Requested time 172.988000 but the latest data is at time 172.984000, when looking up transform from frame [oakd_camera_optical_frame] to frame [map]",
+      "tf_requested_stamp_ns": 172988000000,
+      "raw_age": 0.012,
+      "forwarded_age": 0.076,
+      "cached_source_age": 0.604,
+      "pending_depth": 1,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140889.82489918,
+    "ros": 174.0,
+    "data": {
+      "received": 1432,
+      "forwarded": 1327,
+      "expired": 105,
+      "tf_wait": 1845,
+      "source_stamp_ns": 173452000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.0113911269872915,
+      "parse_seconds": 0.0010754629911389202,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 173912000000,
+      "raw_age": 0.088,
+      "forwarded_age": 0.088,
+      "cached_source_age": 0.548,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140890.824798964,
+    "ros": 175.0,
+    "data": {
+      "received": 1438,
+      "forwarded": 1333,
+      "expired": 105,
+      "tf_wait": 1850,
+      "source_stamp_ns": 174308000000,
+      "source_age_at_reply": 0.2,
+      "query_seconds": 0.011861228005727753,
+      "parse_seconds": 0.0010832489933818579,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 174308000000,
+      "raw_age": 0.164,
+      "forwarded_age": 0.164,
+      "cached_source_age": 0.692,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140891.824813896,
+    "ros": 176.0,
+    "data": {
+      "received": 1443,
+      "forwarded": 1338,
+      "expired": 105,
+      "tf_wait": 1857,
+      "source_stamp_ns": 175364000000,
+      "source_age_at_reply": 0.156,
+      "query_seconds": 0.021631238021655008,
+      "parse_seconds": 0.0014508370077237487,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 175828000000,
+      "raw_age": 0.172,
+      "forwarded_age": 0.172,
+      "cached_source_age": 0.636,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140892.825075719,
+    "ros": 177.0,
+    "data": {
+      "received": 1444,
+      "forwarded": 1339,
+      "expired": 105,
+      "tf_wait": 1858,
+      "source_stamp_ns": 176420000000,
+      "source_age_at_reply": 0.088,
+      "query_seconds": 0.011071973975049332,
+      "parse_seconds": 0.0010109430004376918,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 176420000000,
+      "raw_age": 0.58,
+      "forwarded_age": 0.58,
+      "cached_source_age": 0.58,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140893.825098888,
+    "ros": 178.0,
+    "data": {
+      "received": 1445,
+      "forwarded": 1340,
+      "expired": 105,
+      "tf_wait": 1858,
+      "source_stamp_ns": 177344000000,
+      "source_age_at_reply": 0.164,
+      "query_seconds": 0.01141895100590773,
+      "parse_seconds": 0.0010165410058107227,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 176420000000,
+      "raw_age": 0.656,
+      "forwarded_age": 0.656,
+      "cached_source_age": 0.656,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140894.824825476,
+    "ros": 179.0,
+    "data": {
+      "received": 1448,
+      "forwarded": 1343,
+      "expired": 105,
+      "tf_wait": 1859,
+      "source_stamp_ns": 178072000000,
+      "source_age_at_reply": 0.436,
+      "query_seconds": 0.010677593003492802,
+      "parse_seconds": 0.0009481440065428615,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 178072000000,
+      "raw_age": 0.136,
+      "forwarded_age": 0.136,
+      "cached_source_age": 0.928,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140895.824822857,
+    "ros": 180.0,
+    "data": {
+      "received": 1451,
+      "forwarded": 1346,
+      "expired": 105,
+      "tf_wait": 1863,
+      "source_stamp_ns": 179456000000,
+      "source_age_at_reply": 0.064,
+      "query_seconds": 0.0211972719989717,
+      "parse_seconds": 0.000892398995347321,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 179324000000,
+      "raw_age": 0.544,
+      "forwarded_age": 0.544,
+      "cached_source_age": 0.544,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140896.826593777,
+    "ros": 181.0,
+    "data": {
+      "received": 1464,
+      "forwarded": 1359,
+      "expired": 105,
+      "tf_wait": 1876,
+      "source_stamp_ns": 180448000000,
+      "source_age_at_reply": 0.06,
+      "query_seconds": 0.011565030989004299,
+      "parse_seconds": 0.001533108006697148,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 180976000000,
+      "raw_age": 0.024,
+      "forwarded_age": 0.024,
+      "cached_source_age": 0.552,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140897.825324371,
+    "ros": 182.0,
+    "data": {
+      "received": 1479,
+      "forwarded": 1374,
+      "expired": 105,
+      "tf_wait": 1886,
+      "source_stamp_ns": 181372000000,
+      "source_age_at_reply": 0.136,
+      "query_seconds": 0.012159274017903954,
+      "parse_seconds": 0.0019675679795909673,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 181900000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.628,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140898.824764175,
+    "ros": 183.0,
+    "data": {
+      "received": 1482,
+      "forwarded": 1377,
+      "expired": 105,
+      "tf_wait": 1888,
+      "source_stamp_ns": 182296000000,
+      "source_age_at_reply": 0.212,
+      "query_seconds": 0.010689481016015634,
+      "parse_seconds": 0.0009875599935185164,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 182560000000,
+      "raw_age": 0.44,
+      "forwarded_age": 0.44,
+      "cached_source_age": 0.704,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140899.825288308,
+    "ros": 184.0,
+    "data": {
+      "received": 1496,
+      "forwarded": 1391,
+      "expired": 105,
+      "tf_wait": 1900,
+      "source_stamp_ns": 183416000000,
+      "source_age_at_reply": 0.104,
+      "query_seconds": 0.02118190302280709,
+      "parse_seconds": 0.0009023669990710914,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 183748000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.584,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140900.825055712,
+    "ros": 185.0,
+    "data": {
+      "received": 1505,
+      "forwarded": 1400,
+      "expired": 105,
+      "tf_wait": 1909,
+      "source_stamp_ns": 184340000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.011045538994949311,
+      "parse_seconds": 0.001102470007026568,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 184868000000,
+      "raw_age": 0.132,
+      "forwarded_age": 0.132,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140901.824825875,
+    "ros": 186.0,
+    "data": {
+      "received": 1507,
+      "forwarded": 1402,
+      "expired": 105,
+      "tf_wait": 1910,
+      "source_stamp_ns": 185396000000,
+      "source_age_at_reply": 0.112,
+      "query_seconds": 0.011861211009090766,
+      "parse_seconds": 0.0018398569955024868,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 185396000000,
+      "raw_age": 0.604,
+      "forwarded_age": 0.604,
+      "cached_source_age": 0.604,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140902.825315786,
+    "ros": 187.0,
+    "data": {
+      "received": 1509,
+      "forwarded": 1404,
+      "expired": 105,
+      "tf_wait": 1911,
+      "source_stamp_ns": 185396000000,
+      "source_age_at_reply": 1.112,
+      "query_seconds": 0.010175281000556424,
+      "parse_seconds": 0.0011707679950632155,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 186784000000,
+      "raw_age": 0.216,
+      "forwarded_age": 0.216,
+      "cached_source_age": 1.604,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140903.824568528,
+    "ros": 188.0,
+    "data": {
+      "received": 1511,
+      "forwarded": 1406,
+      "expired": 105,
+      "tf_wait": 1913,
+      "source_stamp_ns": 186716000000,
+      "source_age_at_reply": 0.804,
+      "query_seconds": 0.020522172999335453,
+      "parse_seconds": 0.0009313969931099564,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 187772000000,
+      "raw_age": 0.228,
+      "forwarded_age": 0.228,
+      "cached_source_age": 1.284,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140904.824903092,
+    "ros": 189.0,
+    "data": {
+      "received": 1515,
+      "forwarded": 1410,
+      "expired": 105,
+      "tf_wait": 1915,
+      "source_stamp_ns": 188432000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.011562728002900258,
+      "parse_seconds": 0.0010418839810881764,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 188432000000,
+      "raw_age": 0.236,
+      "forwarded_age": 0.236,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140905.825148483,
+    "ros": 190.0,
+    "data": {
+      "received": 1525,
+      "forwarded": 1420,
+      "expired": 105,
+      "tf_wait": 1922,
+      "source_stamp_ns": 189424000000,
+      "source_age_at_reply": 0.096,
+      "query_seconds": 0.0211366809962783,
+      "parse_seconds": 0.0014281680050771683,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 189952000000,
+      "raw_age": 0.048,
+      "forwarded_age": 0.048,
+      "cached_source_age": 0.576,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140906.824978153,
+    "ros": 191.0,
+    "data": {
+      "received": 1526,
+      "forwarded": 1421,
+      "expired": 105,
+      "tf_wait": 1923,
+      "source_stamp_ns": 190412000000,
+      "source_age_at_reply": 0.096,
+      "query_seconds": 0.010813808999955654,
+      "parse_seconds": 0.0014773510047234595,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 190412000000,
+      "raw_age": 0.588,
+      "forwarded_age": 0.588,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140907.824950609,
+    "ros": 192.0,
+    "data": {
+      "received": 1540,
+      "forwarded": 1435,
+      "expired": 105,
+      "tf_wait": 1936,
+      "source_stamp_ns": 191404000000,
+      "source_age_at_reply": 0.104,
+      "query_seconds": 0.010036648978712037,
+      "parse_seconds": 0.0010164599807467312,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 191932000000,
+      "raw_age": 0.068,
+      "forwarded_age": 0.068,
+      "cached_source_age": 0.596,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140908.825024604,
+    "ros": 193.0,
+    "data": {
+      "received": 1553,
+      "forwarded": 1448,
+      "expired": 105,
+      "tf_wait": 1943,
+      "source_stamp_ns": 192460000000,
+      "source_age_at_reply": 0.06,
+      "query_seconds": 0.021185115998378024,
+      "parse_seconds": 0.000982777972240001,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 192856000000,
+      "raw_age": 0.08,
+      "forwarded_age": 0.08,
+      "cached_source_age": 0.54,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140909.824735996,
+    "ros": 194.0,
+    "data": {
+      "received": 1557,
+      "forwarded": 1452,
+      "expired": 105,
+      "tf_wait": 1946,
+      "source_stamp_ns": 193384000000,
+      "source_age_at_reply": 0.136,
+      "query_seconds": 0.021616751997498795,
+      "parse_seconds": 0.0015626480162609369,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 193780000000,
+      "raw_age": 0.22,
+      "forwarded_age": 0.22,
+      "cached_source_age": 0.616,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140910.824999981,
+    "ros": 195.0,
+    "data": {
+      "received": 1569,
+      "forwarded": 1464,
+      "expired": 105,
+      "tf_wait": 1956,
+      "source_stamp_ns": 194440000000,
+      "source_age_at_reply": 0.068,
+      "query_seconds": 0.011367334984242916,
+      "parse_seconds": 0.0010627650190144777,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 194900000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.56,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140911.825066824,
+    "ros": 196.0,
+    "data": {
+      "received": 1584,
+      "forwarded": 1479,
+      "expired": 105,
+      "tf_wait": 1968,
+      "source_stamp_ns": 195428000000,
+      "source_age_at_reply": 0.092,
+      "query_seconds": 0.021704961982322857,
+      "parse_seconds": 0.001037633017404005,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 195892000000,
+      "raw_age": 0.044,
+      "forwarded_age": 0.044,
+      "cached_source_age": 0.572,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140912.82482438,
+    "ros": 197.0,
+    "data": {
+      "received": 1598,
+      "forwarded": 1493,
+      "expired": 105,
+      "tf_wait": 1984,
+      "source_stamp_ns": 196352000000,
+      "source_age_at_reply": 0.156,
+      "query_seconds": 0.010758574993815273,
+      "parse_seconds": 0.0009505290072411299,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 196948000000,
+      "raw_age": 0.052,
+      "forwarded_age": 0.052,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140913.825288559,
+    "ros": 198.0,
+    "data": {
+      "received": 1607,
+      "forwarded": 1502,
+      "expired": 105,
+      "tf_wait": 1990,
+      "source_stamp_ns": 197408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.011098992981715128,
+      "parse_seconds": 0.0012817549868486822,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 197804000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140914.824772838,
+    "ros": 199.0,
+    "data": {
+      "received": 1618,
+      "forwarded": 1513,
+      "expired": 105,
+      "tf_wait": 2000,
+      "source_stamp_ns": 198464000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.020851657987805083,
+      "parse_seconds": 0.0008805510005913675,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 198928000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.536,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140915.825033597,
+    "ros": 200.0,
+    "data": {
+      "received": 1623,
+      "forwarded": 1518,
+      "expired": 105,
+      "tf_wait": 2005,
+      "source_stamp_ns": 199324000000,
+      "source_age_at_reply": 0.204,
+      "query_seconds": 0.03094368800520897,
+      "parse_seconds": 0.0010245750017929822,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 199388000000,
+      "raw_age": 0.612,
+      "forwarded_age": 0.612,
+      "cached_source_age": 0.676,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140916.825163322,
+    "ros": 201.0,
+    "data": {
+      "received": 1634,
+      "forwarded": 1529,
+      "expired": 105,
+      "tf_wait": 2014,
+      "source_stamp_ns": 200380000000,
+      "source_age_at_reply": 0.14,
+      "query_seconds": 0.021567427000263706,
+      "parse_seconds": 0.001389468990964815,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 200708000000,
+      "raw_age": 0.16,
+      "forwarded_age": 0.16,
+      "cached_source_age": 0.62,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140917.826022069,
+    "ros": 202.0,
+    "data": {
+      "received": 1647,
+      "forwarded": 1542,
+      "expired": 105,
+      "tf_wait": 2020,
+      "source_stamp_ns": 201436000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.01150897701154463,
+      "parse_seconds": 0.0010201600089203566,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 201896000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140918.825366412,
+    "ros": 203.0,
+    "data": {
+      "received": 1653,
+      "forwarded": 1548,
+      "expired": 105,
+      "tf_wait": 2026,
+      "source_stamp_ns": 202360000000,
+      "source_age_at_reply": 0.148,
+      "query_seconds": 0.011194541002623737,
+      "parse_seconds": 0.0015706419944763184,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 202492000000,
+      "raw_age": 0.508,
+      "forwarded_age": 0.508,
+      "cached_source_age": 0.64,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140919.8247955,
+    "ros": 204.0,
+    "data": {
+      "received": 1665,
+      "forwarded": 1560,
+      "expired": 105,
+      "tf_wait": 2039,
+      "source_stamp_ns": 203348000000,
+      "source_age_at_reply": 0.16,
+      "query_seconds": 0.010838354006409645,
+      "parse_seconds": 0.001095373008865863,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 203876000000,
+      "raw_age": 0.056,
+      "forwarded_age": 0.056,
+      "cached_source_age": 0.652,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140920.825272411,
+    "ros": 205.0,
+    "data": {
+      "received": 1670,
+      "forwarded": 1565,
+      "expired": 105,
+      "tf_wait": 2043,
+      "source_stamp_ns": 203876000000,
+      "source_age_at_reply": 0.632,
+      "query_seconds": 0.010162708000279963,
+      "parse_seconds": 0.001502911007264629,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 204868000000,
+      "raw_age": 0.132,
+      "forwarded_age": 0.132,
+      "cached_source_age": 1.124,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140921.825051957,
+    "ros": 206.0,
+    "data": {
+      "received": 1674,
+      "forwarded": 1569,
+      "expired": 105,
+      "tf_wait": 2049,
+      "source_stamp_ns": 204800000000,
+      "source_age_at_reply": 0.708,
+      "query_seconds": 0.010381597996456549,
+      "parse_seconds": 0.0010125450207851827,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 205924000000,
+      "raw_age": 0.076,
+      "forwarded_age": 0.076,
+      "cached_source_age": 1.2,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140922.826253075,
+    "ros": 207.0,
+    "data": {
+      "received": 1688,
+      "forwarded": 1583,
+      "expired": 105,
+      "tf_wait": 2062,
+      "source_stamp_ns": 206384000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.010499258001800627,
+      "parse_seconds": 0.0009052620152942836,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 206980000000,
+      "raw_age": 0.02,
+      "forwarded_age": 0.02,
+      "cached_source_age": 0.616,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140923.825072602,
+    "ros": 208.0,
+    "data": {
+      "received": 1702,
+      "forwarded": 1597,
+      "expired": 105,
+      "tf_wait": 2071,
+      "source_stamp_ns": 207376000000,
+      "source_age_at_reply": 0.132,
+      "query_seconds": 0.01068801200017333,
+      "parse_seconds": 0.0009785529982764274,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 207836000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.624,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140924.824873647,
+    "ros": 209.0,
+    "data": {
+      "received": 1711,
+      "forwarded": 1606,
+      "expired": 105,
+      "tf_wait": 2077,
+      "source_stamp_ns": 208432000000,
+      "source_age_at_reply": 0.076,
+      "query_seconds": 0.011247649003053084,
+      "parse_seconds": 0.0015755100175738335,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 208828000000,
+      "raw_age": 0.172,
+      "forwarded_age": 0.172,
+      "cached_source_age": 0.568,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140925.845279219,
+    "ros": 210.016,
+    "data": {
+      "received": 1720,
+      "forwarded": 1615,
+      "expired": 105,
+      "tf_wait": 2088,
+      "source_stamp_ns": 209420000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.021219009009655565,
+      "parse_seconds": 0.0009104640048462898,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 209884000000,
+      "raw_age": 0.116,
+      "forwarded_age": 0.116,
+      "cached_source_age": 0.58,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140926.826503281,
+    "ros": 211.0,
+    "data": {
+      "received": 1730,
+      "forwarded": 1625,
+      "expired": 105,
+      "tf_wait": 2098,
+      "source_stamp_ns": 210148000000,
+      "source_age_at_reply": 0.38,
+      "query_seconds": 0.03131967000081204,
+      "parse_seconds": 0.001390295015880838,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 210940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.852,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140927.82528606,
+    "ros": 212.0,
+    "data": {
+      "received": 1734,
+      "forwarded": 1629,
+      "expired": 105,
+      "tf_wait": 2102,
+      "source_stamp_ns": 211004000000,
+      "source_age_at_reply": 0.516,
+      "query_seconds": 0.02069902198854834,
+      "parse_seconds": 0.000944188010180369,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 211796000000,
+      "raw_age": 0.204,
+      "forwarded_age": 0.204,
+      "cached_source_age": 0.996,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140928.824834659,
+    "ros": 213.0,
+    "data": {
+      "received": 1741,
+      "forwarded": 1636,
+      "expired": 105,
+      "tf_wait": 2109,
+      "source_stamp_ns": 212392000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.020872613007668406,
+      "parse_seconds": 0.0009060440061148256,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 212852000000,
+      "raw_age": 0.148,
+      "forwarded_age": 0.148,
+      "cached_source_age": 0.608,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140929.825077417,
+    "ros": 214.0,
+    "data": {
+      "received": 1742,
+      "forwarded": 1637,
+      "expired": 105,
+      "tf_wait": 2109,
+      "source_stamp_ns": 213448000000,
+      "source_age_at_reply": 0.072,
+      "query_seconds": 0.02130110200960189,
+      "parse_seconds": 0.0016355140251107514,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 212852000000,
+      "raw_age": 0.552,
+      "forwarded_age": 0.552,
+      "cached_source_age": 0.552,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140930.825818731,
+    "ros": 215.0,
+    "data": {
+      "received": 1749,
+      "forwarded": 1644,
+      "expired": 105,
+      "tf_wait": 2115,
+      "source_stamp_ns": 214304000000,
+      "source_age_at_reply": 0.204,
+      "query_seconds": 0.011307373002637178,
+      "parse_seconds": 0.0015828140021767467,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 214964000000,
+      "raw_age": 0.036,
+      "forwarded_age": 0.036,
+      "cached_source_age": 0.696,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140931.824951769,
+    "ros": 216.0,
+    "data": {
+      "received": 1756,
+      "forwarded": 1651,
+      "expired": 105,
+      "tf_wait": 2120,
+      "source_stamp_ns": 215428000000,
+      "source_age_at_reply": 0.08,
+      "query_seconds": 0.011264263011980802,
+      "parse_seconds": 0.001008897990686819,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 215428000000,
+      "raw_age": 0.572,
+      "forwarded_age": 0.572,
+      "cached_source_age": 0.572,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140932.825269366,
+    "ros": 217.0,
+    "data": {
+      "received": 1761,
+      "forwarded": 1656,
+      "expired": 105,
+      "tf_wait": 2126,
+      "source_stamp_ns": 216484000000,
+      "source_age_at_reply": 0.036,
+      "query_seconds": 0.020520505990134552,
+      "parse_seconds": 0.000921166007174179,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 216352000000,
+      "raw_age": 0.516,
+      "forwarded_age": 0.516,
+      "cached_source_age": 0.516,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140933.825026776,
+    "ros": 218.0,
+    "data": {
+      "received": 1769,
+      "forwarded": 1664,
+      "expired": 105,
+      "tf_wait": 2130,
+      "source_stamp_ns": 217340000000,
+      "source_age_at_reply": 0.168,
+      "query_seconds": 0.010541222000028938,
+      "parse_seconds": 0.0011419309885241091,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 217472000000,
+      "raw_age": 0.46,
+      "forwarded_age": 0.46,
+      "cached_source_age": 0.66,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140934.824893427,
+    "ros": 219.0,
+    "data": {
+      "received": 1776,
+      "forwarded": 1671,
+      "expired": 105,
+      "tf_wait": 2136,
+      "source_stamp_ns": 218464000000,
+      "source_age_at_reply": 0.056,
+      "query_seconds": 0.02077305899001658,
+      "parse_seconds": 0.0008994980016723275,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 218860000000,
+      "raw_age": 0.14,
+      "forwarded_age": 0.14,
+      "cached_source_age": 0.536,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140935.824842775,
+    "ros": 220.0,
+    "data": {
+      "received": 1779,
+      "forwarded": 1674,
+      "expired": 105,
+      "tf_wait": 2139,
+      "source_stamp_ns": 219188000000,
+      "source_age_at_reply": 0.32,
+      "query_seconds": 0.01100073498673737,
+      "parse_seconds": 0.0012352540215943009,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 219188000000,
+      "raw_age": 0.744,
+      "forwarded_age": 0.744,
+      "cached_source_age": 0.812,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140936.826255771,
+    "ros": 221.0,
+    "data": {
+      "received": 1784,
+      "forwarded": 1679,
+      "expired": 105,
+      "tf_wait": 2145,
+      "source_stamp_ns": 220444000000,
+      "source_age_at_reply": 0.064,
+      "query_seconds": 0.011220543005038053,
+      "parse_seconds": 0.0011642860190477222,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 220972000000,
+      "raw_age": 0.028,
+      "forwarded_age": 0.028,
+      "cached_source_age": 0.556,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140937.824785955,
+    "ros": 222.0,
+    "data": {
+      "received": 1791,
+      "forwarded": 1686,
+      "expired": 105,
+      "tf_wait": 2150,
+      "source_stamp_ns": 221368000000,
+      "source_age_at_reply": 0.152,
+      "query_seconds": 0.021379688987508416,
+      "parse_seconds": 0.0014904149866197258,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 221500000000,
+      "raw_age": 0.304,
+      "forwarded_age": 0.304,
+      "cached_source_age": 0.632,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140938.825068384,
+    "ros": 223.0,
+    "data": {
+      "received": 1798,
+      "forwarded": 1693,
+      "expired": 105,
+      "tf_wait": 2157,
+      "source_stamp_ns": 222292000000,
+      "source_age_at_reply": 0.216,
+      "query_seconds": 0.011014543997589499,
+      "parse_seconds": 0.0015618850011378527,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 222884000000,
+      "raw_age": 0.116,
+      "forwarded_age": 0.116,
+      "cached_source_age": 0.708,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140939.824972843,
+    "ros": 224.0,
+    "data": {
+      "received": 1806,
+      "forwarded": 1701,
+      "expired": 105,
+      "tf_wait": 2160,
+      "source_stamp_ns": 223412000000,
+      "source_age_at_reply": 0.096,
+      "query_seconds": 0.01117655000416562,
+      "parse_seconds": 0.0015751550090499222,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 223940000000,
+      "raw_age": 0.06,
+      "forwarded_age": 0.06,
+      "cached_source_age": 0.588,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140940.826946208,
+    "ros": 225.0,
+    "data": {
+      "received": 1816,
+      "forwarded": 1711,
+      "expired": 105,
+      "tf_wait": 2168,
+      "source_stamp_ns": 224404000000,
+      "source_age_at_reply": 0.116,
+      "query_seconds": 0.021573401987552643,
+      "parse_seconds": 0.0014049899764358997,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 224800000000,
+      "raw_age": 0.136,
+      "forwarded_age": 0.136,
+      "cached_source_age": 0.596,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140941.825118974,
+    "ros": 226.0,
+    "data": {
+      "received": 1823,
+      "forwarded": 1718,
+      "expired": 105,
+      "tf_wait": 2174,
+      "source_stamp_ns": 225260000000,
+      "source_age_at_reply": 0.248,
+      "query_seconds": 0.011030043999198824,
+      "parse_seconds": 0.0009507819777354598,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 225592000000,
+      "raw_age": 0.408,
+      "forwarded_age": 0.408,
+      "cached_source_age": 0.74,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140942.824991304,
+    "ros": 227.0,
+    "data": {
+      "received": 1829,
+      "forwarded": 1724,
+      "expired": 105,
+      "tf_wait": 2179,
+      "source_stamp_ns": 226384000000,
+      "source_age_at_reply": 0.124,
+      "query_seconds": 0.010659199993824586,
+      "parse_seconds": 0.0009721129899844527,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 226780000000,
+      "raw_age": 0.22,
+      "forwarded_age": 0.22,
+      "cached_source_age": 0.616,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140943.824696772,
+    "ros": 228.0,
+    "data": {
+      "received": 1835,
+      "forwarded": 1730,
+      "expired": 105,
+      "tf_wait": 2184,
+      "source_stamp_ns": 227308000000,
+      "source_age_at_reply": 0.2,
+      "query_seconds": 0.011574432021006942,
+      "parse_seconds": 0.0017735670262482017,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 227900000000,
+      "raw_age": 0.032,
+      "forwarded_age": 0.032,
+      "cached_source_age": 0.692,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140944.849497251,
+    "ros": 229.02,
+    "data": {
+      "received": 1837,
+      "forwarded": 1732,
+      "expired": 105,
+      "tf_wait": 2186,
+      "source_stamp_ns": 228032000000,
+      "source_age_at_reply": 0.476,
+      "query_seconds": 0.011784889007685706,
+      "parse_seconds": 0.0015108710213098675,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 228100000000,
+      "raw_age": 0.9,
+      "forwarded_age": 0.9,
+      "cached_source_age": 0.968,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140945.824843451,
+    "ros": 230.0,
+    "data": {
+      "received": 1839,
+      "forwarded": 1734,
+      "expired": 105,
+      "tf_wait": 2189,
+      "source_stamp_ns": 229352000000,
+      "source_age_at_reply": 0.156,
+      "query_seconds": 0.01115262700477615,
+      "parse_seconds": 0.0009811149793677032,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 229484000000,
+      "raw_age": 0.516,
+      "forwarded_age": 0.516,
+      "cached_source_age": 0.648,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140946.824756842,
+    "ros": 231.0,
+    "data": {
+      "received": 1848,
+      "forwarded": 1743,
+      "expired": 105,
+      "tf_wait": 2197,
+      "source_stamp_ns": 230408000000,
+      "source_age_at_reply": 0.1,
+      "query_seconds": 0.01073172700125724,
+      "parse_seconds": 0.001071341015631333,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 230936000000,
+      "raw_age": 0.064,
+      "forwarded_age": 0.064,
+      "cached_source_age": 0.592,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140947.825216022,
+    "ros": 232.0,
+    "data": {
+      "received": 1854,
+      "forwarded": 1749,
+      "expired": 105,
+      "tf_wait": 2204,
+      "source_stamp_ns": 231268000000,
+      "source_age_at_reply": 0.252,
+      "query_seconds": 0.02121610302128829,
+      "parse_seconds": 0.0014413570170290768,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 231596000000,
+      "raw_age": 0.072,
+      "forwarded_age": 0.072,
+      "cached_source_age": 0.732,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140948.825505333,
+    "ros": 233.0,
+    "data": {
+      "received": 1868,
+      "forwarded": 1763,
+      "expired": 105,
+      "tf_wait": 2219,
+      "source_stamp_ns": 232388000000,
+      "source_age_at_reply": 0.12,
+      "query_seconds": 0.011076330993091688,
+      "parse_seconds": 0.0009223369997926056,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 232984000000,
+      "raw_age": 0.016,
+      "forwarded_age": 0.016,
+      "cached_source_age": 0.612,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140949.825289765,
+    "ros": 234.0,
+    "data": {
+      "received": 1876,
+      "forwarded": 1771,
+      "expired": 105,
+      "tf_wait": 2226,
+      "source_stamp_ns": 233380000000,
+      "source_age_at_reply": 0.128,
+      "query_seconds": 0.011220795015105978,
+      "parse_seconds": 0.0015552729892078787,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 233840000000,
+      "raw_age": 0.16,
+      "forwarded_age": 0.16,
+      "cached_source_age": 0.62,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  },
+  {
+    "mono": 140950.825133904,
+    "ros": 235.0,
+    "data": {
+      "received": 1888,
+      "forwarded": 1783,
+      "expired": 105,
+      "tf_wait": 2238,
+      "source_stamp_ns": 234436000000,
+      "source_age_at_reply": 0.084,
+      "query_seconds": 0.021389384986832738,
+      "parse_seconds": 0.0009244680113624781,
+      "error": null,
+      "tf_error": null,
+      "tf_requested_stamp_ns": 234764000000,
+      "raw_age": 0.236,
+      "forwarded_age": 0.236,
+      "cached_source_age": 0.564,
+      "pending_depth": 0,
+      "query_pending": true,
+      "color": {
+        "received": 0,
+        "forwarded": 0,
+        "expired": 0,
+        "tf_wait": 0
+      },
+      "pending_color": 0,
+      "color_forwarded_age": null
+    }
+  }
+]
