@@ -4,7 +4,18 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
 算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、VIO 飞行及实机飞行仍待验证。
 
-当前优先 **完整 BT 任务 → PX4 导航／避障集成**，使用官方 SITL GNSS／惯性 EKF 定位进行功能开发；VIO 稳定性单独优化与验收。相机默认固定下偏 **5°**。本轮无界面完整 BT 飞行回归通过，见 [基线回归](docs/validation/simulation/2026-10-09-task-first-baseline/REPORT.md)。完整任务实现不代表 VIO 或避障已验收，见 [集成路线](docs/PX4_INTEGRATION_ROADMAP.md)。
+2026-10-10 最新要求：**后续仿真不使用 GNSS，切换实际双目／IMU VIO → PX4 EKF，并显示 UI**。`EKF2_GPS_CTRL=0`，禁止定位源运行中回退 GNSS；相机保持下偏 **5°**。此前 GNSS／惯性 EKF 的完整 BT 与 EGO 飞行结果保留为历史功能证据，不替代无 GNSS 飞行验收。当前 5° VIO 带 UI 仅作未解锁融合诊断，尚未满足飞行准入。
+
+无 GNSS 四窗口诊断入口（未解锁；结束后窗口最多保留一小时）：
+
+```bash
+./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene warehouse \
+  --warehouse-floor-texture --camera-pitch-deg 5 --image-resolution 640x400 \
+  --quality-policy bounded_gap --real-time-factor .8 --render-device nvidia \
+  --sdk-image-depth 1 --headless-rendering --ekf-delay-max-ms 160 \
+  --ui --diagnostic-ui --ui-hold-seconds 3600 --duration 120
+```
+
 
 新增显式 EGO 导航／返航执行分支：网关复检已绑定曲线并转换到 PX4 local，地图／会话／控制权变化撤销旧曲线。115 项回归、真实规划输出准入及缺少规划源时 SITL 解锁前拒绝已通过；同机深度地图与实际曲线飞行尚未验收，见 [执行前置报告](docs/validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
 
@@ -30,7 +41,7 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
 
 实际 VIO→PX4 未解锁融合：`./scripts/sim.sh px4-vio-sensors --normalize --fuse-pose --scene layered --real-time-factor .8 --duration 120`。同一架 x500 的双目/IMU 经 cuVSLAM、固定对齐进入实际 EKF，2326 个样本、三类融合及停止源后的失效检查通过。此结果使用 0.8 倍目标仿真速度；实时长时试验仍出现超时，不能视为实时飞行或 VIO 悬停通过。见 [实际融合报告](docs/validation/simulation/2026-10-09-real-vio-fusion/REPORT.md)。 最新新鲜度交接修复、2329 样本回归及实时延迟对照见 [时序报告](docs/validation/simulation/2026-10-09-vio-timing/REPORT.md)。 后续 [SDK 分段诊断](docs/validation/simulation/2026-10-09-vio-sdk-timing/REPORT.md) 复现同步器单位问题；本轮四个整体检查仍失败，不代表稳定性通过。 最新 [单位与时钟修复](docs/validation/simulation/2026-10-09-sync-clock-fix/REPORT.md) 已通过 reset、运动和短时融合，120 秒融合仍未通过。
 
-同机起飞与多位置观测入口：`./scripts/sim.sh px4-observe`。已修复实际相机安装与 optical TF 的 0.24 m 偏差，新增解锁前物理安装校验；固定下偏 5°、四点互补高度扫描及封闭深度场景已能放行实际 EGO 曲线。已完成单轮实际起飞／观察建图／EGO 定点导航／悬停／EGO 返航／降落锁定；当前收紧半体素包络并补拍后的导航与返航独立真值误差分别约 10.7 cm／7.4 cm。另有地图新鲜度及起终点种子包络失败证据；绕障与 VIO 飞行仍待验收。见 [空间缺口与曲线飞行报告](docs/validation/simulation/2026-10-10-depth-gap-spatial/REPORT.md)。
+历史 GNSS 同机起飞与多位置观测入口（不用于当前无 GNSS 验收）：`./scripts/sim.sh px4-observe`。已修复实际相机安装与 optical TF 的 0.24 m 偏差，新增解锁前物理安装校验；固定下偏 5°、四点互补高度扫描及封闭深度场景已能放行实际 EGO 曲线。已完成单轮实际起飞／观察建图／EGO 定点导航／悬停／EGO 返航／降落锁定；当前收紧半体素包络并补拍后的导航与返航独立真值误差分别约 10.7 cm／7.4 cm。另有地图新鲜度及起终点种子包络失败证据；绕障与 VIO 飞行仍待验收。见 [空间缺口与曲线飞行报告](docs/validation/simulation/2026-10-10-depth-gap-spatial/REPORT.md)。
 
 同机地图与 EGO 规划源入口：`./scripts/sim.sh px4-depth-plan --duration 40`。已验证实际深度地图绑定定位会话／六个重置计数，并受管启动 EGO shadow 图；地面飞行包络未通过，尚未执行同机轨迹飞行。见 [规划源绑定报告](docs/validation/simulation/2026-10-10-depth-planning-sources/REPORT.md)。
 
