@@ -90,7 +90,7 @@ def main():
     executor=SingleThreadedExecutor();executor.add_node(node)
     thread=threading.Thread(target=executor.spin,daemon=True);thread.start()
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
-    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/finite depth observation/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
+    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/depth observation/EGO navigation/hover/return/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
     try:
         until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
         while time.monotonic()<until:
