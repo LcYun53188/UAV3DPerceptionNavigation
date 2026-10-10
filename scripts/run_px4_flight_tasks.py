@@ -56,12 +56,19 @@ def main():
             implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
+    map_diagnostics=[]
+    from std_msgs.msg import String
+    def map_diagnostic_receive(message):
+        map_diagnostics.append(dict(mono=time.monotonic(), ros=node.get_clock().now().nanoseconds/1e9, data=json.loads(message.data)))
+    node.create_subscription(String, '/uav/map/diagnostics', map_diagnostic_receive, 10)
     localized_samples=[]
     from uav_nav_interfaces.msg import LocalizedOdometry
     def localized_receive(message):
         localized_samples.append(dict(session=message.localization_session,
             counters=list(map(int,message.reset_counters)),frame=message.header.frame_id,
             stamp_matches=message.header==message.odometry.header,
+            stamp_ns=message.header.stamp.sec*1_000_000_000+message.header.stamp.nanosec,
+            received_ros=node.get_clock().now().nanoseconds/1e9,
             child=message.odometry.child_frame_id))
     node.create_subscription(LocalizedOdometry,'/uav/px4/localized_odometry',localized_receive,10)
     truth=[]
@@ -337,6 +344,7 @@ def main():
             write_json(out/('observation-grid-'+key+'.json'),metadata)
             result['observation_grid_exports'][key]=metadata
         write_json(out/'localized-odometry.json',localized_samples)
+        write_json(out/'map-diagnostics.json',map_diagnostics)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)
         write_json(out/'flight-status-history.json',node.status_history)
