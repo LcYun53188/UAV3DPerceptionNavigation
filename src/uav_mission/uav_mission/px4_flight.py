@@ -699,11 +699,16 @@ class FlightServer(Node):
             self.planning_ready()
             from .ego_execution import BrakingGrid
             grid=BrakingGrid(self.planned.gate.grid,self.config['braking_margin_m'])
+            # EGO seed search reserves half a voxel beyond the body/tracking box.
+            # Observe that same reserve before dispatch, rather than declaring a
+            # start ready which the planner must reject as unknown.
+            observation_radius=(self.config['body_radius_m']+self.config['tracking_margin_m']
+                                +self.planned.gate.grid.resolution*.5)
             clear=not grid.collision(self.alignment.to_map(self.position()),
-                                     self.config['body_radius_m']+self.config['tracking_margin_m'])
+                                     observation_radius)
             if now-self.last_observation_sample>=1.:
                 volume=grid.diagnostics(self.alignment.to_map(self.position()),
-                    self.config['body_radius_m']+self.config['tracking_margin_m'])
+                    observation_radius)
                 if survey is not None and survey.state in ('SCAN','DONE'):
                     from uav_nav_sim.planning_context import stamp
                     m=self.planned.gate.inputs.get('map')
@@ -717,7 +722,7 @@ class FlightServer(Node):
                             ros=ros,mono=now,localization_session=self.instance,
                             point_map=list(self.alignment.to_map(self.position())),
                             reference_map=list(self.alignment.to_map(self.reference)),
-                            radius_m=self.config['body_radius_m']+self.config['tracking_margin_m'],
+                            radius_m=observation_radius,
                             braking_margin_m=self.config['braking_margin_m'],survey_index=survey.index,
                             survey_state=survey.state,diagnostics=volume))
             reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
