@@ -451,3 +451,42 @@ def test_observation_success_requires_complete_sweep_and_observed_volume(monkeyp
     assert not results
     FlightServer.observation_tick(node,20.,20.)
     assert results==['next']
+
+
+def test_multiview_recipe_rejects_unsafe_survey_or_insufficient_root_deadline():
+    from pathlib import Path
+    node=fixture();node.config=json.loads(Path('simulation/safe_regions/depth_reference.json').read_text())
+    node.region=lambda p:in_region(p,node.config['bounds_min'],node.config['bounds_max'],2.)
+    node.planned=object();node.planning_ready=lambda:None
+    steps=[dict(type='TAKEOFF',height_m=2.),dict(type='OBSERVE',timeout_s=160.),dict(type='LAND')]
+    req=request(steps);req.timeout_s=210.
+    params=json.loads(req.parameters_json);params['navigation_backend']='EGO';req.parameters_json=json.dumps(params)
+    assert FlightServer.parse(node,req)==steps
+    req.timeout_s=180.
+    with pytest.raises(ValueError,match='landing deadline'):FlightServer.parse(node,req)
+    req.timeout_s=210.;node.config['observation_offsets_enu'][0][0]=1.01
+    with pytest.raises(ValueError,match='OUTSIDE_KNOWN_REGION'):FlightServer.parse(node,req)
+
+
+def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeypatch):
+    from uav_mission import ego_execution
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:False,diagnostics=lambda *args:{}))
+    advanced=[]
+    survey=SimpleNamespace(sample=lambda *args:((.8,.8,1.),6.3,False),state='SCAN',index=1)
+    node=SimpleNamespace(survey=survey,position=lambda:(.8,.8,1.),target=(0.,0.,2.),
+        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5},
+        observe_until=160.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
+        planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=None)),stable=lambda *args:True,
+        samples={'vehicle_local_position':SimpleNamespace(vx=0.,vy=0.,vz=0.,heading=0.)},
+        next_step=lambda:advanced.append(True))
+    FlightServer.observation_tick(node,100.,100.)
+    assert not advanced
+    survey.sample=lambda *args:((0.,0.,2.),25.2,True);survey.state='DONE'
+    node.position=lambda:(0.,0.,2.)
+    node.samples['vehicle_local_position'].vx=.06
+    FlightServer.observation_tick(node,101.,101.)
+    assert not advanced
+    node.samples['vehicle_local_position'].vx=0.
+    FlightServer.observation_tick(node,102.,102.)
+    assert advanced==[True]

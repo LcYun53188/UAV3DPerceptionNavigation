@@ -147,3 +147,12 @@ def test_clear_braking_diagnostics_do_not_change_admission():
     report=g.diagnostics((3.,3.,3.),.8)
     assert all(report[k]==0 for k in ('unknown','occupied','observed_nonfinite','outside_cells'))
     assert not g.collision((3.,3.,3.),.8)
+
+
+def test_braking_wrapper_does_not_stack_when_gateway_rechecks_observation():
+    from uav_nav_sim.core import Grid
+    from uav_mission.ego_execution import BrakingGrid
+    base=Grid(np.zeros(3),.1,np.full((61,61,61),3.),np.ones((61,61,61),bool))
+    gate=BrakingGrid(base,1.2)
+    checked=BrakingGrid(gate,1.2)
+    assert checked.base is base and not checked.collision((3.,3.,3.),.8)

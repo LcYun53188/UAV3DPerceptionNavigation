@@ -53,5 +53,26 @@
     "assets/depth-profile.json": "8fb10fe8745b2c08aa2583815f5ee28aaa385386671b4df43927e4df673f8e67",
     "assets/x500_depth_ref/model.sdf": "5ae567bdf35066a532f46c4178a868edbc7d59920a2dfb4f67be92a7f57a12dc",
     "assets/x500_depth_ref/model.config": "32f934b531981b2c035331c7f05bdcae81d3dd6d8d03811e9c689f9bcf1eccfc"
-  }
+  },
+  "observation_offsets_enu": [
+    [
+      0.8,
+      0.8,
+      1.0
+    ],
+    [
+      -0.8,
+      -0.8,
+      3.0
+    ],
+    [
+      0.8,
+      -0.8,
+      2.0
+    ]
+  ],
+  "observation_timeout_max_s": 160.0,
+  "observation_max_speed_mps": 0.18,
+  "observation_max_acceleration_mps2": 0.15,
+  "observation_max_jerk_mps3": 0.2
 }

@@ -13,6 +13,7 @@ def trajectory_version_in_context(planned,checked,current):
 class BrakingGrid:
     """Observed body volume plus the profile's horizontal braking reserve."""
     def __init__(self, grid, horizontal):
+        while isinstance(grid,BrakingGrid):grid=grid.base
         self.base,self.horizontal=grid,horizontal
         self.resolution=grid.resolution
 

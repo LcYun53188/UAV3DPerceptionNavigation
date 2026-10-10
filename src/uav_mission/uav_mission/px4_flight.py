@@ -401,10 +401,18 @@ class FlightServer(Node):
                 if not getattr(self,'config',{}).get('observation_enabled') or navigation!='EGO':
                     raise ValueError('Observation requires owned depth flight profile and EGO')
                 duration=step.get('timeout_s')
-                if isinstance(duration,bool) or not isinstance(duration,(int,float)) or not math.isfinite(duration) or not 20<=duration<=45:
+                if isinstance(duration,bool) or not isinstance(duration,(int,float)) or not math.isfinite(duration) or not 20<=duration<=self.config.get('observation_timeout_max_s',45.):
                     raise ValueError('Invalid observation deadline')
                 if types.index('OBSERVE')!=1 or types.count('OBSERVE')!=1:
                     raise ValueError('Observation must occur once immediately after takeoff')
+                if duration+35.>request.timeout_s:
+                    raise ValueError('Observation leaves insufficient landing deadline')
+                if self.config.get('observation_offsets_enu'):
+                    from .observation_survey import ObservationSurvey
+                    ObservationSurvey(target,home,self.config['observation_offsets_enu'],self.region,
+                        self.config['observation_yaw_rate_rps'],
+                        tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
+                            for k in ('max_speed_mps','max_acceleration_mps2','max_jerk_mps3')),0.)
                 continue
             elif kind == 'HOVER':
                 if not math.isfinite(step['duration_s']) or not 2 <= step['duration_s'] <= 60:
@@ -650,6 +658,15 @@ class FlightServer(Node):
             self.observe_yaw=self.yaw
             self.observation_samples=[]
             self.last_observation_sample=0.
+            self.survey=None
+            self.stable_since=None
+            if self.config.get('observation_offsets_enu'):
+                from .observation_survey import ObservationSurvey
+                self.survey=ObservationSurvey(self.target,self.home,self.config['observation_offsets_enu'],self.region,
+                    self.config['observation_yaw_rate_rps'],
+                    tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
+                            for k in ('max_speed_mps','max_acceleration_mps2','max_jerk_mps3')),
+                    self.get_clock().now().nanoseconds/1e9)
         elif kind=='HOVER':
             self.hover_until=time.monotonic()+step['duration_s']
             self.target=self.reference
@@ -660,9 +677,15 @@ class FlightServer(Node):
         self.change(kind)
 
     def observation_tick(self, now, ros):
-        if distance(self.position(),self.target)>self.config['tracking_margin_m']:
+        survey=getattr(self,'survey',None)
+        complete=True
+        if survey is not None:
+            before=survey.state
+            self.reference,angle,complete=survey.sample(ros,now,self.stable)
+            if survey.state!=before:self.stable_since=None
+        else:angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
+        if distance(self.position(),self.reference if survey is not None else self.target)>self.config['tracking_margin_m']:
             self.fault('OBSERVATION_DRIFT');return
-        angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
         self.yaw=math.atan2(math.sin(self.observe_yaw+angle),math.cos(self.observe_yaw+angle))
         clear=False;reason='';volume=None
         try:
@@ -671,15 +694,20 @@ class FlightServer(Node):
             grid=BrakingGrid(self.planned.gate.grid,self.config['braking_margin_m'])
             clear=not grid.collision(self.alignment.to_map(self.position()),
                                      self.config['body_radius_m']+self.config['tracking_margin_m'])
-            volume=grid.diagnostics(self.alignment.to_map(self.position()),
-                self.config['body_radius_m']+self.config['tracking_margin_m'])
+            if now-self.last_observation_sample>=1.:
+                volume=grid.diagnostics(self.alignment.to_map(self.position()),
+                    self.config['body_radius_m']+self.config['tracking_margin_m'])
             reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
         except ValueError as error:reason=str(error)
         if now-self.last_observation_sample>=1.:
             self.last_observation_sample=now
             self.observation_samples.append(dict(mono=now,ros=ros,angle_rad=angle,clear=clear,reason=reason,volume=volume,
+                survey_state=survey.state if survey else 'SCAN',
+                survey_index=survey.index if survey else 0,reference_enu=list(self.reference if survey else self.target),
                 measured_heading_rad=getattr(getattr(self,'samples',{}).get('vehicle_local_position'),'heading',None)))
-        if angle>=2*math.pi and clear and self.stable(self.target,now):
+        stopped=(survey is None or math.sqrt(sum(getattr(self.samples['vehicle_local_position'],k)**2
+            for k in ('vx','vy','vz')))<=.05)
+        if now<self.observe_until and complete and angle>=2*math.pi and clear and stopped and self.stable(self.target,now):
             self.next_step();return
         if now>=self.observe_until:
             self.planned.retire()
