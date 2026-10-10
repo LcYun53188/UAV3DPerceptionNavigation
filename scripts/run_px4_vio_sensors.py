@@ -54,7 +54,7 @@ def main():
         parser.error('--flight requires warehouse/normalize without disarmed fusion, motion, reset or diagnostics')
     if args.diagnostic_ui and not (args.ui and (args.flight or args.fuse_pose)):parser.error('--diagnostic-ui requires --ui and --flight or --fuse-pose')
     if not 0<=args.ui_hold_seconds<=3600 or (args.ui_hold_seconds and not args.diagnostic_ui):parser.error('UI hold requires diagnostic UI flight and 0..3600 seconds')
-    if args.flight and args.camera_pitch_deg==5:parser.error('5 degree VIO flight source is not qualified yet; use sim.sh px4-flight --bt --ui for the complete PX4 task workflow')
+    if args.flight and args.camera_pitch_deg==5:parser.error('5 degree VIO flight source is not qualified yet; inspect with --fuse-pose --ui --diagnostic-ui without GNSS before flight')
     pose_fusion_mode=bool(args.fuse_pose or args.flight)
     if args.diagnostic_visual_only and (not args.motion or args.normalize or args.fuse_pose or args.reset_source):
         parser.error('--diagnostic-visual-only requires --motion without normalize/fuse/reset')
@@ -141,7 +141,7 @@ def main():
     params.update(stream_parameters(args.sdk_image_depth if args.sdk_image_depth is not None else 10))
     (out/'vio-params.yaml').write_text(json.dumps({'visual_slam':{'ros__parameters':params}},indent=2)+'\n')
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
-    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -266,8 +266,13 @@ def main():
         gazebo_env=render_environment(env,args.render_device)
         launch('gazebo',['gz','sim','-r','-s']+(['--headless-rendering'] if args.headless_rendering else [])+[out/'assets/default.sdf'],gazebo_env)
         if args.ui:
+            # A viewer-only alias establishes the SDK odom reference in RViz.
+            # It defines no aircraft pose, map alignment, or control transform.
+            launch('rviz_reference_frame',['ros2','run','tf2_ros','static_transform_publisher',
+                '--frame-id','odom','--child-frame-id','vio_display_origin',
+                '--ros-args','-p','use_sim_time:=true'])
             launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
-            launch('rviz',['ros2','run','rviz2','rviz2','-d',ROOT/'src/uav_bringup/rviz/visual_slam_check.rviz','--ros-args','-p','use_sim_time:=true'])
+            launch('rviz',['ros2','run','rviz2','rviz2','-d',ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz','--ros-args','-p','use_sim_time:=true'])
             launch('stereo_monitor',[sys.executable,ROOT/'scripts/vio_stereo_ui.py',str(out)])
         launch('sensor_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
