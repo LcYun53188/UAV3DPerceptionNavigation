@@ -207,6 +207,7 @@ def main():
                     model_dependencies_sha256={name: file_hash(models / name / 'model.sdf')
                                                for name in (('x500', 'x500_base', 'OakD-Lite') if args.depth_camera else ('x500', 'x500_base'))} if args.depth_camera or args.depth_reference else {},
                     depth_generator_sha256={name:file_hash(ROOT/'scripts'/name) for name in ('prepare_px4_depth_assets.py','prepare_vio_sensor_assets.py')} if args.depth_reference else None,
+                    depth_mount_audit_sha256=file_hash(ROOT/'scripts/px4_camera_mount_audit.py') if args.depth_reference else None,
                     depth_audit_sha256=file_hash(ROOT / 'scripts/px4_depth_audit.py') if args.depth_camera or args.depth_reference else None,
                     processes={})
     write_json(run_dir / 'manifest.json', manifest)
@@ -310,17 +311,21 @@ def main():
                 '-r','/rgbd_camera/depth_image:=/px4_depth/image',
                 '-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'], True)
         if args.depth_planning:
+            limits=(.6,.5,.6)
+            if args.depth_observation:
+                from uav_mission.flight_profiles import navigation_limits
+                limits=navigation_limits(read(ROOT/'simulation/safe_regions/depth_reference.json'))
             mapping_launch('planning_sources', ['ros2','run','uav_nav_sim','planning_sources','--ros-args',
                 '-p','use_sim_time:=true','-p',f'localization_session:={run_id}',
                 '-p','alignment_id:=depth-map-is-ekf-odom-v1','-p',f'settle_seconds:={5.0 if args.depth_observation else 0.0}'], True)
             mapping_launch('planning_context', ['ros2','run','uav_nav_sim','planning_context','--ros-args',
                 '-p','use_sim_time:=true','-p','body_radius:=0.8',
-                '-p','max_velocity:=0.6','-p','max_acceleration:=0.5','-p','max_jerk:=0.6',
+                '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}',
                 '-r','/planning/source/odometry:=/uav/px4/localized_odometry'], True)
             ego = [ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner',
                    '--ros-args','-p','use_sim_time:=true','-p','coordinate_frame:=map',
                    '-p','managed_goals:=true','-p','body_radius:=0.8',
-                   '-p','max_velocity:=0.6','-p','max_acceleration:=0.5','-p','max_jerk:=0.6']
+                   '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}']
             for source,target in {'/uav/map/snapshot':'/planning/ego/map',
                     '/uav/localization/odometry':'/planning/ego/odometry',
                     '/uav/goal':'/planning/ego/goal','/uav/trajectory':'/planning/ego/trajectory',
@@ -386,6 +391,18 @@ def main():
             write_json(run_dir / 'depth-camera.json', depth_result)
             result['depth_camera_passed'] = depth_result['passed']
             result['passed'] = result['passed'] and depth_result['passed']
+        if args.depth_reference:
+            from px4_camera_mount_audit import audit
+            try:
+                scene=subprocess.run(['gz','service','-s','/world/default/scene/info','--reqtype','gz.msgs.Empty',
+                    '--reptype','gz.msgs.Scene','--timeout','5000','--req',''],env=env,
+                    capture_output=True,text=True,timeout=8,check=True).stdout
+                (run_dir/'camera-mount-scene.txt').write_text(scene)
+                mount=audit(scene,f'{depth_profile["model"]}_{instance}',read(run_dir/'assets/frames.json'))
+            except (subprocess.SubprocessError,OSError) as error:mount=dict(passed=False,error=str(error))
+            write_json(run_dir/'camera-mount.json',mount)
+            result['camera_mount_passed']=mount['passed']
+            result['passed']=result['passed'] and mount['passed']
         if args.depth_mapping and not args.depth_observation:
             depth_map = read(run_dir/'depth-map.json') if (run_dir/'depth-map.json').is_file() else {}
             fresh = time.monotonic() - depth_map.get('captured_monotonic', 0) < 2.
@@ -409,7 +426,7 @@ def main():
             result['passed'] = result['passed'] and vision_result['passed'] and arming_states == {VehicleStatus.ARMING_STATE_DISARMED}
         if args.flight and result['passed']:
             flight = launch('flight_tasks', [sys.executable, ROOT / 'scripts/run_px4_flight_tasks.py'])
-            until = time.monotonic() + 245
+            until = time.monotonic() + (300 if args.depth_observation else 245)
             next_log,log_offset=0.,0
             while flight.poll() is None and time.monotonic() < until:
                 if time.monotonic()>=next_log:
@@ -422,6 +439,9 @@ def main():
                 rclpy.spin_once(node, timeout_sec=.05)
             result['flight_passed'] = flight.poll() == 0
             result['passed'] = result['passed'] and result['flight_passed']
+            flight_receipt=run_dir/'flight-observation.json'
+            result['mission_result']=(read(flight_receipt).get('result')
+                                      if flight_receipt.exists() else None)
         if args.aircraft_state:
             def current_state():
                 msg = last.get('aircraft_state')
@@ -480,7 +500,10 @@ def main():
     if failure:
         print(f'FAIL: {failure}', flush=True)
         return 1
-    print(f"DDS/clock: {result['dds_clock_passed']}; QGC: {result['qgc_connected']}; PASS: {result['passed']}", flush=True)
+    print(f"DDS/clock: {result['dds_clock_passed']}; QGC: {result['qgc_connected']}; Validation PASS: {result['passed']}", flush=True)
+    if args.flight:
+        mission=result.get('mission_result') or {}
+        print(f"Mission: {mission.get('code','NOT_STARTED_OR_NOT_RECORDED')}; reason: {mission.get('reason','')}; cleanup: {mission.get('cleanup_confirmed',False)}", flush=True)
     return 0 if result['passed'] else 1
 
 

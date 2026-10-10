@@ -49,13 +49,25 @@ class BrakingGrid:
                 inside+=counts['cells'];unknown+=counts['unknown']
                 nonfinite+=counts['observed_nonfinite'];occupied+=counts['occupied']
                 layers.append(dict(z_m=float(g.origin[2]+z*g.resolution),**counts))
+        examples={}
+        if np.all(clipped_lo<=clipped_hi):
+            sl=tuple(slice(a,b+1) for a,b in zip(clipped_lo,clipped_hi))
+            d=g.distance[sl];o=g.observed[sl]
+            for label,mask in [('unknown',~o),('occupied',o & np.isfinite(d) & (d<=0))]:
+                indices=np.argwhere(mask)+clipped_lo
+                if len(indices):
+                    selected=indices[np.linspace(0,len(indices)-1,min(64,len(indices)),dtype=int)]
+                    examples[label]=dict(count=int(len(indices)),
+                        index_min=indices.min(axis=0).tolist(),index_max=indices.max(axis=0).tolist(),
+                        cell_lower_map_m=(g.origin+selected*g.resolution).tolist())
+                else:examples[label]=dict(count=0,cell_lower_map_m=[])
         index=g.index(point)
         centre_distance=None if index is None else float(g.distance[tuple(index)])
         if centre_distance is not None and not math.isfinite(centre_distance):centre_distance=None
         return dict(total_cells=total,outside_cells=total-inside,unknown=unknown,
             occupied=occupied,observed_nonfinite=nonfinite,centre_distance_m=centre_distance,
             required_centre_distance_m=float(radius+np.sqrt(3)*g.resolution/2),
-            layers=layers)
+            layers=layers,examples=examples)
 
 
 class EgoExecution:

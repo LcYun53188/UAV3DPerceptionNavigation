@@ -186,3 +186,17 @@ def test_color_expiration_and_bad_calibration(session):
     MapSession.flush_color(node)
     assert node.color_timing['expired'] == 1
     node.color_pub.publish.assert_not_called()
+
+
+def test_exact_tf_failure_is_reported_and_cleared_after_forwarding(session):
+    node, _ = session
+    node.timing = dict(received=0, forwarded=0, tf_wait=0, expired=0)
+    node.tf.lookup_transform.side_effect = TransformException('latest data at 9.9')
+    MapSession.depth_cb(node, depth())
+    assert node.timing['tf_error'] == 'latest data at 9.9'
+    assert node.timing['tf_requested_stamp_ns'] == 10_000_000_000
+    node.depth_pub.publish.assert_not_called()
+    node.tf.lookup_transform.side_effect = None
+    node.flush_depth()
+    assert node.timing['tf_error'] is None
+    node.depth_pub.publish.assert_called_once()
