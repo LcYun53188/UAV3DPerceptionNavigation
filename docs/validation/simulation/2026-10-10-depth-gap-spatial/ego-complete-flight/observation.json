@@ -1,0 +1,66 @@
+{
+  "qgc_connected": true,
+  "arming_states": [
+    1
+  ],
+  "odom_source_age_s": 0.003999999999997783,
+  "scope": "disarmed x500_depth_ref/DDS/clock/QGC smoke only",
+  "samples": {
+    "clock": 4094,
+    "vehicle_local_position": 1034,
+    "vehicle_odometry": 1034,
+    "vehicle_status": 21,
+    "vehicle_land_detected": 10
+  },
+  "receive_age_s": {
+    "clock": 0.0008975980163086206,
+    "vehicle_local_position": 0.004332484997576103,
+    "vehicle_odometry": 0.0042234130087308586,
+    "vehicle_status": 0.22873027899186127,
+    "vehicle_land_detected": 0.8204640830226708
+  },
+  "writers": {
+    "/clock": 1,
+    "/px4_7/fmu/out/airspeed_validated": 1,
+    "/px4_7/fmu/out/arming_check_request": 1,
+    "/px4_7/fmu/out/battery_status": 1,
+    "/px4_7/fmu/out/collision_constraints": 1,
+    "/px4_7/fmu/out/estimator_status_flags": 1,
+    "/px4_7/fmu/out/failsafe_flags": 1,
+    "/px4_7/fmu/out/home_position": 1,
+    "/px4_7/fmu/out/manual_control_setpoint": 1,
+    "/px4_7/fmu/out/message_format_response": 1,
+    "/px4_7/fmu/out/mode_completed": 1,
+    "/px4_7/fmu/out/position_setpoint_triplet": 1,
+    "/px4_7/fmu/out/register_ext_component_reply": 1,
+    "/px4_7/fmu/out/sensor_combined": 1,
+    "/px4_7/fmu/out/timesync_status": 1,
+    "/px4_7/fmu/out/vehicle_attitude": 1,
+    "/px4_7/fmu/out/vehicle_command_ack": 1,
+    "/px4_7/fmu/out/vehicle_control_mode": 1,
+    "/px4_7/fmu/out/vehicle_global_position": 1,
+    "/px4_7/fmu/out/vehicle_gps_position": 1,
+    "/px4_7/fmu/out/vehicle_land_detected": 1,
+    "/px4_7/fmu/out/vehicle_local_position": 1,
+    "/px4_7/fmu/out/vehicle_odometry": 1,
+    "/px4_7/fmu/out/vehicle_status_v1": 1,
+    "/px4_7/fmu/out/vtol_vehicle_status": 1
+  },
+  "arming_state": 1,
+  "nav_state": 4,
+  "landed": true,
+  "xy_valid": true,
+  "z_valid": true,
+  "clock_start": 0.008,
+  "clock_end": 16.676,
+  "position_ned": [
+    0.003224714659154415,
+    0.026286546140909195,
+    0.03401295840740204
+  ],
+  "dds_clock_passed": true,
+  "passed": true,
+  "depth_camera_passed": true,
+  "camera_mount_passed": true,
+  "flight_passed": true
+}

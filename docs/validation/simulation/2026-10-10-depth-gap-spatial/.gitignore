@@ -1,0 +1,4 @@
+# Keep compact immutable evidence visible to Git within this archive only.
+!*.json.gz
+!**/assets/
+!*.sdf.gz
