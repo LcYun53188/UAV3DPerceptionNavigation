@@ -48,7 +48,7 @@ def main():
       [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
        ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
-       ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
                      'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',
@@ -326,6 +326,15 @@ def main():
             valid=bool(localized_samples) and all(s['session']==node.instance and s['frame']=='odom' and
                 s['child']=='base_link' and s['stamp_matches'] for s in localized_samples))
         result['passed'] = result['passed'] and result['localized_odometry']['valid']
+        result['observation_grid_exports']={}
+        for key,(grid,metadata) in getattr(node,'observation_grid_snapshots',{}).items():
+            import numpy as np
+            filename='observation-grid-'+key+'.npz'
+            np.savez_compressed(out/filename,origin=grid.origin,resolution=grid.resolution,
+                distance=grid.distance,observed=grid.observed)
+            metadata=dict(metadata,grid_file=filename,grid_sha256=file_hash(out/filename))
+            write_json(out/('observation-grid-'+key+'.json'),metadata)
+            result['observation_grid_exports'][key]=metadata
         write_json(out/'localized-odometry.json',localized_samples)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)

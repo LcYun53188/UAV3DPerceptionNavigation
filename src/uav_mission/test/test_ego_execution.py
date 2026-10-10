@@ -156,3 +156,18 @@ def test_braking_wrapper_does_not_stack_when_gateway_rechecks_observation():
     gate=BrakingGrid(base,1.2)
     checked=BrakingGrid(gate,1.2)
     assert checked.base is base and not checked.collision((3.,3.,3.),.8)
+
+
+def test_gap_coordinate_examples_are_bounded_and_match_cell_indices():
+    from uav_nav_sim.core import Grid
+    from uav_mission.ego_execution import BrakingGrid
+    d=np.full((5,5,5),3.);o=np.ones(d.shape,dtype=bool)
+    d[1,1,1]=-1.;o[0,0,0]=False
+    grid=BrakingGrid(Grid(np.array([10.,20.,30.]),1.,d,o),1.)
+    report=grid.diagnostics((11.,21.,31.),1.)
+    assert report['examples']['occupied']['cell_lower_map_m']==[[11.,21.,31.]]
+    assert report['examples']['unknown']['cell_lower_map_m']==[[10.,20.,30.]]
+    d=np.full((20,20,20),3.);o=np.zeros(d.shape,dtype=bool)
+    report=BrakingGrid(Grid(np.zeros(3),1.,d,o),1.).diagnostics((10.,10.,10.),4.)
+    assert report['examples']['unknown']['count']==report['unknown']>64
+    assert len(report['examples']['unknown']['cell_lower_map_m'])==64

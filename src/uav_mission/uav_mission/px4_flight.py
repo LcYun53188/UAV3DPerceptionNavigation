@@ -697,6 +697,22 @@ class FlightServer(Node):
             if now-self.last_observation_sample>=1.:
                 volume=grid.diagnostics(self.alignment.to_map(self.position()),
                     self.config['body_radius_m']+self.config['tracking_margin_m'])
+                if survey is not None and survey.state in ('SCAN','DONE'):
+                    from uav_nav_sim.planning_context import stamp
+                    m=self.planned.gate.inputs.get('map')
+                    if m is not None:
+                        m=m[0]
+                        if not hasattr(self,'observation_grid_snapshots'):self.observation_grid_snapshots={}
+                        key='returned' if survey.state=='DONE' else 'scan-'+str(survey.index)
+                        self.observation_grid_snapshots[key]=(grid.base,dict(
+                            frame='map',map_id=m.map_id,map_epoch=m.epoch,map_version=m.version,
+                            source_stamp_s=stamp(m.source_stamp),map_header_stamp_s=stamp(m.header.stamp),
+                            ros=ros,mono=now,localization_session=self.instance,
+                            point_map=list(self.alignment.to_map(self.position())),
+                            reference_map=list(self.alignment.to_map(self.reference)),
+                            radius_m=self.config['body_radius_m']+self.config['tracking_margin_m'],
+                            braking_margin_m=self.config['braking_margin_m'],survey_index=survey.index,
+                            survey_state=survey.state,diagnostics=volume))
             reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
         except ValueError as error:reason=str(error)
         if now-self.last_observation_sample>=1.:

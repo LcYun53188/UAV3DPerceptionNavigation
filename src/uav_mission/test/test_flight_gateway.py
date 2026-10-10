@@ -477,7 +477,7 @@ def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeyp
         config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5},
         observe_until=160.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
         planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
-        planned=SimpleNamespace(gate=SimpleNamespace(grid=None)),stable=lambda *args:True,
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=None,inputs={})),stable=lambda *args:True,
         samples={'vehicle_local_position':SimpleNamespace(vx=0.,vy=0.,vz=0.,heading=0.)},
         next_step=lambda:advanced.append(True))
     FlightServer.observation_tick(node,100.,100.)
