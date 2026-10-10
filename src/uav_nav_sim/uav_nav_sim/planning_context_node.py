@@ -20,6 +20,8 @@ class PlanningContextNode(Node):
                      [('max_velocity',.5),('max_acceleration',1.),('max_jerk',2.)])
         self.gate=PlanningGate(radius,limits)
         self.last_error=''
+        self.activated=False
+        self.published_map_key=None
         self.map_pub=self.create_publisher(MapSnapshot,'/planning/ego/map',QoSProfile(
             depth=1,durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.odom_pub=self.create_publisher(Odometry,'/planning/ego/odometry',qos_profile_sensor_data)
@@ -45,6 +47,12 @@ class PlanningContextNode(Node):
     def ready(self):
         if not self.unique_sources():
             self.gate.invalidate('NON_UNIQUE_SOURCE');return False
+        if not self.activated:
+            inputs=self.gate.inputs
+            if (not all(name in inputs for name in ('map','odom','alignment'))
+                    or not inputs['map'][0].valid or not inputs['alignment'][0].valid):
+                self.gate.invalidate('WAITING_INITIAL_BOUND_SOURCES');return False
+            self.activated=True
         return self.gate.ready(self.now_s(),time.monotonic())
 
     def context_message(self, valid):
@@ -72,7 +80,7 @@ class PlanningContextNode(Node):
             if not self.ready():raise ValueError(self.gate.reason)
             if self.goal_pub.get_subscription_count()!=1:raise ValueError('PLANNER_NOT_UNIQUELY_READY')
             self.gate.dispatch(message,self.now_s(),time.monotonic())
-            self.map_pub.publish(self.gate.inputs['map'][0])
+            self.publish_map()
             self.odom_pub.publish(self.gate.map_odometry)
             self.goal_pub.publish(message)
         except ValueError as error:self.reject(error)
@@ -84,11 +92,18 @@ class PlanningContextNode(Node):
             self.bound_pub.publish(ContextTrajectory(context=self.context_message(True),trajectory=bound))
         except ValueError as error:self.reject(error)
 
+    def publish_map(self):
+        message=self.gate.inputs['map'][0]
+        key=(message.map_id,message.epoch,message.version,message.header.stamp.sec,message.header.stamp.nanosec)
+        if key!=self.published_map_key:
+            self.map_pub.publish(message)
+            self.published_map_key=key
+
     def tick(self):
         valid=self.ready()
         self.context_pub.publish(self.context_message(valid))
         if valid:
-            self.map_pub.publish(self.gate.inputs['map'][0])
+            self.publish_map()
             self.odom_pub.publish(self.gate.map_odometry)
 
 

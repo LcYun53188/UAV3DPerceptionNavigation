@@ -51,7 +51,7 @@ public:
     if (controlled_) {
       for (const auto & step : parameters.at("steps")) {
         const auto kind = step.at("type").get<std::string>();
-        if (kind != "TAKEOFF" && kind != "NAVIGATE" && kind != "HOVER" && kind != "RETURN" && kind != "LAND") {
+        if (kind != "TAKEOFF" && kind != "NAVIGATE" && kind != "HOVER" && kind != "OBSERVE" && kind != "RETURN" && kind != "LAND") {
           throw std::runtime_error("Unsupported BT flight step");
         }
         kinds_.push_back(kind);

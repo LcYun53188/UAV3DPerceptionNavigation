@@ -60,3 +60,54 @@ def test_scene_change_or_incomplete_receipt_is_rejected(owned,fault):
         (root/'outside').write_text('outside');data['files']['../../../../outside']=digest(root/'outside');write()
     if fault=='partition':data['partition']='old';write()
     with pytest.raises(RuntimeError):load_region(root,env)
+
+
+@pytest.fixture
+def depth_owned(tmp_path):
+    import shutil
+    import sys
+    from pathlib import Path
+    workspace=Path(__file__).resolve().parents[3]
+    sys.path.insert(0,str(workspace/'scripts'))
+    from prepare_px4_depth_assets import depth_assets
+    regions=tmp_path/'simulation/safe_regions';regions.mkdir(parents=True)
+    profile=workspace/'simulation/safe_regions/depth_reference.json'
+    shutil.copy2(profile,regions/profile.name)
+    upstream=workspace/'.deps/PX4-Autopilot/Tools/simulation/gz'
+    config=json.loads(profile.read_text())
+    for name in config['scene_files']:
+        target=tmp_path/'.deps/PX4-Autopilot/Tools/simulation/gz'/name
+        target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(upstream/name,target)
+    out=tmp_path/'.cache/simulation/sitl/owned';out.mkdir(parents=True)
+    depth_assets(out/'assets',upstream/'worlds/default.sdf')
+    env=dict(UAV_SITL_AUTHORIZATION='owned',ROS_DOMAIN_ID='78',GZ_PARTITION='uav_px4_s0_owned',
+             UAV_FLIGHT_REGION_PROFILE='depth_reference',UAV_REQUIRE_VIO='0',
+             UAV_FLIGHT_COORDINATOR_INSTANCE='owned-session',UAV_FLIGHT_ASSET_RECEIPT=str(out/'receipt.json'))
+    data=dict(schema=1,partition=env['GZ_PARTITION'],region_sha256=digest(regions/profile.name),
+              localization_session='owned-session',files={str(p.relative_to(out)):digest(p) for p in (out/'assets').rglob('*') if p.is_file()})
+    def write():
+        (out/'receipt.json').write_text(json.dumps(data))
+        env['UAV_FLIGHT_ASSET_SHA256']=digest(out/'receipt.json')
+    write()
+    return tmp_path,env,out,data,write
+
+
+def test_generated_depth_flight_assets_match_frozen_profile(depth_owned):
+    root,env,_,_,_=depth_owned
+    region=load_region(root,env)
+    assert region['observation_enabled'] and region['map_translation']==[0.,0.,0.]
+
+
+@pytest.mark.parametrize('fault',['session','partition','rehashed_asset','escape','vio','missing','receipt_hash'])
+def test_depth_asset_admission_fails_closed(depth_owned,fault):
+    root,env,out,data,write=depth_owned
+    if fault=='session':env['UAV_FLIGHT_COORDINATOR_INSTANCE']='other'
+    elif fault=='partition':data['partition']='other';write()
+    elif fault=='rehashed_asset':
+        file=out/'assets/frames.json';file.write_text('{}')
+        data['files']['assets/frames.json']=digest(file);write()
+    elif fault=='escape':data['files']['../foreign']='bad';write()
+    elif fault=='vio':env['UAV_REQUIRE_VIO']='1'
+    elif fault=='missing':data['files'].pop('assets/frames.json');write()
+    elif fault=='receipt_hash':env['UAV_FLIGHT_ASSET_SHA256']='bad'
+    with pytest.raises(RuntimeError):load_region(root,env)

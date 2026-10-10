@@ -10,6 +10,12 @@
 
 新增同机固定 5° RGBD → PX4 EKF 历史 TF → nvblox ESDF 的未解锁验证入口 `sim.sh px4-depth-map`。真实深度建图已通过；EGO 的地图／对齐会话绑定与同机飞行监督仍待接入。见 [建图验证](validation/simulation/2026-10-09-px4-depth-mapping/REPORT.md)。
 
+2026-10-10：实际同机深度地图与 PX4 EKF 会话／六个重置计数绑定、PlanningContext 与受管 EGO shadow 图连续两轮通过（`sim.sh px4-depth-plan`）；地面安全包络未满足，未提交目标。下一步为生成场景飞行 profile、已知区域起飞后的有限观测与实际曲线任务，见 [源绑定验收](validation/simulation/2026-10-10-depth-planning-sources/REPORT.md)。
+
+2026-10-10：新增冻结深度飞行 profile 与 OBSERVE BT 步骤。`sim.sh px4-observe` 两轮实际起飞／定点扫描／观测不足原生降落并锁定通过；实测 yaw 6.282 rad，任务 ABORTED 且 cleanup_confirmed=true。当前尚不能执行 EGO 导航，下一步多位置／多高度观测与体素缺口诊断。见 [有限观测闭环](validation/simulation/2026-10-10-depth-observation-flight/REPORT.md)。
+
+2026-10-10 多位置观测更新：已实现有界三点／1、2、3 m 观测及返回起点，0.18 m/s 专用移动限值保持 0.3 m 跟踪门槛。实际三点扫描完成，最大跟踪误差 0.202 m；安全空间仍有 4,551 未知／4 占用体素，160 s 期限后原生降落并确认锁定。recipe 已接导航／悬停／返航／降落，但 EGO 后续步骤尚未执行；下一步按三维缺口改进覆盖并诊断占用。见 [多位置观测验证](validation/simulation/2026-10-10-depth-multiview/REPORT.md)。
+
 以下较早的阶段记录保留为历史证据。
 
 

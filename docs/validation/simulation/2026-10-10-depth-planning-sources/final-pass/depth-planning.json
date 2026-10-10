@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "contexts": 4966,
+  "valid_contexts": 4530,
+  "reason": "READY",
+  "context_id": "b0d79e059ad6e9f15513ba90eac3e98f4b3cd3132d705e90a80669d11814e0c3",
+  "map_id": "0ecea61e-918d-4461-b671-6d2c9cf97292",
+  "map_epoch": 1791591241638714907,
+  "map_version": 69,
+  "localization_session": "dd369c9b-aeb9-49db-a1bd-0db99a55e75b",
+  "reset_counters": [
+    4,
+    3,
+    3,
+    2,
+    1,
+    13
+  ],
+  "alignment_id": "depth-map-is-ekf-odom-v1",
+  "alignment_generation": 1,
+  "writers": {
+    "/planning/source/map": 1,
+    "/uav/px4/localized_odometry": 1,
+    "/planning/source/alignment": 1,
+    "/planning/context": 1,
+    "/planning/bound_trajectory": 1,
+    "/planning/ego/trajectory": 1
+  },
+  "planner_goal_readers": 1,
+  "flight_envelope_start_clear": false,
+  "goal_dispatched": false,
+  "captured_monotonic": 132306.637590514,
+  "scope": "actual online depth-map and PX4 EKF planning context; no trajectory or flight qualification"
+}

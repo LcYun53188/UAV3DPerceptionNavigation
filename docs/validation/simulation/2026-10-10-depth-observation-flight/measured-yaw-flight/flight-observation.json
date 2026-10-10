@@ -1,0 +1,351 @@
+{
+  "passed": true,
+  "scenario": "full",
+  "vio_required": false,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "OBSERVE",
+      "timeout_s": 25.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "navigation_backend": "EGO",
+  "recipe_sha256": "c1baa37db75b60565720671eb1a8b798550233e8842d89a14abb84967ebabd6e",
+  "outputs_at_action_result": 1857,
+  "landing_cancel_rejected": true,
+  "action_status": 6,
+  "result": {
+    "code": "ABORTED",
+    "reason": "OBSERVATION_INSUFFICIENT",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "mission_uuid": "85bfab59-2263-c992-d75d-bb53afdbbca3",
+  "home_enu": [
+    -0.014192122034728527,
+    0.0011971171479672194,
+    -0.06728020310401917
+  ],
+  "home_truth": [
+    -1.1144630690357808e-12,
+    1.4315438184568396e-18,
+    -0.013000184424629663
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "AWAIT_STEP",
+    "OBSERVE",
+    "LAND_REQUEST",
+    "LANDING",
+    "COMPLETE"
+  ],
+  "max_truth_displacement_m": 2.02914939638527,
+  "hovers": [],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        0.012952853109504427,
+        -0.010020609712228177,
+        2.0120378343980403
+      ],
+      "actual_world": [
+        -0.023760252577254695,
+        -0.0012283401284227907,
+        1.902858531424895
+      ],
+      "error_m": 0.1155217569607705
+    }
+  ],
+  "source_sha256": {
+    "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+    "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+    "src/uav_mission/uav_mission/px4_flight.py": "f1014a91c814736389fca7cd7f738f49953c1d8d1f4256ac1ee08150152b6594",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/uav_mission/uav_mission/flight_profiles.py": "20f5bfd6f1ed3302715cd3b89b3caa73534eacfc6795aebafa9a57371f5cb16f",
+    "src/uav_mission/uav_mission/ego_execution.py": "fe1404349375d6a7426580bf6932ccbb0bd2063500d17e58b4f6b8fdf816d2de",
+    "src/uav_nav_sim/uav_nav_sim/core.py": "c568f43494fec93cd41bf1c6aeb637780e92d896df30137dbbe060dfe884214b",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "239834822c757663d370522a037ea1d37a7e20e0d07c416f4982fd4f7adde0c0",
+    "scripts/run_px4_sitl_smoke.py": "8af0612d03c26ba1460a53c77993d4d752034ff6ca9a4f9a03d8b9dce1bcd784",
+    "src/uav_bt/src/mission_runner.cpp": "ce157edec0996d9b5afed2215aa2f9f78549709a0ca1898c91aeaf44ebc6feb4",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "27e9db76307ce398085af313ccff9783a7975036f438fecb489aa800eb150a5b"
+  },
+  "final_truth": [
+    -0.000888808919111782,
+    0.023999610103560828,
+    -0.013000108947277461
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "observations": [
+    {
+      "mono": 133179.84080809,
+      "ros": 35.772,
+      "angle_rad": 0.004941251000855118,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6760681867599487
+    },
+    {
+      "mono": 133180.840940659,
+      "ros": 36.772,
+      "angle_rad": 0.35498765014926903,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.8703184127807617
+    },
+    {
+      "mono": 133181.86088725,
+      "ros": 37.788,
+      "angle_rad": 0.7119689569983165,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 2.264988422393799
+    },
+    {
+      "mono": 133182.880822824,
+      "ros": 38.812,
+      "angle_rad": 1.0689464078997843,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 2.6110494136810303
+    },
+    {
+      "mono": 133183.880989308,
+      "ros": 39.812,
+      "angle_rad": 1.419004677303019,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 2.9612722396850586
+    },
+    {
+      "mono": 133184.900771867,
+      "ros": 40.828,
+      "angle_rad": 1.7759285729480323,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -2.9665231704711914
+    },
+    {
+      "mono": 133185.920766083,
+      "ros": 41.852,
+      "angle_rad": 2.132926548551768,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -2.609220266342163
+    },
+    {
+      "mono": 133186.92084773,
+      "ros": 42.852,
+      "angle_rad": 2.482955125006265,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -2.2578670978546143
+    },
+    {
+      "mono": 133187.940779578,
+      "ros": 43.872,
+      "angle_rad": 2.8399312718014698,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -1.9021188020706177
+    },
+    {
+      "mono": 133188.940868173,
+      "ros": 44.872,
+      "angle_rad": 3.1899622800512586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -1.5503839254379272
+    },
+    {
+      "mono": 133189.960751423,
+      "ros": 45.892,
+      "angle_rad": 3.546921417552221,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -1.195151925086975
+    },
+    {
+      "mono": 133190.961728519,
+      "ros": 46.892,
+      "angle_rad": 3.8972634011530314,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -0.844523549079895
+    },
+    {
+      "mono": 133191.980884087,
+      "ros": 47.912,
+      "angle_rad": 4.2539678499553695,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -0.48828864097595215
+    },
+    {
+      "mono": 133192.980912953,
+      "ros": 48.912,
+      "angle_rad": 4.603977953053254,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": -0.1398482769727707
+    },
+    {
+      "mono": 133194.000862661,
+      "ros": 49.932,
+      "angle_rad": 4.9609603508491995,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 0.2203899323940277
+    },
+    {
+      "mono": 133195.001279117,
+      "ros": 50.928,
+      "angle_rad": 5.311106110447144,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 0.5687558054924011
+    },
+    {
+      "mono": 133196.020978091,
+      "ros": 51.952,
+      "angle_rad": 5.668000751349609,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 0.924501359462738
+    },
+    {
+      "mono": 133197.040845072,
+      "ros": 52.972,
+      "angle_rad": 6.024954194706515,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.2825736999511719
+    },
+    {
+      "mono": 133198.040861842,
+      "ros": 53.972,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6310961246490479
+    },
+    {
+      "mono": 133199.06076924,
+      "ros": 54.992,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6801581382751465
+    },
+    {
+      "mono": 133200.080848487,
+      "ros": 56.012,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6726958751678467
+    },
+    {
+      "mono": 133201.081051593,
+      "ros": 57.012,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6763136386871338
+    },
+    {
+      "mono": 133202.100918983,
+      "ros": 58.032,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.675429105758667
+    },
+    {
+      "mono": 133203.120739765,
+      "ros": 59.052,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6765246391296387
+    },
+    {
+      "mono": 133204.120885773,
+      "ros": 60.048,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "measured_heading_rad": 1.6744797229766846
+    }
+  ],
+  "planning_context_final": {
+    "map_id": "668d872a-010c-4e19-ab0e-da0f732a3fed",
+    "map_epoch": 1791592123973248462,
+    "map_version": 103,
+    "source_stamp_s": 68.84,
+    "alignment_id": "depth-map-is-ekf-odom-v1",
+    "generation": 1,
+    "localization_session": "5a505efb-01bf-478f-a2e1-c38436b55a79",
+    "reset_counters": [
+      4,
+      3,
+      3,
+      2,
+      1,
+      13
+    ],
+    "observed_voxels": 188551
+  },
+  "observation_measured_yaw_sweep_rad": 6.281596843396322,
+  "observation_task_succeeded": false,
+  "observation_cleanup_verified": true,
+  "bt_exit_code": 1,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0,
+    1
+  ],
+  "bt_step_completes": [
+    0
+  ],
+  "bt_progress": {
+    "samples": 446,
+    "max_gap_s": 0.11822646099608392,
+    "handshake_s": 0.10273476701695472,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 1857,
+  "localized_odometry": {
+    "samples": 5216,
+    "sessions": [
+      "5a505efb-01bf-478f-a2e1-c38436b55a79"
+    ],
+    "valid": true
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "passed": true,
+  "scenario": "full",
+  "vio_required": false,
+  "profile": "known_region_control",
+  "scope": "real x500 takeoff/navigation/hover/return/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "OBSERVE",
+      "timeout_s": 25.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "navigation_backend": "EGO",
+  "recipe_sha256": "c1baa37db75b60565720671eb1a8b798550233e8842d89a14abb84967ebabd6e",
+  "outputs_at_action_result": 1837,
+  "landing_cancel_rejected": true,
+  "action_status": 6,
+  "result": {
+    "code": "ABORTED",
+    "reason": "OBSERVATION_INSUFFICIENT",
+    "cleanup_confirmed": true,
+    "mock": false
+  },
+  "mission_uuid": "1837bc69-70e7-58a2-7019-5b8cd45f15ff",
+  "home_enu": [
+    0.01726544462144375,
+    -0.0025490648113191128,
+    -0.01827724277973175
+  ],
+  "home_truth": [
+    -1.1144630690357808e-12,
+    1.4315438184568396e-18,
+    -0.013000184424629663
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "AWAIT_STEP",
+    "OBSERVE",
+    "LAND_REQUEST",
+    "LANDING",
+    "COMPLETE"
+  ],
+  "max_truth_displacement_m": 2.011715083444249,
+  "hovers": [],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        -0.006061074325066661,
+        0.012988168280571701,
+        1.9750335870902629
+      ],
+      "actual_world": [
+        0.013395123297631699,
+        -0.018386370104893825,
+        1.8088986287532955
+      ],
+      "error_m": 0.17018733697446592
+    }
+  ],
+  "source_sha256": {
+    "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+    "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+    "src/uav_mission/uav_mission/px4_flight.py": "dc0c2a4cb2a643548e93cda26b615e92380496f0807c4aeb53fb8471ca5374ee",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/uav_mission/uav_mission/flight_profiles.py": "20f5bfd6f1ed3302715cd3b89b3caa73534eacfc6795aebafa9a57371f5cb16f",
+    "src/uav_mission/uav_mission/ego_execution.py": "fe1404349375d6a7426580bf6932ccbb0bd2063500d17e58b4f6b8fdf816d2de",
+    "src/uav_nav_sim/uav_nav_sim/core.py": "c568f43494fec93cd41bf1c6aeb637780e92d896df30137dbbe060dfe884214b",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "4c52c70c88f7a086542767295ae6010e7b5b080ad273c672c416bffe3428f257",
+    "scripts/run_px4_sitl_smoke.py": "8af0612d03c26ba1460a53c77993d4d752034ff6ca9a4f9a03d8b9dce1bcd784",
+    "src/uav_bt/src/mission_runner.cpp": "ce157edec0996d9b5afed2215aa2f9f78549709a0ca1898c91aeaf44ebc6feb4",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "27e9db76307ce398085af313ccff9783a7975036f438fecb489aa800eb150a5b"
+  },
+  "final_truth": [
+    0.02519022959643048,
+    -0.007780927561809999,
+    -0.0130002886291965
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 21,
+      "result": 0
+    }
+  ],
+  "observations": [
+    {
+      "mono": 133071.831064795,
+      "ros": 35.232,
+      "angle_rad": 0.004928089250461198,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133072.850975673,
+      "ros": 36.252,
+      "angle_rad": 0.3618968965529348,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133073.850978328,
+      "ros": 37.252,
+      "angle_rad": 0.7118978258018615,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133074.870947746,
+      "ros": 38.272,
+      "angle_rad": 1.0688871221034786,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133075.870965262,
+      "ros": 39.272,
+      "angle_rad": 1.418893252701673,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133076.871056448,
+      "ros": 40.272,
+      "angle_rad": 1.7689251678006257,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133077.871072732,
+      "ros": 41.272,
+      "angle_rad": 2.1189308672008336,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133078.890951179,
+      "ros": 42.292,
+      "angle_rad": 2.475888323649997,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133079.891109399,
+      "ros": 43.292,
+      "angle_rad": 2.825943700651987,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133080.910914146,
+      "ros": 44.312,
+      "angle_rad": 3.182875362098275,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133081.910966136,
+      "ros": 45.312,
+      "angle_rad": 3.532893558600335,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133082.911024345,
+      "ros": 46.312,
+      "angle_rad": 3.8829139317502266,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133083.931032096,
+      "ros": 47.332,
+      "angle_rad": 4.239916644603363,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133084.931041837,
+      "ros": 48.332,
+      "angle_rad": 4.589920053951209,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133085.951347863,
+      "ros": 49.352,
+      "angle_rad": 4.947027163054735,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133086.951608235,
+      "ros": 50.352,
+      "angle_rad": 5.297118293246603,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133087.97096471,
+      "ros": 51.372,
+      "angle_rad": 5.653893059499387,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133088.970995215,
+      "ros": 52.372,
+      "angle_rad": 6.003903736251232,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133089.99111293,
+      "ros": 53.392,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133091.010973995,
+      "ros": 54.412,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133092.011032672,
+      "ros": 55.412,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133093.031062488,
+      "ros": 56.432,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133094.051021556,
+      "ros": 57.452,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133095.051044487,
+      "ros": 58.452,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    },
+    {
+      "mono": 133096.051062526,
+      "ros": 59.452,
+      "angle_rad": 6.283185307179586,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME"
+    }
+  ],
+  "observation_task_succeeded": false,
+  "observation_cleanup_verified": true,
+  "bt_exit_code": 1,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0,
+    1
+  ],
+  "bt_step_completes": [
+    0
+  ],
+  "bt_progress": {
+    "samples": 442,
+    "max_gap_s": 0.12288556300336495,
+    "handshake_s": 0.10013231399352662,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 1837,
+  "localized_odometry": {
+    "samples": 5150,
+    "sessions": [
+      "476fcd8b-8a03-4f84-a266-7911445b55e1"
+    ],
+    "valid": true
+  }
+}

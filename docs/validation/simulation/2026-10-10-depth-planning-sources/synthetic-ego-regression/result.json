@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "scope": "Synthetic ESDF, real EGO/DDS; no FMU or physical tracking",
+  "domain": 91,
+  "planner_discovery_confirmed": true,
+  "execution_admission": {
+    "passed": true,
+    "trajectory_id": 1,
+    "sample_odom": [
+      1.0000000000000002,
+      5.053215498074303e-16,
+      0.9999999999999998
+    ],
+    "finished": false,
+    "validation_wall_s": 0.005581132980296388,
+    "scope": "actual EGO output admission and sampling only; no FMU or physical tracking"
+  },
+  "normal": {
+    "context_id": "2d3aeb5f6b3405db8b49d4f7e7c701f55f606433f989a929e7ab6019ab1fa648",
+    "controls": 16,
+    "duration_s": 11.072188180802895,
+    "detour_y_m": 1.5461192844031673,
+    "start": [
+      3.9999999999999996,
+      -1.9999999999999998,
+      1.9999999999999998
+    ],
+    "end": [
+      5.999999999999998,
+      -2.0,
+      2.0
+    ]
+  },
+  "duplicate_result_rejected": true,
+  "multiple_source_rejected": true,
+  "same_generation_change_rejected": true,
+  "new_alignment_retires_old_goal": true,
+  "map_epoch_requires_rebind": true,
+  "alignment_timeout_rejected": true,
+  "legacy_identity_profile_passed": true,
+  "flight_control_topics": [],
+  "bound_count": 1,
+  "cleanup_exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "source_sha256": {
+    "src/uav_mission/uav_mission/ego_execution.py": "fe1404349375d6a7426580bf6932ccbb0bd2063500d17e58b4f6b8fdf816d2de",
+    "src/uav_mission/uav_mission/px4_flight.py": "ac0f1c7266e8e5e60be51de4d018a0480741259434fb49a97520b597a69674dc",
+    "src/uav_nav_sim/uav_nav_sim/core.py": "c568f43494fec93cd41bf1c6aeb637780e92d896df30137dbbe060dfe884214b",
+    "src/uav_nav_sim/uav_nav_sim/planning_context.py": "a31bc0554cbaca4b3066248250a05cd48051b7b31510d15168d4d6f111ea65a3",
+    "src/uav_nav_sim/uav_nav_sim/planning_context_node.py": "040cd91da28e5bc0136eb4e23f00e5bf492aec498e1ef94e20a9cce49cd2103b",
+    "src/uav_ego_adapter/src/planner.cpp": "6eda7b9ef91bf5fd1d4869ef7182fe30168d8e79050dd662a276fee2e2245f7c",
+    "scripts/run_planning_context_smoke.py": "daa3df4eae26451d230a3ed1d7cb4b764a0033b926ff98318d0d0c7c0ad25f39",
+    "install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner": "d5edc3222700982e7926d8137d26d3400036bce7576c354b0ee6249d0faddf08"
+  }
+}
