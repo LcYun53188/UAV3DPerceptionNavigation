@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "map_id": "90fb9212-eecf-40bd-a380-e7768cea6c40",
+  "epoch": 1791590552626417322,
+  "version": 81,
+  "valid": true,
+  "observed_voxels": 14204,
+  "observed_positive_distance_voxels": 10240,
+  "shape": [
+    101,
+    101,
+    41
+  ],
+  "resolution": 0.10000000149011612,
+  "odometry_reset_counter": 13,
+  "voxels": 418241,
+  "source_age_s": 0.8039999999999949,
+  "captured_monotonic": 131623.612160679,
+  "disarmed": true,
+  "reason": "READY",
+  "scope": "actual depth to nvblox ESDF using PX4 EKF TF; no planning or flight qualification"
+}
