@@ -439,6 +439,9 @@ def main():
                 rclpy.spin_once(node, timeout_sec=.05)
             result['flight_passed'] = flight.poll() == 0
             result['passed'] = result['passed'] and result['flight_passed']
+            flight_receipt=run_dir/'flight-observation.json'
+            result['mission_result']=(read(flight_receipt).get('result')
+                                      if flight_receipt.exists() else None)
         if args.aircraft_state:
             def current_state():
                 msg = last.get('aircraft_state')
@@ -497,7 +500,10 @@ def main():
     if failure:
         print(f'FAIL: {failure}', flush=True)
         return 1
-    print(f"DDS/clock: {result['dds_clock_passed']}; QGC: {result['qgc_connected']}; PASS: {result['passed']}", flush=True)
+    print(f"DDS/clock: {result['dds_clock_passed']}; QGC: {result['qgc_connected']}; Validation PASS: {result['passed']}", flush=True)
+    if args.flight:
+        mission=result.get('mission_result') or {}
+        print(f"Mission: {mission.get('code','NOT_STARTED_OR_NOT_RECORDED')}; reason: {mission.get('reason','')}; cleanup: {mission.get('cleanup_confirmed',False)}", flush=True)
     return 0 if result['passed'] else 1
 
 
