@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "scope": "ideal same-X500 RGBD reference; no stereo/VIO or hardware calibration",
+  "model": "x500_depth_ref",
+  "width": 640,
+  "height": 400,
+  "horizontal_fov_rad": 1.21,
+  "baseline_m": 0.075,
+  "rig_position_flu_m": [
+    0.12,
+    0.0,
+    0.242
+  ],
+  "image_rate_hz": 15,
+  "imu_rate_hz": 250,
+  "near_m": 0.1,
+  "far_m": 20.0,
+  "camera_pitch_deg": 5,
+  "topics": {
+    "depth": "/px4_reference/rgbd/depth_image",
+    "color": "/px4_reference/rgbd/image",
+    "camera_info": "/px4_reference/rgbd/camera_info"
+  }
+}

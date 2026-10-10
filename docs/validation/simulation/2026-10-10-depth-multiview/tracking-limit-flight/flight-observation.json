@@ -1,0 +1,459 @@
+{
+  "passed": false,
+  "scenario": "full",
+  "vio_required": false,
+  "profile": "known_region_depth_observation",
+  "scope": "real same-aircraft takeoff/finite depth observation/native landing",
+  "mock": false,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "OBSERVE",
+      "timeout_s": 160.0
+    },
+    {
+      "type": "NAVIGATE",
+      "target_map": [
+        0.5508338436484337,
+        0.044737812131643295,
+        1.999988928437233
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 5.0
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ],
+  "navigation_backend": "EGO",
+  "recipe_sha256": "af7b9994e1f7e5ff861fd9744599eb79e81ca25e4cd27c0dc8f9e4c4480d8c78",
+  "outputs_at_action_result": 685,
+  "landing_cancel_rejected": false,
+  "action_status": 6,
+  "result": {
+    "code": "ABORTED",
+    "reason": "OBSERVATION_DRIFT",
+    "cleanup_confirmed": false,
+    "mock": false
+  },
+  "mission_uuid": "6f1ebbd2-e687-0f9e-df69-466520e70345",
+  "home_enu": [
+    0.050833843648433685,
+    0.044737812131643295,
+    -1.1071562767028809e-05
+  ],
+  "home_truth": [
+    -1.1144630690357808e-12,
+    1.4315438184568396e-18,
+    -0.013000184424629663
+  ],
+  "phases": [
+    "PRESTREAM",
+    "OFFBOARD_REQUEST",
+    "ARM_REQUEST",
+    "TAKEOFF",
+    "AWAIT_STEP",
+    "OBSERVE",
+    "FAULT"
+  ],
+  "max_truth_displacement_m": 1.9266270769104503,
+  "hovers": [],
+  "waypoint_truth": [
+    {
+      "phase": "TAKEOFF",
+      "expected_world": [
+        0.0039007700968565,
+        -3.688409924507141e-05,
+        1.9891555069606395
+      ],
+      "actual_world": [
+        -0.03444958124973678,
+        0.015068881306317535,
+        1.8890352172164695
+      ],
+      "error_m": 0.10827283138143007
+    }
+  ],
+  "source_sha256": {
+    "src/uav_nav_interfaces/msg/VioStatus.msg": "0409d5582c7974556609f3d791004e643132c4b41d94778afef1a18f3fc98391",
+    "src/uav_mission/uav_mission/vio_gate.py": "486c548238ec0240f9502cabd867502a825c2dde6cc71a196bfb1baf8f4aa1cd",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input.py": "60e48b43ddb8994414c47cdde1e0e086d98cf15dbf77fd50e31c5eb9087e8743",
+    "src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py": "15f738a6a250287d25e6e7bb4bf29d38e5c0a8adaa60facaa46274f07ed010eb",
+    "src/uav_nav_interfaces/msg/LocalizedOdometry.msg": "dcd8919ec9042eaaf9a10fa775722b4a470b83b5662b9c7744061f05f79a39d2",
+    "src/uav_mission/uav_mission/px4_flight.py": "ea15484dfeeb40b21b6bb430998b0ae5a344d91905c522c8390ddbbab21dbc6a",
+    "src/uav_mission/uav_mission/flight_geometry.py": "873cb9b52aa7a02df5a543fd9f5101336f7f589e4fb199fef20f82f96545339d",
+    "src/uav_mission/uav_mission/flight_profiles.py": "20f5bfd6f1ed3302715cd3b89b3caa73534eacfc6795aebafa9a57371f5cb16f",
+    "src/uav_mission/uav_mission/ego_execution.py": "e5a2dff661e0aa4ee64e4ae7970091b5d1b424542ab799fc8f363ab214d19d00",
+    "src/uav_nav_sim/uav_nav_sim/core.py": "c568f43494fec93cd41bf1c6aeb637780e92d896df30137dbbe060dfe884214b",
+    "src/px4_comm_bridge/px4_comm_bridge/converters.py": "734b2c16d19f5822700b0545bd058487fc35b35f54e03732297d9f48e73e6456",
+    "scripts/run_px4_flight_tasks.py": "f35b39316f383177ef8ac49ad68c08e67c34f0641c40e3f22bf6b9322985da7b",
+    "scripts/run_px4_sitl_smoke.py": "8af0612d03c26ba1460a53c77993d4d752034ff6ca9a4f9a03d8b9dce1bcd784",
+    "src/uav_bt/src/mission_runner.cpp": "ce157edec0996d9b5afed2215aa2f9f78549709a0ca1898c91aeaf44ebc6feb4",
+    "src/uav_bt/trees/px4_flight.xml": "0115c0976b7a14972d999f2c5e891b56ec4ee66e947e260276a2dd90e4580f49",
+    "src/uav_nav_interfaces/srv/AdvanceFlightStep.srv": "42b5178b6821fd39e24e9df41cd5893b2ea457f059d46f7e93e9c44b488040ef",
+    "scripts/bt_flight_client.py": "e5b9748c920feb1c5df1b6b1ec95295ba0a4da8d00367b95c7af4e2b1f712fb0",
+    ".deps/mission-install/uav_bt/lib/uav_bt/mission_runner": "27e9db76307ce398085af313ccff9783a7975036f438fecb489aa800eb150a5b"
+  },
+  "final_truth": [
+    0.21835381403703838,
+    0.20534790397757788,
+    -0.013001024558667251
+  ],
+  "final_land": true,
+  "final_arming": 1,
+  "command_acks": [
+    {
+      "command": 400,
+      "result": 0
+    }
+  ],
+  "observations": [
+    {
+      "mono": 134147.583173814,
+      "ros": 34.468,
+      "angle_rad": 0.0,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "volume": {
+        "total_cells": 28577,
+        "outside_cells": 0,
+        "unknown": 24732,
+        "occupied": 0,
+        "observed_nonfinite": 0,
+        "centre_distance_m": -1000.0,
+        "required_centre_distance_m": 0.8866025416689223,
+        "layers": [
+          {
+            "z_m": 1.1000000163912773,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.2000000178813934,
+            "cells": 1681,
+            "unknown": 1417,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.3000000193715096,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.4000000208616257,
+            "cells": 1681,
+            "unknown": 1421,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.5000000223517418,
+            "cells": 1681,
+            "unknown": 1421,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.600000023841858,
+            "cells": 1681,
+            "unknown": 1424,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.700000025331974,
+            "cells": 1681,
+            "unknown": 1430,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.8000000268220901,
+            "cells": 1681,
+            "unknown": 1432,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.9000000283122063,
+            "cells": 1681,
+            "unknown": 1424,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.0000000298023224,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.1000000312924385,
+            "cells": 1681,
+            "unknown": 1414,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.2000000327825546,
+            "cells": 1681,
+            "unknown": 1423,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.3000000342726707,
+            "cells": 1681,
+            "unknown": 1445,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.400000035762787,
+            "cells": 1681,
+            "unknown": 1477,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.500000037252903,
+            "cells": 1681,
+            "unknown": 1521,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.600000038743019,
+            "cells": 1681,
+            "unknown": 1580,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.7000000402331352,
+            "cells": 1681,
+            "unknown": 1649,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          }
+        ]
+      },
+      "survey_state": "MOVE",
+      "survey_index": 0,
+      "reference_enu": [
+        0.054734829780888526,
+        0.0447011440668821,
+        2.0021443497793974
+      ],
+      "measured_heading_rad": 1.6816307306289673
+    },
+    {
+      "mono": 134148.583407579,
+      "ros": 35.468,
+      "angle_rad": 0.0,
+      "clear": false,
+      "reason": "UNOBSERVED_OR_OCCUPIED_START_VOLUME",
+      "volume": {
+        "total_cells": 28577,
+        "outside_cells": 0,
+        "unknown": 24638,
+        "occupied": 0,
+        "observed_nonfinite": 0,
+        "centre_distance_m": -1000.0,
+        "required_centre_distance_m": 0.8866025416689223,
+        "layers": [
+          {
+            "z_m": 1.1000000163912773,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.2000000178813934,
+            "cells": 1681,
+            "unknown": 1417,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.3000000193715096,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.4000000208616257,
+            "cells": 1681,
+            "unknown": 1421,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.5000000223517418,
+            "cells": 1681,
+            "unknown": 1421,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.600000023841858,
+            "cells": 1681,
+            "unknown": 1424,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.700000025331974,
+            "cells": 1681,
+            "unknown": 1430,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.8000000268220901,
+            "cells": 1681,
+            "unknown": 1432,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 1.9000000283122063,
+            "cells": 1681,
+            "unknown": 1424,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.0000000298023224,
+            "cells": 1681,
+            "unknown": 1418,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.1000000312924385,
+            "cells": 1681,
+            "unknown": 1413,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.2000000327825546,
+            "cells": 1681,
+            "unknown": 1419,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.3000000342726707,
+            "cells": 1681,
+            "unknown": 1434,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.400000035762787,
+            "cells": 1681,
+            "unknown": 1464,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.500000037252903,
+            "cells": 1681,
+            "unknown": 1504,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.600000038743019,
+            "cells": 1681,
+            "unknown": 1559,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          },
+          {
+            "z_m": 2.7000000402331352,
+            "cells": 1681,
+            "unknown": 1622,
+            "observed_nonfinite": 0,
+            "occupied": 0
+          }
+        ]
+      },
+      "survey_state": "MOVE",
+      "survey_index": 0,
+      "reference_enu": [
+        0.09561104942301979,
+        0.08557736370901337,
+        1.951049075226733
+      ],
+      "measured_heading_rad": 1.6800546646118164
+    }
+  ],
+  "planning_context_final": {
+    "map_id": "11755ddc-18c6-4146-b129-03c7ae37f3cb",
+    "map_epoch": 1791593092459976571,
+    "map_version": 35,
+    "source_stamp_s": 35.908,
+    "alignment_id": "depth-map-is-ekf-odom-v1",
+    "generation": 1,
+    "localization_session": "84823e17-59ca-49d2-8d0a-4b9f01213dc1",
+    "reset_counters": [
+      4,
+      3,
+      3,
+      2,
+      1,
+      13
+    ],
+    "observed_voxels": 38875
+  },
+  "observation_measured_yaw_sweep_rad": -0.001576066017150879,
+  "observation_task_succeeded": false,
+  "observation_cleanup_verified": false,
+  "bt_exit_code": 1,
+  "bt_dispatch_count": 1,
+  "bt_step_accepts": [
+    0,
+    1
+  ],
+  "bt_step_completes": [
+    0
+  ],
+  "bt_progress": {
+    "samples": 133,
+    "max_gap_s": 0.11008030499215238,
+    "handshake_s": 0.1024314220121596,
+    "loss_to_brake_s": null
+  },
+  "outputs_at_end": 685,
+  "fallback_landed_disarmed": true,
+  "localized_odometry": {
+    "samples": 2600,
+    "sessions": [
+      "84823e17-59ca-49d2-8d0a-4b9f01213dc1"
+    ],
+    "valid": true
+  }
+}

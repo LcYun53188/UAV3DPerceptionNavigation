@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "images": 94,
+  "infos": 205,
+  "valid_images": 94,
+  "valid_infos": 205,
+  "errors": [],
+  "regressions": 0,
+  "image": {
+    "stamp": 16.636,
+    "frame": "oakd_camera_optical_frame",
+    "width": 640,
+    "height": 400,
+    "encoding": "32FC1",
+    "finite_pixels": 140234,
+    "finite_fraction": 0.5477890625,
+    "min_m": 0.44326651096343994,
+    "max_m": 3.8597867488861084
+  },
+  "camera_info": {
+    "stamp": 16.7,
+    "frame": "oakd_camera_optical_frame",
+    "width": 640,
+    "height": 400,
+    "k": [
+      462.76058518809,
+      0.0,
+      320.0,
+      0.0,
+      462.7605851880899,
+      200.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "p": [
+      462.76058518809,
+      0.0,
+      320.0,
+      0.0,
+      0.0,
+      462.7605851880899,
+      200.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    "r": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "d": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "receive_age_s": {
+    "image": 0.09713535002083518,
+    "camera_info": 0.036556135019054636
+  },
+  "image_source_age_s": 0.1039999999999992,
+  "matching": true,
+  "writers": {
+    "/px4_depth/image": 1,
+    "/px4_depth/camera_info": 1
+  },
+  "scope": "disarmed sensor transport only; no TF, fusion, alignment or flight validation"
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "reason": "OBSERVATION_DRIFT",
+    "ages": {
+      "vehicle_local_position": {
+        "receive": 0.010821013012900949,
+        "source": 0.012000000000000455
+      },
+      "battery_status": {
+        "receive": 0.007211652002297342,
+        "source": 0.003999999999990678
+      },
+      "vehicle_odometry": {
+        "receive": 0.010780267009977251,
+        "source": 0.012000000000000455
+      },
+      "vehicle_status": {
+        "receive": 0.42696678001084365,
+        "source": 0.4239999999999924
+      },
+      "failsafe_flags": {
+        "receive": 0.21054557501338422,
+        "source": 0.2079999999999984
+      },
+      "vehicle_land_detected": {
+        "receive": 0.7826740529853851,
+        "source": 0.7799999999999869
+      },
+      "vehicle_command_ack": {
+        "receive": 47.80263479499263,
+        "source": 47.8
+      }
+    },
+    "local": "px4_msgs.msg.VehicleLocalPosition(timestamp=73192000, timestamp_sample=73192000, xy_valid=True, z_valid=True, v_xy_valid=True, v_z_valid=True, x=0.3763039708137512, y=0.43739646673202515, z=-1.5530602931976318, delta_xy=array([-0.01056104,  0.00559746], dtype=float32), xy_reset_counter=4, delta_z=-0.19059689342975616, z_reset_counter=3, vx=-0.15117807686328888, vy=-0.14664387702941895, vz=-0.17684054374694824, z_deriv=-0.171136736869812, delta_vxy=array([0.01450722, 0.02621982], dtype=float32), vxy_reset_counter=3, delta_vz=-0.014773782342672348, vz_reset_counter=2, ax=-0.00871970597654581, ay=-0.04659580811858177, az=-0.008692963980138302, heading=1.6723411083221436, heading_var=0.04166192188858986, unaided_heading=0.035635173320770264, delta_heading=1.6746916770935059, heading_reset_counter=1, heading_good_for_control=True, tilt_var=2.7033460355596617e-05, xy_global=True, z_global=True, ref_timestamp=4244000, ref_lat=47.39797092650863, ref_lon=8.54616365921463, ref_alt=0.19036024808883667, dist_bottom_valid=False, dist_bottom=1.6036298274993896, dist_bottom_var=9.19130802154541, delta_dist_bottom=-0.19059689342975616, dist_bottom_reset_counter=3, dist_bottom_sensor_bitfield=0, eph=0.15195053815841675, epv=0.16704818606376648, evh=0.08917272835969925, evv=0.054615333676338196, dead_reckoning=False, vxy_max=inf, vz_max=inf, hagl_min=inf, hagl_max_z=inf, hagl_max_xy=inf)",
+    "status": "px4_msgs.msg.VehicleStatus(timestamp=72780000, armed_time=25404000, takeoff_time=27156000, arming_state=2, latest_arming_reason=4, latest_disarming_reason=0, nav_state_timestamp=25368000, nav_state_user_intention=14, nav_state=14, executor_in_charge=0, valid_nav_states_mask=2147411071, can_set_nav_states_mask=8307839, failure_detector_status=0, hil_state=0, vehicle_type=1, failsafe=False, failsafe_and_user_took_over=False, failsafe_defer_state=0, gcs_connection_lost=False, gcs_connection_lost_counter=0, high_latency_data_link_lost=False, is_vtol=False, is_vtol_tailsitter=False, in_transition_mode=False, in_transition_to_fw=False, system_type=2, system_id=8, component_id=1, safety_button_available=True, safety_off=True, power_input_valid=True, usb_connected=False, open_drone_id_system_present=False, open_drone_id_system_healthy=False, parachute_system_present=False, parachute_system_healthy=False, rc_calibration_in_progress=False, calibration_enabled=False, pre_flight_checks_pass=True)",
+    "battery": "px4_msgs.msg.BatteryStatus(timestamp=73200000, connected=True, voltage_v=15.300000190734863, current_a=-1.0, current_average_a=5.768110275268555, discharged_mah=0.0, remaining=0.5000267028808594, scale=1.0588202476501465, time_remaining_s=nan, temperature=nan, cell_count=4, source=0, priority=0, capacity=0, cycle_count=0, average_time_to_empty=0, serial_number=0, manufacture_date=0, state_of_health=0, max_error=0, id=1, interface_error=0, voltage_cell_v=array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],\n      dtype=float32), max_cell_voltage_delta=0.0, is_powering_off=False, is_required=False, faults=0, warning=0, full_charge_capacity_wh=0.0, remaining_capacity_wh=0.0, over_discharge_count=0, nominal_voltage=0.0, internal_resistance_estimate=0.004999999888241291, ocv_estimate=15.279999732971191, ocv_estimate_filtered=16.18000030517578, volt_based_soc_estimate=0.9888887405395508, voltage_prediction=0.0, prediction_error=0.0, estimation_covariance_norm=6.0133185386657715)"
+  }
+]

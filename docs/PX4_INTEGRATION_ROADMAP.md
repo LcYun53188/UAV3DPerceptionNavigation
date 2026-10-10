@@ -14,6 +14,8 @@
 
 2026-10-10：新增冻结深度飞行 profile 与 OBSERVE BT 步骤。`sim.sh px4-observe` 两轮实际起飞／定点扫描／观测不足原生降落并锁定通过；实测 yaw 6.282 rad，任务 ABORTED 且 cleanup_confirmed=true。当前尚不能执行 EGO 导航，下一步多位置／多高度观测与体素缺口诊断。见 [有限观测闭环](validation/simulation/2026-10-10-depth-observation-flight/REPORT.md)。
 
+2026-10-10 多位置观测更新：已实现有界三点／1、2、3 m 观测及返回起点，0.18 m/s 专用移动限值保持 0.3 m 跟踪门槛。实际三点扫描完成，最大跟踪误差 0.202 m；安全空间仍有 4,551 未知／4 占用体素，160 s 期限后原生降落并确认锁定。recipe 已接导航／悬停／返航／降落，但 EGO 后续步骤尚未执行；下一步按三维缺口改进覆盖并诊断占用。见 [多位置观测验证](validation/simulation/2026-10-10-depth-multiview/REPORT.md)。
+
 以下较早的阶段记录保留为历史证据。
 
 
