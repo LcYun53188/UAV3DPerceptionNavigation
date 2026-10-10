@@ -490,3 +490,26 @@ def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeyp
     node.samples['vehicle_local_position'].vx=0.
     FlightServer.observation_tick(node,102.,102.)
     assert advanced==[True]
+
+
+def test_admitted_plan_audit_serializes_real_uuid_arrays_and_keeps_owned_copy():
+    from uav_nav_interfaces.msg import ContextTrajectory
+    from unique_identifier_msgs.msg import UUID
+    from rosidl_runtime_py.convert import message_to_ordereddict
+    node=SimpleNamespace(lock=threading.RLock(),active_goal=SimpleNamespace(goal_id=UUID(uuid=[1]*16)),
+        result=None,phase='PLAN_REQUEST',planning_ready=lambda:None,
+        planned=SimpleNamespace(admit=lambda *args:None),planning_authorization=lambda:(),
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000)),
+        steps=[dict(type='NAVIGATE')],step_index=0,accepted_plans=[],instance='run',
+        session=UUID(uuid=[2]*16),child=UUID(uuid=[3]*16),generation=1,owner='TASK',
+        change=lambda *args:None,diagnostics=[])
+    message=ContextTrajectory();message.trajectory.trajectory_id=1
+    FlightServer.planned_result(node,message)
+    copied,authorization=node.accepted_plans[0]
+    json.dumps(dict(authorization=authorization,bound=message_to_ordereddict(copied)))
+    message.trajectory.trajectory_id=2
+    assert copied.trajectory.trajectory_id==1
+    def reject(*args):raise ValueError('CONTROL_SESSION_MISMATCH')
+    node.planned.admit=reject
+    FlightServer.planned_result(node,message)
+    assert len(node.accepted_plans)==1 and node.diagnostics[-1]['planning_rejected']=='CONTROL_SESSION_MISMATCH'

@@ -58,7 +58,7 @@
     [
       0.8,
       0.8,
-      1.3
+      1.15
     ],
     [
       -0.8,
@@ -79,5 +79,10 @@
   "observation_timeout_max_s": 190.0,
   "observation_max_speed_mps": 0.18,
   "observation_max_acceleration_mps2": 0.15,
-  "observation_max_jerk_mps3": 0.2
+  "observation_max_jerk_mps3": 0.2,
+  "ego_limits": [
+    0.18,
+    0.15,
+    0.2
+  ]
 }

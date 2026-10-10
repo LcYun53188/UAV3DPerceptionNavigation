@@ -311,17 +311,21 @@ def main():
                 '-r','/rgbd_camera/depth_image:=/px4_depth/image',
                 '-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'], True)
         if args.depth_planning:
+            limits=(.6,.5,.6)
+            if args.depth_observation:
+                from uav_mission.flight_profiles import navigation_limits
+                limits=navigation_limits(read(ROOT/'simulation/safe_regions/depth_reference.json'))
             mapping_launch('planning_sources', ['ros2','run','uav_nav_sim','planning_sources','--ros-args',
                 '-p','use_sim_time:=true','-p',f'localization_session:={run_id}',
                 '-p','alignment_id:=depth-map-is-ekf-odom-v1','-p',f'settle_seconds:={5.0 if args.depth_observation else 0.0}'], True)
             mapping_launch('planning_context', ['ros2','run','uav_nav_sim','planning_context','--ros-args',
                 '-p','use_sim_time:=true','-p','body_radius:=0.8',
-                '-p','max_velocity:=0.6','-p','max_acceleration:=0.5','-p','max_jerk:=0.6',
+                '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}',
                 '-r','/planning/source/odometry:=/uav/px4/localized_odometry'], True)
             ego = [ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner',
                    '--ros-args','-p','use_sim_time:=true','-p','coordinate_frame:=map',
                    '-p','managed_goals:=true','-p','body_radius:=0.8',
-                   '-p','max_velocity:=0.6','-p','max_acceleration:=0.5','-p','max_jerk:=0.6']
+                   '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}']
             for source,target in {'/uav/map/snapshot':'/planning/ego/map',
                     '/uav/localization/odometry':'/planning/ego/odometry',
                     '/uav/goal':'/planning/ego/goal','/uav/trajectory':'/planning/ego/trajectory',

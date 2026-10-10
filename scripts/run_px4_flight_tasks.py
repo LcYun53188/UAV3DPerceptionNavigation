@@ -344,6 +344,13 @@ def main():
         write_json(out/'flight-trace.json',node.trace)
         write_json(out/'flight-truth.json',truth)
         write_json(out/'bt-progress.json',node.runner_progress_log)
+        try:
+            from rosidl_runtime_py.convert import message_to_ordereddict
+            write_json(out/'accepted-plans.json',[dict(authorization=authorization,
+                bound=message_to_ordereddict(message)) for message,authorization in node.accepted_plans])
+        except (TypeError,ValueError,OSError,ImportError) as error:
+            result['evidence_export_error']=str(error)
+            result['passed']=False
         write_json(out/'flight-observation.pending.json',result)
         os.replace(out/'flight-observation.pending.json',out/'flight-observation.json')
         if os.environ.get('UAV_FLIGHT_HOLD_RECEIPT')=='1':

@@ -1,6 +1,7 @@
 """Owned local SITL scene admission; default W0 remains the pinned baseline."""
 import hashlib
 import json
+import math
 from pathlib import Path
 
 
@@ -58,3 +59,13 @@ def load_region(root,env):
             if not path.is_relative_to(receipt.parent) or digest(path)!=expected:
                 raise RuntimeError('Warehouse asset drift: '+name)
     return config
+
+
+def navigation_limits(config):
+    upper=tuple(config[k] for k in ('max_speed_mps','max_acceleration_mps2','max_jerk_mps3'))
+    values=config.get('ego_limits',upper)
+    if (not isinstance(values,(list,tuple)) or len(values)!=3 or
+            any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or
+                not 0<v<=bound for v,bound in zip(values,upper))):
+        raise ValueError('INVALID_EGO_LIMITS')
+    return tuple(map(float,values))

@@ -3,6 +3,7 @@
 No planner/TF truth substitution: setpoints use PX4 local position, truth is audit.
 Requires an owned supervisor nonce, fixed isolated instance and frozen W0 hashes.
 """
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -41,7 +42,7 @@ class FlightServer(Node):
     def __init__(self):
         super().__init__('px4_flight_gateway')
         self.nonce = os.environ.get('UAV_SITL_AUTHORIZATION', '')
-        from .flight_profiles import load_region
+        from .flight_profiles import load_region, navigation_limits
         root = Path(os.environ['UAV_WORKSPACE'])
         self.config = load_region(root,os.environ)
         self.alignment = Alignment(self.config['map_translation'], self.config['map_yaw_rad'])
@@ -148,10 +149,11 @@ class FlightServer(Node):
         self.create_service(ResumeMission, '/uav/px4/resume', self.resume, callback_group=self.group)
         self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
         self.planned=None
+        self.accepted_plans=[]
         self.navigation_backend='DIRECT'
         if os.environ.get('UAV_ENABLE_EGO_NAV')=='1':
             from .ego_execution import EgoExecution
-            self.planned=EgoExecution(self.alignment,self.region,self.config['body_radius_m']+self.config['tracking_margin_m'],braking_margin=self.config['braking_margin_m'])
+            self.planned=EgoExecution(self.alignment,self.region,self.config['body_radius_m']+self.config['tracking_margin_m'],braking_margin=self.config['braking_margin_m'],limits=navigation_limits(self.config))
             self.planning_goal_pub=self.create_publisher(PoseStamped,'/planning/source/goal',10)
             for name,topic,kind in [('map','/planning/source/map',MapSnapshot),('alignment','/planning/source/alignment',LocalizationAlignment)]:
                 def receive(message,key=name):
@@ -220,6 +222,11 @@ class FlightServer(Node):
             try:
                 self.planning_ready()
                 self.planned.admit(message,self.planning_authorization(),self.get_clock().now().nanoseconds/1e9,time.monotonic())
+                self.accepted_plans.append((deepcopy(message),dict(
+                    coordinator_instance=self.instance,mission_uuid=list(map(int,self.active_goal.goal_id.uuid)),
+                    control_session=list(map(int,self.session.uuid)),generation=self.generation,
+                    owner=self.owner,child_uuid=list(map(int,self.child.uuid)),step_index=self.step_index,
+                    admitted_ros=self.get_clock().now().nanoseconds/1e9)))
                 self.change(self.steps[self.step_index]['type'])
             except ValueError as error:
                 self.diagnostics.append(dict(planning_rejected=str(error)))
@@ -505,7 +512,7 @@ class FlightServer(Node):
         with self.lock:
             now=time.monotonic()
             if (not self.active_goal or request.coordinator_instance != self.instance
-                    or list(request.mission_uuid.uuid) != list(self.active_goal.goal_id.uuid)):
+                    or list(request.mission_uuid.uuid) != list(map(int,self.active_goal.goal_id.uuid))):
                 response.accepted=False;response.reason='STALE_IDENTITY';response.phase=self.phase
                 return response
             key=bytes(request.request_id.uuid)
