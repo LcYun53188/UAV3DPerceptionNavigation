@@ -54,6 +54,7 @@ def main():
     parser.add_argument('--vio-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry',help='Explicit VIO admission profile; existing W0 scene authorization still required')
     parser.add_argument('--require-vio', action='store_true', help='Require VIO source and actual EKF fusion telemetry for flight admission')
     parser.add_argument('--vio-calibration-id', default='', help='Reviewed VIO calibration/config SHA256')
+    parser.add_argument('--depth-observation', action='store_true', help='Owned known-region takeoff, finite yaw observation and native landing')
     parser.add_argument('--depth-planning', action='store_true', help='Audit owned map/session/EGO shadow graph; requires --depth-mapping')
     parser.add_argument('--depth-mapping', action='store_true', help='Disarmed actual depth to nvblox ESDF audit; requires --depth-reference')
     parser.add_argument('--depth-reference', action='store_true', help='Audit same-X500 fixed 5 degree RGBD reference, disarmed only')
@@ -68,6 +69,11 @@ def main():
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.depth_observation:
+        if not args.flight or not args.bt or args.navigation_backend!='EGO' or args.require_vio or args.mission_file or args.flight_scenario!='full':
+            parser.error('--depth-observation requires --flight --bt --navigation-backend EGO and default owned recipe')
+        args.depth_reference=args.depth_mapping=args.depth_planning=True
+        args.mission_file=ROOT/'simulation/missions/depth_observation.json'
     if args.depth_planning and not args.depth_mapping:
         parser.error('--depth-planning requires --depth-mapping')
     if args.depth_mapping and not args.depth_reference:
@@ -82,7 +88,7 @@ def main():
         parser.error('--require-vio needs --flight and --vio-calibration-id SHA256')
     if args.vio_calibration_id and not args.require_vio:
         parser.error('--vio-calibration-id requires --require-vio')
-    if (args.depth_camera or args.depth_reference) and (args.flight or args.bt or args.mission_file or args.flight_scenario != 'full'):
+    if not args.depth_observation and (args.depth_camera or args.depth_reference) and (args.flight or args.bt or args.mission_file or args.flight_scenario != 'full'):
         parser.error('--depth-camera is a disarmed profile and cannot use flight options')
     if args.depth_camera and args.depth_reference:
         parser.error('Select exactly one depth profile')
@@ -158,6 +164,14 @@ def main():
                    UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
                    UAV_FLIGHT_BT='1' if args.bt else '0',UAV_ENABLE_EGO_NAV='1' if args.navigation_backend=='EGO' else '0',UAV_NAVIGATION_BACKEND=args.navigation_backend, UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
+    if args.depth_observation:
+        receipt=run_dir/'depth-assets.json'
+        region_file=ROOT/'simulation/safe_regions/depth_reference.json'
+        write_json(receipt,dict(schema=1,region_sha256=file_hash(region_file),partition=env['GZ_PARTITION'],
+            localization_session=run_id,files={str(p.relative_to(run_dir)):file_hash(p) for p in (run_dir/'assets').rglob('*') if p.is_file()}))
+        env.update(UAV_FLIGHT_REGION_PROFILE='depth_reference',UAV_FLIGHT_ASSET_RECEIPT=str(receipt),
+                   UAV_FLIGHT_ASSET_SHA256=file_hash(receipt),UAV_FLIGHT_COORDINATOR_INSTANCE=run_id,
+                   UAV_FLIGHT_MODEL=model_name+'_7',UAV_EXPECT_OBSERVATION='1')
     if args.require_vio and args.vio_fusion_profile=='aligned_pose_v1':
         pose_profile=read(ROOT/'simulation/px4/vio/pose_fusion.json')
         if pose_profile['schema']!=1 or pose_profile['profile']!=args.vio_fusion_profile:
@@ -168,7 +182,7 @@ def main():
                     xrce_port=xrce_port, gcs_port=14550, px4_gcs_local_port=18577,
                     model=f'{model_name}_7', namespace='/px4_7', versions=lock,
                     flight_recipe_sha256=file_hash(args.mission_file.resolve() if args.mission_file else ROOT/'simulation/missions/W0_flight_sequence.json') if args.flight else None,
-                    vio_fusion_profile=args.vio_fusion_profile,flight_profile_sha256=file_hash(ROOT/'simulation/safe_regions/W0.json') if args.flight else None,
+                    vio_fusion_profile=args.vio_fusion_profile,flight_profile_sha256=file_hash(ROOT/('simulation/safe_regions/depth_reference.json' if args.depth_observation else 'simulation/safe_regions/W0.json')) if args.flight else None,
                     px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
                     tool_sha256=file_hash(Path(__file__)),
                     world_sha256=file_hash(world_file),
@@ -183,7 +197,7 @@ def main():
                     vision_audit_sha256=file_hash(ROOT/'scripts/px4_vision_audit.py') if args.vision_fusion_smoke else None,
                     vio_gate_sha256=file_hash(ROOT/'src/uav_mission/uav_mission/vio_gate.py') if args.vision_fusion_smoke else None,
                     vio_calibration_id=args.vio_calibration_id or None,
-                    depth_planning=args.depth_planning, depth_mapping=args.depth_mapping,
+                    depth_observation=args.depth_observation,depth_planning=args.depth_planning, depth_mapping=args.depth_mapping,
                     planning_source_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'scripts/px4_planning_audit.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources_node.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_context_node.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_context.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner')} if args.depth_planning else None,
                     mapping_source_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in (ROOT/'scripts/px4_mapping_tf.py', ROOT/'src/uav_nav_sim/uav_nav_sim/map_session.py', ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml')} if args.depth_mapping else None,
                     depth_reference_profile=depth_profile,
@@ -273,11 +287,18 @@ def main():
             mapping_env = dict(env, FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
                                FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
             def mapping_launch(name, command, transport=False):
-                return launch(name, ['bash','-e','-c',
+                return launch(name, ['env','-u','AMENT_PREFIX_PATH','-u','COLCON_PREFIX_PATH','-u','CMAKE_PREFIX_PATH','-u','PYTHONPATH','bash','-e','-c',
                     'source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; shift; exec "$@"',
                     'mapping', str(ROOT), *map(str, command)], mapping_env if transport else env)
-            mapping_launch('mapping_tf', ['python', ROOT/'scripts/px4_mapping_tf.py',
-                          run_dir/'assets/frames.json', run_dir/'depth-map.json',run_id])
+            if args.depth_observation:
+                frame=read(run_dir/'assets/frames.json')['oakd_camera_optical_frame']
+                mapping_launch('camera_tf',['ros2','run','tf2_ros','static_transform_publisher',
+                    '--x',str(frame['position'][0]),'--y',str(frame['position'][1]),'--z',str(frame['position'][2]),
+                    '--roll',str(frame['rpy'][0]),'--pitch',str(frame['rpy'][1]),'--yaw',str(frame['rpy'][2]),
+                    '--frame-id','base_link','--child-frame-id','oakd_camera_optical_frame'])
+            else:
+                mapping_launch('mapping_tf', ['python', ROOT/'scripts/px4_mapping_tf.py',
+                              run_dir/'assets/frames.json', run_dir/'depth-map.json',run_id])
             mapping_launch('nvblox', ['ros2','run','nvblox_ros','nvblox_node','--ros-args',
                 '--params-file', ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml',
                 '-p','use_sim_time:=true','-p','use_color:=false',
@@ -291,7 +312,7 @@ def main():
         if args.depth_planning:
             mapping_launch('planning_sources', ['ros2','run','uav_nav_sim','planning_sources','--ros-args',
                 '-p','use_sim_time:=true','-p',f'localization_session:={run_id}',
-                '-p','alignment_id:=depth-map-is-ekf-odom-v1'], True)
+                '-p','alignment_id:=depth-map-is-ekf-odom-v1','-p',f'settle_seconds:={5.0 if args.depth_observation else 0.0}'], True)
             mapping_launch('planning_context', ['ros2','run','uav_nav_sim','planning_context','--ros-args',
                 '-p','use_sim_time:=true','-p','body_radius:=0.8',
                 '-p','max_velocity:=0.6','-p','max_acceleration:=0.5','-p','max_jerk:=0.6',
@@ -306,8 +327,9 @@ def main():
                     '/uav/planned_path':'/planning/ego/path'}.items():
                 ego += ['-r',source+':='+target]
             mapping_launch('ego_shadow',ego,True)
-            mapping_launch('planning_audit',['python',ROOT/'scripts/px4_planning_audit.py',
-                           run_dir/'depth-planning.json',run_id],True)
+            if not args.depth_observation:
+                mapping_launch('planning_audit',['python',ROOT/'scripts/px4_planning_audit.py',
+                               run_dir/'depth-planning.json',run_id],True)
         launch('px4', [build / 'bin/px4', '-d', '-i', str(instance), '-w', run_dir / 'rootfs', build / 'etc'])
         config = run_dir / 'qgc-config/QGroundControl'
         config.mkdir(parents=True)
@@ -364,12 +386,12 @@ def main():
             write_json(run_dir / 'depth-camera.json', depth_result)
             result['depth_camera_passed'] = depth_result['passed']
             result['passed'] = result['passed'] and depth_result['passed']
-        if args.depth_mapping:
+        if args.depth_mapping and not args.depth_observation:
             depth_map = read(run_dir/'depth-map.json') if (run_dir/'depth-map.json').is_file() else {}
             fresh = time.monotonic() - depth_map.get('captured_monotonic', 0) < 2.
             result['depth_mapping_passed'] = bool(depth_map.get('passed') and fresh)
             result['passed'] = result['passed'] and result['depth_mapping_passed']
-        if args.depth_planning:
+        if args.depth_planning and not args.depth_observation:
             planning = read(run_dir/'depth-planning.json') if (run_dir/'depth-planning.json').is_file() else {}
             fresh = time.monotonic() - planning.get('captured_monotonic', 0) < 2.
             result['depth_planning_passed'] = bool(planning.get('passed') and fresh)

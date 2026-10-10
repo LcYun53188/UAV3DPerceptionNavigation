@@ -9,6 +9,10 @@ if [[ "${1:-}" == "px4-flight" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_flight.sh" "$@"
 fi
+if [[ "${1:-}" == "px4-observe" ]]; then
+  shift
+  exec "$SCRIPT_DIR/run_px4_flight.sh" --bt --navigation-backend EGO --depth-observation "$@"
+fi
 if [[ "${1:-}" == "px4-depth-plan" ]]; then
   shift
   exec "$SCRIPT_DIR/with_px4_sim.sh" python "$SCRIPT_DIR/run_px4_sitl_smoke.py" --depth-reference --depth-mapping --depth-planning "$@"

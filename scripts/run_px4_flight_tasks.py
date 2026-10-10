@@ -85,10 +85,14 @@ def main():
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
     result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile='known_region_control',scope='real x500 takeoff/navigation/hover/return/native landing',mock=False)
     try:
-        until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='warehouse' else 20)
+        until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
         while time.monotonic()<until:
             with node.lock:
                 ready=node.healthy(ground=True) and node.samples.get('vehicle_status').pre_flight_checks_pass
+            if ready and os.environ.get('UAV_NAVIGATION_BACKEND')=='EGO':
+                try:
+                    with node.lock:node.planning_ready()
+                except ValueError:ready=False
             admission=os.environ.get('UAV_FLIGHT_ADMISSION')
             if admission:
                 path=Path(admission)
@@ -254,10 +258,27 @@ def main():
             result['passed'] &= (result['localization_fault_latency_s'] is not None and
                 0 <= result['localization_fault_latency_s'] <= .5 and
                 node.localization_fault_latched == (scenario == 'odometry-reset'))
+        if os.environ.get('UAV_EXPECT_OBSERVATION')=='1':
+            result['observations']=getattr(node,'observation_samples',[])
+            if 'map' in node.planned.gate.inputs and 'alignment' in node.planned.gate.inputs:
+                m=node.planned.gate.inputs['map'][0];a=node.planned.gate.inputs['alignment'][0]
+                result['planning_context_final']=dict(map_id=m.map_id,map_epoch=m.epoch,map_version=m.version,
+                    source_stamp_s=m.source_stamp.sec+m.source_stamp.nanosec/1e9,
+                    alignment_id=a.alignment_id,generation=a.generation,localization_session=a.localization_session,
+                    reset_counters=list(map(int,a.reset_counters)),observed_voxels=sum(m.observed))
+            headings=[v['measured_heading_rad'] for v in result['observations'] if v.get('measured_heading_rad') is not None]
+            result['observation_measured_yaw_sweep_rad']=sum(math.atan2(math.sin(b-a),math.cos(b-a)) for a,b in zip(headings,headings[1:]))
+            result['observation_task_succeeded']=terminal.status==4
+            result['observation_cleanup_verified']=(terminal.status==6 and terminal.result.reason=='OBSERVATION_INSUFFICIENT'
+                and terminal.result.cleanup_confirmed and result['final_land'] and result['final_arming']==1
+                and result['max_truth_displacement_m']>=1.5 and len(waypoint_truth)>=1
+                and max((v['angle_rad'] for v in result['observations']),default=0)>=2*math.pi
+                and result['observation_measured_yaw_sweep_rad']>=5.8)
+            result['passed']=result['passed'] or result['observation_cleanup_verified']
         if bt:
             if scenario not in ('runner-exit','runner-stall'):
                 bt.process.wait(timeout=5)
-                expected_exit=130 if scenario=='cancel' else 1 if scenario in ('clock-fault','odometry-stale','odometry-reset') else 0
+                expected_exit=1 if result.get('observation_cleanup_verified') else 130 if scenario=='cancel' else 1 if scenario in ('clock-fault','odometry-stale','odometry-reset') else 0
                 result['passed']=result['passed'] and bt.process.returncode==expected_exit
             result['bt_exit_code']=bt.process.poll()
             log=(out/'bt-runner.log').read_text()
@@ -265,7 +286,7 @@ def main():
             result['passed']=result['passed'] and result['bt_dispatch_count']==1
             result['bt_step_accepts'] = [int(i) for i in re.findall(r'BT_STEP_ACCEPTED index=(\d+)', log)]
             result['bt_step_completes'] = [int(i) for i in re.findall(r'BT_STEP_COMPLETE index=(\d+)', log)]
-            if scenario in ('full', 'pause-resume'):
+            if scenario in ('full', 'pause-resume') and not result.get('observation_cleanup_verified'):
                 result['passed'] &= (result['bt_step_accepts'] == list(range(len(steps))) and
                                      result['bt_step_completes'] == list(range(len(steps))))
             ticks=node.runner_progress_log
