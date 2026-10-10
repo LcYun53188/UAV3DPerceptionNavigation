@@ -664,18 +664,20 @@ class FlightServer(Node):
             self.fault('OBSERVATION_DRIFT');return
         angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
         self.yaw=math.atan2(math.sin(self.observe_yaw+angle),math.cos(self.observe_yaw+angle))
-        clear=False;reason=''
+        clear=False;reason='';volume=None
         try:
             self.planning_ready()
             from .ego_execution import BrakingGrid
             grid=BrakingGrid(self.planned.gate.grid,self.config['braking_margin_m'])
             clear=not grid.collision(self.alignment.to_map(self.position()),
                                      self.config['body_radius_m']+self.config['tracking_margin_m'])
+            volume=grid.diagnostics(self.alignment.to_map(self.position()),
+                self.config['body_radius_m']+self.config['tracking_margin_m'])
             reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
         except ValueError as error:reason=str(error)
         if now-self.last_observation_sample>=1.:
             self.last_observation_sample=now
-            self.observation_samples.append(dict(mono=now,ros=ros,angle_rad=angle,clear=clear,reason=reason,
+            self.observation_samples.append(dict(mono=now,ros=ros,angle_rad=angle,clear=clear,reason=reason,volume=volume,
                 measured_heading_rad=getattr(getattr(self,'samples',{}).get('vehicle_local_position'),'heading',None)))
         if angle>=2*math.pi and clear and self.stable(self.target,now):
             self.next_step();return

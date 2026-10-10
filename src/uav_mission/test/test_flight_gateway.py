@@ -422,7 +422,7 @@ def test_observation_timeout_retires_before_native_landing(monkeypatch):
     from uav_mission import ego_execution
     from unique_identifier_msgs.msg import UUID
     order=[]
-    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:True))
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:True,diagnostics=lambda *args:{}))
     node=SimpleNamespace(position=lambda:(0.,0.,2.),target=(0.,0.,2.),
         config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
         observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
@@ -440,7 +440,7 @@ def test_observation_timeout_retires_before_native_landing(monkeypatch):
 def test_observation_success_requires_complete_sweep_and_observed_volume(monkeypatch):
     from uav_mission import ego_execution
     results=[]
-    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:False))
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:False,diagnostics=lambda *args:{}))
     node=SimpleNamespace(position=lambda:(0.,0.,2.),target=(0.,0.,2.),
         config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
         observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,

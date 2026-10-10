@@ -27,6 +27,35 @@ class BrakingGrid:
         cells=g.distance[slices]
         return not (np.all(g.observed[slices]) and np.all(np.isfinite(cells)&(cells>0)))
 
+    def diagnostics(self, point, radius):
+        """Read-only voxel evidence for the exact braking box, grouped by height."""
+        g=self.base
+        while isinstance(g,BrakingGrid):g=g.base
+        extent=np.array([radius+self.horizontal,radius+self.horizontal,radius])
+        lo=np.floor((np.asarray(point)-extent-g.origin)/g.resolution).astype(int)
+        hi=np.floor((np.asarray(point)+extent-g.origin)/g.resolution).astype(int)
+        shape=np.asarray(g.distance.shape)
+        clipped_lo=np.maximum(lo,0);clipped_hi=np.minimum(hi,shape-1)
+        total=int(np.prod(hi-lo+1));layers=[]
+        inside=unknown=occupied=nonfinite=0
+        if np.all(clipped_lo<=clipped_hi):
+            for z in range(int(clipped_lo[2]),int(clipped_hi[2])+1):
+                sl=(slice(clipped_lo[0],clipped_hi[0]+1),slice(clipped_lo[1],clipped_hi[1]+1),z)
+                d=g.distance[sl];o=g.observed[sl]
+                counts=dict(cells=int(d.size),unknown=int(np.count_nonzero(~o)),
+                    observed_nonfinite=int(np.count_nonzero(o & ~np.isfinite(d))),
+                    occupied=int(np.count_nonzero(o & np.isfinite(d) & (d<=0))))
+                inside+=counts['cells'];unknown+=counts['unknown']
+                nonfinite+=counts['observed_nonfinite'];occupied+=counts['occupied']
+                layers.append(dict(z_m=float(g.origin[2]+z*g.resolution),**counts))
+        index=g.index(point)
+        centre_distance=None if index is None else float(g.distance[tuple(index)])
+        if centre_distance is not None and not math.isfinite(centre_distance):centre_distance=None
+        return dict(total_cells=total,outside_cells=total-inside,unknown=unknown,
+            occupied=occupied,observed_nonfinite=nonfinite,centre_distance_m=centre_distance,
+            required_centre_distance_m=float(radius+np.sqrt(3)*g.resolution/2),
+            layers=layers)
+
 
 class EgoExecution:
     def __init__(self, alignment, region, radius, limits=(.6,.5,.6), braking_margin=0.):

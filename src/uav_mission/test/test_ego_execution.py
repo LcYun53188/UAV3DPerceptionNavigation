@@ -124,3 +124,26 @@ def test_horizontal_braking_rejects_obstacle_beyond_current_body():
     g=Grid(np.array([-4.,-4.,0.]),.2,distance,observed)
     assert not g.collision([0.,0.,1.],.3)
     assert BrakingGrid(g,1.2).collision([0.,0.,1.],.3)
+
+
+def test_braking_diagnostics_distinguish_unknown_obstacles_and_outside():
+    from uav_nav_sim.core import Grid
+    from uav_mission.ego_execution import BrakingGrid
+    d=np.full((5,5,5),3.);o=np.ones(d.shape,dtype=bool)
+    o[0,0,0]=False;d[1,1,1]=0.;d[2,2,2]=np.nan
+    g=BrakingGrid(Grid(np.zeros(3),1.,d,o),1.)
+    report=g.diagnostics((1.,1.,1.),1.)
+    assert report['total_cells']==75 and report['outside_cells']==27
+    assert (report['unknown'],report['occupied'],report['observed_nonfinite'])==(1,1,1)
+    assert sum(v['cells'] for v in report['layers'])==48
+    assert g.collision((1.,1.,1.),1.)
+
+
+def test_clear_braking_diagnostics_do_not_change_admission():
+    from uav_nav_sim.core import Grid
+    from uav_mission.ego_execution import BrakingGrid
+    g=BrakingGrid(Grid(np.zeros(3),.1,np.full((61,61,61),3.),np.ones((61,61,61),bool)),1.2)
+    assert not g.collision((3.,3.,3.),.8)
+    report=g.diagnostics((3.,3.,3.),.8)
+    assert all(report[k]==0 for k in ('unknown','occupied','observed_nonfinite','outside_cells'))
+    assert not g.collision((3.,3.,3.),.8)
