@@ -22,7 +22,7 @@ class PlanningSources(Node):
         transform = Transform()
         transform.translation.x, transform.translation.y, transform.translation.z = translation
         transform.rotation.z = math.sin(yaw/2); transform.rotation.w = math.cos(yaw/2)
-        self.binding = SourceBinding(session, alignment_id, transform)
+        self.binding = SourceBinding(session, alignment_id, transform, self.declare_parameter('settle_seconds',0.).value)
         self.gids = {}
         qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.map_pub = self.create_publisher(MapSnapshot, '/planning/source/map', qos)

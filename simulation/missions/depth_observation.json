@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "OBSERVE",
+      "timeout_s": 25.0
+    },
+    {
+      "type": "LAND"
+    }
+  ]
+}

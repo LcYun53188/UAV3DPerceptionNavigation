@@ -51,7 +51,8 @@ class FlightServer(Node):
         self.odom_valid = False
         self.localization_fault_latched = False
         self.input_subscriptions = {}
-        self.instance = str(uuid.uuid4())
+        self.instance = (str(uuid.UUID(os.environ['UAV_FLIGHT_COORDINATOR_INSTANCE']))
+                         if self.config.get('observation_enabled') else str(uuid.uuid4()))
         self.active_goal = None
         self.reserved = False
         self.phase, self.reason = 'IDLE', ''
@@ -382,6 +383,8 @@ class FlightServer(Node):
         types = [s['type'] for s in steps]
         if types[0] != 'TAKEOFF' or types[-1] != 'LAND' or types.count('TAKEOFF') != 1 or types.count('LAND') != 1:
             raise ValueError('Sequence must take off once and end in native landing')
+        if getattr(self,'config',{}).get('observation_enabled') and navigation=='EGO' and (types.count('OBSERVE')!=1 or types.index('OBSERVE')!=1):
+            raise ValueError('Depth EGO requires observation immediately after takeoff')
         home = self.position()
         for step in steps:
             kind = step['type']
@@ -394,6 +397,15 @@ class FlightServer(Node):
                 target = self.alignment.to_odom(finite3(step['target_map']))
                 if target[2] < home[2]+.8:
                     raise ValueError('Navigation target lacks ground clearance')
+            elif kind == 'OBSERVE':
+                if not getattr(self,'config',{}).get('observation_enabled') or navigation!='EGO':
+                    raise ValueError('Observation requires owned depth flight profile and EGO')
+                duration=step.get('timeout_s')
+                if isinstance(duration,bool) or not isinstance(duration,(int,float)) or not math.isfinite(duration) or not 20<=duration<=45:
+                    raise ValueError('Invalid observation deadline')
+                if types.index('OBSERVE')!=1 or types.count('OBSERVE')!=1:
+                    raise ValueError('Observation must occur once immediately after takeoff')
+                continue
             elif kind == 'HOVER':
                 if not math.isfinite(step['duration_s']) or not 2 <= step['duration_s'] <= 60:
                     raise ValueError('Invalid hover duration')
@@ -631,6 +643,13 @@ class FlightServer(Node):
             self.segment=Segment(self.position(),target)
             self.target=target
             self.segment_start=self.get_clock().now().nanoseconds/1e9
+        elif kind=='OBSERVE':
+            self.target=self.reference
+            self.observe_started=time.monotonic()
+            self.observe_until=self.observe_started+step['timeout_s']
+            self.observe_yaw=self.yaw
+            self.observation_samples=[]
+            self.last_observation_sample=0.
         elif kind=='HOVER':
             self.hover_until=time.monotonic()+step['duration_s']
             self.target=self.reference
@@ -639,6 +658,32 @@ class FlightServer(Node):
             self.command(21)
             self.change('LAND_REQUEST');return
         self.change(kind)
+
+    def observation_tick(self, now, ros):
+        if distance(self.position(),self.target)>self.config['tracking_margin_m']:
+            self.fault('OBSERVATION_DRIFT');return
+        angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
+        self.yaw=math.atan2(math.sin(self.observe_yaw+angle),math.cos(self.observe_yaw+angle))
+        clear=False;reason=''
+        try:
+            self.planning_ready()
+            from .ego_execution import BrakingGrid
+            grid=BrakingGrid(self.planned.gate.grid,self.config['braking_margin_m'])
+            clear=not grid.collision(self.alignment.to_map(self.position()),
+                                     self.config['body_radius_m']+self.config['tracking_margin_m'])
+            reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
+        except ValueError as error:reason=str(error)
+        if now-self.last_observation_sample>=1.:
+            self.last_observation_sample=now
+            self.observation_samples.append(dict(mono=now,ros=ros,angle_rad=angle,clear=clear,reason=reason,
+                measured_heading_rad=getattr(getattr(self,'samples',{}).get('vehicle_local_position'),'heading',None)))
+        if angle>=2*math.pi and clear and self.stable(self.target,now):
+            self.next_step();return
+        if now>=self.observe_until:
+            self.planned.retire()
+            self.landing_result=('ABORTED','OBSERVATION_INSUFFICIENT',True)
+            self.segment=None;self.child=UUID();self.land_committed=True
+            self.command(21);self.change('LAND_REQUEST','OBSERVATION_INSUFFICIENT')
 
     def command(self, command, p1=0., p2=0.):
         now=self.get_clock().now().nanoseconds//1000
@@ -772,6 +817,8 @@ class FlightServer(Node):
                 self.reference=self.segment.at(elapsed)
                 if elapsed >= self.segment.duration and self.stable(self.target,now):self.next_step()
                 elif now-self.phase_started > 50:self.fault('WAYPOINT_TIMEOUT')
+            elif phase=='OBSERVE':
+                self.observation_tick(now,ros)
             elif phase=='HOVER':
                 if distance(self.position(),self.target) > .4:self.fault('HOVER_DRIFT')
                 elif now >= self.hover_until and self.stable(self.target,now):self.next_step()
@@ -801,7 +848,7 @@ class FlightServer(Node):
                 if land.landed and status.arming_state==1 and self.speed()<.1:
                     if self.stable_since is None:self.stable_since=now
                     if now-self.stable_since >= 2:
-                        self.owner='NONE';self.generation+=1;self.result=('SUCCEEDED','LANDED_AND_DISARMED',True);self.change('COMPLETE')
+                        self.owner='NONE';self.generation+=1;self.result=getattr(self,'landing_result',('SUCCEEDED','LANDED_AND_DISARMED',True));self.change('COMPLETE')
                 else:self.stable_since=None
             if not self.result and self.phase not in ('FAULT','LANDING'):
                 self.stream()

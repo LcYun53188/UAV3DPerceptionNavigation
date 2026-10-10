@@ -131,3 +131,15 @@ def test_context_waits_for_initial_binding_then_latches_active_clock_fault(monke
     assert module.PlanningContextNode.ready(node) and node.activated
     mono[0]=5.6
     assert not module.PlanningContextNode.ready(node) and node.gate.clock_fault
+
+
+def test_preflight_resets_settle_before_map_binding():
+    m,o,a=inputs();m.source_stamp=stamp(10.)
+    b=SourceBinding(o.localization_session,'owned',a.map_to_odom,settle_seconds=5.)
+    for mono in range(1,9):
+        now=10.+mono;m.version+=1;m.header.stamp=m.source_stamp=stamp(now)
+        o.header.stamp=stamp(now);o.odometry.header=deepcopy(o.header)
+        if mono==3:o.reset_counters[0]=1
+        b.update('map',m,float(mono));b.update('odom',o,float(mono))
+        assert b.ready(now,float(mono))==(mono>=8)
+    assert b.identity[2][0]==1

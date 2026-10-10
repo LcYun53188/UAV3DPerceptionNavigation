@@ -401,3 +401,53 @@ def test_begin_stop_revokes_planner_before_child_identity_and_braking():
         region=in_region,change=lambda phase:calls.append(phase))
     FlightServer.begin_stop(f,'CANCEL_BRAKE')
     assert calls==['retired','CANCEL_BRAKE'] and not any(f.child.uuid) and f.segment is None
+
+
+def test_observation_requires_owned_depth_profile_and_ego():
+    node=fixture()
+    steps=[dict(type='TAKEOFF',height_m=2.),dict(type='OBSERVE',timeout_s=25.),dict(type='LAND')]
+    with pytest.raises(ValueError,match='Observation requires'):
+        FlightServer.parse(node,request(steps))
+    node.config={'observation_enabled':True}
+    node.planned=object();node.planning_ready=lambda:None
+    req=request(steps);params=json.loads(req.parameters_json);params['navigation_backend']='EGO'
+    req.parameters_json=json.dumps(params)
+    assert FlightServer.parse(node,req)==steps
+    params['steps'][1]['timeout_s']=True;req.parameters_json=json.dumps(params)
+    with pytest.raises(ValueError,match='deadline'):FlightServer.parse(node,req)
+
+
+def test_observation_timeout_retires_before_native_landing(monkeypatch):
+    import math
+    from uav_mission import ego_execution
+    from unique_identifier_msgs.msg import UUID
+    order=[]
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:True))
+    node=SimpleNamespace(position=lambda:(0.,0.,2.),target=(0.,0.,2.),
+        config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
+        observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
+        planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=None),retire=lambda:order.append('retire')),
+        command=lambda value:order.append(value),change=lambda *args:order.append(args),child=UUID(),segment=object())
+    FlightServer.observation_tick(node,25.,25.)
+    assert order==['retire',21,('LAND_REQUEST','OBSERVATION_INSUFFICIENT')]
+    assert node.landing_result==('ABORTED','OBSERVATION_INSUFFICIENT',True)
+    assert node.land_committed and node.segment is None and not any(node.child.uuid)
+    assert node.observation_samples[-1]['angle_rad']==2*math.pi
+    assert not node.observation_samples[-1]['clear']
+
+
+def test_observation_success_requires_complete_sweep_and_observed_volume(monkeypatch):
+    from uav_mission import ego_execution
+    results=[]
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(collision=lambda *args:False))
+    node=SimpleNamespace(position=lambda:(0.,0.,2.),target=(0.,0.,2.),
+        config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
+        observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
+        planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=None)),stable=lambda *args:True,
+        next_step=lambda:results.append('next'))
+    FlightServer.observation_tick(node,10.,10.)
+    assert not results
+    FlightServer.observation_tick(node,20.,20.)
+    assert results==['next']

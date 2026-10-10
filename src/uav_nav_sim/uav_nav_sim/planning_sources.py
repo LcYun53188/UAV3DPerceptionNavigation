@@ -10,9 +10,13 @@ from uav_nav_interfaces.msg import LocalizationAlignment
 
 
 class SourceBinding:
-    def __init__(self, session, alignment_id, transform):
+    def __init__(self, session, alignment_id, transform, settle_seconds=0.):
         if not session or not alignment_id:
             raise ValueError('EXPLICIT_SOURCE_ID_REQUIRED')
+        if not math.isfinite(settle_seconds) or not 0<=settle_seconds<=10:raise ValueError('INVALID_SETTLE_DURATION')
+        self.settle_seconds=settle_seconds
+        self.pending_resets=None
+        self.reset_stable_since=None
         transform_parts(transform)
         self.session, self.alignment_id = session, alignment_id
         self.transform = deepcopy(transform)
@@ -58,6 +62,8 @@ class SourceBinding:
                 self.retire('LOCALIZATION_RESET'); return False
         if name == 'map' and message.valid:
             self.map_high_water = (message.version, stamp(message.source_stamp))
+        if name=='odom' and tuple(message.reset_counters)!=self.pending_resets:
+            self.pending_resets=tuple(message.reset_counters);self.reset_stable_since=mono
         self.inputs[name] = (deepcopy(message), mono)
         return True
 
@@ -89,6 +95,8 @@ class SourceBinding:
             transform_odometry(o.odometry, self.transform)
         except ValueError as error:
             self.retire(str(error)); return False
+        if mono-self.reset_stable_since<self.settle_seconds:
+            self.reason='LOCALIZATION_SETTLING';return False
         identity = (m.map_id, m.epoch, tuple(o.reset_counters))
         if self.identity is not None and identity != self.identity:
             self.retire('SOURCE_IDENTITY_CHANGED'); return False
