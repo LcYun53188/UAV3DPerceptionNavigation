@@ -669,6 +669,7 @@ class FlightServer(Node):
             self.stable_since=None
             if self.config.get('observation_offsets_enu'):
                 from .observation_survey import ObservationSurvey
+                self.observe_completion_scan_started_ros=None
                 self.survey=ObservationSurvey(self.target,self.home,self.config['observation_offsets_enu'],self.region,
                     self.config['observation_yaw_rate_rps'],
                     tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
@@ -691,6 +692,13 @@ class FlightServer(Node):
             self.reference,angle,complete=survey.sample(ros,now,self.stable)
             if survey.state!=before:self.stable_since=None
         else:angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
+        if survey is not None and complete:
+            # A bounded final yaw sweep fills residual holes at the returned
+            # anchor while awaiting the same strict live map clearance.
+            if getattr(self,'observe_completion_scan_started_ros',None) is None:
+                self.observe_completion_scan_started_ros=ros
+            angle+=min(2*math.pi,max(0.,ros-self.observe_completion_scan_started_ros)
+                       *self.config['observation_yaw_rate_rps'])
         if distance(self.position(),self.reference if survey is not None else self.target)>self.config['tracking_margin_m']:
             self.fault('OBSERVATION_DRIFT');return
         self.yaw=math.atan2(math.sin(self.observe_yaw+angle),math.cos(self.observe_yaw+angle))

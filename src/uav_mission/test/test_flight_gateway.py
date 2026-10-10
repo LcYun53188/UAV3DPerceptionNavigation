@@ -474,7 +474,7 @@ def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeyp
     advanced=[]
     survey=SimpleNamespace(sample=lambda *args:((.8,.8,1.),6.3,False),state='SCAN',index=1)
     node=SimpleNamespace(survey=survey,position=lambda:(.8,.8,1.),target=(0.,0.,2.),
-        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5},
+        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5,'observation_yaw_rate_rps':.35},
         observe_until=160.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
         planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
         planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1),inputs={})),stable=lambda *args:True,
@@ -540,3 +540,29 @@ def test_observation_does_not_dispatch_with_unknown_ego_seed_padding():
     node.planned.gate.grid = Grid(grid.origin, grid.resolution, distance.copy(), fresh_observed)
     FlightServer.observation_tick(node, 21., 21.)
     assert advanced == [True]
+
+
+def test_returned_observation_sweeps_once_while_waiting_for_map_clearance(monkeypatch):
+    import math
+    from uav_mission import ego_execution
+    blocked=[True];advanced=[]
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(
+        collision=lambda *args:blocked[0],diagnostics=lambda *args:{}))
+    survey=SimpleNamespace(state='DONE',index=4,sample=lambda *args:((0.,0.,2.),4*math.tau,True))
+    node=SimpleNamespace(survey=survey,position=lambda:(0.,0.,2.),target=(0.,0.,2.),
+        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5,'observation_yaw_rate_rps':.35},
+        observe_until=10000.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
+        planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1),inputs={})),
+        stable=lambda *args:True,samples={'vehicle_local_position':SimpleNamespace(vx=0.,vy=0.,vz=0.,heading=0.)},
+        next_step=lambda:advanced.append(True))
+    FlightServer.observation_tick(node,100.,100.)
+    assert not advanced
+    FlightServer.observation_tick(node,103.,103.)
+    assert node.yaw==pytest.approx(1.05)
+    assert not advanced
+    FlightServer.observation_tick(node,1000.,1000.)
+    assert node.observation_samples[-1]['angle_rad']==pytest.approx(5*math.tau)
+    blocked[0]=False
+    FlightServer.observation_tick(node,1001.,1001.)
+    assert advanced==[True]
