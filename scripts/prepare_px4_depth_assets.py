@@ -15,6 +15,8 @@ def depth_assets(directory, upstream_world):
     model = tree.getroot().find('model')
     model.set('name', 'x500_depth_ref')
     rig = model.find("link[@name='vio_rig_link']")
+    # The merged X500 base is elevated in model coordinates. Mount in body FLU.
+    rig.find('pose').set('relative_to','base_link')
     for sensor in list(rig.findall('sensor')):
         rig.remove(sensor)
     frame = 'oakd_camera_optical_frame'

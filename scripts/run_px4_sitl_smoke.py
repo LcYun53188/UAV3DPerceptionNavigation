@@ -207,6 +207,7 @@ def main():
                     model_dependencies_sha256={name: file_hash(models / name / 'model.sdf')
                                                for name in (('x500', 'x500_base', 'OakD-Lite') if args.depth_camera else ('x500', 'x500_base'))} if args.depth_camera or args.depth_reference else {},
                     depth_generator_sha256={name:file_hash(ROOT/'scripts'/name) for name in ('prepare_px4_depth_assets.py','prepare_vio_sensor_assets.py')} if args.depth_reference else None,
+                    depth_mount_audit_sha256=file_hash(ROOT/'scripts/px4_camera_mount_audit.py') if args.depth_reference else None,
                     depth_audit_sha256=file_hash(ROOT / 'scripts/px4_depth_audit.py') if args.depth_camera or args.depth_reference else None,
                     processes={})
     write_json(run_dir / 'manifest.json', manifest)
@@ -386,6 +387,18 @@ def main():
             write_json(run_dir / 'depth-camera.json', depth_result)
             result['depth_camera_passed'] = depth_result['passed']
             result['passed'] = result['passed'] and depth_result['passed']
+        if args.depth_reference:
+            from px4_camera_mount_audit import audit
+            try:
+                scene=subprocess.run(['gz','service','-s','/world/default/scene/info','--reqtype','gz.msgs.Empty',
+                    '--reptype','gz.msgs.Scene','--timeout','5000','--req',''],env=env,
+                    capture_output=True,text=True,timeout=8,check=True).stdout
+                (run_dir/'camera-mount-scene.txt').write_text(scene)
+                mount=audit(scene,f'{depth_profile["model"]}_{instance}',read(run_dir/'assets/frames.json'))
+            except (subprocess.SubprocessError,OSError) as error:mount=dict(passed=False,error=str(error))
+            write_json(run_dir/'camera-mount.json',mount)
+            result['camera_mount_passed']=mount['passed']
+            result['passed']=result['passed'] and mount['passed']
         if args.depth_mapping and not args.depth_observation:
             depth_map = read(run_dir/'depth-map.json') if (run_dir/'depth-map.json').is_file() else {}
             fresh = time.monotonic() - depth_map.get('captured_monotonic', 0) < 2.
