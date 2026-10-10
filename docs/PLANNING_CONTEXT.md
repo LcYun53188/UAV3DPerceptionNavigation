@@ -68,3 +68,23 @@ EGO 新参数 `coordinate_frame:=map` 要求 map/base_link 里程计，并输出
 真正 EGO/PX4 执行还需要：S5 深度/地图输入、已验证的地图对齐来源、地图包 schema 2、
 父任务/ControlSession 授权绑定与 map 样条到 PX4 local 采样执行器已实现，
 仍需完整受管源生命周期、真实跟踪和碰撞/制动包线验收。默认影子输出不自动获得飞行权限。
+
+
+## 受管同机在线源
+
+`sim.sh px4-depth-plan --duration 40` 使用实际深度／nvblox 地图和 PX4 EKF
+localized odometry，启动 `planning_sources`、PlanningContext 和 EGO shadow 图。
+`planning_sources` 的 session 与 alignment_id 必须显式配置；变换由参数
+`map_translation`／`map_yaw_rad` 给定，必须与积分深度的 TF 完全一致。
+在线地图原样转发，alignment 心跳不改变地图或 odometry 的时间戳。
+首次有效绑定 generation=1，此前为 0；重置、地图 session 变化、版本／源时间回退、
+源 GID 变化、重复或丢失会退役绑定，不能在旧地图上自动重绑新定位源。
+数据过期使 alignment/context 无效；恢复新鲜度不能恢复旧目标。
+
+初始化阶段等待全部有效绑定源，之后启用原时钟 watchdog。
+地图只随实际版本／时间戳变化送入 EGO，位姿持续送入。
+本轮地图定义为 EKF odom，故采用显式 identity 变换；这不能与 W0 现有非 identity
+飞行对齐混用。飞行时只能由唯一 FlightServer 提供 TF／localized odometry／session，
+不能并行启动未解锁参考 observer。入口不提交导航目标或 FMU 输入。
+实测源图通过、地面机体／制动观测包络未通过，见
+[源绑定验证](validation/simulation/2026-10-10-depth-planning-sources/REPORT.md)。

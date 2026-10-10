@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 2.0
+    },
+    {
+      "type": "OBSERVE",
+      "timeout_s": 160.0
+    },
+    {
+      "type": "NAVIGATE",
+      "offset_enu": [
+        0.5,
+        0.0,
+        2.0
+      ]
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 5.0
+    },
+    {
+      "type": "RETURN"
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 3.0
+    },
+    {
+      "type": "LAND"
+    }
+  ]
+}
