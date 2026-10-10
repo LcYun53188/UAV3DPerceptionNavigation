@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "profile": {
+    "schema": 1,
+    "scope": "ideal pinhole stereo/IMU reference; NOT calibrated OAK-D Pro W hardware",
+    "model": "x500_vio_ref",
+    "width": 640,
+    "height": 400,
+    "horizontal_fov_rad": 1.21,
+    "baseline_m": 0.075,
+    "rig_position_flu_m": [
+      0.12,
+      0.0,
+      0.242
+    ],
+    "image_rate_hz": 25,
+    "imu_rate_hz": 250,
+    "near_m": 0.1,
+    "far_m": 20.0,
+    "camera_pitch_deg": 5,
+    "real_time_factor": 0.8,
+    "scene": "warehouse",
+    "warehouse_floor_texture": true
+  },
+  "frames": {
+    "vio_left_optical": {
+      "position": [
+        0.12,
+        0.0375,
+        0.242
+      ],
+      "rpy": [
+        -1.658062789394613,
+        0.0,
+        -1.5707963267948966
+      ]
+    },
+    "vio_right_optical": {
+      "position": [
+        0.12,
+        -0.0375,
+        0.242
+      ],
+      "rpy": [
+        -1.658062789394613,
+        0.0,
+        -1.5707963267948966
+      ]
+    },
+    "vio_imu": {
+      "position": [
+        0.12,
+        0.0,
+        0.242
+      ],
+      "rpy": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "parameters": {
+    "use_sim_time": true,
+    "num_cameras": 2,
+    "min_num_images": 2,
+    "tracking_mode": 1,
+    "enable_localization_n_mapping": false,
+    "rectified_images": true,
+    "sync_matching_threshold_ms": 1.0,
+    "image_jitter_threshold_ms": 60.0,
+    "imu_jitter_threshold_ms": 12.0,
+    "calibration_frequency": 250.0,
+    "gyro_noise_density": 0.000244,
+    "gyro_random_walk": 1.9393e-05,
+    "accel_noise_density": 0.001862,
+    "accel_random_walk": 0.003,
+    "base_frame": "base_link",
+    "odom_frame": "odom",
+    "map_frame": "map",
+    "imu_frame": "vio_imu",
+    "camera_optical_frames": [
+      "vio_left_optical",
+      "vio_right_optical"
+    ],
+    "publish_map_to_odom_tf": false,
+    "publish_odom_to_base_tf": false,
+    "image_buffer_size": 100,
+    "imu_buffer_size": 144,
+    "image_qos": "DEFAULT",
+    "image_qos_depth": 1
+  },
+  "source_contract": "cuvslam15_right_tangent_base_link_v1",
+  "quality_policy": "bounded_gap",
+  "render_device": "nvidia",
+  "headless_rendering": true,
+  "native_sha256": {
+    "install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so": "dc2cf1ecdd54a737afcc69f0b93494319bd0c3641b13355957a50b70df89be8b",
+    "install_uav/isaac_ros_visual_slam/lib/libcuvslam.so": "d870759dc6d78b9fe55dbb842cac3b6cd6d804bde04dd8b546b5f2c466834f5e",
+    "src/isaac_ros_nitros/isaac_ros_nitros/lib/cuvslam/include/cuvslam/cuvslam2.h": "8c0d5b3eb38ee7b4a91b408c81dc613f7def336d79347ac502e97f464271aa81",
+    "src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/cuvslam_ros_conversion.cpp": "d3b1e3047d0a1d2acfee842fa16a3615a7f0f85ae673145d687c800d951e12e3",
+    "src/isaac_ros_visual_slam/isaac_ros_visual_slam/src/impl/visual_slam_impl.cpp": "c2c1d73450dfe3cb08e344aaed78d07e012c2638eefa0a9b7aee2b31ba472487"
+  }
+}

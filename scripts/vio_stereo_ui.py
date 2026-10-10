@@ -53,7 +53,13 @@ def main():
         terminal='Waiting for BT terminal; images recorded at 1 Hz'
         for file in ('flight-observation.json','ui-session.json'):
             try:
-                receipt=json.loads((out/file).read_text());terminal=json.dumps(receipt,ensure_ascii=False)[:800]
+                receipt=json.loads((out/file).read_text())
+                if file=='flight-observation.json':
+                    mission=receipt.get('result',{})
+                    terminal=f"Mission: {mission.get('code','UNKNOWN')} / {mission.get('reason','')}\nCleanup confirmed: {mission.get('cleanup_confirmed',False)}"
+                else:
+                    snapshot=receipt.get('result_snapshot',{})
+                    terminal=f"UI state: {receipt.get('state','UNKNOWN')}\nDiagnostic checks passed: {snapshot.get('diagnostic_checks_passed',False)}; flight qualified: {receipt.get('qualification',False)}"
             except (OSError,ValueError):pass
         status.configure(text=f'Run: {out.name}\nStereo stamps: {stamps}\nSDK covariance (raw): {cov}\nPX4 local: {height}\n{terminal}\nImage structure is NOT a tracked-feature count.\nClose owned session: touch {out}/close-ui')
         root.after(100,tick)
