@@ -1,4 +1,5 @@
 """Same-aircraft ideal RGBD reference; fixed 5 degrees down, not OAK-D calibration."""
+from copy import deepcopy
 import json
 import math
 import xml.etree.ElementTree as ET
@@ -42,6 +43,12 @@ def depth_assets(directory, upstream_world):
     frames = {frame: dict(position=profile['rig_position_flu_m'],
                          rpy=[-math.pi/2-math.radians(5), 0., -math.pi/2])}
     (directory / 'frames.json').write_text(json.dumps(frames, indent=2)+'\n')
+    # Enclose the west-facing depth rays with actual rendered/collidable geometry.
+    world=ET.parse(directory/'default.sdf');scene=world.getroot().find('world')
+    west=deepcopy(scene.find("model[@name='vio_wall_0']"))
+    west.set('name','depth_wall_west');west.find('pose').text='-4 0 2.5 0 0 0'
+    scene.append(west)
+    world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
     profile.update(model='x500_depth_ref', image_rate_hz=15,
                    scope='ideal same-X500 RGBD reference; no stereo/VIO or hardware calibration',
                    topics=dict(depth='/px4_reference/rgbd/depth_image',

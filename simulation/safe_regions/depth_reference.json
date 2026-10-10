@@ -11,7 +11,7 @@
     0.0
   ],
   "map_yaw_rad": 0.0,
-  "source": "Pinned generated planar reference walls at x=4 and y=+/-4; conservative center flight region +/-1 m after envelope inflation",
+  "source": "Pinned generated planar reference walls at x=+/-4 and y=+/-4; conservative center region +/-1 m after envelope inflation",
   "scene_files": {
     "worlds/default.sdf": "457a363a22c437b788a4aaf1e2335aa149efce4e5b988cdc108065663cd879b2",
     "models/x500/model.sdf": "76d8668c9c1a10348f9b7011d892203f319e5051dc8c0eb06c62e52db8e6714e",
@@ -48,7 +48,7 @@
   "observation_enabled": true,
   "observation_yaw_rate_rps": 0.35,
   "asset_files": {
-    "assets/default.sdf": "7451815884616ee3012630c2b6ebbb92d481d310fda4470cf41abfbe7ac56e4f",
+    "assets/default.sdf": "a37c4c9d568422da16e3a8f0f3ece8d3e6b2637addd67ff2b97b7ede6afcc3d0",
     "assets/frames.json": "88a274b8ae2886318f29ef8b50acdc1ede0fc31a5f8e59f72bc23f4392e15cc1",
     "assets/depth-profile.json": "8fb10fe8745b2c08aa2583815f5ee28aaa385386671b4df43927e4df673f8e67",
     "assets/x500_depth_ref/model.sdf": "5de3dab91ee78eba49622f8ad6dd3ba6572f6b0b91a671109b854597fd71f04f",
@@ -62,16 +62,21 @@
     ],
     [
       -0.8,
+      0.8,
+      2.4
+    ],
+    [
       -0.8,
-      3.0
+      -0.8,
+      2.0
     ],
     [
       0.8,
       -0.8,
-      2.0
+      3.0
     ]
   ],
-  "observation_timeout_max_s": 160.0,
+  "observation_timeout_max_s": 190.0,
   "observation_max_speed_mps": 0.18,
   "observation_max_acceleration_mps2": 0.15,
   "observation_max_jerk_mps3": 0.2

@@ -122,7 +122,8 @@ def main():
         result['steps']=steps
         result['navigation_backend']=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT')
         result['recipe_sha256']=file_hash(recipe)
-        request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=210.,
+        root_deadline=min(240.,max(210.,max((step.get('timeout_s',0.) for step in steps if step['type']=='OBSERVE'),default=0.)+45.))
+        request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=root_deadline,
                                    parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps,navigation_backend=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT'))))
         def wait(f,timeout):
             until=time.monotonic()+timeout
@@ -140,10 +141,10 @@ def main():
         terminal_future=handle.get_result_async()
         injected=False
         landing_cancel_rejected=False
-        until=time.monotonic()+220
+        until=time.monotonic()+root_deadline+10.
         while not terminal_future.done() and time.monotonic()<until:
             phase=node.phase
-            if not injected and phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,node.segment.duration/2):
+            if not injected and phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,(node.segment.duration if node.segment is not None else getattr(node.planned,'duration',10.))/2):
                 if scenario=='pause-resume':
                     before_child=list(node.child.uuid)
                     pause=node.create_client(PauseMission,'/uav/px4/pause')

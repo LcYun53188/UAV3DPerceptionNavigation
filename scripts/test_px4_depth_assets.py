@@ -22,6 +22,7 @@ def test_same_body_fixed_pitch_optical_axes_and_reproducible_assets(tmp_path):
         if file.is_file():
             assert file.read_bytes() == (second / file.relative_to(first)).read_bytes()
     model = ET.parse(first / profile['model'] / 'model.sdf').find('model')
+    assert ET.parse(first/'default.sdf').find("world/model[@name='depth_wall_west']/pose").text=='-4 0 2.5 0 0 0'
     assert model.findtext('include/uri') == 'model://x500'
     assert model.find("link[@name='vio_rig_link']/pose").get('relative_to')=='base_link'
     sensors = model.findall('.//sensor')

@@ -79,12 +79,14 @@ def main():
     import matplotlib.pyplot as plt
     fig,axes=plt.subplots(1,3,figsize=(13,4),constrained_layout=True)
     for ax,z in zip(axes,(1.3,2.1,2.7)):
-        near=np.abs(points[:,2]-z)<=float(grid['resolution'])/2
+        layer=int(round((z-float(grid['origin'][2]))/float(grid['resolution'])))
+        near=indices[:,2]==layer
+        actual_z=float(grid['origin'][2])+(layer+.5)*float(grid['resolution'])
         for key,colour in [('unknown','orange'),('occupied','red')]:
             selected=points[near & masks[key]]
             ax.scatter(selected[:,0],selected[:,1],s=6,c=colour,label=key)
         ax.scatter(metadata['point_map'][0],metadata['point_map'][1],marker='+',c='black',label='returned pose')
-        ax.set(title=f'map z ~ {z:.1f} m',xlabel='map x (m)',ylabel='map y (m)',aspect='equal')
+        ax.set(title=f'map voxel centres z = {actual_z:.2f} m',xlabel='map x (m)',ylabel='map y (m)',aspect='equal')
         ax.set_xlim(metadata['point_map'][0]-2.1,metadata['point_map'][0]+2.1)
         ax.set_ylim(metadata['point_map'][1]-2.1,metadata['point_map'][1]+2.1)
     axes[0].legend(loc='upper left');fig.savefig(args.out/'gap-slices.png',dpi=160);plt.close(fig)

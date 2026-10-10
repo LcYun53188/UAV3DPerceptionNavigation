@@ -422,7 +422,7 @@ def main():
             result['passed'] = result['passed'] and vision_result['passed'] and arming_states == {VehicleStatus.ARMING_STATE_DISARMED}
         if args.flight and result['passed']:
             flight = launch('flight_tasks', [sys.executable, ROOT / 'scripts/run_px4_flight_tasks.py'])
-            until = time.monotonic() + 245
+            until = time.monotonic() + (300 if args.depth_observation else 245)
             next_log,log_offset=0.,0
             while flight.poll() is None and time.monotonic() < until:
                 if time.monotonic()>=next_log:
