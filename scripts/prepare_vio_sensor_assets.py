@@ -57,7 +57,7 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
                           ('odom_topic','/vio/truth'),('odom_publish_frequency','100'),('dimensions','3')]:
             ET.SubElement(truth,key).text = value
     rig = ET.SubElement(model,'link',name='vio_rig_link')
-    ET.SubElement(rig,'pose').text = ' '.join(map(str,p['rig_position_flu_m']))+' 0 0 0'
+    ET.SubElement(rig,'pose',relative_to='base_link').text = ' '.join(map(str,p['rig_position_flu_m']))+' 0 0 0'
     inertial = ET.SubElement(rig,'inertial')
     ET.SubElement(inertial,'mass').text = '0.001'
     inertia = ET.SubElement(inertial,'inertia')

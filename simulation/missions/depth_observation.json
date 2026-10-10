@@ -7,7 +7,7 @@
     },
     {
       "type": "OBSERVE",
-      "timeout_s": 160.0
+      "timeout_s": 190.0
     },
     {
       "type": "NAVIGATE",

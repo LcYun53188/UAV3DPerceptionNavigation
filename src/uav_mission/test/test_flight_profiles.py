@@ -111,3 +111,14 @@ def test_depth_asset_admission_fails_closed(depth_owned,fault):
     elif fault=='missing':data['files'].pop('assets/frames.json');write()
     elif fault=='receipt_hash':env['UAV_FLIGHT_ASSET_SHA256']='bad'
     with pytest.raises(RuntimeError):load_region(root,env)
+
+
+def test_execution_limits_are_shared_and_cannot_exceed_known_region_limits():
+    from uav_mission.flight_profiles import navigation_limits
+    config=dict(max_speed_mps=.6,max_acceleration_mps2=.5,max_jerk_mps3=.6)
+    assert navigation_limits(config)==(.6,.5,.6)
+    config['ego_limits']=[.18,.15,.2]
+    assert navigation_limits(config)==(.18,.15,.2)
+    for bad in ([.7,.15,.2],[.18,-1,.2],[True,.15,.2],[.18,float('nan'),.2],[.18,.15]):
+        config['ego_limits']=bad
+        with pytest.raises(ValueError,match='INVALID_EGO_LIMITS'):navigation_limits(config)

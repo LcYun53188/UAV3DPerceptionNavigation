@@ -3,6 +3,7 @@
 No planner/TF truth substitution: setpoints use PX4 local position, truth is audit.
 Requires an owned supervisor nonce, fixed isolated instance and frozen W0 hashes.
 """
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -41,7 +42,7 @@ class FlightServer(Node):
     def __init__(self):
         super().__init__('px4_flight_gateway')
         self.nonce = os.environ.get('UAV_SITL_AUTHORIZATION', '')
-        from .flight_profiles import load_region
+        from .flight_profiles import load_region, navigation_limits
         root = Path(os.environ['UAV_WORKSPACE'])
         self.config = load_region(root,os.environ)
         self.alignment = Alignment(self.config['map_translation'], self.config['map_yaw_rad'])
@@ -148,10 +149,11 @@ class FlightServer(Node):
         self.create_service(ResumeMission, '/uav/px4/resume', self.resume, callback_group=self.group)
         self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
         self.planned=None
+        self.accepted_plans=[]
         self.navigation_backend='DIRECT'
         if os.environ.get('UAV_ENABLE_EGO_NAV')=='1':
             from .ego_execution import EgoExecution
-            self.planned=EgoExecution(self.alignment,self.region,self.config['body_radius_m']+self.config['tracking_margin_m'],braking_margin=self.config['braking_margin_m'])
+            self.planned=EgoExecution(self.alignment,self.region,self.config['body_radius_m']+self.config['tracking_margin_m'],braking_margin=self.config['braking_margin_m'],limits=navigation_limits(self.config))
             self.planning_goal_pub=self.create_publisher(PoseStamped,'/planning/source/goal',10)
             for name,topic,kind in [('map','/planning/source/map',MapSnapshot),('alignment','/planning/source/alignment',LocalizationAlignment)]:
                 def receive(message,key=name):
@@ -220,6 +222,11 @@ class FlightServer(Node):
             try:
                 self.planning_ready()
                 self.planned.admit(message,self.planning_authorization(),self.get_clock().now().nanoseconds/1e9,time.monotonic())
+                self.accepted_plans.append((deepcopy(message),dict(
+                    coordinator_instance=self.instance,mission_uuid=list(map(int,self.active_goal.goal_id.uuid)),
+                    control_session=list(map(int,self.session.uuid)),generation=self.generation,
+                    owner=self.owner,child_uuid=list(map(int,self.child.uuid)),step_index=self.step_index,
+                    admitted_ros=self.get_clock().now().nanoseconds/1e9)))
                 self.change(self.steps[self.step_index]['type'])
             except ValueError as error:
                 self.diagnostics.append(dict(planning_rejected=str(error)))
@@ -505,7 +512,7 @@ class FlightServer(Node):
         with self.lock:
             now=time.monotonic()
             if (not self.active_goal or request.coordinator_instance != self.instance
-                    or list(request.mission_uuid.uuid) != list(self.active_goal.goal_id.uuid)):
+                    or list(request.mission_uuid.uuid) != list(map(int,self.active_goal.goal_id.uuid))):
                 response.accepted=False;response.reason='STALE_IDENTITY';response.phase=self.phase
                 return response
             key=bytes(request.request_id.uuid)
@@ -662,6 +669,7 @@ class FlightServer(Node):
             self.stable_since=None
             if self.config.get('observation_offsets_enu'):
                 from .observation_survey import ObservationSurvey
+                self.observe_completion_scan_started_ros=None
                 self.survey=ObservationSurvey(self.target,self.home,self.config['observation_offsets_enu'],self.region,
                     self.config['observation_yaw_rate_rps'],
                     tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
@@ -684,6 +692,13 @@ class FlightServer(Node):
             self.reference,angle,complete=survey.sample(ros,now,self.stable)
             if survey.state!=before:self.stable_since=None
         else:angle=min(2*math.pi,(now-self.observe_started)*self.config['observation_yaw_rate_rps'])
+        if survey is not None and complete:
+            # A bounded final yaw sweep fills residual holes at the returned
+            # anchor while awaiting the same strict live map clearance.
+            if getattr(self,'observe_completion_scan_started_ros',None) is None:
+                self.observe_completion_scan_started_ros=ros
+            angle+=min(2*math.pi,max(0.,ros-self.observe_completion_scan_started_ros)
+                       *self.config['observation_yaw_rate_rps'])
         if distance(self.position(),self.reference if survey is not None else self.target)>self.config['tracking_margin_m']:
             self.fault('OBSERVATION_DRIFT');return
         self.yaw=math.atan2(math.sin(self.observe_yaw+angle),math.cos(self.observe_yaw+angle))
@@ -692,11 +707,32 @@ class FlightServer(Node):
             self.planning_ready()
             from .ego_execution import BrakingGrid
             grid=BrakingGrid(self.planned.gate.grid,self.config['braking_margin_m'])
+            # EGO seed search reserves half a voxel beyond the body/tracking box.
+            # Observe that same reserve before dispatch, rather than declaring a
+            # start ready which the planner must reject as unknown.
+            observation_radius=(self.config['body_radius_m']+self.config['tracking_margin_m']
+                                +self.planned.gate.grid.resolution*.5)
             clear=not grid.collision(self.alignment.to_map(self.position()),
-                                     self.config['body_radius_m']+self.config['tracking_margin_m'])
+                                     observation_radius)
             if now-self.last_observation_sample>=1.:
                 volume=grid.diagnostics(self.alignment.to_map(self.position()),
-                    self.config['body_radius_m']+self.config['tracking_margin_m'])
+                    observation_radius)
+                if survey is not None and survey.state in ('SCAN','DONE'):
+                    from uav_nav_sim.planning_context import stamp
+                    m=self.planned.gate.inputs.get('map')
+                    if m is not None:
+                        m=m[0]
+                        if not hasattr(self,'observation_grid_snapshots'):self.observation_grid_snapshots={}
+                        key='returned' if survey.state=='DONE' else 'scan-'+str(survey.index)
+                        self.observation_grid_snapshots[key]=(grid.base,dict(
+                            frame='map',map_id=m.map_id,map_epoch=m.epoch,map_version=m.version,
+                            source_stamp_s=stamp(m.source_stamp),map_header_stamp_s=stamp(m.header.stamp),
+                            ros=ros,mono=now,localization_session=self.instance,
+                            point_map=list(self.alignment.to_map(self.position())),
+                            reference_map=list(self.alignment.to_map(self.reference)),
+                            radius_m=observation_radius,
+                            braking_margin_m=self.config['braking_margin_m'],survey_index=survey.index,
+                            survey_state=survey.state,diagnostics=volume))
             reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
         except ValueError as error:reason=str(error)
         if now-self.last_observation_sample>=1.:

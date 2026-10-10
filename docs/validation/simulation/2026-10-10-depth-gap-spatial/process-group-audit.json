@@ -1,0 +1,936 @@
+{
+  "checked_at_unix_s": 1791600632.0355012,
+  "groups": [
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "agent",
+      "pgid": 599381,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "gazebo",
+      "pgid": 599382,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "clock_bridge",
+      "pgid": 599383,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "depth_bridge",
+      "pgid": 599384,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "camera_tf",
+      "pgid": 599385,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "nvblox",
+      "pgid": 599386,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "map_session",
+      "pgid": 599387,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "planning_sources",
+      "pgid": 599402,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "planning_context",
+      "pgid": 599404,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "ego_shadow",
+      "pgid": 599405,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "px4",
+      "pgid": 599411,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "qgc",
+      "pgid": 599413,
+      "present": false
+    },
+    {
+      "archive": "seed-reserve-observation-insufficient",
+      "name": "flight_tasks",
+      "pgid": 600646,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "agent",
+      "pgid": 566694,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "gazebo",
+      "pgid": 566695,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "clock_bridge",
+      "pgid": 566696,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "depth_bridge",
+      "pgid": 566697,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "camera_tf",
+      "pgid": 566698,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "nvblox",
+      "pgid": 566699,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "map_session",
+      "pgid": 566700,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "planning_sources",
+      "pgid": 566701,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "planning_context",
+      "pgid": 566706,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "ego_shadow",
+      "pgid": 566713,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "px4",
+      "pgid": 566717,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "qgc",
+      "pgid": 566723,
+      "present": false
+    },
+    {
+      "archive": "enclosed-flight",
+      "name": "flight_tasks",
+      "pgid": 567951,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "agent",
+      "pgid": 570896,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "gazebo",
+      "pgid": 570897,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "clock_bridge",
+      "pgid": 570898,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "depth_bridge",
+      "pgid": 570899,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "camera_tf",
+      "pgid": 570900,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "nvblox",
+      "pgid": 570901,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "map_session",
+      "pgid": 570902,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "planning_sources",
+      "pgid": 570907,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "planning_context",
+      "pgid": 570914,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "ego_shadow",
+      "pgid": 570918,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "px4",
+      "pgid": 570921,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "qgc",
+      "pgid": 570923,
+      "present": false
+    },
+    {
+      "archive": "complementary-flight",
+      "name": "flight_tasks",
+      "pgid": 572163,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "agent",
+      "pgid": 604275,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "gazebo",
+      "pgid": 604276,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "clock_bridge",
+      "pgid": 604277,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "depth_bridge",
+      "pgid": 604278,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "camera_tf",
+      "pgid": 604279,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "nvblox",
+      "pgid": 604280,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "map_session",
+      "pgid": 604281,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "planning_sources",
+      "pgid": 604296,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "planning_context",
+      "pgid": 604297,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "ego_shadow",
+      "pgid": 604299,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "px4",
+      "pgid": 604300,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "qgc",
+      "pgid": 604303,
+      "present": false
+    },
+    {
+      "archive": "ego-final-sweep-flight",
+      "name": "flight_tasks",
+      "pgid": 605540,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "agent",
+      "pgid": 584506,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "gazebo",
+      "pgid": 584507,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "clock_bridge",
+      "pgid": 584508,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "depth_bridge",
+      "pgid": 584509,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "camera_tf",
+      "pgid": 584510,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "nvblox",
+      "pgid": 584511,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "map_session",
+      "pgid": 584512,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "planning_sources",
+      "pgid": 584527,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "planning_context",
+      "pgid": 584528,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "ego_shadow",
+      "pgid": 584530,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "px4",
+      "pgid": 584533,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "qgc",
+      "pgid": 584536,
+      "present": false
+    },
+    {
+      "archive": "ego-map-stale-flight",
+      "name": "flight_tasks",
+      "pgid": 585749,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "agent",
+      "pgid": 597518,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "gazebo",
+      "pgid": 597519,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "clock_bridge",
+      "pgid": 597520,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "depth_bridge",
+      "pgid": 597521,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "camera_tf",
+      "pgid": 597522,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "nvblox",
+      "pgid": 597523,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "map_session",
+      "pgid": 597524,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "planning_sources",
+      "pgid": 597539,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "planning_context",
+      "pgid": 597540,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "ego_shadow",
+      "pgid": 597542,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "px4",
+      "pgid": 597543,
+      "present": false
+    },
+    {
+      "archive": "depth-startup-rejected",
+      "name": "qgc",
+      "pgid": 597547,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "agent",
+      "pgid": 562623,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "gazebo",
+      "pgid": 562624,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "clock_bridge",
+      "pgid": 562625,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "depth_bridge",
+      "pgid": 562626,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "camera_tf",
+      "pgid": 562627,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "nvblox",
+      "pgid": 562628,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "map_session",
+      "pgid": 562629,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "planning_sources",
+      "pgid": 562638,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "planning_context",
+      "pgid": 562641,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "ego_shadow",
+      "pgid": 562643,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "px4",
+      "pgid": 562647,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "qgc",
+      "pgid": 562651,
+      "present": false
+    },
+    {
+      "archive": "fixed-mount-flight",
+      "name": "flight_tasks",
+      "pgid": 563874,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "agent",
+      "pgid": 588786,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "gazebo",
+      "pgid": 588787,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "clock_bridge",
+      "pgid": 588788,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "depth_bridge",
+      "pgid": 588789,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "camera_tf",
+      "pgid": 588790,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "nvblox",
+      "pgid": 588791,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "map_session",
+      "pgid": 588792,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "planning_sources",
+      "pgid": 588807,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "planning_context",
+      "pgid": 588809,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "ego_shadow",
+      "pgid": 588810,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "px4",
+      "pgid": 588811,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "qgc",
+      "pgid": 588815,
+      "present": false
+    },
+    {
+      "archive": "ego-planner-no-path-flight",
+      "name": "flight_tasks",
+      "pgid": 590056,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "agent",
+      "pgid": 575553,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "gazebo",
+      "pgid": 575554,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "clock_bridge",
+      "pgid": 575555,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "depth_bridge",
+      "pgid": 575556,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "camera_tf",
+      "pgid": 575557,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "nvblox",
+      "pgid": 575558,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "map_session",
+      "pgid": 575559,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "planning_sources",
+      "pgid": 575563,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "planning_context",
+      "pgid": 575571,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "ego_shadow",
+      "pgid": 575573,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "px4",
+      "pgid": 575576,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "qgc",
+      "pgid": 575583,
+      "present": false
+    },
+    {
+      "archive": "covered-flight",
+      "name": "flight_tasks",
+      "pgid": 576810,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "agent",
+      "pgid": 593069,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "gazebo",
+      "pgid": 593070,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "clock_bridge",
+      "pgid": 593071,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "depth_bridge",
+      "pgid": 593072,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "camera_tf",
+      "pgid": 593073,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "nvblox",
+      "pgid": 593074,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "map_session",
+      "pgid": 593075,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "planning_sources",
+      "pgid": 593090,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "planning_context",
+      "pgid": 593091,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "ego_shadow",
+      "pgid": 593093,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "px4",
+      "pgid": 593094,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "qgc",
+      "pgid": 593098,
+      "present": false
+    },
+    {
+      "archive": "ego-complete-flight",
+      "name": "flight_tasks",
+      "pgid": 594339,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "agent",
+      "pgid": 556200,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "gazebo",
+      "pgid": 556201,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "clock_bridge",
+      "pgid": 556202,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "depth_bridge",
+      "pgid": 556203,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "camera_tf",
+      "pgid": 556204,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "nvblox",
+      "pgid": 556205,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "map_session",
+      "pgid": 556206,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "planning_sources",
+      "pgid": 556207,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "planning_context",
+      "pgid": 556212,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "ego_shadow",
+      "pgid": 556219,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "px4",
+      "pgid": 556223,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "qgc",
+      "pgid": 556228,
+      "present": false
+    },
+    {
+      "archive": "diagnostic-flight",
+      "name": "flight_tasks",
+      "pgid": 557441,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "agent",
+      "pgid": 580189,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "gazebo",
+      "pgid": 580190,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "clock_bridge",
+      "pgid": 580191,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "depth_bridge",
+      "pgid": 580192,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "camera_tf",
+      "pgid": 580193,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "nvblox",
+      "pgid": 580194,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "map_session",
+      "pgid": 580195,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "planning_sources",
+      "pgid": 580197,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "planning_context",
+      "pgid": 580202,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "ego_shadow",
+      "pgid": 580209,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "px4",
+      "pgid": 580214,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "qgc",
+      "pgid": 580218,
+      "present": false
+    },
+    {
+      "archive": "ego-return-tracking-flight",
+      "name": "flight_tasks",
+      "pgid": 581455,
+      "present": false
+    }
+  ],
+  "all_exited": true
+}

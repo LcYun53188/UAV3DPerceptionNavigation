@@ -48,7 +48,7 @@ def main():
       [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
        ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
-       ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
                      'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',
@@ -56,12 +56,19 @@ def main():
             implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
+    map_diagnostics=[]
+    from std_msgs.msg import String
+    def map_diagnostic_receive(message):
+        map_diagnostics.append(dict(mono=time.monotonic(), ros=node.get_clock().now().nanoseconds/1e9, data=json.loads(message.data)))
+    node.create_subscription(String, '/uav/map/diagnostics', map_diagnostic_receive, 10)
     localized_samples=[]
     from uav_nav_interfaces.msg import LocalizedOdometry
     def localized_receive(message):
         localized_samples.append(dict(session=message.localization_session,
             counters=list(map(int,message.reset_counters)),frame=message.header.frame_id,
             stamp_matches=message.header==message.odometry.header,
+            stamp_ns=message.header.stamp.sec*1_000_000_000+message.header.stamp.nanosec,
+            received_ros=node.get_clock().now().nanoseconds/1e9,
             child=message.odometry.child_frame_id))
     node.create_subscription(LocalizedOdometry,'/uav/px4/localized_odometry',localized_receive,10)
     truth=[]
@@ -83,7 +90,7 @@ def main():
     executor=SingleThreadedExecutor();executor.add_node(node)
     thread=threading.Thread(target=executor.spin,daemon=True);thread.start()
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
-    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/finite depth observation/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
+    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/depth observation/EGO navigation/hover/return/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
     try:
         until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
         while time.monotonic()<until:
@@ -122,7 +129,8 @@ def main():
         result['steps']=steps
         result['navigation_backend']=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT')
         result['recipe_sha256']=file_hash(recipe)
-        request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=210.,
+        root_deadline=min(240.,max(210.,max((step.get('timeout_s',0.) for step in steps if step['type']=='OBSERVE'),default=0.)+45.))
+        request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=root_deadline,
                                    parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps,navigation_backend=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT'))))
         def wait(f,timeout):
             until=time.monotonic()+timeout
@@ -140,10 +148,10 @@ def main():
         terminal_future=handle.get_result_async()
         injected=False
         landing_cancel_rejected=False
-        until=time.monotonic()+220
+        until=time.monotonic()+root_deadline+10.
         while not terminal_future.done() and time.monotonic()<until:
             phase=node.phase
-            if not injected and phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,node.segment.duration/2):
+            if not injected and phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,(node.segment.duration if node.segment is not None else getattr(node.planned,'duration',10.))/2):
                 if scenario=='pause-resume':
                     before_child=list(node.child.uuid)
                     pause=node.create_client(PauseMission,'/uav/px4/pause')
@@ -326,7 +334,17 @@ def main():
             valid=bool(localized_samples) and all(s['session']==node.instance and s['frame']=='odom' and
                 s['child']=='base_link' and s['stamp_matches'] for s in localized_samples))
         result['passed'] = result['passed'] and result['localized_odometry']['valid']
+        result['observation_grid_exports']={}
+        for key,(grid,metadata) in getattr(node,'observation_grid_snapshots',{}).items():
+            import numpy as np
+            filename='observation-grid-'+key+'.npz'
+            np.savez_compressed(out/filename,origin=grid.origin,resolution=grid.resolution,
+                distance=grid.distance,observed=grid.observed)
+            metadata=dict(metadata,grid_file=filename,grid_sha256=file_hash(out/filename))
+            write_json(out/('observation-grid-'+key+'.json'),metadata)
+            result['observation_grid_exports'][key]=metadata
         write_json(out/'localized-odometry.json',localized_samples)
+        write_json(out/'map-diagnostics.json',map_diagnostics)
         write_json(out/'flight-events.json',node.events)
         write_json(out/'flight-diagnostics.json',node.diagnostics)
         write_json(out/'flight-status-history.json',node.status_history)
@@ -334,6 +352,13 @@ def main():
         write_json(out/'flight-trace.json',node.trace)
         write_json(out/'flight-truth.json',truth)
         write_json(out/'bt-progress.json',node.runner_progress_log)
+        try:
+            from rosidl_runtime_py.convert import message_to_ordereddict
+            write_json(out/'accepted-plans.json',[dict(authorization=authorization,
+                bound=message_to_ordereddict(message)) for message,authorization in node.accepted_plans])
+        except (TypeError,ValueError,OSError,ImportError) as error:
+            result['evidence_export_error']=str(error)
+            result['passed']=False
         write_json(out/'flight-observation.pending.json',result)
         os.replace(out/'flight-observation.pending.json',out/'flight-observation.json')
         if os.environ.get('UAV_FLIGHT_HOLD_RECEIPT')=='1':

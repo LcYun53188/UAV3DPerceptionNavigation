@@ -1,0 +1,914 @@
+{
+  "scope": "offline diagnostic; ideal visibility is an upper bound, not map clearance",
+  "metadata": {
+    "frame": "map",
+    "map_id": "80f0cf72-f193-4e48-bc05-45b274164d43",
+    "map_epoch": 1791596110683523748,
+    "map_version": 357,
+    "source_stamp_s": 196.088,
+    "map_header_stamp_s": 196.504,
+    "ros": 196.816,
+    "mono": 137328.234658608,
+    "localization_session": "8e1e1bd5-aff6-4d56-8cf4-52caa4abbbdf",
+    "point_map": [
+      -0.011087155900895596,
+      0.039258573204278946,
+      1.9986035823822021
+    ],
+    "reference_map": [
+      -0.009933971799910069,
+      0.04772757738828659,
+      2.008853405714035
+    ],
+    "radius_m": 0.8,
+    "braking_margin_m": 1.2,
+    "survey_index": 3,
+    "survey_state": "DONE",
+    "diagnostics": {
+      "total_cells": 28577,
+      "outside_cells": 0,
+      "unknown": 4043,
+      "occupied": 0,
+      "observed_nonfinite": 0,
+      "centre_distance_m": 2.459674835205078,
+      "required_centre_distance_m": 0.8866025416689223,
+      "layers": [
+        {
+          "z_m": 1.1000000163912773,
+          "cells": 1681,
+          "unknown": 88,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.2000000178813934,
+          "cells": 1681,
+          "unknown": 117,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.3000000193715096,
+          "cells": 1681,
+          "unknown": 97,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.4000000208616257,
+          "cells": 1681,
+          "unknown": 59,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.5000000223517418,
+          "cells": 1681,
+          "unknown": 33,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.600000023841858,
+          "cells": 1681,
+          "unknown": 35,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.700000025331974,
+          "cells": 1681,
+          "unknown": 48,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.8000000268220901,
+          "cells": 1681,
+          "unknown": 85,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 1.9000000283122063,
+          "cells": 1681,
+          "unknown": 205,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.0000000298023224,
+          "cells": 1681,
+          "unknown": 306,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.1000000312924385,
+          "cells": 1681,
+          "unknown": 425,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.2000000327825546,
+          "cells": 1681,
+          "unknown": 481,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.3000000342726707,
+          "cells": 1681,
+          "unknown": 477,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.400000035762787,
+          "cells": 1681,
+          "unknown": 475,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.500000037252903,
+          "cells": 1681,
+          "unknown": 444,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.600000038743019,
+          "cells": 1681,
+          "unknown": 376,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        },
+        {
+          "z_m": 2.7000000402331352,
+          "cells": 1681,
+          "unknown": 292,
+          "observed_nonfinite": 0,
+          "occupied": 0
+        }
+      ],
+      "examples": {
+        "unknown": {
+          "count": 4043,
+          "index_min": [
+            29,
+            30,
+            11
+          ],
+          "index_max": [
+            60,
+            67,
+            27
+          ],
+          "cell_lower_map_m": [
+            [
+              -2.0999999567866325,
+              -1.599999949336052,
+              2.400000035762787
+            ],
+            [
+              -2.0999999567866325,
+              -0.3999999314546585,
+              2.1000000312924385
+            ],
+            [
+              -2.0999999567866325,
+              0.8000000864267349,
+              2.1000000312924385
+            ],
+            [
+              -1.9999999552965164,
+              -0.6999999359250069,
+              2.3000000342726707
+            ],
+            [
+              -1.9999999552965164,
+              0.2000000774860382,
+              2.400000035762787
+            ],
+            [
+              -1.8999999538064003,
+              -1.0999999418854713,
+              2.1000000312924385
+            ],
+            [
+              -1.8999999538064003,
+              -0.2999999299645424,
+              2.600000038743019
+            ],
+            [
+              -1.8999999538064003,
+              0.900000087916851,
+              2.0000000298023224
+            ],
+            [
+              -1.7999999523162842,
+              -0.799999937415123,
+              2.3000000342726707
+            ],
+            [
+              -1.7999999523162842,
+              0.10000007599592209,
+              2.0000000298023224
+            ],
+            [
+              -1.699999950826168,
+              -1.8999999538064003,
+              2.400000035762787
+            ],
+            [
+              -1.699999950826168,
+              -0.5999999344348907,
+              2.1000000312924385
+            ],
+            [
+              -1.699999950826168,
+              0.2000000774860382,
+              2.500000037252903
+            ],
+            [
+              -1.599999949336052,
+              -1.599999949336052,
+              2.500000037252903
+            ],
+            [
+              -1.599999949336052,
+              -0.5999999344348907,
+              2.600000038743019
+            ],
+            [
+              -1.599999949336052,
+              0.3000000789761543,
+              2.3000000342726707
+            ],
+            [
+              -1.4999999478459358,
+              -1.4999999478459358,
+              2.3000000342726707
+            ],
+            [
+              -1.4999999478459358,
+              -0.5999999344348907,
+              2.7000000402331352
+            ],
+            [
+              -1.4999999478459358,
+              0.3000000789761543,
+              2.2000000327825546
+            ],
+            [
+              -1.3999999463558197,
+              -1.4999999478459358,
+              2.600000038743019
+            ],
+            [
+              -1.3999999463558197,
+              -0.5999999344348907,
+              2.7000000402331352
+            ],
+            [
+              -1.3999999463558197,
+              0.3000000789761543,
+              2.0000000298023224
+            ],
+            [
+              -1.2999999448657036,
+              -1.599999949336052,
+              2.400000035762787
+            ],
+            [
+              -1.2999999448657036,
+              -0.5999999344348907,
+              1.1000000163912773
+            ],
+            [
+              -1.2999999448657036,
+              0.10000007599592209,
+              2.2000000327825546
+            ],
+            [
+              -1.1999999433755875,
+              -1.699999950826168,
+              2.500000037252903
+            ],
+            [
+              -1.1999999433755875,
+              -0.6999999359250069,
+              2.2000000327825546
+            ],
+            [
+              -1.1999999433755875,
+              7.450580596923828e-08,
+              2.2000000327825546
+            ],
+            [
+              -1.1999999433755875,
+              1.0000000894069672,
+              2.1000000312924385
+            ],
+            [
+              -1.0999999418854713,
+              -0.8999999389052391,
+              2.7000000402331352
+            ],
+            [
+              -1.0999999418854713,
+              -0.09999992698431015,
+              2.0000000298023224
+            ],
+            [
+              -1.0999999418854713,
+              0.7000000849366188,
+              2.2000000327825546
+            ],
+            [
+              -0.9999999403953552,
+              -0.8999999389052391,
+              2.400000035762787
+            ],
+            [
+              -0.9999999403953552,
+              -0.09999992698431015,
+              2.0000000298023224
+            ],
+            [
+              -0.9999999403953552,
+              0.6000000834465027,
+              2.500000037252903
+            ],
+            [
+              -0.8999999389052391,
+              -0.8999999389052391,
+              2.3000000342726707
+            ],
+            [
+              -0.8999999389052391,
+              -0.09999992698431015,
+              2.1000000312924385
+            ],
+            [
+              -0.8999999389052391,
+              0.6000000834465027,
+              2.3000000342726707
+            ],
+            [
+              -0.799999937415123,
+              -0.799999937415123,
+              2.500000037252903
+            ],
+            [
+              -0.799999937415123,
+              7.450580596923828e-08,
+              2.400000035762787
+            ],
+            [
+              -0.6999999359250069,
+              -1.4999999478459358,
+              2.3000000342726707
+            ],
+            [
+              -0.6999999359250069,
+              -0.5999999344348907,
+              2.400000035762787
+            ],
+            [
+              -0.6999999359250069,
+              0.10000007599592209,
+              2.600000038743019
+            ],
+            [
+              -0.5999999344348907,
+              -1.0999999418854713,
+              2.2000000327825546
+            ],
+            [
+              -0.5999999344348907,
+              -0.19999992847442627,
+              2.3000000342726707
+            ],
+            [
+              -0.5999999344348907,
+              0.5000000819563866,
+              2.3000000342726707
+            ],
+            [
+              -0.4999999329447746,
+              -0.5999999344348907,
+              2.1000000312924385
+            ],
+            [
+              -0.4999999329447746,
+              0.2000000774860382,
+              1.4000000208616257
+            ],
+            [
+              -0.3999999314546585,
+              -0.8999999389052391,
+              2.600000038743019
+            ],
+            [
+              -0.3999999314546585,
+              7.450580596923828e-08,
+              2.7000000402331352
+            ],
+            [
+              -0.2999999299645424,
+              -0.9999999403953552,
+              2.600000038743019
+            ],
+            [
+              -0.2999999299645424,
+              7.450580596923828e-08,
+              2.500000037252903
+            ],
+            [
+              -0.19999992847442627,
+              -0.8999999389052391,
+              2.600000038743019
+            ],
+            [
+              -0.19999992847442627,
+              0.10000007599592209,
+              2.600000038743019
+            ],
+            [
+              -0.09999992698431015,
+              -0.5999999344348907,
+              2.400000035762787
+            ],
+            [
+              7.450580596923828e-08,
+              -1.2999999448657036,
+              2.500000037252903
+            ],
+            [
+              7.450580596923828e-08,
+              0.2000000774860382,
+              1.5000000223517418
+            ],
+            [
+              0.10000007599592209,
+              -0.2999999299645424,
+              1.8000000268220901
+            ],
+            [
+              0.2000000774860382,
+              -0.3999999314546585,
+              1.600000023841858
+            ],
+            [
+              0.3000000789761543,
+              -0.5999999344348907,
+              2.0000000298023224
+            ],
+            [
+              0.40000008046627045,
+              0.2000000774860382,
+              1.5000000223517418
+            ],
+            [
+              0.5000000819563866,
+              0.8000000864267349,
+              1.1000000163912773
+            ],
+            [
+              0.7000000849366188,
+              -0.8999999389052391,
+              1.9000000283122063
+            ],
+            [
+              1.0000000894069672,
+              0.900000087916851,
+              1.3000000193715096
+            ]
+          ]
+        },
+        "occupied": {
+          "count": 0,
+          "cell_lower_map_m": []
+        }
+      }
+    },
+    "grid_file": "observation-grid-returned.npz",
+    "grid_sha256": "d9cfb33e6c7c9c4e20b9076a972888bb81759cccb3f81d55138a93174cba20c4"
+  },
+  "counts": {
+    "unknown": 4043,
+    "occupied": 0
+  },
+  "occupied_cell_centres_map_m": [],
+  "existing_recipe_ideal_visible_unknown": 3537,
+  "candidates": [
+    {
+      "offset_enu": [
+        -0.9,
+        0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 3241,
+      "additional_geometry_visible": 372
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 3676,
+      "additional_geometry_visible": 368
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 2897,
+      "additional_geometry_visible": 343
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 1945,
+      "additional_geometry_visible": 338
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 3468,
+      "additional_geometry_visible": 322
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        -0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 2630,
+      "additional_geometry_visible": 322
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        -0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 1335,
+      "additional_geometry_visible": 317
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.0,
+        1.6
+      ],
+      "ideal_visible_unknown": 1090,
+      "additional_geometry_visible": 317
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 693,
+      "additional_geometry_visible": 317
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 3541,
+      "additional_geometry_visible": 306
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 3392,
+      "additional_geometry_visible": 297
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 987,
+      "additional_geometry_visible": 279
+    },
+    {
+      "offset_enu": [
+        0.0,
+        -0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 1830,
+      "additional_geometry_visible": 276
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.0,
+        2.4
+      ],
+      "ideal_visible_unknown": 2296,
+      "additional_geometry_visible": 275
+    },
+    {
+      "offset_enu": [
+        0.9,
+        -0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 2853,
+      "additional_geometry_visible": 269
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.0,
+        2.0
+      ],
+      "ideal_visible_unknown": 2616,
+      "additional_geometry_visible": 268
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 1923,
+      "additional_geometry_visible": 252
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 3272,
+      "additional_geometry_visible": 250
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.0,
+        1.2
+      ],
+      "ideal_visible_unknown": 490,
+      "additional_geometry_visible": 249
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.0,
+        2.0
+      ],
+      "ideal_visible_unknown": 3477,
+      "additional_geometry_visible": 239
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 1832,
+      "additional_geometry_visible": 239
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        -0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 2500,
+      "additional_geometry_visible": 235
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.9,
+        1.6
+      ],
+      "ideal_visible_unknown": 2391,
+      "additional_geometry_visible": 226
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        -0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 677,
+      "additional_geometry_visible": 217
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.0,
+        1.6
+      ],
+      "ideal_visible_unknown": 2782,
+      "additional_geometry_visible": 210
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 2401,
+      "additional_geometry_visible": 205
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 3274,
+      "additional_geometry_visible": 203
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.0,
+        1.6
+      ],
+      "ideal_visible_unknown": 1625,
+      "additional_geometry_visible": 195
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.0,
+        2.4
+      ],
+      "ideal_visible_unknown": 3390,
+      "additional_geometry_visible": 189
+    },
+    {
+      "offset_enu": [
+        0.9,
+        -0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 3380,
+      "additional_geometry_visible": 189
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.0,
+        2.8
+      ],
+      "ideal_visible_unknown": 2999,
+      "additional_geometry_visible": 184
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.0,
+        2.4
+      ],
+      "ideal_visible_unknown": 2987,
+      "additional_geometry_visible": 184
+    },
+    {
+      "offset_enu": [
+        0.9,
+        -0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 2979,
+      "additional_geometry_visible": 159
+    },
+    {
+      "offset_enu": [
+        0.0,
+        -0.9,
+        2.4
+      ],
+      "ideal_visible_unknown": 2940,
+      "additional_geometry_visible": 151
+    },
+    {
+      "offset_enu": [
+        0.9,
+        -0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 1385,
+      "additional_geometry_visible": 151
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        0.0,
+        2.8
+      ],
+      "ideal_visible_unknown": 762,
+      "additional_geometry_visible": 144
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.0,
+        2.0
+      ],
+      "ideal_visible_unknown": 2970,
+      "additional_geometry_visible": 140
+    },
+    {
+      "offset_enu": [
+        0.0,
+        -0.9,
+        1.2
+      ],
+      "ideal_visible_unknown": 830,
+      "additional_geometry_visible": 138
+    },
+    {
+      "offset_enu": [
+        0.9,
+        0.0,
+        1.2
+      ],
+      "ideal_visible_unknown": 1338,
+      "additional_geometry_visible": 128
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.0,
+        2.8
+      ],
+      "ideal_visible_unknown": 1681,
+      "additional_geometry_visible": 120
+    },
+    {
+      "offset_enu": [
+        0.0,
+        0.0,
+        1.2
+      ],
+      "ideal_visible_unknown": 642,
+      "additional_geometry_visible": 116
+    },
+    {
+      "offset_enu": [
+        0.9,
+        -0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 3418,
+      "additional_geometry_visible": 111
+    },
+    {
+      "offset_enu": [
+        -0.9,
+        -0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 698,
+      "additional_geometry_visible": 82
+    },
+    {
+      "offset_enu": [
+        0.0,
+        -0.9,
+        2.0
+      ],
+      "ideal_visible_unknown": 2757,
+      "additional_geometry_visible": 56
+    },
+    {
+      "offset_enu": [
+        0.0,
+        -0.9,
+        2.8
+      ],
+      "ideal_visible_unknown": 1798,
+      "additional_geometry_visible": 34
+    }
+  ]
+}

@@ -177,14 +177,17 @@ class MapSession(Node):
                 continue
             try:
                 self.tf.lookup_transform('map', msg.header.frame_id, stamp)
-            except TransformException:
+            except TransformException as exc:
                 if timing is not None:
                     timing['tf_wait'] += 1
+                    timing['tf_error'] = str(exc)
+                    timing['tf_requested_stamp_ns'] = stamp.nanoseconds
                 return
             pending.popleft()
             setattr(self, f'last_{stream}_stamp', stamp.nanoseconds)
             if timing is not None:
                 timing['forwarded'] += 1
+                timing['tf_error'] = None
             info_pub = self.color_info_pub if stream == 'color' else self.info_pub
             info_pub.publish(info)
             getattr(self, f'{stream}_pub').publish(msg)

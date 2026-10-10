@@ -427,7 +427,7 @@ def test_observation_timeout_retires_before_native_landing(monkeypatch):
         config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
         observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
         planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
-        planned=SimpleNamespace(gate=SimpleNamespace(grid=None),retire=lambda:order.append('retire')),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1)),retire=lambda:order.append('retire')),
         command=lambda value:order.append(value),change=lambda *args:order.append(args),child=UUID(),segment=object())
     FlightServer.observation_tick(node,25.,25.)
     assert order==['retire',21,('LAND_REQUEST','OBSERVATION_INSUFFICIENT')]
@@ -445,7 +445,7 @@ def test_observation_success_requires_complete_sweep_and_observed_volume(monkeyp
         config={'tracking_margin_m':.3,'observation_yaw_rate_rps':.35,'braking_margin_m':1.2,'body_radius_m':.5},
         observe_started=0.,observe_until=25.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
         planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
-        planned=SimpleNamespace(gate=SimpleNamespace(grid=None)),stable=lambda *args:True,
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1))),stable=lambda *args:True,
         next_step=lambda:results.append('next'))
     FlightServer.observation_tick(node,10.,10.)
     assert not results
@@ -474,10 +474,10 @@ def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeyp
     advanced=[]
     survey=SimpleNamespace(sample=lambda *args:((.8,.8,1.),6.3,False),state='SCAN',index=1)
     node=SimpleNamespace(survey=survey,position=lambda:(.8,.8,1.),target=(0.,0.,2.),
-        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5},
+        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5,'observation_yaw_rate_rps':.35},
         observe_until=160.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
         planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
-        planned=SimpleNamespace(gate=SimpleNamespace(grid=None)),stable=lambda *args:True,
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1),inputs={})),stable=lambda *args:True,
         samples={'vehicle_local_position':SimpleNamespace(vx=0.,vy=0.,vz=0.,heading=0.)},
         next_step=lambda:advanced.append(True))
     FlightServer.observation_tick(node,100.,100.)
@@ -489,4 +489,80 @@ def test_multiview_clear_map_does_not_authorize_navigation_before_return(monkeyp
     assert not advanced
     node.samples['vehicle_local_position'].vx=0.
     FlightServer.observation_tick(node,102.,102.)
+    assert advanced==[True]
+
+
+def test_admitted_plan_audit_serializes_real_uuid_arrays_and_keeps_owned_copy():
+    from uav_nav_interfaces.msg import ContextTrajectory
+    from unique_identifier_msgs.msg import UUID
+    from rosidl_runtime_py.convert import message_to_ordereddict
+    node=SimpleNamespace(lock=threading.RLock(),active_goal=SimpleNamespace(goal_id=UUID(uuid=[1]*16)),
+        result=None,phase='PLAN_REQUEST',planning_ready=lambda:None,
+        planned=SimpleNamespace(admit=lambda *args:None),planning_authorization=lambda:(),
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10_000_000_000)),
+        steps=[dict(type='NAVIGATE')],step_index=0,accepted_plans=[],instance='run',
+        session=UUID(uuid=[2]*16),child=UUID(uuid=[3]*16),generation=1,owner='TASK',
+        change=lambda *args:None,diagnostics=[])
+    message=ContextTrajectory();message.trajectory.trajectory_id=1
+    FlightServer.planned_result(node,message)
+    copied,authorization=node.accepted_plans[0]
+    json.dumps(dict(authorization=authorization,bound=message_to_ordereddict(copied)))
+    message.trajectory.trajectory_id=2
+    assert copied.trajectory.trajectory_id==1
+    def reject(*args):raise ValueError('CONTROL_SESSION_MISMATCH')
+    node.planned.admit=reject
+    FlightServer.planned_result(node,message)
+    assert len(node.accepted_plans)==1 and node.diagnostics[-1]['planning_rejected']=='CONTROL_SESSION_MISMATCH'
+
+
+def test_observation_does_not_dispatch_with_unknown_ego_seed_padding():
+    import numpy as np
+    from uav_nav_sim.core import Grid
+    distance = np.full((80, 80, 50), 4., dtype=np.float32)
+    observed = np.ones_like(distance, dtype=bool)
+    # Body/tracking box at z=2.04 ends in layer 1.2; EGO's half-voxel
+    # seed padding also includes the unknown 1.1 layer from the live failure.
+    observed[42, 44, 11] = False
+    grid = Grid(np.array([-4., -4., 0.]), .1, distance, observed)
+    advanced = []
+    node = SimpleNamespace(position=lambda: (0., 0., 2.04), target=(0., 0., 2.04),
+        config={'tracking_margin_m': .3, 'observation_yaw_rate_rps': .35,
+                'braking_margin_m': 1.2, 'body_radius_m': .5},
+        observe_started=0., observe_until=25., observe_yaw=0., observation_samples=[], last_observation_sample=0.,
+        planning_ready=lambda: None, alignment=Alignment((0., 0., 0.), 0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=grid)), stable=lambda *args: True,
+        next_step=lambda: advanced.append(True))
+    FlightServer.observation_tick(node, 20., 20.)
+    assert not advanced
+    assert node.observation_samples[-1]['volume']['unknown'] == 1
+    fresh_observed = observed.copy()
+    fresh_observed[42, 44, 11] = True
+    node.planned.gate.grid = Grid(grid.origin, grid.resolution, distance.copy(), fresh_observed)
+    FlightServer.observation_tick(node, 21., 21.)
+    assert advanced == [True]
+
+
+def test_returned_observation_sweeps_once_while_waiting_for_map_clearance(monkeypatch):
+    import math
+    from uav_mission import ego_execution
+    blocked=[True];advanced=[]
+    monkeypatch.setattr(ego_execution,'BrakingGrid',lambda *args:SimpleNamespace(
+        collision=lambda *args:blocked[0],diagnostics=lambda *args:{}))
+    survey=SimpleNamespace(state='DONE',index=4,sample=lambda *args:((0.,0.,2.),4*math.tau,True))
+    node=SimpleNamespace(survey=survey,position=lambda:(0.,0.,2.),target=(0.,0.,2.),
+        config={'tracking_margin_m':.3,'braking_margin_m':1.2,'body_radius_m':.5,'observation_yaw_rate_rps':.35},
+        observe_until=10000.,observe_yaw=0.,observation_samples=[],last_observation_sample=0.,
+        planning_ready=lambda:None,alignment=Alignment((0.,0.,0.),0.),
+        planned=SimpleNamespace(gate=SimpleNamespace(grid=SimpleNamespace(resolution=.1),inputs={})),
+        stable=lambda *args:True,samples={'vehicle_local_position':SimpleNamespace(vx=0.,vy=0.,vz=0.,heading=0.)},
+        next_step=lambda:advanced.append(True))
+    FlightServer.observation_tick(node,100.,100.)
+    assert not advanced
+    FlightServer.observation_tick(node,103.,103.)
+    assert node.yaw==pytest.approx(1.05)
+    assert not advanced
+    FlightServer.observation_tick(node,1000.,1000.)
+    assert node.observation_samples[-1]['angle_rad']==pytest.approx(5*math.tau)
+    blocked[0]=False
+    FlightServer.observation_tick(node,1001.,1001.)
     assert advanced==[True]
