@@ -12,6 +12,8 @@
 
 2026-10-10：实际同机深度地图与 PX4 EKF 会话／六个重置计数绑定、PlanningContext 与受管 EGO shadow 图连续两轮通过（`sim.sh px4-depth-plan`）；地面安全包络未满足，未提交目标。下一步为生成场景飞行 profile、已知区域起飞后的有限观测与实际曲线任务，见 [源绑定验收](validation/simulation/2026-10-10-depth-planning-sources/REPORT.md)。
 
+2026-10-10：新增冻结深度飞行 profile 与 OBSERVE BT 步骤。`sim.sh px4-observe` 两轮实际起飞／定点扫描／观测不足原生降落并锁定通过；实测 yaw 6.282 rad，任务 ABORTED 且 cleanup_confirmed=true。当前尚不能执行 EGO 导航，下一步多位置／多高度观测与体素缺口诊断。见 [有限观测闭环](validation/simulation/2026-10-10-depth-observation-flight/REPORT.md)。
+
 以下较早的阶段记录保留为历史证据。
 
 
