@@ -33,6 +33,7 @@ def test_stereo_triangulation_and_imu_mount(tmp_path):
     assert frames['vio_imu']['position'] == profile['rig_position_flu_m']
     assert frames['vio_imu']['rpy'] == [0,0,0]
     model = ET.parse(tmp_path/'generated'/profile['model']/'model.sdf')
+    assert model.find("model/link[@name='vio_rig_link']/pose").get('relative_to')=='base_link'
     cameras = model.findall('.//sensor[@type="camera"]')
     origins = [float(c.findtext('pose').split()[1]) for c in cameras]
     assert abs(origins[0]-origins[1]-profile['baseline_m']) < 1e-12
@@ -56,6 +57,7 @@ def test_motion_fixture_has_physics_and_separate_truth(tmp_path):
     world.write_text('<sdf version="1.9"><world name="default"/></sdf>')
     profile,_ = assets(tmp_path/'motion',world,motion_plugin=Path('/fixture.so'),scene='layered')
     model = ET.parse(tmp_path/'motion'/profile['model']/'model.sdf')
+    assert model.find("model/link[@name='vio_rig_link']/pose").get('relative_to')=='base_link'
     assert not model.findall('.//include')  # No PX4 motors or flight model on fixture.
     assert model.findtext('.//link[@name="base_link"]/inertial/mass') == '1'
     assert model.find('.//link[@name="base_link"]/collision') is not None
