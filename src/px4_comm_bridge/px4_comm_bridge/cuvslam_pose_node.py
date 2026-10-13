@@ -18,17 +18,24 @@ from isaac_ros_visual_slam_interfaces.msg import VisualSlamStatus
 from isaac_ros_visual_slam_interfaces.srv import Reset
 from uav_nav_interfaces.msg import VioStatus
 from .vio_input import SourceContinuity, stamp_s
-from .cuvslam_pose import CONTRACT, SOURCE_PARAMETERS, normalize_pose, fresh_stamp
+from .cuvslam_pose import CONTRACT, WORLD_FIXED_CONTRACTS, OPENVINS_CONTRACT, SOURCE_PARAMETERS, normalize_pose, fresh_stamp
+from .openvins_state import COMMIT as OPENVINS_COMMIT, tracking_receipt
+from std_msgs.msg import Float64MultiArray
 from .source_timing import SourceTiming
 from .pose_dropout import can_drop
+from .source_warmup import SourceWarmup
 
 
 class CuvslamPose(Node):
+    source_parameters=SOURCE_PARAMETERS
+    openvins=False
     pose_topic = '/visual_slam/tracking/vo_pose_covariance'
     tracking_topic = '/visual_slam/status'
 
     def __init__(self):
         super().__init__('cuvslam_pose')
+        self.declare_parameter('warmup_sec',0.)
+        self.warmup=SourceWarmup(float(self.get_parameter('warmup_sec').value))
         self.declare_parameter('quality_policy','strict')
         self.quality_policy=self.get_parameter('quality_policy').value
         if self.quality_policy not in ('strict','bounded_gap'):
@@ -43,8 +50,14 @@ class CuvslamPose(Node):
         self.calibration = self.get_parameter('calibration_id').value
         if not re.fullmatch('[0-9a-f]{64}',self.calibration):
             raise ValueError('calibration_id must bind reviewed sensor/extrinsics/config SHA256')
-        if self.get_parameter('source_contract').value != CONTRACT:
+        self.contract = self.get_parameter('source_contract').value
+        if self.contract not in (CONTRACT, *WORLD_FIXED_CONTRACTS):
             raise ValueError('VIO_SOURCE_CONTRACT_UNVERIFIED')
+        self.openvins = self.contract == OPENVINS_CONTRACT
+        self.source_parameters = (dict(source_commit=OPENVINS_COMMIT,calibration_id=self.calibration,
+            use_fej=True,num_cameras=2) if self.openvins else SOURCE_PARAMETERS)
+        if self.openvins:
+            self.pose_topic,self.tracking_topic='/openvins/pose','/openvins/state'
         self.session = str(uuid.uuid4())
         self.counter = 0
         self.continuity = SourceContinuity()
@@ -52,7 +65,7 @@ class CuvslamPose(Node):
         self.stable_since = None
         self.tracking = self.tracking_receive = self.tracking_gid = None
         self.sample = self.receive = None
-        self.reason = 'VIO_MISSING'
+        self.reason = 'VIO_INERTIAL_INITIALIZING' if self.contract in WORLD_FIXED_CONTRACTS else 'VIO_MISSING'
         self.fault = ''
         self.verified_parameters = None
         self.parameters_future = None
@@ -62,12 +75,14 @@ class CuvslamPose(Node):
         self.pending = OrderedDict()
         self.tracking_samples = OrderedDict()
         self.clients_group = ReentrantCallbackGroup()
-        self.parameters_client = AsyncParameterClient(self,'/visual_slam',callback_group=self.clients_group)
-        self.reset_client = self.create_client(Reset,'/visual_slam/internal/reset',callback_group=self.clients_group)
+        self.parameters_client = AsyncParameterClient(self,'/openvins' if self.openvins else '/visual_slam',callback_group=self.clients_group)
+        self.reset_client = self.create_client(Reset,'/openvins/internal/reset' if self.openvins else '/visual_slam/internal/reset',callback_group=self.clients_group)
         self.pose_pub = self.create_publisher(PoseWithCovarianceStamped,'/uav/vio/pose',10)
         self.status_pub = self.create_publisher(VioStatus,'/uav/vio/pose_status',10)
         self.create_subscription(PoseWithCovarianceStamped,self.pose_topic,self.on_pose,10)
-        self.create_subscription(VisualSlamStatus,self.tracking_topic,self.on_tracking,10)
+        if self.openvins:
+            self.create_subscription(Float64MultiArray,self.tracking_topic,self.on_openvins_state,10)
+        else:self.create_subscription(VisualSlamStatus,self.tracking_topic,self.on_tracking,10)
         self.create_service(Reset,'/uav/vio/reset',self.on_reset)
         self.create_timer(.05,self.tick,callback_group=self.clients_group,
                           clock=Clock(clock_type=ClockType.STEADY_TIME))
@@ -142,6 +157,10 @@ class CuvslamPose(Node):
             self.reject(str(exc))
         finally:self.trace('tracking_done',stamp_s(message.header.stamp),elapsed_s=time.monotonic()-started)
 
+    def on_openvins_state(self,message,info):
+        try:self.on_tracking(tracking_receipt(message.data),info)
+        except ValueError as exc:self.reject(str(exc))
+
     def on_pose(self,message,info):
         started=time.monotonic()
         self.trace('pose_rx',stamp_s(message.header.stamp),info)
@@ -180,8 +199,14 @@ class CuvslamPose(Node):
             if self.receive is not None and time.monotonic()-self.receive > .2:
                 raise ValueError('VIO_RECEIVE_GAP')
             self.validate_tracking(stamp_s(message.header.stamp),pair)
+            if not self.bound and not self.warmup.ready(message.header.stamp):
+                # Startup poses must not enter continuity, the healthy window,
+                # or the fixed alignment. Never emit or renew a sample here.
+                self.reason = 'VIO_WARMING_UP'
+                self.publish_status()
+                return
             now_ns=self.get_clock().now().nanoseconds
-            normalized = normalize_pose(message,now_ns/1e9,now_ns=now_ns)
+            normalized = normalize_pose(message,now_ns/1e9,now_ns=now_ns,contract=self.contract)
             self.continuity.accept(message,self.publisher(self.pose_topic))
             self.sample,self.receive = message.header.stamp,time.monotonic()
             if self.stable_since is None: self.stable_since = self.receive
@@ -226,13 +251,13 @@ class CuvslamPose(Node):
             self.pending_reset.cancel()
         if self.verified_parameters is None and not self.fault:
             if self.parameters_future is None and self.parameters_client.services_are_ready():
-                self.parameters_future = self.parameters_client.get_parameters(list(SOURCE_PARAMETERS))
+                self.parameters_future = self.parameters_client.get_parameters(list(self.source_parameters))
             if self.parameters_future is not None and self.parameters_future.done():
                 try:
                     response = self.parameters_future.result()
-                    values = dict(zip(SOURCE_PARAMETERS,[parameter_value_to_python(v) for v in response.values]))
-                    if values != SOURCE_PARAMETERS: raise ValueError('VIO_SOURCE_PARAMETERS_INVALID')
-                    if any(name=='/visual_slam/reset' for name,_ in self.get_service_names_and_types()):
+                    values = dict(zip(self.source_parameters,[parameter_value_to_python(v) for v in response.values]))
+                    if values != self.source_parameters: raise ValueError('VIO_SOURCE_PARAMETERS_INVALID')
+                    if not self.openvins and any(name=='/visual_slam/reset' for name,_ in self.get_service_names_and_types()):
                         raise ValueError('VIO_RESET_PROXY_BYPASSED')
                     self.verified_parameters = values
                 except Exception:

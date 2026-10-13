@@ -11,6 +11,13 @@ import numpy as np
 from .vio_input import covariance
 
 CONTRACT = 'cuvslam15_right_tangent_base_link_v1'
+SDK16_CONTRACT = 'cuvslam16_world_fixed_sdk_euler_v1_disarmed'
+SDK16_MARGINAL_CONTRACT = 'cuvslam16_marginal_world_fixed_euler_v1_disarmed'
+SDK16_CONDITIONAL_CONTRACT = 'cuvslam16_conditional_world_base_v1_disarmed'
+SDK16_WORLD_CONDITIONAL_CONTRACT = 'cuvslam16_conditional_world_base_v2_disarmed'
+SDK16_CONTRACTS = (SDK16_CONTRACT, SDK16_MARGINAL_CONTRACT, SDK16_CONDITIONAL_CONTRACT, SDK16_WORLD_CONDITIONAL_CONTRACT)
+OPENVINS_CONTRACT = 'openvins_full_state_world_base_v1_disarmed'
+WORLD_FIXED_CONTRACTS = (*SDK16_CONTRACTS, OPENVINS_CONTRACT)
 SOURCE_PARAMETERS = dict(base_frame='base_link',odom_frame='odom',tracking_mode=1,
     enable_localization_n_mapping=False,enable_ground_constraint_in_odometry=False,
     override_publishing_stamp=False)
@@ -33,7 +40,7 @@ def fresh_stamp(now_ns, stamp):
     return sample_ns>0 and -50_000_000<=now_ns-sample_ns<=200_000_000
 
 
-def normalize_pose(message, now_s, *, now_ns=None):
+def normalize_pose(message, now_s, *, now_ns=None, contract=CONTRACT):
     if message.header.frame_id != 'odom':
         raise ValueError('VIO_FRAME_INVALID')
     if not fresh_stamp(round(now_s*1e9) if now_ns is None else now_ns,message.header.stamp):
@@ -47,7 +54,14 @@ def normalize_pose(message, now_s, *, now_ns=None):
     body = (body+body.T)/2
     transform = np.zeros((6,6))
     transform[:3,:3] = transform[3:,3:] = r
-    world = transform@body@transform.T
+    if contract == CONTRACT:
+        world = transform@body@transform.T
+    elif contract in WORLD_FIXED_CONTRACTS:
+        # The isolated SDK16 wrapper converts native world Euler uncertainty
+        # to ROS world small-rotation uncertainty using the pose Jacobian.
+        world = body
+    else:
+        raise ValueError('VIO_SOURCE_CONTRACT_UNVERIFIED')
     if np.any(np.diag(world) <= 0) or np.any(np.diag(world) > .25):
         raise ValueError('VIO_UNCERTAINTY_INVALID')
     result = copy.deepcopy(message)

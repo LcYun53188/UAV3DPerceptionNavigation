@@ -43,12 +43,15 @@ class AlignedPoseStream:
             self.last_receive=None
         return None
 
+    def state_allowed(self, ground, armed):
+        return ground or (self.flight_continuity and self.bound and armed)
+
     def check(self,ros,mono,*,ground,armed=False,incoming_sample=None):
         if self.last_clock is not None and ros<self.last_clock:
             self.fault=self.fault or 'VIO_CLOCK_RESET'
         self.last_clock=ros
         if self.fault: return self.reject(self.fault)
-        if not ground and not (self.flight_continuity and self.bound and armed):
+        if not self.state_allowed(ground, armed):
             return self.reject('VIO_ALIGNMENT_REQUIRES_GROUND')
         if self.bound and (self.last_receive is None or mono-self.last_receive>.2):
             return self.reject('VIO_RECEIVE_GAP')

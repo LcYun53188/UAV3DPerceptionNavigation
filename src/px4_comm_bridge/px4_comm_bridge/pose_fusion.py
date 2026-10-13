@@ -64,6 +64,18 @@ class PoseAlignment:
         self.r=np.array([[c,-s,0],[s,c,0],[0,0,1.]])
         self.offset=self.anchor-self.r@p
         self.delta=delta
+        # Validate the complete recent window against the *aligned* budget
+        # before freezing an anchor. Input variance alone is insufficient:
+        # with unknown temporal correlation the stationary bound is 4*C.
+        # A failed pre-bind check can wait for a new window; it never emits EV.
+        for sample,(position,orientation,current_covariance) in zip(samples,values):
+            propagated=self.propagated_covariance(position,current_covariance)
+            ned=np.array([[0,1,0],[1,0,0],[0,0,-1.]])
+            j=euler_jacobian(ned@self.r@orientation@np.diag([1.,-1.,-1.]))
+            angles=j@ned@propagated[3:,3:]@ned.T@j.T
+            if (np.any(np.diag(propagated)<=0) or np.any(np.diag(propagated)>.25)
+                    or np.any(np.diag(angles)<=0) or np.any(np.diag(angles)>.25)):
+                raise ValueError('VIO_ALIGNMENT_UNCERTAINTY_NOT_READY')
         self.identity=(source_session,calibration_id,reset_counter)
         record=dict(schema=1,profile=PROFILE,anchor_config_id=self.anchor_id,source_session=source_session,
             calibration_id=calibration_id,reset_counter=reset_counter,sample_stamp=float(ts[-1]),
@@ -75,6 +87,16 @@ class PoseAlignment:
         self.last_stamp=float(ts[-1])
         return copy.deepcopy(self.binding)
 
+    def propagated_covariance(self,position,current_covariance):
+        """Upper bound for unknown current/anchor temporal cross covariance."""
+        a=np.zeros((6,6));a[:3,:3]=a[3:,3:]=self.r
+        displacement=self.r@(position-self.initial_position)
+        yaw_position=np.cross([0.,0.,1.],displacement)
+        initial=np.zeros((6,6));initial[:3,:3]=-self.r
+        initial[:3,3:]=-np.outer(yaw_position,self.initial_yaw_jacobian)
+        initial[3:,3:]=-np.outer([0.,0.,1.],self.initial_yaw_jacobian)
+        return 2*(a@current_covariance@a.T+initial@self.initial_covariance@initial.T)
+
     def apply(self,m,now,*,source_session,calibration_id,reset_counter=0,allow_uncertainty_drop=False):
         if self.fault: raise ValueError(self.fault)
         if self.binding is None: raise ValueError('VIO_ALIGNMENT_MISSING')
@@ -83,7 +105,6 @@ class PoseAlignment:
             p,_,c=checked_pose(m,now,'odom')
             if stamp_s(m.header.stamp)<=self.last_stamp: raise ValueError('VIO_TIME_DISCONTINUITY')
             if stamp_s(m.header.stamp)-self.last_stamp>.2: raise ValueError('VIO_TIME_DISCONTINUITY')
-            a=np.zeros((6,6));a[:3,:3]=a[3:,3:]=self.r
             out=copy.deepcopy(m);out.header.frame_id=FRAME
             out.pose.pose.position.x,out.pose.pose.position.y,out.pose.pose.position.z=self.r@p+self.offset
             q=out.pose.pose.orientation
@@ -94,12 +115,7 @@ class PoseAlignment:
             # Current and anchor VIO errors are temporally correlated, but the
             # SDK exposes no joint covariance. For any cross covariance,
             # Cov(X+Y) <= 2*(Cov(X)+Cov(Y)) in PSD order. Never assume independence.
-            displacement=self.r@(p-self.initial_position)
-            yaw_position=np.cross([0.,0.,1.],displacement)
-            initial=np.zeros((6,6));initial[:3,:3]=-self.r
-            initial[:3,3:]=-np.outer(yaw_position,self.initial_yaw_jacobian)
-            initial[3:,3:]=-np.outer([0.,0.,1.],self.initial_yaw_jacobian)
-            propagated=2*(a@c@a.T+initial@self.initial_covariance@initial.T)
+            propagated=self.propagated_covariance(p,c)
             out.pose.covariance=propagated.ravel().tolist()
             checked_pose(out,now,FRAME)
             self.last_stamp=stamp_s(m.header.stamp)

@@ -81,3 +81,18 @@ def test_nanosecond_bounds_remain_exact_at_epoch_time(age_ns,expected):
     else:
         with pytest.raises(ValueError,match='VIO_SAMPLE_STALE'):
             normalize_pose(m,now_ns/1e9,now_ns=now_ns)
+
+
+@pytest.mark.parametrize('contract', [
+    'cuvslam16_world_fixed_sdk_euler_v1_disarmed',
+    'cuvslam16_marginal_world_fixed_euler_v1_disarmed',
+    'cuvslam16_conditional_world_base_v1_disarmed',
+    'cuvslam16_conditional_world_base_v2_disarmed'])
+def test_sdk16_wrapper_world_covariance_is_not_rotated_again(contract):
+    m=sample()
+    m.pose.pose.orientation.z=math.sin(.6/2)
+    m.pose.pose.orientation.w=math.cos(.6/2)
+    c=np.diag([.01,.02,.03,.004,.005,.006]);c[0,4]=c[4,0]=.001
+    m.pose.covariance=c.ravel().tolist()
+    result=normalize_pose(m,10.1,contract=contract)
+    assert np.array(result.pose.covariance).reshape(6,6)==pytest.approx(c)

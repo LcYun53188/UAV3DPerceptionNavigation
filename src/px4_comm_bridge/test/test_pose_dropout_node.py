@@ -13,7 +13,7 @@ def uncertain(t=10.08):
 
 
 def fixture():
-    node=SimpleNamespace(fault='',bound=True,receive=time.monotonic()-.05,sample=uncertain(10.).header.stamp,
+    node=SimpleNamespace(contract='cuvslam15_right_tangent_base_link_v1',fault='',bound=True,receive=time.monotonic()-.05,sample=uncertain(10.).header.stamp,
         quality_policy='bounded_gap',dropped_samples=0,emitted=[],status=0)
     node.get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10100000000))
     node.validate_tracking=lambda *args:None

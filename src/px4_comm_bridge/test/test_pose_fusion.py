@@ -133,3 +133,19 @@ def test_bound_initial_covariance_is_frozen_when_caller_reuses_message():
     saved=a.initial_covariance.copy()
     samples[-1].pose.covariance[0]=.2
     assert a.initial_covariance==pytest.approx(saved)
+
+
+def test_alignment_waits_for_propagated_covariance_without_binding_or_retiring():
+    a=PoseAlignment([0,0,0],0,ID)
+    samples=[pose(10+i*.04,angles=(0,0,0)) for i in range(51)]
+    for m in samples:
+        c=np.diag([.017265,.104121,.101558,.004,.005,.006])
+        m.pose.covariance=c.ravel().tolist()
+    # All raw axes pass 0.25, but unknown anchor/current correlation does not.
+    with pytest.raises(ValueError,match='VIO_ALIGNMENT_UNCERTAINTY_NOT_READY'):
+        a.bind(samples,12.,**IDENTITY,disarmed=True,landed=True)
+    assert a.binding is None and not a.fault
+    improved=[pose(13+i*.04,angles=(0,0,0)) for i in range(51)]
+    a.bind(improved,15.,**IDENTITY,disarmed=True,landed=True)
+    out=a.apply(pose(15.04,angles=(0,0,0)),15.1,**IDENTITY)
+    assert max(np.diag(np.array(out.pose.covariance).reshape(6,6)))<.25
