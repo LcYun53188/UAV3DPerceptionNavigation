@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "scope": "Gazebo white Gaussian IMU experiment; not OAK-D calibration",
+  "gyro_noise_density": 0.000244,
+  "accel_noise_density": 0.001862,
+  "gyro_random_walk": 0.0,
+  "accel_random_walk": 0.0,
+  "bias_model": "zero constant bias; no dynamic bias process in this fixture"
+}

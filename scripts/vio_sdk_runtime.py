@@ -5,11 +5,11 @@ from rclpy.clock import Clock, ClockType
 
 
 class SdkRuntimeReceipt:
-    def __init__(self,node,expected):
+    def __init__(self,node,expected,node_name="/visual_slam"):
         self.expected=dict(expected)
         self.actual=None
         self.error=None
-        self.client=AsyncParameterClient(node,'/visual_slam')
+        self.client=AsyncParameterClient(node,node_name)
         self.future=None
         self.timer=node.create_timer(.5,self.tick,clock=Clock(clock_type=ClockType.STEADY_TIME))
 

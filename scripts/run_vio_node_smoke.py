@@ -9,11 +9,15 @@ import subprocess
 import time
 import uuid
 import rclpy
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sdk',choices=('sdk16',),default='sdk16')
+    args=parser.parse_args()
     if os.environ.get('ROS_DOMAIN_ID') != '94':
         raise RuntimeError('Use isolated ROS_DOMAIN_ID=94 for the VIO load smoke')
     out = ROOT/'.cache/simulation/vio-node'/str(uuid.uuid4())
@@ -21,6 +25,14 @@ def main():
     binary = ROOT/'install_uav/isaac_ros_visual_slam/lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
     library = ROOT/'install_uav/isaac_ros_visual_slam/lib/libvisual_slam_node.so'
     sdk = ROOT/'install_uav/isaac_ros_visual_slam/lib/libcuvslam.so'
+    env=dict(os.environ)
+    prefix=None
+    if args.sdk=='sdk16':
+        from vio_sdk_selection import sdk16_runtime,sdk16_environment
+        prefix,contract,receipt=sdk16_runtime()
+        env=sdk16_environment()
+        binary=prefix/'lib/isaac_ros_visual_slam/isaac_ros_visual_slam'
+        library=prefix/'lib/libvisual_slam_node.so';sdk=prefix/'lib/libcuvslam.so'
     rclpy.init()
     node = rclpy.create_node('vio_load_observer')
     process = None
@@ -30,7 +42,7 @@ def main():
             process = subprocess.Popen([str(binary),'--ros-args','-r','__node:=visual_slam',
                 '-p','use_sim_time:=true','-p','enable_localization_n_mapping:=false',
                 '-p','tracking_mode:=1','-p','publish_odom_to_base_tf:=false'],
-                stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+                stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env=env)
             deadline = time.monotonic()+15
             subscriptions = set()
             while time.monotonic()<deadline and process.poll() is None:
@@ -59,6 +71,11 @@ def main():
                     ('src/isaac_ros_visual_slam','src/isaac_ros_nitros')})
             result['passed'] = (result['executable_alive'] and result['cuda_warmup']
                                 and result['tracking_mode_vio'] and required <= subscriptions and not fmu)
+            result['selected_sdk']=args.sdk
+            if prefix:
+                from vio_sdk16_state_audit import loaded_candidate_receipt
+                result['loaded_sdk16_libraries']=loaded_candidate_receipt(process.pid,prefix)
+                result['passed'] &= result['loaded_sdk16_libraries']['passed']
     finally:
         if process is not None:
             if process.poll() is None:

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "contract": "cuvslam16_world_fixed_sdk_euler_v1_disarmed",
+  "source_commit": "05588424d0440ac80af21080fd1650408fd9282a",
+  "sdk_version": "16.0.0+0558842",
+  "scope": "experimental isolated ROS/Gazebo/PX4 diagnostics, disarmed only",
+  "flight_authorized": false,
+  "odometry_mode": "Inertial",
+  "enable_localization_n_mapping": false,
+  "async_sba": true,
+  "keyframe_max_seconds": 1,
+  "initialization_gate": {
+    "gravity_present": true,
+    "gravity_norm_bounds_m_s2": [8.0, 11.0],
+    "finite_imu_state": ["velocity", "gyro_bias", "acc_bias"],
+    "matching_original_track_timestamp": true,
+    "before_initialization_covariance_output": false
+  },
+  "input_covariance": "native world ZYX Euler roll/pitch/yaw, world position; row-major",
+  "output_covariance": "ROS world position, world-fixed infinitesimal rotation; full Jacobian with cross terms",
+  "position_covariance_basis": "constant OpenCV-to-FLU basis, without additional pose rotation",
+  "native_euler_min_abs_cos_pitch": 0.5,
+  "variance_budget_unchanged": 0.25,
+  "minimum_initialized_observation_s": 120.0,
+  "global_uncertainty_consistency_validated": false
+}
