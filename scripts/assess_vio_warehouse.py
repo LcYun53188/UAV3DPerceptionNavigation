@@ -5,7 +5,7 @@ import gzip
 import hashlib
 import json
 from pathlib import Path
-from vio_warehouse_scene import box_clearance
+from vio_warehouse_scene import box_clearance,layout_path
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -31,9 +31,10 @@ def assess(folder):
     assets_match=all(len(matches:=[(name,digest) for name,digest in m['input_sha256'].items() if name.endswith('/'+suffix)])==1
                      and digest_file(folder/suffix)==matches[0][1] for suffix in asset_suffixes)
     common=dict(warehouse_scene=m['profile'].get('scene')=='warehouse',
+        scene_profile_matches=receipt['layout']['scene_id']==cfg['scene_id'],
         generated_assets_match=assets_match,
         clearance_matches=receipt['clearance']==geometry,
-        layout_current=receipt['layout_sha256']==digest_file(ROOT/'simulation/scenes/vio_warehouse.json'),
+        layout_current=receipt['layout_sha256']==digest_file(layout_path(m['profile'].get('warehouse_variant','baseline'))),
         texture_integrity=all(digest_file(folder/'assets'/name)==digest for name,digest in receipt.get('texture_sha256',{}).items()),
         disarmed=r.get('arming_states')==[1],cleanup=r.get('cleanup_confirmed') is True)
     if m.get('fuse_pose'):
