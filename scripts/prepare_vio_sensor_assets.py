@@ -9,15 +9,26 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT/'simulation/px4/vio/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=None, warehouse_texture_style="corners"):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=None, warehouse_texture_style="corners", stereo_encoding='rgb8', warehouse_variant='baseline', imu_noise_profile=None):
+    if stereo_encoding not in ('rgb8','mono8'):
+        raise ValueError('Unsupported stereo encoding')
     if scene not in ('planar','layered','warehouse'):
         raise ValueError('Unknown reference scene')
     if warehouse_floor_texture and scene!='warehouse':
         raise ValueError('Floor texture comparison requires warehouse scene')
+    if warehouse_variant not in ('baseline','complex') or (warehouse_variant!='baseline' and scene!='warehouse'):
+        raise ValueError('Complex variant requires warehouse scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')
     if warehouse_texture_style!="corners" and (scene!="warehouse" or not warehouse_floor_texture):raise ValueError("Unique texture requires warehouse floor texture")
     p = json.loads(PROFILE.read_text())
+    if imu_noise_profile is not None:
+        if (imu_noise_profile.get('schema')!=1 or any(not math.isfinite(imu_noise_profile[k]) or imu_noise_profile[k]<=0
+            for k in ('gyro_noise_density','accel_noise_density')) or any(imu_noise_profile[k]!=0
+            for k in ('gyro_random_walk','accel_random_walk'))):
+            raise ValueError('Only explicitly declared white IMU noise with constant zero bias supported')
+        p['imu_noise_model']=imu_noise_profile
+    p['stereo_encoding'] = stereo_encoding
     if camera_pitch_deg is None:camera_pitch_deg=p['camera_pitch_deg']
     if camera_pitch_deg not in (0,5,15,30):raise ValueError('Unsupported reference camera pitch')
     pitch=math.radians(camera_pitch_deg)
@@ -77,7 +88,7 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         ET.SubElement(camera,'horizontal_fov').text = str(p['horizontal_fov_rad'])
         image = ET.SubElement(camera,'image')
         for key in ('width','height'): ET.SubElement(image,key).text = str(p[key])
-        ET.SubElement(image,'format').text = 'R8G8B8'
+        ET.SubElement(image,'format').text = 'L8' if stereo_encoding=='mono8' else 'R8G8B8'
         clip = ET.SubElement(camera,'clip')
         ET.SubElement(clip,'near').text = str(p['near_m'])
         ET.SubElement(clip,'far').text = str(p['far_m'])
@@ -86,6 +97,14 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
     imu = ET.SubElement(rig,'sensor',name='vio_imu',type='imu')
     for tag,value in [('always_on','true'),('update_rate',str(p['imu_rate_hz'])),('topic','/vio/imu'),('gz_frame_id','vio_imu')]:
         ET.SubElement(imu,tag).text = value
+    if imu_noise_profile is not None:
+        content=ET.SubElement(imu,'imu')
+        for kind,key in (('angular_velocity','gyro_noise_density'),('linear_acceleration','accel_noise_density')):
+            element=ET.SubElement(content,kind)
+            for axis in ('x','y','z'):
+                noise=ET.SubElement(ET.SubElement(element,axis),'noise',type='gaussian')
+                ET.SubElement(noise,'mean').text='0'
+                ET.SubElement(noise,'stddev').text=str(imu_noise_profile[key]*math.sqrt(p['imu_rate_hz']))
     frames['vio_imu'] = dict(position=p['rig_position_flu_m'],rpy=[0.,0.,0.])
     joint = ET.SubElement(model,'joint',name='vio_rig_joint',type='fixed')
     ET.SubElement(joint,'parent').text = 'base_link'
@@ -108,8 +127,9 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         physics.find('real_time_update_rate').text=str(real_time_factor/step)
     if scene=='warehouse':
         from vio_warehouse_scene import add_warehouse
-        add_warehouse(root,directory,floor_texture=warehouse_floor_texture,texture_style=warehouse_texture_style)
+        add_warehouse(root,directory,floor_texture=warehouse_floor_texture,texture_style=warehouse_texture_style,variant=warehouse_variant)
         p['warehouse_floor_texture']=warehouse_floor_texture
+        if warehouse_variant!='baseline':p['warehouse_variant']=warehouse_variant
         if warehouse_texture_style!='corners':p['warehouse_texture_style']=warehouse_texture_style
         world.write(directory/'default.sdf',encoding='utf-8',xml_declaration=True)
         (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')

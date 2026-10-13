@@ -13,7 +13,7 @@ import time
 
 import rclpy
 from rclpy.action import ActionClient
-from rclpy.executors import SingleThreadedExecutor
+from rclpy.executors import SingleThreadedExecutor, ExternalShutdownException
 from rclpy.qos import qos_profile_sensor_data
 from tf2_msgs.msg import TFMessage
 from uav_nav_interfaces.action import ExecuteMission
@@ -41,6 +41,10 @@ def completed_waypoint_truth(events, truth, home, home_truth):
 
 def main():
     out=Path(os.environ['UAV_FLIGHT_EVIDENCE'])
+    from vio_observer_gc import ObservationGcGuard
+    from vio_gc_pause_audit import GcPauseAudit
+    flight_gc=ObservationGcGuard(os.environ.get('UAV_EXPERIMENTAL_VIO_CHAIN')=='1')
+    gc_pauses=GcPauseAudit()
     scenario=os.environ.get('UAV_FLIGHT_SCENARIO','full')
     use_bt=os.environ.get('UAV_FLIGHT_BT')=='1'
     bt=None
@@ -88,13 +92,20 @@ def main():
                 pass
     truth_thread=threading.Thread(target=read_truth,daemon=True);truth_thread.start()
     executor=SingleThreadedExecutor();executor.add_node(node)
-    thread=threading.Thread(target=executor.spin,daemon=True);thread.start()
+    def spin():
+        try:
+            executor.spin()
+        except ExternalShutdownException:
+            pass  # SIGINT may shut down the context before owned cleanup.
+    thread=threading.Thread(target=spin,daemon=True);thread.start()
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
     result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/depth observation/EGO navigation/hover/return/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
     try:
-        until=time.monotonic()+(40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
+        until=time.monotonic()+(340 if os.environ.get('UAV_EXPERIMENTAL_VIO_CHAIN')=='1' else 40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
         while time.monotonic()<until:
             with node.lock:
+                if node.preflight_fault_latched:
+                    raise RuntimeError('VIO ground prestream failed: '+str(node.diagnostics[-1:]))
                 ready=node.healthy(ground=True) and node.samples.get('vehicle_status').pre_flight_checks_pass
             if ready and os.environ.get('UAV_NAVIGATION_BACKEND')=='EGO':
                 try:
@@ -114,6 +125,9 @@ def main():
             result['preflight_healthy']=ready
             result['failsafe_flags']=str(node.samples.get('failsafe_flags'))
             result['vio_gate_reason']=node.vio_gate.reason if node.vio_gate else None
+            if node.vio_gate:
+                result['vio_missing']=[n for n in node.vio_gate.required if n not in node.vio_gate.samples]
+                result['vio_received_ages']={n:time.monotonic()-t for n,t in node.vio_gate.received.items()}
             result['preflight_fields']={n:{f:getattr(m,f) for f in fields} for n,fields in [('vehicle_status',['arming_state','nav_state','system_id','pre_flight_checks_pass','failsafe']),('battery_status',['connected','remaining','warning']),('vehicle_local_position',['xy_valid','z_valid','v_xy_valid','v_z_valid','eph','epv'])] if (m:=node.samples.get(n)) is not None}
             raise RuntimeError('Preflight/truth unavailable: '+str(list(node.samples)))
         home=node.position();home_truth=truth[-1]['position']
@@ -366,7 +380,10 @@ def main():
         if bt:bt.close()
         truth_process.terminate()
         truth_process.wait(timeout=5);truth_thread.join(timeout=2)
-        client.destroy();executor.shutdown();node.destroy_node();rclpy.shutdown();thread.join(timeout=3)
+        client.destroy();executor.shutdown();node.destroy_node();rclpy.try_shutdown();thread.join(timeout=3)
+        write_json(out/'flight-gc-pauses.json',gc_pauses.stop())
+        flight_gc.restore()
+        write_json(out/'flight-gc-policy.json',flight_gc.receipt())
     print(json.dumps(result,indent=2),flush=True)
     return 0 if result['passed'] else 1
 

@@ -11,7 +11,7 @@ from vio_pose_window import source_window
 
 
 class PoseAudit:
-    def __init__(self,node):
+    def __init__(self,node,*,raw_topic='/visual_slam/tracking/vo_pose_covariance'):
         self.node = node
         self.poses,self.statuses = deque(maxlen=5000),deque(maxlen=12000)
         self.raw = {}
@@ -20,7 +20,7 @@ class PoseAudit:
         self.future = None
         self.reset_client = node.create_client(Reset,'/uav/vio/reset')
         node.create_subscription(PoseWithCovarianceStamped,'/uav/vio/pose',self.on_pose,10)
-        node.create_subscription(PoseWithCovarianceStamped,'/visual_slam/tracking/vo_pose_covariance',self.on_raw,10)
+        node.create_subscription(PoseWithCovarianceStamped,raw_topic,self.on_raw,10)
         node.create_subscription(VioStatus,'/uav/vio/pose_status',self.on_status,10)
 
     def on_raw(self,m):

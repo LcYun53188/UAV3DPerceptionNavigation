@@ -17,13 +17,27 @@ class FlightPoseSession(RealPoseFusionAudit):
     def state_keywords(self):
         if self.control_discovery_pending:return dict(ground=False,armed=False)
         now=time.monotonic();ros=self.ros()
+        selected={}
         for key,age in (('vehicle',.75),('land',1.5)):
-            m=self.last.get(key)
-            if (m is None or now-self.received[key]>age or not -.05<=ros-m.timestamp/1e6<=age
-                    or len(self.node.get_publishers_info_by_topic(self.topics[key]))!=1):
+            if len(self.node.get_publishers_info_by_topic(self.topics[key]))!=1:
                 return dict(ground=False,armed=False)
-        return dict(ground=self.last['vehicle'].arming_state==1 and self.last['land'].landed,
-                    armed=self.last['vehicle'].arming_state==2)
+            candidates=getattr(self,'aircraft_samples',{}).get(key)
+            if candidates is None:candidates=[(self.received.get(key,float('-inf')),self.last.get(key))]
+            # Independent DDS topics may arrive before /clock. Use only an
+            # unchanged native sample valid at this ROS time; never extend its
+            # receive/sample limits or manufacture a current timestamp.
+            for received,m in reversed(candidates):
+                if m is not None and 0<=now-received<=age and -.05<=ros-m.timestamp/1e6<=age:
+                    selected[key]=m;break
+            else:return dict(ground=False,armed=False)
+        if not getattr(getattr(self,'stream',None),'bound',False):
+            # Never initialize against an old ground report while a newer
+            # native state already reports an unexpected arm or liftoff.
+            if (self.last['vehicle'].arming_state!=selected['vehicle'].arming_state or
+                    self.last['land'].landed!=selected['land'].landed):
+                return dict(ground=False,armed=False)
+        return dict(ground=selected['vehicle'].arming_state==1 and selected['land'].landed,
+                    armed=selected['vehicle'].arming_state==2)
 
     def controls_valid(self):
         endpoints=[self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n) for n in self.control_names]
@@ -56,3 +70,17 @@ class FlightPoseSession(RealPoseFusionAudit):
             longest_ready_s=self.longest_ready_s,gate_reasons=dict(self.reasons),
             sole_gateway_observed=self.gateway_seen,last_sample=(None if self.last_sample is None else
                 dict(sec=self.last_sample.sec,nanosec=self.last_sample.nanosec)))
+
+
+from uav_mission.vio_gate import VioGate
+from px4_msgs.msg import EstimatorAidSource1d, EstimatorAidSource2d
+
+class JointSimGate(VioGate):
+    def __init__(self, calibration, **kwargs):
+        super().__init__(calibration, fusion_profile='aligned_pose_mtf_sim_v1')
+
+class JointFlightPoseSession(FlightPoseSession):
+    gate_class = JointSimGate
+    extra_entries = (
+        ('optical_flow','/px4_7/fmu/out/estimator_aid_src_optical_flow',EstimatorAidSource2d),
+        ('rng_hgt','/px4_7/fmu/out/estimator_aid_src_rng_hgt',EstimatorAidSource1d))

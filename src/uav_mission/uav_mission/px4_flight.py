@@ -114,6 +114,9 @@ class FlightServer(Node):
             if self.vio_gate.pose_only:
                 inputs=[item for item in inputs if item[0]!='ev_vel']
                 inputs.append(('local','/px4_7/fmu/out/vehicle_local_position',VehicleLocalPosition))
+            if self.vio_gate.joint_sim:
+                inputs += [("optical_flow", "/px4_7/fmu/out/estimator_aid_src_optical_flow", EstimatorAidSource2d),
+                           ("rng_hgt", "/px4_7/fmu/out/estimator_aid_src_rng_hgt", EstimatorAidSource1d)]
             for name, topic, kind in inputs:
                 version = getattr(kind, 'MESSAGE_VERSION', 0)
                 topic += f'_v{version}' if version else ''
@@ -266,7 +269,11 @@ class FlightServer(Node):
             self.vio_writers = {name: len(self.get_publishers_info_by_topic(topic))
                                for name, topic in self.vio_topics.items()}
             self.vio_graph_checked = now
-        return gate.ready(now, self.get_clock().now().nanoseconds/1e9, self.vio_writers)
+        status=self.samples.get('vehicle_status')
+        native_landing=(gate.joint_sim and self.phase=='LANDING' and status is not None
+                        and status.nav_state in (18,20))
+        return gate.ready(now, self.get_clock().now().nanoseconds/1e9, self.vio_writers,
+                          native_landing=native_landing)
 
     def healthy(self, ground=False):
         if not FlightServer.vio_healthy(self):
@@ -318,6 +325,16 @@ class FlightServer(Node):
                 or any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+t))!=1
                        for t in ('offboard_control_mode','trajectory_setpoint','vehicle_command'))):
             self.preflight_fault_latched=True
+            self.diagnostics.append(dict(preflight_failure=dict(
+                vio_reason=self.vio_gate.reason if self.vio_gate else None,
+                clock_fault=self.clock_fault_latched,
+                resets=list(self.resets()),expected_resets=list(self.reset_baseline),
+                position=list(self.position()),initial_mode=self.initial_mode,
+                observed_mode=getattr(status,'nav_state',None),
+                arming_state=getattr(status,'arming_state',None),
+                landed=getattr(land,'landed',None),
+                graph={t:len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+t))
+                    for t in ('offboard_control_mode','trajectory_setpoint','vehicle_command')})))
             self.fault('VIO_GROUND_PRESTREAM_FAILED');return
         self.stream()  # Fixed ground reference only; no ARM command in this state.
         if now-self.phase_started>=1.2 and status.nav_state!=14 and now-self.last_command>1.:

@@ -122,3 +122,16 @@ def test_execution_limits_are_shared_and_cannot_exceed_known_region_limits():
     for bad in ([.7,.15,.2],[.18,-1,.2],[True,.15,.2],[.18,float('nan'),.2],[.18,.15]):
         config['ego_limits']=bad
         with pytest.raises(ValueError,match='INVALID_EGO_LIMITS'):navigation_limits(config)
+
+
+def test_experimental_joint_profile_needs_explicit_deferral_and_ownership(owned):
+    root,env,out,data,write=owned
+    region=root/'simulation/safe_regions/vio_chain.json'
+    region.write_bytes((root/'simulation/safe_regions/warehouse.json').read_bytes())
+    env.update(UAV_FLIGHT_REGION_PROFILE='vio_chain',UAV_VIO_FUSION_PROFILE='aligned_pose_mtf_sim_v1')
+    data['region_sha256']=digest(region);write()
+    with pytest.raises(RuntimeError,match='deferral'):load_region(root,env)
+    env['UAV_EXPERIMENTAL_VIO_CHAIN']='1'
+    assert load_region(root,env)
+    env['ROS_DOMAIN_ID']='0'
+    with pytest.raises(RuntimeError):load_region(root,env)

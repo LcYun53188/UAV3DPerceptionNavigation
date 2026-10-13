@@ -1,0 +1,40 @@
+--- a/src/modules/commander/Commander.cpp
++++ b/src/modules/commander/Commander.cpp
+@@ -1778,6 +1778,8 @@
+ 
+ 	arm_auth_init(&_mavlink_log_pub, &_vehicle_status.system_id);
+ 
++	hrt_abstime last_status_heartbeat = 0;
++
+ 	while (!should_exit()) {
+ 
+ 		perf_begin(_loop_perf);
+@@ -1934,6 +1936,15 @@
+ 			fd_status.motor_failure_mask = _failure_detector.getMotorFailures();
+ 			fd_status.timestamp = hrt_absolute_time();
+ 			_failure_detector_status_pub.publish(fd_status);
++		}
++
++		// Independent simulation telemetry heartbeat: preserve the 2 Hz
++		// armed/control-mode publication schedule and its original timestamp.
++		if (now >= last_status_heartbeat + 100_ms) {
++			vehicle_status_s status_heartbeat = _vehicle_status;
++			status_heartbeat.timestamp = now;
++			_vehicle_status_pub.publish(status_heartbeat);
++			last_status_heartbeat = now;
+ 		}
+ 
+ 		checkWorkerThread();
+--- a/src/modules/land_detector/LandDetector.cpp
++++ b/src/modules/land_detector/LandDetector.cpp
+@@ -152,8 +152,8 @@
+ 
+ 	const bool at_rest = landDetected && _at_rest;
+ 
+-	// publish at 1 Hz, very first time, or when the result has changed
+-	if ((hrt_elapsed_time(&_land_detected.timestamp) >= 1_s) ||
++	// publish simulation ground telemetry at 4 Hz, first time, or when changed
++	if ((hrt_elapsed_time(&_land_detected.timestamp) >= 250_ms) ||
+ 	    (_land_detected.landed != landDetected) ||
+ 	    (_land_detected.freefall != freefallDetected) ||
+ 	    (_land_detected.maybe_landed != maybe_landedDetected) ||

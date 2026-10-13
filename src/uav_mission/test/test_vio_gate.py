@@ -100,7 +100,7 @@ def test_health_loss(change):
 
 
 def test_gateway_cannot_bypass_enabled_gate():
-    f = SimpleNamespace(vio_gate=VioGate(CAL),vio_graph_checked=0.,vio_topics={'source':'/uav/vio/status'},
+    f = SimpleNamespace(samples={},phase='IDLE',vio_gate=VioGate(CAL),vio_graph_checked=0.,vio_topics={'source':'/uav/vio/status'},
         get_publishers_info_by_topic=lambda topic: [],get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10000000000)))
     # VIO rejection occurs before any generic aircraft state can admit a task.
     assert not FlightServer.healthy(f,ground=True)
@@ -229,3 +229,72 @@ def test_full_odometry_flight_profile_retains_velocity_aid_requirement():
     server=SimpleNamespace(vio_gate=VioGate(CAL))
     FlightServer.forward_vio_local(server,'vehicle_local_position',object(),10.)
     assert 'ev_vel' in server.vio_gate.required and 'local' not in server.vio_gate.samples
+
+
+def joint_gate():
+    gate=VioGate(CAL,fusion_profile='aligned_pose_mtf_sim_v1')
+    for now in (10.,11.,12.):
+        pose_update(gate,now)
+        gate.samples['flags'].cs_opt_flow=True
+        gate.samples['flags'].cs_rng_hgt=True
+        for name,kind in [('optical_flow',EstimatorAidSource2d),('rng_hgt',EstimatorAidSource1d)]:
+            gate.receive(name,kind(timestamp=int(now*1e6),timestamp_sample=int(now*1e6),time_last_fuse=int(now*1e6),fused=True),now)
+        ready=gate.ready(now,now,{n:1 for n in gate.required})
+    assert ready
+    return gate
+
+
+@pytest.mark.parametrize('name',['optical_flow','rng_hgt'])
+@pytest.mark.parametrize('fault',['not_fused','rejected','stale','duplicate','flag_off'])
+def test_joint_requires_actual_unique_fresh_mtf_fusion(name,fault):
+    gate=joint_gate();writers={n:1 for n in gate.required}
+    if fault=='not_fused':
+        gate.samples[name].fused=False
+        gate.samples[name].time_last_fuse=0
+    if fault=='rejected':gate.samples[name].innovation_rejected=True
+    if fault=='stale':gate.samples[name].time_last_fuse=1
+    if fault=='duplicate':writers[name]=2
+    if fault=='flag_off':setattr(gate.samples['flags'],'cs_opt_flow' if name=='optical_flow' else 'cs_rng_hgt',False)
+    assert not gate.ready(12.,12.,writers)
+
+
+@pytest.mark.parametrize('name',['optical_flow','rng_hgt'])
+def test_joint_skipped_sample_requires_recent_successful_fusion(name):
+    gate=joint_gate();writers={n:1 for n in gate.required}
+    gate.samples[name].fused=False
+    gate.samples[name].time_last_fuse=11_832_000
+    assert gate.ready(12.,12.,writers)
+    gate.samples[name].time_last_fuse=11_499_000
+    assert not gate.ready(12.,12.,writers)
+
+
+def test_joint_does_not_permit_gnss_or_reset():
+    gate=joint_gate();gate.samples['flags'].cs_gnss_pos=True
+    assert not gate.ready(12.,12.,{n:1 for n in gate.required})
+    gate=joint_gate();gate.samples['source'].reset_counter=1
+    gate.receive('source',gate.samples['source'],12.01)
+    assert gate.fault=='VIO_SESSION_CHANGED'
+
+
+def test_joint_native_landing_retains_vision_and_range_without_near_ground_flow():
+    gate=joint_gate();writers={n:1 for n in gate.required}
+    gate.samples['local'].dist_bottom_valid=True
+    gate.samples['local'].dist_bottom=.3
+    gate.samples['flags'].cs_opt_flow=False
+    gate.samples['optical_flow'].time_last_fuse=1
+    assert not gate.ready(12.,12.,writers)
+    assert gate.ready(14.,12.,writers,native_landing=True) is False  # receive freshness stays required
+    gate=joint_gate();writers={n:1 for n in gate.required}
+    gate.samples['local'].dist_bottom_valid=True;gate.samples['local'].dist_bottom=.3
+    gate.samples['optical_flow'].time_last_fuse=1
+    assert gate.ready(12.,12.,writers,native_landing=True)
+    gate.samples['rng_hgt'].time_last_fuse=1
+    assert not gate.ready(12.,12.,writers,native_landing=True)
+
+
+@pytest.mark.parametrize('distance,valid',[(.401,True),(.3,False),(float('nan'),True)])
+def test_joint_landing_exception_requires_valid_near_ground_range(distance,valid):
+    gate=joint_gate();writers={n:1 for n in gate.required}
+    gate.samples['local'].dist_bottom_valid=valid;gate.samples['local'].dist_bottom=distance
+    gate.samples['optical_flow'].time_last_fuse=1
+    assert not gate.ready(12.,12.,writers,native_landing=True)

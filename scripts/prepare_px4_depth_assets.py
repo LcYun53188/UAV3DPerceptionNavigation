@@ -54,5 +54,8 @@ def depth_assets(directory, upstream_world):
                    topics=dict(depth='/px4_reference/rgbd/depth_image',
                                color='/px4_reference/rgbd/image',
                                camera_info='/px4_reference/rgbd/camera_info'))
+    # This model has no stereo sensors. Keep its pinned RGBD-only receipt
+    # independent of options added to the shared stereo/VIO asset generator.
+    profile.pop('stereo_encoding', None)
     (directory / 'depth-profile.json').write_text(json.dumps(profile, indent=2)+'\n')
     return profile, frames

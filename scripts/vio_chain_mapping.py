@@ -1,0 +1,89 @@
+"""Attach actual depth to the VIO aircraft and start the owned mapping graph."""
+import json
+import math
+import xml.etree.ElementTree as ET
+from sim_validation import ROOT, read, file_hash
+
+
+def attach_depth(directory, profile, frames):
+    path=directory/profile['model']/'model.sdf'
+    tree=ET.parse(path);rig=tree.getroot().find("model/link[@name='vio_rig_link']")
+    frame='oakd_camera_optical_frame'
+    sensor=ET.SubElement(rig,'sensor',name='chain_rgbd',type='rgbd_camera')
+    for key,value in [('pose',f'0 0 0 0 {math.radians(5)} 0'),('always_on','true'),
+                      ('update_rate','10'),('topic','/px4_reference/rgbd'),('gz_frame_id',frame)]:
+        ET.SubElement(sensor,key).text=value
+    camera=ET.SubElement(sensor,'camera');ET.SubElement(camera,'horizontal_fov').text=str(profile['horizontal_fov_rad'])
+    image=ET.SubElement(camera,'image')
+    for key,value in [('width','320'),('height','240'),('format','R8G8B8')]:ET.SubElement(image,key).text=value
+    clip=ET.SubElement(camera,'clip')
+    for key in ('near','far'):ET.SubElement(clip,key).text=str(profile[key+'_m'])
+    ET.SubElement(camera,'camera_info_topic').text='/px4_reference/rgbd/camera_info'
+    ET.SubElement(camera,'optical_frame_id').text=frame
+    ET.indent(tree);tree.write(path,encoding='utf-8',xml_declaration=True)
+    frames[frame]=dict(position=profile['rig_position_flu_m'],rpy=[-math.pi/2-math.radians(5),0.,-math.pi/2])
+    (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
+    return dict(width=320,height=240,horizontal_fov_rad=profile['horizontal_fov_rad'],near_m=profile['near_m'],far_m=profile['far_m'],image_rate_hz=10,scope='same-aircraft ideal depth; not hardware OAK-D depth')
+
+
+def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False):
+    if sum((graph_only,depth_only,binding_only))>1:raise ValueError('Conflicting mapping startup stages')
+    transport=dict(env,FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
+                   FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
+    def start(name, command):
+        return launch(name,['env','-u','AMENT_PREFIX_PATH','-u','COLCON_PREFIX_PATH','-u','CMAKE_PREFIX_PATH','-u','PYTHONPATH',
+            'bash','-e','-c','source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; shift; exec "$@"',
+            'mapping',str(ROOT),*map(str,command)],transport)
+    if binding_only:
+        start('planning_sources',['ros2','run','uav_nav_sim','planning_sources','--ros-args','-p','use_sim_time:=true',
+            '-p',f'localization_session:={run_id}','-p','alignment_id:=depth-map-is-ekf-odom-v1','-p','settle_seconds:=5.0'])
+        return
+    if not graph_only:start('depth_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
+        '/px4_reference/rgbd/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
+        '/px4_reference/rgbd/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+        '--ros-args','-r','/px4_reference/rgbd/depth_image:=/px4_depth/image',
+        '-r','/px4_reference/rgbd/camera_info:=/px4_depth/camera_info'])
+    if depth_only:return
+    start('nvblox',['ros2','run','nvblox_ros','nvblox_node','--ros-args',
+        '--params-file',ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml','-p','use_sim_time:=true','-p','use_color:=false',
+        '-p','voxel_size:=0.2','-p','integrate_depth_rate_hz:=5.0',
+        '-p','update_mesh_rate_hz:=0.0','-p','publish_layer_rate_hz:=0.0','-p','publish_debug_vis_rate_hz:=0.0',
+        '-p','static_mapper.projective_integrator_max_integration_distance_m:=6.0',
+        '-r','camera_0/depth/image:=/uav/mapping/depth','-r','camera_0/depth/camera_info:=/uav/mapping/camera_info'])
+    start('map_session',['ros2','run','uav_nav_sim','map_session','--ros-args','-p','use_sim_time:=true',
+        '-p','resolution:=0.2',
+        '-p',f'preflight_admission_path:={out/"map-admission.json"}',
+        '-p',f'scene_id:={file_hash(out/"assets/default.sdf")}',
+        '-p','aabb_min:=[-5.0,-5.0,0.0]','-p','aabb_size:=[10.0,10.0,4.0]',
+        '-r','/rgbd_camera/depth_image:=/px4_depth/image','-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'])
+    config=read(ROOT/'simulation/safe_regions/vio_chain.json');limits=config['ego_limits']
+    if not graph_only:launch_mapping(launch,env,out,run_id,binding_only=True)
+    common=['--ros-args','-p','use_sim_time:=true','-p','body_radius:=0.8',
+            '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}']
+    start('planning_context',['ros2','run','uav_nav_sim','planning_context',*common,
+        '-r','/planning/source/odometry:=/uav/px4/localized_odometry'])
+    command=[ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner',*common,
+        '-p','coordinate_frame:=map','-p','managed_goals:=true']
+    for source,target in {'/uav/map/snapshot':'/planning/ego/map','/uav/localization/odometry':'/planning/ego/odometry',
+                         '/uav/goal':'/planning/ego/goal','/uav/trajectory':'/planning/ego/trajectory','/uav/planned_path':'/planning/ego/path'}.items():
+        command += ['-r',source+':='+target]
+    start('ego_planner',command)
+
+
+def native_map_file(node, operation, path, timeout=15.):
+    """Owned ground-only map lifecycle RPC; caller records actual receipts."""
+    import time
+    import rclpy
+    from nvblox_msgs.srv import FilePath
+    client=node.create_client(FilePath,'/nvblox_node/'+operation+'_map')
+    until=time.monotonic()+timeout
+    try:
+        while not client.service_is_ready():
+            if time.monotonic()>=until:raise RuntimeError('Map service unavailable: '+operation)
+            rclpy.spin_once(node,timeout_sec=.02)
+        future=client.call_async(FilePath.Request(file_path=str(path)))
+        while not future.done():
+            if time.monotonic()>=until:raise RuntimeError('Map RPC timeout: '+operation)
+            rclpy.spin_once(node,timeout_sec=.02)
+        if not future.result().success:raise RuntimeError('Native map RPC failed: '+operation)
+    finally:node.destroy_client(client)

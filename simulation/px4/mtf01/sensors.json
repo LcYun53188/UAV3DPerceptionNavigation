@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "model": "x500_mtf01",
+  "scope": "MTF-01 indoor reference: consecutive-image OpenCV LK flow and single-ray range, not PMW3901 firmware or UART emulation",
+  "source": "https://micoair.cn/zh/docs/sensors/sensors/mtf-01-sensors",
+  "output_rate_hz": 100,
+  "flow_fov_deg": 42,
+  "flow_min_distance_m": 0.08,
+  "range_min_m": 0.02,
+  "range_max_m": 8.0,
+  "max_flow_rate_rad_s": 7.0,
+  "position_flu_m": [0.03, 0.0, -0.10],
+  "conditions": "Indoor textured floor; 8 m is conditional on reflectance and lighting. Sunlight, reflectance, LED optics and PMW3901 errors are not simulated."
+}

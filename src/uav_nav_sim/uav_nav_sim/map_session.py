@@ -30,7 +30,7 @@ class MapSession(Node):
         super().__init__('uav_map_session')
         for key, val in [('mode', 'mapping'), ('scene_id', ''), ('build_id', ''), ('resolution', 0.1),
                          ('aabb_min', [-5.0, -5.0, 0.0]), ('aabb_size', [10.0, 10.0, 4.0]),
-                         ('map_timeout', 2.0)]:
+                         ('map_timeout', 2.0), ('preflight_admission_path', '')]:
             self.declare_parameter(key, val)
         self.mode = self.get_parameter('mode').value
         if self.mode not in ('mapping', 'localization'):
@@ -43,6 +43,8 @@ class MapSession(Node):
         self.map_id = str(uuid.uuid4())
         self.epoch = time.time_ns()
         self.version = 0
+        self.preflight_admission_path=self.get_parameter('preflight_admission_path').value
+        self.preflight_admitted=not self.preflight_admission_path
         self.busy = False
         self.loaded = False
         self.input_enabled = True
@@ -204,6 +206,7 @@ class MapSession(Node):
         self.pub.publish(msg)
 
     def query(self):
+        MapSession.promote_preflight_map(self)
         if self.busy or self.query_pending or not self.esdf.service_is_ready() or (self.mode == 'localization' and not self.loaded):
             return
         req = EsdfAndGradients.Request()
@@ -222,6 +225,8 @@ class MapSession(Node):
             self.query_pending = False
             if self.busy or epoch != self.epoch:
                 return
+            if not getattr(self,'preflight_admitted',True):
+                self.invalidate();return  # GPU warmup data never becomes a navigation map.
             try:
                 res = f.result()
                 self.timing['query_seconds'] = time.monotonic()-query_start
@@ -264,6 +269,18 @@ class MapSession(Node):
                 self.invalidate()
                 self.get_logger().warning(f'ESDF unavailable: {exc}')
         future.add_done_callback(done)
+
+    def promote_preflight_map(self):
+        path=getattr(self,'preflight_admission_path','')
+        if not path or self.preflight_admitted:return
+        try:receipt=json.loads(Path(path).read_text())
+        except (OSError,ValueError):return
+        if not isinstance(receipt,dict):return
+        if receipt.get('native_map_cleared') is not True or receipt.get('source_ready') is not True:return
+        self.epoch+=1;self.version=0;self.map_id=str(uuid.uuid4())
+        self.pending_depth.clear();self.pending_color.clear()
+        self.preflight_admitted=True
+        self.invalidate()
 
     async def delay(self, seconds):
         future = Future()

@@ -8,13 +8,19 @@ import math
 
 class VioGate:
     required = ('source', 'flags', 'selector', 'ev_pos', 'ev_hgt', 'ev_vel', 'ev_yaw')
+    forbidden_pose_aids = ('cs_gnss_pos','cs_gnss_vel','cs_gnss_yaw','cs_gps_hgt',
+                          'cs_mag','cs_mag_hdg','cs_mag_3d','cs_opt_flow','cs_rng_hgt','cs_aux_gpos')
 
     def __init__(self, calibration_id, stable_s=2., *, fusion_profile="full_odometry"):
-        if fusion_profile not in ("full_odometry", "aligned_pose_v1"):
+        if fusion_profile not in ("full_odometry", "aligned_pose_v1", "aligned_pose_mtf_sim_v1"):
             raise ValueError("VIO_FUSION_PROFILE_UNSUPPORTED")
-        self.pose_only = fusion_profile == "aligned_pose_v1"
+        self.joint_sim = fusion_profile == "aligned_pose_mtf_sim_v1"
+        self.pose_only = fusion_profile in ("aligned_pose_v1", "aligned_pose_mtf_sim_v1")
+        if self.joint_sim:
+            self.forbidden_pose_aids = tuple(n for n in self.forbidden_pose_aids if n not in ("cs_opt_flow", "cs_rng_hgt"))
         self.aids = ("ev_pos", "ev_hgt", "ev_yaw") if self.pose_only else ("ev_pos", "ev_hgt", "ev_vel", "ev_yaw")
         if self.pose_only: self.required = ("source", "flags", "selector", "local") + self.aids
+        if self.joint_sim: self.required += ("optical_flow", "rng_hgt")
         self.local_identity = self.local_candidate = None
         self.calibration_id = calibration_id
         self.stable_s = stable_s
@@ -57,7 +63,7 @@ class VioGate:
         self.reason = reason
         return False
 
-    def ready(self, now, ros, writers):
+    def ready(self, now, ros, writers, *, native_landing=False):
         if self.last_clock is not None and ros < self.last_clock:
             self.fault = 'VIO_CLOCK_RESET'
         if ros > 0 and (self.last_clock is None or ros > self.last_clock):
@@ -104,8 +110,7 @@ class VioGate:
                         'reject_ver_vel','reject_yaw','fs_bad_hdg','fs_bad_acc_vertical','fs_bad_acc_clipping'))):
             return self.fail('VIO_EKF_FLAGS_INVALID')
         if self.pose_only:
-            if flags.cs_ev_vel or any(getattr(flags,n) for n in ('cs_gnss_pos','cs_gnss_vel','cs_gnss_yaw',
-                    'cs_gps_hgt','cs_mag','cs_mag_hdg','cs_mag_3d','cs_opt_flow','cs_rng_hgt','cs_aux_gpos')):
+            if flags.cs_ev_vel or any(getattr(flags,n) for n in self.forbidden_pose_aids):
                 return self.fail('VIO_UNEXPECTED_AIDING')
             local = self.samples['local']
             if (not all(getattr(local,n) for n in ('xy_valid','z_valid','v_xy_valid','v_z_valid','heading_good_for_control'))
@@ -132,6 +137,28 @@ class VioGate:
                     or abs(aid.timestamp_sample/1e6-self.stamp(source.sample_stamp)) > .2
                     or not all(math.isfinite(float(v)) and 0 <= v < 1 for v in ratios)):
                 return self.fail('VIO_EKF_NOT_FUSED:'+name)
+        if self.joint_sim:
+            for name in ('optical_flow', 'rng_hgt'):
+                aid = self.samples[name]
+                # Native LAND already owns descent. Near the ground, rendered
+                # flow may lose texture; EV and actual range remain mandatory.
+                # This exception cannot admit flight or cover navigation loss.
+                if (name=='optical_flow' and native_landing
+                        and local.dist_bottom_valid
+                        and math.isfinite(local.dist_bottom)
+                        and 0 < local.dist_bottom <= .4):
+                    continue
+                ratios = aid.test_ratio if hasattr(aid.test_ratio, '__len__') else [aid.test_ratio]
+                if (not getattr(flags, 'cs_'+('opt_flow' if name=='optical_flow' else name))
+                        # PX4 clears fused on a skipped low-quality flow sample.
+                        # Recent successful fusion, active control status and
+                        # passing innovation checks define continuity.
+                        or aid.estimator_instance != 0 or aid.innovation_rejected
+                        or not 0 < aid.timestamp_sample or not 0 < aid.time_last_fuse
+                        or not -.05 <= ros-aid.timestamp_sample/1e6 <= .5
+                        or not -.05 <= ros-aid.time_last_fuse/1e6 <= .5
+                        or not all(math.isfinite(float(v)) and 0 <= v < 1 for v in ratios)):
+                    return self.fail('VIO_MTF_NOT_FUSED:'+name)
         if self.stable_since is None:
             self.stable_since = now
         if now-self.stable_since < self.stable_s:

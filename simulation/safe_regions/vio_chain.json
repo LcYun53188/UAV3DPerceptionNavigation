@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "scene": "warehouse",
+  "model": "x500_vio_ref",
+  "profile": "experimental_sdk16_joint_chain",
+  "frame": "px4_local_enu",
+  "alignment_id": "depth-map-is-ekf-odom-v1",
+  "map_translation": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "map_yaw_rad": 0.0,
+  "source": "Generated warehouse scene with fixed launch alignment; central box only",
+  "scene_files": {
+    "worlds/default.sdf": "457a363a22c437b788a4aaf1e2335aa149efce4e5b988cdc108065663cd879b2",
+    "models/x500/model.sdf": "76d8668c9c1a10348f9b7011d892203f319e5051dc8c0eb06c62e52db8e6714e",
+    "models/x500_base/model.sdf": "d97e53de8c50f167b0b3a4f86dc21413236387f7b72cb817549362b63534e83c"
+  },
+  "bounds_min": [
+    -4.0,
+    -4.0,
+    -0.4
+  ],
+  "bounds_max": [
+    4.0,
+    4.0,
+    3.8
+  ],
+  "support_plane_world_z": 0.0,
+  "body_radius_m": 0.5,
+  "tracking_margin_m": 0.3,
+  "braking_margin_m": 1.2,
+  "max_speed_mps": 0.6,
+  "max_acceleration_mps2": 0.5,
+  "max_jerk_mps3": 0.6,
+  "position_tolerance_m": 0.2,
+  "stopped_speed_mps": 0.1,
+  "stable_duration_s": 2.0,
+  "status_max_age_s": 0.75,
+  "local_max_age_s": 0.1,
+  "land_max_age_s": 1.2,
+  "clock_stall_s": 0.5,
+  "notes": "Explicit owned SDK16 joint simulation; global covariance qualification deferred by user; map collision and source health remain required",
+  "estimator_profile": "EKF2_MAG_TYPE=5; no GNSS or magnetic aiding; EV position/height/yaw plus actual optical flow/range; Gazebo zero acceleration bias learning profile",
+  "runner_progress_max_age_s": 0.5,
+  "runner_handshake_timeout_s": 5.0,
+  "land_receive_max_age_s": 1.5,
+  "observation_enabled": true,
+  "observation_yaw_rate_rps": 0.45,
+  "observation_offsets_enu": [
+    [
+      0.8,
+      0.8,
+      1.05
+    ],
+    [
+      -0.8,
+      0.8,
+      2.4
+    ],
+    [
+      -0.8,
+      -0.8,
+      1.7
+    ],
+    [
+      0.8,
+      -0.8,
+      2.6
+    ]
+  ],
+  "observation_timeout_max_s": 190.0,
+  "observation_max_speed_mps": 0.25,
+  "observation_max_acceleration_mps2": 0.15,
+  "observation_max_jerk_mps3": 0.2,
+  "ego_limits": [
+    0.18,
+    0.15,
+    0.2
+  ],
+  "covariance_qualification_deferred": true,
+  "hardware_authorized": false
+}

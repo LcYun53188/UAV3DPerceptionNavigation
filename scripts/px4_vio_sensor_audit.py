@@ -24,7 +24,8 @@ def stamp(message):
 
 
 class SensorAudit:
-    def __init__(self,node,profile,frames,*,allow_pose_fusion=False):
+    def __init__(self,node,profile,frames,*,allow_pose_fusion=False,estimator="cuvslam"):
+        self.estimator=estimator
         self.allow_pose_fusion=allow_pose_fusion
         self.timing=SourceTiming(40000) if allow_pose_fusion else None
         self.node,self.profile = node,profile
@@ -59,17 +60,25 @@ class SensorAudit:
             ('tracking','/visual_slam/status',VisualSlamStatus),
             ('vehicle','/px4_7/fmu/out/vehicle_status_v1',VehicleStatus),
             ('land','/px4_7/fmu/out/vehicle_land_detected',VehicleLandDetected)]
+        if estimator=='openvins':
+            from std_msgs.msg import Float64MultiArray
+            replacements={'odom':('/openvins/odometry',Odometry),'pose_cov':('/openvins/pose',PoseWithCovarianceStamped),
+                'tracking':('/openvins/state',Float64MultiArray)}
+            entries=[(k,*replacements[k]) if k in replacements else (k,t,v) for k,t,v in entries]
         for key,topic,kind in entries:
             self.topics[key] = topic
             def receiver(name):
                 def callback(message,info):
+                    if name=='tracking' and self.estimator=='openvins':
+                        from px4_comm_bridge.openvins_state import tracking_receipt
+                        message=tracking_receipt(message.data)
                     now = time.monotonic()
                     self.last[name],self.receive[name] = message,now
                     self.counts[name] += 1
                     if self.timing is not None and (name in ('left','right','tracking','pose_cov') or
                             (name=='imu' and self.counts[name]%10==0)):
                         details={}
-                        if name=='tracking':
+                        if name=='tracking' and self.estimator!='openvins':
                             details=dict(sdk_track_s=float(message.track_execution_time),
                                 sdk_callback_s=float(message.node_callback_execution_time))
                         self.timing.record(name,self.node.get_clock().now().nanoseconds/1e9,stamp(message),info,**details)
@@ -83,7 +92,10 @@ class SensorAudit:
                         p = message.pose.pose.position
                         self.records.append(dict(mono=now,stamp=stamp(message),position=[p.x,p.y,p.z],
                             pose_variance=[float(message.pose.covariance[i*7]) for i in range(6)],
-                            velocity_variance=[float(message.twist.covariance[i*7]) for i in range(6)]))
+                            # ROS/PX4 unknown twist uncertainty stays unknown;
+                            # encode it as JSON null rather than inventing zero.
+                            velocity_variance=[float(v) if math.isfinite(v) else None
+                                for v in (message.twist.covariance[i*7] for i in range(6))]))
                 return callback
             # This observer also records EKF telemetry. Five IMU slots only
             # cover 20 ms; retain source stamps across ordinary callback bursts.
@@ -113,7 +125,9 @@ class SensorAudit:
             images[side] = dict(width=m.width,height=m.height,encoding=m.encoding,step=m.step,
                 frame=m.header.frame_id,stamp=stamp(m),byte_std=float(np.std(np.frombuffer(m.data,dtype=np.uint8))))
             checks['image:'+side] = (m.width==self.profile['width'] and m.height==self.profile['height']
-                and m.encoding=='rgb8' and len(m.data)==m.step*m.height and images[side]['byte_std'] > 10.)
+                and m.encoding==self.profile.get('stereo_encoding','rgb8')
+                and m.step>=m.width*(1 if m.encoding=='mono8' else 3)
+                and len(m.data)==m.step*m.height and images[side]['byte_std'] > 10.)
             checks['image_age:'+side] = -.05 <= ros-stamp(m) <= .2
             info = self.last.get(side+'_info')
             if info is not None:

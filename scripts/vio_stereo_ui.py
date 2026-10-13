@@ -14,6 +14,7 @@ from px4_msgs.msg import VehicleLocalPosition
 
 def main():
     out=Path(sys.argv[1]); capture=out/'flight-images';capture.mkdir(exist_ok=True)
+    estimator=json.loads((out/'manifest.json').read_text()).get('estimator','cuvslam')
     rclpy.init();node=rclpy.create_node('vio_stereo_readonly_ui')
     root=tk.Tk();root.geometry('900x530+980+480');root.title('PX4 VIO stereo / mission diagnostic (read only)')
     panels={s:tk.Label(root,text=s) for s in ('left','right')}
@@ -28,12 +29,15 @@ def main():
         nonlocal height
         height=dict(px4_timestamp=m.timestamp,z=m.z,z_valid=m.z_valid)
     for side in panels:node.create_subscription(Image,'/vio/'+side+'/image',lambda m,s=side:image(s,m),qos_profile_sensor_data)
-    node.create_subscription(PoseWithCovarianceStamped,'/visual_slam/tracking/vo_pose_covariance',pose,10)
+    node.create_subscription(PoseWithCovarianceStamped,('/openvins/pose' if estimator=='openvins' else '/visual_slam/tracking/vo_pose_covariance'),pose,10)
     node.create_subscription(VehicleLocalPosition,'/px4_7/fmu/out/vehicle_local_position'+('_v'+str(VehicleLocalPosition.MESSAGE_VERSION) if getattr(VehicleLocalPosition,'MESSAGE_VERSION',0) else ''),position,qos_profile_sensor_data)
     def ppm(m):
-        if m.encoding!='rgb8' or len(m.data)!=m.step*m.height:return None
+        if m.encoding not in ('rgb8','mono8') or len(m.data)!=m.step*m.height:return None
+        channels=1 if m.encoding=='mono8' else 3
+        if m.step<m.width*channels:return None
         data=bytes(m.data)
-        return f'P6\n{m.width} {m.height}\n255\n'.encode()+b''.join(data[i*m.step:i*m.step+3*m.width] for i in range(m.height))
+        magic='P5' if channels==1 else 'P6'
+        return f'{magic}\n{m.width} {m.height}\n255\n'.encode()+b''.join(data[i*m.step:i*m.step+channels*m.width] for i in range(m.height))
     def tick():
         nonlocal last_save,count
         for _ in range(20):rclpy.spin_once(node,timeout_sec=0)
@@ -61,7 +65,7 @@ def main():
                     snapshot=receipt.get('result_snapshot',{})
                     terminal=f"UI state: {receipt.get('state','UNKNOWN')}\nDiagnostic checks passed: {snapshot.get('diagnostic_checks_passed',False)}; flight qualified: {receipt.get('qualification',False)}"
             except (OSError,ValueError):pass
-        status.configure(text=f'Run: {out.name}\nStereo stamps: {stamps}\nSDK covariance (raw): {cov}\nPX4 local: {height}\n{terminal}\nImage structure is NOT a tracked-feature count.\nClose owned session: touch {out}/close-ui')
+        status.configure(text=f'Run: {out.name}\nStereo stamps: {stamps}\n{estimator} covariance (raw): {cov}\nPX4 local: {height}\n{terminal}\nImage structure is NOT a tracked-feature count.\nClose owned session: touch {out}/close-ui')
         root.after(100,tick)
     tick()
     try:root.mainloop()

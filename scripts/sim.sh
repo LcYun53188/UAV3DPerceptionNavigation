@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "${1:-}" == "px4-vio-mtf01" ]]; then
+  shift
+  exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" --mtf01 --normalize --fuse-pose --scene warehouse --warehouse-floor-texture --duration 120 "$@"
+fi
+if [[ "${1:-}" == "px4-mtf01" ]]; then
+  shift
+  exec "$SCRIPT_DIR/with_px4_sim.sh" python "$SCRIPT_DIR/run_px4_mtf01.py" "$@"
+fi
 if [[ "${1:-}" == "px4-vio-sensors" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" "$@"

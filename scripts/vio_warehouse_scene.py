@@ -9,11 +9,17 @@ import zlib
 import xml.etree.ElementTree as ET
 
 LAYOUT = Path(__file__).resolve().parents[1]/'simulation/scenes/vio_warehouse.json'
+COMPLEX_LAYOUT = LAYOUT.with_name('vio_warehouse_complex.json')
+
+
+def layout_path(variant):
+    if variant not in ('baseline','complex'):raise ValueError('Unsupported warehouse variant')
+    return COMPLEX_LAYOUT if variant=='complex' else LAYOUT
 
 
 def box_clearance(layout):
     """Reject intersecting AABBs including flight body, tracking and braking budget."""
-    if layout['schema'] != 1 or layout['scene_id'] != 'vio_warehouse_v1':
+    if layout['schema'] != 1 or layout['scene_id'] not in ('vio_warehouse_v1','vio_warehouse_complex_v1'):
         raise ValueError('Unsupported warehouse layout')
     lower, upper = layout['flight_box_min'], layout['flight_box_max']
     if (len(lower) != 3 or len(upper) != 3 or
@@ -28,9 +34,12 @@ def box_clearance(layout):
     checks = {}
     for obstacle in layout['obstacles']:
         center, size = obstacle['center'], obstacle['size']
+        shape=obstacle.get('shape','box')
         if (len(center) != 3 or len(size) != 3 or not all(math.isfinite(x) for x in center)
                 or not all(math.isfinite(x) and x > 0 for x in size)):
             raise ValueError('Invalid obstacle geometry')
+        if shape not in ('box','cylinder') or (shape=='cylinder' and size[0]!=size[1]):
+            raise ValueError('Unsupported obstacle shape')
         # Touching counts as collision; no rotation is allowed in this schema.
         checks[obstacle['name']] = any(center[i]+size[i]/2 < lo[i] or center[i]-size[i]/2 > hi[i] for i in range(3))
         if not checks[obstacle['name']]:
@@ -94,10 +103,39 @@ def unique_floor_texture(path, rng):
                     chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
 
 
-def add_warehouse(world, directory, *, floor_texture=False, texture_style="corners"):
+def multiscale_texture(path, rng, width=1024):
+    """Nonperiodic matte atlas with distinct coarse and fine shapes."""
+    pixels=bytearray([195]*(width*width*3))
+    def rect(x,y,w,h,color):
+        w,h=min(w,width-x),min(h,width-y)
+        row=bytes(color)*w
+        for yy in range(y,y+h):
+            start=(yy*width+x)*3;pixels[start:start+len(row)]=row
+    # Random coordinates and sizes avoid the repeated 16x16 cell grid.
+    for lo,hi,count in [(80,240,90),(18,70,400),(4,16,650)]:
+        for _ in range(count):
+            x,y=rng.randrange(width),rng.randrange(width)
+            w,h=rng.randint(lo,hi),rng.randint(lo,hi)
+            value=rng.choice((15,40,85,140,225,245))
+            color=[max(0,min(255,value+rng.randint(-12,12))) for _ in range(3)]
+            rect(x,y,w,h,color)
+            # Asymmetric inset corners create differently sized edge junctions.
+            rect(x,y,min(4,w),h,[255-value]*3)
+            rect(x,y,w,min(4,h),[255-value]*3)
+    raw=b''.join(b'\x00'+pixels[y*width*3:(y+1)*width*3] for y in range(width))
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',width,width,8,2,0,0,0))+
+                    chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
+
+
+def add_warehouse(world, directory, *, floor_texture=False, texture_style="corners", variant='baseline'):
     if texture_style not in ("corners","unique"):raise ValueError("Unsupported floor texture style")
     if texture_style!="corners" and not floor_texture:raise ValueError("Unique texture requires textured floor")
-    layout = json.loads(LAYOUT.read_text())
+    source=layout_path(variant)
+    if variant=='complex' and (not floor_texture or texture_style!='corners'):
+        raise ValueError('Complex warehouse uses its own textured floor and atlas')
+    layout = json.loads(source.read_text())
     clearance = box_clearance(layout)
     rng = random.Random(layout['seed'])
     textures=directory/'warehouse_textures/materials/textures'
@@ -109,10 +147,16 @@ def add_warehouse(world, directory, *, floor_texture=False, texture_style="corne
         ET.SubElement(model,'pose').text = ' '.join(map(str,obstacle['center']))+' 0 0 0'
         link = ET.SubElement(model,'link',name='structure')
         size = obstacle['size']
-        box(link,'collision',[0,0,0],size,[.5,.5,.5],True)
+        collision=box(link,'collision',[0,0,0],size,[.5,.5,.5],True)
         surface=box(link,'surface',[0,0,0],size,[1,1,1])
+        if obstacle.get('shape')=='cylinder':
+            for obj in (collision,surface):
+                geometry=obj.find('geometry');geometry.remove(geometry.find('box'))
+                cylinder=ET.SubElement(geometry,'cylinder')
+                ET.SubElement(cylinder,'radius').text=str(size[0]/2)
+                ET.SubElement(cylinder,'length').text=str(size[2])
         texture=textures/(obstacle['name']+'.png')
-        corner_texture(texture,random.Random(layout['seed']+len(texture_hashes)))
+        (multiscale_texture if variant=='complex' else corner_texture)(texture,random.Random(layout['seed']+len(texture_hashes)))
         texture_hashes[str(texture.relative_to(directory))]=hashlib.sha256(texture.read_bytes()).hexdigest()
         metal=ET.SubElement(ET.SubElement(surface.find('material'),'pbr'),'metal')
         ET.SubElement(metal,'albedo_map').text='model://warehouse_textures/materials/textures/'+texture.name
@@ -120,7 +164,7 @@ def add_warehouse(world, directory, *, floor_texture=False, texture_style="corne
         ET.SubElement(metal,'roughness').text='1'
         # Rendered irregular patches on four faces give genuine image features.
         # Collisions remain simple enclosing boxes; no detached floating objects.
-        for face in range(4):
+        for face in range(0 if variant=='complex' else 4):
             axis,sign = face//2,1 if face%2 else -1
             tangent = 1-axis
             for j in range(12):
@@ -135,7 +179,7 @@ def add_warehouse(world, directory, *, floor_texture=False, texture_style="corne
                 box(link,f'shelf_marker_{level}',[0,0,(level-1)*.8],[size[0]+.005,size[1]+.005,.05],[.8,.6,.15])
     if floor_texture:
         texture=textures/'floor.png'
-        (unique_floor_texture if texture_style=='unique' else corner_texture)(texture,random.Random(layout['seed']+1000))
+        (multiscale_texture if variant=='complex' else unique_floor_texture if texture_style=='unique' else corner_texture)(texture,random.Random(layout['seed']+1000))
         texture_hashes[str(texture.relative_to(directory))]=hashlib.sha256(texture.read_bytes()).hexdigest()
         floor_surface=ET.SubElement(world,'model',name='warehouse_textured_floor')
         ET.SubElement(floor_surface,'static').text='true'
@@ -151,5 +195,6 @@ def add_warehouse(world, directory, *, floor_texture=False, texture_style="corne
     for i in range(layout['visual_floor_patches']):
         box(link,f'paint_{i}',[rng.uniform(-6.7,6.7),rng.uniform(-6.7,6.7),.002],
             [rng.uniform(.1,.35),rng.uniform(.1,.35),.002],[rng.choice((.03,.2,.7,.95)) for _ in range(3)])
-    receipt = dict(schema=1, layout=layout, layout_sha256=hashlib.sha256(LAYOUT.read_bytes()).hexdigest(),clearance=clearance,texture_sha256=texture_hashes)
+    receipt = dict(schema=1, layout=layout, layout_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),clearance=clearance,texture_sha256=texture_hashes)
+    if variant!='baseline':receipt['variant']=variant
     (directory/'warehouse-layout.json').write_text(json.dumps(receipt,indent=2)+'\n')

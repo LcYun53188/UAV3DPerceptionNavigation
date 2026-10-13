@@ -318,7 +318,7 @@ def test_localized_odometry_carries_source_session_counters_and_sample_stamp():
 
 def test_vio_ground_prestream_never_arms_and_stops_on_lost_health():
     calls=[]
-    f=SimpleNamespace(clock_fault_latched=False,healthy=lambda ground:True,fresh=lambda name,age:True,
+    f=SimpleNamespace(diagnostics=[],vio_gate=None,clock_fault_latched=False,healthy=lambda ground:True,fresh=lambda name,age:True,
         resets=lambda:(),reset_baseline=(),region=lambda p:True,position=lambda:(0.,0.,0.),
         preflight_until=120.,initial_mode=4,phase_started=100.,last_command=100.,
         get_publishers_info_by_topic=lambda topic:[object()],
@@ -331,6 +331,7 @@ def test_vio_ground_prestream_never_arms_and_stops_on_lost_health():
     f.healthy=lambda ground:False
     FlightServer.preflight_tick(f,102.02)
     assert f.preflight_fault_latched and calls[-1]=='VIO_GROUND_PRESTREAM_FAILED'
+    assert f.diagnostics[-1]['preflight_failure']['expected_resets']==[]
     assert len(calls)==3
 
 

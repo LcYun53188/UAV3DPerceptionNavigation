@@ -58,6 +58,10 @@ publications:
   type: px4_msgs::msg::EstimatorAidSource3d
 - topic: /fmu/out/estimator_aid_src_ev_yaw
   type: px4_msgs::msg::EstimatorAidSource1d
+- topic: /fmu/out/estimator_aid_src_optical_flow
+  type: px4_msgs::msg::EstimatorAidSource2d
+- topic: /fmu/out/estimator_aid_src_rng_hgt
+  type: px4_msgs::msg::EstimatorAidSource1d
 subscriptions:
 - topic: /fmu/in/register_ext_component_request
   type: px4_msgs::msg::RegisterExtComponentRequest

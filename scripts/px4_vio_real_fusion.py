@@ -4,7 +4,7 @@ The supervisor verifies binaries, calibration, scene and exclusive instance befo
 constructing this object. Nothing here can arm or publish flight controls. Ground
 state is continuously required, including after launch alignment.
 """
-from collections import Counter,OrderedDict
+from collections import Counter,OrderedDict,deque
 import math
 import time
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -14,6 +14,7 @@ from uav_nav_interfaces.msg import VioStatus
 from rclpy.qos import qos_profile_sensor_data
 from rclpy.clock import Clock,ClockType
 from rosidl_runtime_py.convert import message_to_ordereddict
+from rclpy.serialization import serialize_message,deserialize_message
 from px4_comm_bridge.pose_stream import AlignedPoseStream,stamp_ns
 from px4_comm_bridge.pose_fusion import FRAME
 from px4_comm_bridge.vio_input import stamp_s
@@ -31,18 +32,24 @@ def json_message(message):
 
 
 class RealPoseFusionAudit:
+    gate_class=VioGate
     stream_class=AlignedPoseStream
     input_topics=('/uav/vio/pose','/uav/vio/pose_status')
+    extra_entries=()
     control_names=('vehicle_command','trajectory_setpoint','offboard_control_mode')
 
     def __init__(self,node,calibration,anchor,anchor_id,*,quality_policy="strict"):
         self.node=node
         self.stream=self.stream_class(calibration,anchor['position_enu'],anchor['yaw_enu'],anchor_id,quality_policy=quality_policy)
-        self.gate=VioGate(calibration,fusion_profile='aligned_pose_v1')
+        self.gate=self.gate_class(calibration,fusion_profile='aligned_pose_v1')
         self.pending=OrderedDict();self.statuses=OrderedDict()
         self.gid_modes=set();self.graph_violations=[];self.timing=SourceTiming()
         self.last={};self.received={};self.topics={}
+        self.aircraft_samples={key:deque(maxlen=32) for key in ("vehicle","land")}
         self.history=[];self.outputs=[];self.echoes=[];self.reasons=Counter();self.fused=Counter()
+        self.aid_record_keys={};self.aid_fuse_stamps={}
+        self.history_kinds={}
+        self.terminal_snapshot=None
         self.ready_count=0;self.ready_since=None;self.longest_ready_s=0.
         self.last_sample=None;self.stopped_at=None;self.first_rejection=None;self.before_stop=None;self.drained=None
         self.ev_topic='/px4_7/fmu/in/vehicle_visual_odometry'
@@ -61,18 +68,33 @@ class RealPoseFusionAudit:
             ('ev_hgt','/px4_7/fmu/out/estimator_aid_src_ev_hgt',EstimatorAidSource1d),
             ('ev_vel','/px4_7/fmu/out/estimator_aid_src_ev_vel',EstimatorAidSource3d),
             ('ev_yaw','/px4_7/fmu/out/estimator_aid_src_ev_yaw',EstimatorAidSource1d)]
+        entries += list(self.extra_entries)
         for name,topic,kind in entries:
+            self.history_kinds[name]=kind
             version=getattr(kind,'MESSAGE_VERSION',0)
             if version:topic+=f'_v{version}'
             self.topics[name]=topic
             def receiver(key):
                 def callback(m):
                     now=time.monotonic();self.last[key]=m;self.received[key]=now
+                    if key in self.aircraft_samples:self.aircraft_samples[key].append((now,m))
                     self.gate.receive(key,m,now)
-                    if getattr(m,'fused',False):self.fused[key]+=1
-                    # Keep received messages; serialize after stopping processes. Full
-                    # telemetry conversion in this callback competes with 250 Hz IMU.
-                    self.history.append(dict(mono=now,name=key,message=m))
+                    if key.startswith('ev_'):
+                        # Moving EKF telemetry repeats a held aid at the IMU rate.
+                        # Receive every heartbeat for freshness, but count only
+                        # distinct actual fusions and retain source samples or
+                        # fusion/rejection transitions. Repeated message trees
+                        # otherwise enlarge the observer's GC pauses.
+                        last_fuse=int(m.time_last_fuse)
+                        if m.fused and last_fuse>self.aid_fuse_stamps.get(key,0):
+                            self.fused[key]+=1;self.aid_fuse_stamps[key]=last_fuse
+                        record_key=(m.timestamp_sample,last_fuse,m.fused,m.innovation_rejected)
+                        if self.aid_record_keys.get(key)==record_key:return
+                        self.aid_record_keys[key]=record_key
+                    # CDR bytes keep the full original receipt without retaining
+                    # thousands of GC-tracked ROS message trees in the live node.
+                    # JSON conversion and decoding happen after source retirement.
+                    self.history.append(dict(mono=now,name=key,cdr=serialize_message(m)))
                 return callback
             node.create_subscription(kind,topic,receiver(name),qos_profile_sensor_data)
         node.create_timer(.02,self.tick,clock=Clock(clock_type=ClockType.STEADY_TIME))
@@ -214,6 +236,17 @@ class RealPoseFusionAudit:
             flags=json_message(self.last['flags']) if 'flags' in self.last else None)
         self.stopped_at=time.monotonic()
 
+    def freeze_terminal_state(self):
+        """Capture fresh ground evidence at the last live spin, before slow analysis."""
+        self.terminal_snapshot=dict(mono=time.monotonic(),ros=self.ros(),ground=self.ground(),
+            vehicle=json_message(self.last['vehicle']) if 'vehicle' in self.last else None,
+            land=json_message(self.last['land']) if 'land' in self.last else None,
+            received={k:self.received.get(k) for k in ('vehicle','land')},
+            writers={k:len(self.node.get_publishers_info_by_topic(self.topics[k])) for k in ('vehicle','land')})
+
+    def terminal_ground(self):
+        return self.terminal_snapshot['ground'] if self.terminal_snapshot is not None else self.ground()
+
     def result(self):
         controls={n:len(self.node.get_publishers_info_by_topic('/px4_7/fmu/in/'+n)) for n in self.control_names}
         first=self.first_rejection or {}
@@ -229,19 +262,24 @@ class RealPoseFusionAudit:
             no_output_after_drain=self.stopped_at is not None and not any(o['mono']>self.stopped_at+.5 for o in self.outputs),
             fusion_stopped=self.drained is not None and len(self.drained)==3 and self.drained==self.last_fuse(),
             no_flight_controls=not any(controls.values()) and not self.graph_violations,sole_ev_writer=len(self.node.get_publishers_info_by_topic(self.ev_topic))==1,
-            disarmed_landed=self.ground())
-        return dict(passed=all(checks.values()),checks=checks,scope='actual same-aircraft simulated stereo/IMU -> cuVSLAM -> PX4 EV, disarmed only',
+            disarmed_landed=self.terminal_ground())
+        return dict(passed=all(checks.values()),checks=checks,quality_policy=self.stream.quality_policy,dropped_aligned_uncertainty=self.stream.dropped_uncertain,scope='actual same-aircraft simulated stereo/IMU -> cuVSLAM -> PX4 EV, disarmed only',
             stop_request_mono=self.stopped_at,graph_violations=self.graph_violations,
             endpoint_identity_modes=sorted(self.gid_modes),
             alignment=self.stream.alignment.binding,before_stop=self.before_stop,first_stop_rejection=self.first_rejection,
             source_fault=self.stream.fault,source_reason=self.stream.reason,gate_reason=self.gate.reason,
             input_count=len(self.outputs),observed_count=len(self.echoes),fused_samples=dict(self.fused),
-            longest_ready_s=self.longest_ready_s,gate_reasons=dict(self.reasons),last_fuse_after_drain=self.drained,
+            longest_ready_s=self.longest_ready_s,gate_reasons=dict(self.reasons),terminal_state=self.terminal_snapshot,last_fuse_after_drain=self.drained,
             last_fuse_at_end=self.last_fuse(),control_publishers=controls)
+
+    def history_messages(self):
+        for row in self.history:
+            yield dict(mono=row['mono'],name=row['name'],
+                       message=deserialize_message(row['cdr'],self.history_kinds[row['name']]))
 
     def evidence(self):
         """Call after retiring owned processes, away from sensor callbacks."""
         return {
-            'fusion-telemetry.json':[dict(e,message=json_message(e['message'])) for e in self.history],
+            'fusion-telemetry.json':[dict(e,message=json_message(e['message'])) for e in self.history_messages()],
             'fusion-dds-echoes.json':[dict(e,message=json_message(e['message'])) for e in self.echoes],
             'fusion-outputs.json':[dict(e,aligned=json_message(e['aligned']),ev=json_message(e['ev'])) for e in self.outputs]}
