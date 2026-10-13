@@ -2,18 +2,24 @@
 .venv/
 .vscode/
 .deps/
+# ROS / colcon build products
 build/
 install/
 log/
+/build_uav/
+/install_uav/
 
 scripts/nav_launch.local.env
 
 **/__pycache__/
 **/*.py[cod]
 **/*.egg-info/
-
-/build_uav/
-/install_uav/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
 
 # Validation records and standalone regression scripts stay local.
 /docs/validation/
