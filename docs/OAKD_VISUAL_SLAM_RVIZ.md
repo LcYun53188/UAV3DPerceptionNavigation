@@ -1,5 +1,7 @@
 # OAK-D Visual SLAM 与 RViz 验证
 
+2026-10-12 当前默认为 **cuVSLAM 16**，OpenVINS 暂停。先执行 `./scripts/build_vio_node.sh --jobs 3` 构建隔离安装；OAK-D 使用 `vio_sdk:=sdk16`（默认），运行入口只允许 SDK16，SDK15 安装仅保留作历史证据。本轮仅完成仿真和节点加载测试，尚未验证 SDK 16 的 OAK-D 实机静止、运动或飞行；历史 SDK 15 硬件结果不能替代。SDK 16 世界条件协方差导出已修正，但全局一致性及联合定位 10 cm 上限仍未通过，飞行入口保持拒绝。见 [详细诊断与复现](validation/simulation/2026-10-12-sdk16-adoption/REPORT.md)。
+
 本文档用于启动并验证 OAK-D 双目 + IMU 的 Isaac ROS Visual SLAM 视觉里程计。该入口只启动 OAK-D、Visual SLAM、静态 TF 和 RViz，不启动 nvblox、Nav2、ESS 或底盘串口桥，适合排查 VIO、坐标轴和 RViz 显示问题。
 
 ## 启动命令

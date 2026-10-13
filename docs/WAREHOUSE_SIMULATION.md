@@ -1,5 +1,13 @@
 # 仓库场景与分阶段 VIO 验证
 
+2026-10-12 完成全链路协方差接口修复及 OpenVINS 完整后验对照。固定 5° 复杂仓库的实际滚转／俯仰激励与审计 GC 调度修复后，两轮未解锁同机 VIO＋MTF-01 联合融合及六维必要筛查通过（95% 覆盖率 **99.98%／100%**）。**严格统计标定仍为 INCONCLUSIVE，未执行飞行，OAK-D 实机默认路线保留；纯平移／yaw 失败记录不能删除或视作已解决。** 274 项回归与完整命令、原生回执和独立重算见 [全链路协方差报告](validation/simulation/2026-10-12-vio-chain-covariance/REPORT.md)。
+
+2026-10-11 增加独立复杂场景 `--warehouse-variant complex`，布局见 [vio_warehouse_complex.json](../simulation/scenes/vio_warehouse_complex.json)。开放货架、管柱、台阶、箱堆和顶梁提供真实三维层次，77 个碰撞实体与非周期多尺度纹理均可重复生成；原包络和默认 `baseline` 保留。固定下偏 5° 的原始运动 RMSE 为 2.48 / 1.25 cm，旧地图同参数为 6.39 cm；标准化运动源及 120 秒联合静止仍失败。60 秒 UI 联合诊断通过，但不替代长时或飞行验收。完整命令、实际画面与证据见 [复杂地图报告](validation/simulation/2026-10-11-vio-complex-map/REPORT.md)。
+
+复杂变体要求 `--scene warehouse --warehouse-floor-texture`；`px4-vio-mtf01` 已自带这些参数，可直接追加 `--warehouse-variant complex`。变体使用自己的 atlas，禁止与 `--floor-texture-style unique` 或 `--flight` 混用，不能复用旧场景的历史验收。它目前用于 VIO 传感器复测及未解锁联合诊断，尚未接入导航地图流程。
+
+以下为原仓库历史分阶段结果，其中 15° 配置不替代当前固定 5° 的验收。
+
 640×400 仓库 VIO 运动验证已通过，显式 0.8×／NVIDIA 无界面／图像深度 1／EKF 最大延迟 160 ms 下同机 120 秒融合连续两轮通过（READY 约 114.02 s）。默认／UI 配置仍有失败，仓库悬停和导航尚未执行。见 [长时融合报告](validation/simulation/2026-10-09-warehouse-queue-latency/REPORT.md)。
 
 初始六轮实测的 VIO 前置检查均未通过，尚未执行仓库悬停／航点／避障。

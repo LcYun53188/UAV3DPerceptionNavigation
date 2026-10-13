@@ -2,9 +2,34 @@
 
 验证记录与独立回归脚本（`docs/validation/`、`scripts/test_*`）仅保存在本地，不纳入 Git。文中的验证记录链接供本地查阅；包内测试及仿真运行工具继续跟踪。
 
+2026-10-13 最新：按 **最大定位误差 <20 cm** 完成 SDK16＋MTF-01 无 GNSS 完整名义导航仿真：起飞 → 深度／nvblox 扫描建图 → EGO 导航 → 悬停 → 返航 → 降落上锁。VIO 最大位置误差 **15.20 cm**，PX4 **15.00 cm**；起飞／导航／返航到点误差 **9.71／8.39／9.66 cm**。169 项定向回归通过。补充悬停测试后仿真保持运行。**动态轨迹跟踪并非全程 <20 cm；主动绕障、独立原生空中 aid 回执和全局协方差资格尚未验收。** 见 [20 cm 验收记录](docs/validation/simulation/2026-10-13-nav-20cm/REPORT.md)。
+
+2026-10-13 更新：已清理 256 个历史仿真目录，释放约 28.52 GiB。运行入口只使用 SDK16，PX4 偏航噪声单位补丁的原生回执及重复完整任务已验证；全任务的 VIO 最大位置误差筛查 15.58 cm，仍超出 10 cm 要求。仿真已恢复并在降落上锁后持续运行。见 [清理与修复记录](docs/validation/simulation/2026-10-13-vio-chain-diagnosis/REPORT.md)。
+
+2026-10-13 完整链路复核：已确认位置轨迹未发送速度／加速度前馈，原生导航／返航响应滞后约 1.15 s；固定 PX4 版本的 EV yaw 噪声参数被未平方地用于方差下限，原生回执为 0.1 rad²。稳定飞行窗口 SDK Track 最大 4.48 ms、融合样本年龄最大 24 ms，不能将控制跟踪滞后归因于秒级 VIO 计算延迟。162 项定向测试通过；新增实验飞行至少 2 GiB 可用磁盘准入，容量不足时启动前拒绝；已按要求清理 256 个历史缓存并释放约 28.52 GiB。见 [完整 VIO 链路诊断](docs/validation/simulation/2026-10-13-vio-chain-diagnosis/REPORT.md)。
+
+2026-10-13 按用户要求，**暂缓协方差统计资格，已跑通 SDK16＋MTF-01 联合飞行主链路**：同机 Gazebo/PX4 起飞 → 深度／nvblox 四点扫描建图 → EGO 导航 → 悬停 → 返航 → 原生降落并上锁。导航到点误差 3.62 cm、返航 2.15 cm、悬停最大漂移 2.26 cm；728 项回归及 12 项光流测试通过。显式入口 `--experimental-chain` 保留定位失效、创新、重置和碰撞保护。真实 ESDF 障碍／未知区域拒绝已离线核查；**主动绕障和动态障碍飞行尚未验收**，此模式不构成实机飞行授权。见 [联合链路验收报告](docs/validation/simulation/2026-10-13-vio-chain/REPORT.md)。
+
+
+2026-10-12 **默认 VIO 已切换为 cuVSLAM 16，OpenVINS 暂停使用。** 仿真与 OAK-D 启动入口采用隔离的 SDK 16 安装，SDK 15 历史安装保留，运行入口已移除回退选项。按用户要求的 **最大位置误差 10 cm** 完成五轮未解锁同机动态 VIO＋光流＋测距测试：VIO 最大误差 **2.93–9.85 cm**，PX4 联合估计最大误差 **6.51–13.10 cm**，四轮姿态变化测试均超限。修正世界坐标／机体参考点协方差导出与 Odometry 接口，但全局协方差筛查仍失败；**联合导航精度未通过，SDK 16 飞行及 OAK-D 实机尚未验收。** 详见 [SDK 16 替换与 10 cm 误差诊断](docs/validation/simulation/2026-10-12-sdk16-adoption/REPORT.md)。
+
+2026-10-12 **无 GNSS 完整链路复验：尚未通过，未执行飞行。** 实际同机光流失效处置通过；测距首轮暴露停源前 VIO 接收失效，补齐静止审计 GC 保护后复测通过，失败证据保留。修复 RGBD 资产回执回归，398 项任务／地图检查及 37 项 ROS／BT 测试通过，真实 EGO 合成地图绕障与执行器准入通过。**当前仍缺联合飞行门控与同机 VIO → 深度地图 → EGO 接入；协方差统计资格仍为 INCONCLUSIVE，起飞／悬停／导航／绕障／返航／降落均未运行。** 见 [完整链路验收报告](docs/validation/simulation/2026-10-12-full-chain/REPORT.md)。
+
+2026-10-12 历史阶段记录（OpenVINS 已暂停，当前默认见上方 SDK 16 报告）：**VIO 全链路修复与新路线对照**：定位并修复 SDK 协方差参数化／机体参考点与初始化／接收接口，新增 OpenVINS 完整状态后验路线。实际滚转／俯仰激励改善倾角—偏置耦合，审计 GC 暂停造成的接收失效也已修复；两轮固定 5° 复杂仓库、无 GNSS、未解锁 x500＋VIO＋MTF-01 联合融合通过，六维 95% 覆盖率 **99.98%／100%**，运动段 99% 均 **100%**，停 VIO 后 **0.177／0.152 s** 拒绝。**这是固定坐标系必要筛查通过；严格统计标定仍为 INCONCLUSIVE，飞行未执行，OAK-D 实机默认路线保留。** 纯平移／yaw 与 SDK 16 原路线的失败证据仍保留。274 项回归通过，源码、二进制、配置和原生回执已冻结，见 [全链路协方差报告](docs/validation/simulation/2026-10-12-vio-chain-covariance/REPORT.md)。
+
 ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / LIO、三维 EKF、EGO + nvblox 三维导航和 PX4 通信接口。
 当前已实现 **Gazebo 中的深度建图、定向探索、地图保存与加载、三维轨迹规划、速度模型执行和 RViz 选点导航**。
 算法仿真使用 Gazebo 真值定位和简化速度模型；另有独立 PX4 v1.16.2 SITL 已知区域飞行后端，支持起飞、航点、悬停、返航和降落。感知导航与 PX4 的融合、VIO 飞行及实机飞行仍待验证。
+
+2026-10-12 **SDK 16 同机动态融合通过，整体飞行准入未通过**：固定 5° 复杂地图、无 GNSS，同一架未解锁 x500 上的 VIO＋光流＋测距实际融合；排除 Gazebo 默认协方差真值注入后，三类视觉观测各融合 **4,046 次**，运动段 EKF 位置 RMSE **3.49 cm**，停 VIO 后 **0.173 秒**拒绝放行。**全局协方差筛查失败：95% 六维误差椭球覆盖率仅 20.79%，要求至少 90%；飞行未执行，候选入口继续禁止飞行。** 源码确认当前 15 维信息矩阵的位姿块直接求逆，与完整位姿边缘协方差不同。233 项回归通过，最终 179 项输入哈希一致。原 SDK 15 安装保留。结果、路线判断与独立重算证据见 [SDK 16 动态验收报告](docs/validation/simulation/2026-10-12-vio-sdk16-dynamic/REPORT.md)；上一阶段见 [SDK 16 ROS 联合验证报告](docs/validation/simulation/2026-10-12-vio-sdk16-ros/REPORT.md)。
+
+2026-10-12 已构建隔离的 **cuVSLAM 16 候选**，新增固定 5° 复杂地图完整输入与新旧 SDK 对照。确认默认关键帧不足会阻塞惯性初始化，且初始化前信息矩阵的归一化导致大方差；协方差诊断分支在位姿逐帧完全不变时，使方差总量中位数下降约 1,126 倍。原版 SDK 16 使用显式 1 s 关键帧间隔后，两次快速回放和一次按原时间间隔回放均在 28.04 s 返回重力／偏置估计，位置方差超限比例由默认约 26% 降至 0%。**该原生回放阶段尚未接入 ROS／PX4；后续在线接入与初始化门控验证见上一段，全局协方差一致性和动态融合仍待验收。** 构建与证据见 [SDK 16 候选报告](docs/validation/simulation/2026-10-12-vio-sdk16-candidate/REPORT.md)。
+
+2026-10-12 完成 **VIO 协方差专项诊断**：主 ROS 链路仍运行 `cuVSLAM 15.0.0+74f0e317-modified`，上游 16 已修复可能使双目＋IMU 差于纯双目的 IMU 积分错误；本机头文件与公开 v15 实现的协方差语义也存在差异，需要重新核验。同一份历史输入的三次原生回放中，VIO 高度方差中位数约为纯双目的 1,200 倍，原始位置误差却相近；复杂地图联合静止另有初始锚点保守传播后超限问题。**停止继续盲调 SDK 15 的纹理／预热，优先隔离验证修复版 SDK 和新协方差契约；若动态验收仍失败，首选 OpenVINS 替代对照。** 该诊断阶段未升级 SDK、未改变门槛、未进行新飞行；后续候选进展见上一段，原诊断证据与复现工具见 [详细诊断报告](docs/validation/simulation/2026-10-12-vio-covariance-diagnosis/REPORT.md)。
+
+2026-10-11 新增 **MTF-01 光流／8 m 测距与 VIO 同机联合仿真**，入口 `./scripts/sim.sh px4-vio-mtf01`。实际双目／IMU cuVSLAM、下视图像光流和单射线测距共同接入 PX4 EKF；120 秒未解锁联合融合及 VIO／光流／测距／MTF 整组停更验证均通过，154 项定向回归通过。视觉保持位置／高度／航向参考，光流约束水平速度，测距辅助近地高度／地形；三维地图导航仍需 OAK-D 深度和可靠位姿。独立入口 `px4-mtf01` 也保留。复现参数和限制见 [接入说明](docs/MTF01_SIMULATION.md)，证据见 [联合报告](docs/validation/simulation/2026-10-11-vio-mtf01-joint/REPORT.md) 与 [独立报告](docs/validation/simulation/2026-10-11-mtf01/REPORT.md)。联合运动、悬停和空中降级仍待验收。
+
+2026-10-11 新增复杂仓库候选：`--warehouse-variant complex`，包含开放货架、管柱、台阶、错落箱体和非周期多尺度纹理，带碰撞实体由 14 增至 77。固定 5° 同参数运动对照中，原始 VIO RMSE 从旧地图 6.39 cm 降至两轮 2.48 / 1.25 cm；**标准化运动源仍因协方差超限失败，120 秒联合静止失败，60 秒 UI 联合诊断通过，尚未获得飞行准入**。旧地图及默认入口保留。复现命令、画面和失败证据见 [复杂地图复测报告](docs/validation/simulation/2026-10-11-vio-complex-map/REPORT.md)。
 
 2026-10-10 最新要求：**后续仿真不使用 GNSS，切换实际双目／IMU VIO → PX4 EKF，并显示 UI**。`EKF2_GPS_CTRL=0`，禁止定位源运行中回退 GNSS；相机保持下偏 **5°**。此前 GNSS／惯性 EKF 的完整 BT 与 EGO 飞行结果保留为历史功能证据，不替代无 GNSS 飞行验收。当前 5° VIO 带 UI 仅作未解锁融合诊断，尚未满足飞行准入。
 
@@ -18,6 +43,9 @@ ROS 2 无人机导航实验项目，包含 OAK-D Pro W / MID360 感知、VIO / L
   --ui --diagnostic-ui --ui-hold-seconds 3600 --duration 120
 ```
 
+参照导航链路增加了原始采样时间预热（未解锁融合默认 20 s）、1 帧 SDK 图像队列，以及显式 `--stereo-encoding mono8` 灰度双目候选；修复对齐层未收到 `bounded_gap` 的问题。2026-10-10 四轮 120 s 带 UI 对照仍因 SDK 跟踪耗时尖峰／源过期失败，尚未证明自稳改善，5° 飞行准入保持关闭。见 [优化与失败时序证据](docs/validation/simulation/2026-10-10-vio-stabilization/REPORT.md)。
+
+追加单线程 SDK 与本机 CPU 0–15 亲和性后，两轮 120 s 未解锁融合诊断通过，连续 READY 约 114 s，SDK 跟踪峰值约 49/52 ms。独立运动原始位姿 RMSE 约 6.3 cm，但 SDK 高度方差超限导致标准化源锁存，运动源及 5° 悬停仍未通过。新增显式执行器/CPU 对照、Intel 渲染核验与受管 CUDA/NVTX 记录，140 项定向测试通过。见 [运行调度与运动检查](docs/validation/simulation/2026-10-10-vio-runtime-investigation/REPORT.md)。
 
 新增显式 EGO 导航／返航执行分支：网关复检已绑定曲线并转换到 PX4 local，地图／会话／控制权变化撤销旧曲线。115 项回归、真实规划输出准入及缺少规划源时 SITL 解锁前拒绝已通过；同机深度地图与实际曲线飞行尚未验收，见 [执行前置报告](docs/validation/simulation/2026-10-09-ego-px4-execution/REPORT.md)。
 
@@ -293,6 +321,39 @@ OAK-D + cuVSLAM + 三维 EKF + RViz（硬件定位验证）：
 ```bash
 ./scripts/with_venv.sh ros2 launch uav_bringup oakd_visual_slam_rviz.launch.py
 ```
+
+OAK-D Pro W 原始 VIO 静止审计（保持相机固定，20 秒预热后采集 180 秒，输出目录必须尚不存在）：
+
+```bash
+ROS_DOMAIN_ID=97 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST \
+  ./scripts/with_venv.sh python scripts/audit_oakd_vio_hardware.py \
+  --duration 180 --out .cache/hardware/oakd-vio-static-run1
+```
+
+该入口使用独立 ROS 域、真实相机 EEPROM 外参和原始 IMU 轴，直接检查 cuVSLAM 输出；关闭里程计保护与 EKF 平滑，不启动 PX4 接口。IMU 请求频率与实测报告频率须分别核对。配置修正和硬件数据见 [Pro W 硬件静止测试报告](docs/validation/hardware/2026-10-10-oakd-pro-w-vio/REPORT.md)。
+
+OAK-D Pro W 双目／轨迹 UI 与手持移动采集（同一硬件域只启动一个相机会话）：
+
+```bash
+ROS_DOMAIN_ID=97 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST \
+  ./scripts/with_venv.sh python scripts/oakd_vio_motion_ui.py \
+  --out .cache/hardware/oakd-vio-motion-run1
+```
+
+保持静止完成初始化和起点采集，再点击 UI 的“开始移动”，缓慢平移至少 20 cm、转动至少 10°；回到原位置和朝向后点击“已放回原位”，静止 10 秒。工具保存原始数据和 `result.json`，完成后保留实时双目、XY／XZ 轨迹及 RViz。关闭该窗口或在输出目录创建 `close-ui` 文件会停止本会话拥有的硬件进程。按钮仅标记数据阶段；回位误差包含手工放置误差，没有外部运动真值；默认回位容差为 20 cm／15°，可通过 `--return-position-tolerance-m` 与 `--return-orientation-tolerance-deg` 修改。实测见 [移动 UI 报告](docs/validation/hardware/2026-10-10-oakd-pro-w-vio/motion-ui-run1/REPORT.md)。
+
+对照导航输出与同图像纯双目 VO：
+
+```bash
+ROS_DOMAIN_ID=97 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST \
+  ./scripts/with_venv.sh python scripts/oakd_vio_motion_ui.py \
+  --out .cache/hardware/oakd-vio-navigation-run1 --navigation --compare-vo \
+  --launch-arg oakd_mono_auto_exposure_limit_us:=8000 \
+  --launch-arg oakd_enable_sensor_diagnostics:=true
+```
+
+该配置保持双目 25 Hz、实测 IMU 约 200 Hz。原始 VIO 经 20 秒启动门控和跳变保护后，再计算完整三维机体系速度，发布 `/navigation/odometry`；EKF 只融合同源位姿。导航模式在跳变后锁存停源，需重启会话恢复，状态见 `/visual_slam/odom_guard/status`。纯双目 VO 共享图像，仅帮助区分视觉与 IMU 融合异常；工具还保存最多 180 组运动图像（1 Hz）。40 Hz 候选出现过 52 cm 单帧跳变，未改为默认值。配置、重放与硬件复测见 [导航里程计优化报告](docs/validation/hardware/2026-10-10-oakd-pro-w-vio/navigation-optimization/REPORT.md)。
+
 
 EKF 模拟输入验证：
 

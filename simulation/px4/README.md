@@ -29,6 +29,12 @@ PX4 采用 `UXRCE_DDS_SYNCT=0`；ROS `/clock` 从同一 Gazebo 单向桥接。�
 
 日志、manifest（命令/PID/版本/场景配置 hash）、rootfs 参数、ULog、观测和清理结果保存到 `.cache/simulation/sitl/<run_id>/`。回归包括源码 pin 拒绝覆盖、消息字段重排与嵌套类型缺失检测。基础链路报告见 [本机 SITL 验证](../../docs/validation/simulation/2026-10-07-px4-sitl-build/REPORT.md)。
 
+## MTF-01 光流／测距参考
+
+`./scripts/sim.sh px4-mtf01 --duration 45 --stop-sensors` 提供独立未解锁入口：相邻下视渲染图像计算光流，GPU 单射线模拟 0.02–8 m 测距，实际 PX4 EKF 融合及停更审计。没有实机串口配置，也没有飞行控制输入。模型与限制、OpenCV 依赖、无纹理负向对照和 OAK-D VIO 分工见 [MTF-01 仿真说明](../../docs/MTF01_SIMULATION.md)。
+
+`./scripts/sim.sh px4-vio-mtf01` 提供同机联合未解锁入口，默认 120 秒观察后停止 VIO；`--joint-fault flow/range/all` 选择先停止哪组 MTF 源。使用单线程 SDK／本机 CPU 0–15 等已验证参数的完整命令见 [联合接入](../../docs/MTF01_SIMULATION.md#同机联合融合)。视觉位置／高度／航向与光流／测距分别进入实际 PX4 EKF，GNSS 和磁融合关闭，视觉仍为高度参考。联合观察规则独立于 FlightServer；不能用该入口起飞。证据见 [联合报告](../../docs/validation/simulation/2026-10-11-vio-mtf01-joint/REPORT.md)。
+
 ## W0 真实飞行任务
 
 已提供 `known_region_control` 后端：真实重力/旋翼动力学、PX4 EKF 回读与唯一

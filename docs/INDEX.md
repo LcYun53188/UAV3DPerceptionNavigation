@@ -2,6 +2,14 @@
 
 验证记录与独立回归脚本（`docs/validation/`、`scripts/test_*`）仅保存在本地，不纳入 Git。文中的验证记录链接供本地查阅；包内测试及仿真运行工具继续跟踪。
 
+- [SDK16 完整导航 20 cm 验收](validation/simulation/2026-10-13-nav-20cm/REPORT.md)：完整名义任务、最大定位误差和到点误差通过；动态跟踪、原生日志缺口与持续运行状态单独说明。
+
+- [完整 VIO 链路诊断](validation/simulation/2026-10-13-vio-chain-diagnosis/REPORT.md)：原生时钟重算、控制前馈缺失、PX4 航向噪声单位处理、磁盘准入与验收缺口。
+
+- [SDK16 联合链路仿真验收](validation/simulation/2026-10-13-vio-chain/REPORT.md)：协方差资格暂缓；起飞、同机建图、EGO 导航、悬停、返航、降落实际通过，保留失败证据；主动绕障尚未飞行验收。
+
+- [SDK 16 默认路线与 10 cm 误差验收](validation/simulation/2026-10-12-sdk16-adoption/REPORT.md)：五轮同机动态融合、条件协方差导出核对、全局统计失败及 SDK 15 回退。
+
 - [仿真启动与控制脚本](SIMULATION_CONTROL.md)：推荐日常入口，统一环境、进程管理、在线探索、地图保存加载、状态与日志排错。
 
 - [项目说明与四种启动流程](../README.md#选择运行方式)：传感器场景、在线探索、离线扫描保存、加载地图导航。
@@ -39,4 +47,5 @@
 
 - [非 identity 坐标与会话绑定的 EGO 影子规划](PLANNING_CONTEXT.md)
 - [OAK-D Pro W VIO 悬停](VIO_HOVER.md)：源适配与实际融合门控首批实现，完整闭环待验收。
+- [无 GNSS 完整链路验收](validation/simulation/2026-10-12-full-chain/REPORT.md)：同机 VIO／光流／测距失效处置、规划与 BT 检查，以及尚未接通的飞行准入和导航链路。
 - [PX4 参考深度相机验证](validation/simulation/2026-10-08-px4-depth/REPORT.md)：目标硬件 OAK-D Pro W，当前只验收 OakD-Lite 参考传感器链路。

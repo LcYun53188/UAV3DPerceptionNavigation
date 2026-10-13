@@ -1,5 +1,15 @@
 # OAK-D Pro W 辅助室内悬停
 
+2026-10-13 新增 `--experimental-chain` 联合仿真入口，仅在用户明确暂缓协方差统计验收的本机 Gazebo/PX4 环境使用。已实际完成起飞、同机深度扫描建图、EGO 导航、悬停、返航、原生降落并上锁；主动绕障／动态障碍飞行尚未验收。完整命令、实际误差与冻结证据见 [联合链路报告](validation/simulation/2026-10-13-vio-chain/REPORT.md)。普通 SDK16 飞行入口继续拒绝，实机未验收。
+
+2026-10-12 当前默认为 **cuVSLAM 16**，OpenVINS 暂停。先执行 `./scripts/build_vio_node.sh --jobs 3` 构建隔离安装；OAK-D 使用 `vio_sdk:=sdk16`（默认），运行入口只允许 SDK16，SDK15 安装仅保留作历史证据。本轮仅完成仿真和节点加载测试，尚未验证 SDK 16 的 OAK-D 实机静止、运动或飞行；历史 SDK 15 硬件结果不能替代。SDK 16 世界条件协方差导出已修正，但全局一致性及联合定位 10 cm 上限仍未通过，飞行入口保持拒绝。见 [详细诊断与复现](validation/simulation/2026-10-12-sdk16-adoption/REPORT.md)。
+
+历史阶段记录（OpenVINS 已暂停）：2026-10-12 完成全链路协方差接口修复及 OpenVINS 完整后验对照。固定 5° 复杂仓库的实际滚转／俯仰激励与审计 GC 调度修复后，两轮未解锁同机 VIO＋MTF-01 联合融合及六维必要筛查通过（95% 覆盖率 **99.98%／100%**）。**严格统计标定仍为 INCONCLUSIVE，未执行飞行，OAK-D 实机默认路线保留；纯平移／yaw 失败记录不能删除或视作已解决。** 274 项回归与完整命令、原生回执和独立重算见 [全链路协方差报告](validation/simulation/2026-10-12-vio-chain-covariance/REPORT.md)。
+
+2026-10-10 参照导航里程计加入原始时间预热、低积压图像队列与显式原生灰度双目候选，修复未解锁融合对齐层的质量策略传递。123 项定向测试通过；固定 5°／无 GNSS／带 UI 的四轮 120 s 实测全部未通过持续融合，尚未证明自稳稳定性改善。SDK `Track` 调用出现约 200 ms 以上耗时尖峰，完整时序与未解锁结果见 [优化报告](validation/simulation/2026-10-10-vio-stabilization/REPORT.md)。
+
+追加运行调度对照后，本机单线程 SDK 加 CPU 0–15 亲和性两轮 120 s 未解锁融合诊断通过，连续 READY 约 114 s；独立运动原始位姿 RMSE 约 6.3 cm，但标准化源因 SDK 高度方差超过 0.25 m² 锁存。140 项定向测试通过，5° 飞行准入仍关闭；新运行开关、性能 trace、运动误差及辅助传感器取舍见 [运行调度与运动检查](validation/simulation/2026-10-10-vio-runtime-investigation/REPORT.md)。
+
 当前相机固定下偏 **5°**，暂停角度对照调参；先推进完整 PX4 任务与导航／避障实现。下列 15°／30° 历史运行仅作为诊断证据，不能证明 5° 通过。5° 的 VIO 飞行源前置尚未验收，默认 VIO flight 命令会拒绝；完整控制任务使用 `./scripts/sim.sh px4-flight --bt --ui`，定位来源为官方 SITL GNSS／惯性 EKF。
 
 2026-10-09 最新实测：仓库同机实际双目/IMU→VIO→PX4 EKF→唯一 FlightServer→BT
