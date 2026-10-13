@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -71,6 +72,9 @@ public:
     declare_parameter("log_rejects", true);
     declare_parameter("log_reject_every_n", 25);
     declare_parameter("max_hold_sec_before_reseed", 2.0);
+    declare_parameter("warmup_sec", 0.0);
+    declare_parameter("sensor_data_qos", false);
+    declare_parameter("latch_on_reject", false);
 
     input_topic_ = get_parameter("input_topic").as_string();
     output_topic_ = get_parameter("output_topic").as_string();
@@ -92,6 +96,11 @@ public:
     log_rejects_ = get_parameter("log_rejects").as_bool();
     log_reject_every_n_ = static_cast<size_t>(std::max<int64_t>(1, get_parameter("log_reject_every_n").as_int()));
     max_hold_sec_before_reseed_ = get_parameter("max_hold_sec_before_reseed").as_double();
+    warmup_sec_ = get_parameter("warmup_sec").as_double();
+    latch_on_reject_ = get_parameter("latch_on_reject").as_bool();
+    if (!std::isfinite(warmup_sec_) || warmup_sec_ < 0.0) {
+      throw std::invalid_argument("warmup_sec must be finite and nonnegative");
+    }
 
     path_msg_.header.frame_id = odom_frame_;
     odom_pub_ = create_publisher<nav_msgs::msg::Odometry>(output_topic_, 20);
@@ -103,7 +112,9 @@ public:
       tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     }
     sub_ = create_subscription<nav_msgs::msg::Odometry>(
-      input_topic_, 50, std::bind(&VisualOdomGuard::odomCallback, this, std::placeholders::_1));
+      input_topic_, get_parameter("sensor_data_qos").as_bool() ?
+      rclcpp::QoS(rclcpp::SensorDataQoS().keep_last(50)) : rclcpp::QoS(50),
+      std::bind(&VisualOdomGuard::odomCallback, this, std::placeholders::_1));
 
     RCLCPP_INFO(
       get_logger(),
@@ -115,6 +126,18 @@ public:
 private:
   void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
   {
+    if (!latched_reason_.empty()) {
+      publishStatus(latched_reason_);
+      return;
+    }
+    const double stamp = stampSeconds(msg->header.stamp);
+    if (!first_sample_stamp_) {
+      first_sample_stamp_ = stamp;
+    }
+    if (stamp - *first_sample_stamp_ < warmup_sec_) {
+      publishStatus("warming up: no navigation pose published");
+      return;
+    }
     if (!last_accepted_) {
       acceptSample(*msg, "initial");
       return;
@@ -127,6 +150,12 @@ private:
     }
 
     ++rejected_count_;
+    if (latch_on_reject_) {
+      latched_reason_ = "latched: " + reason + "; restart required";
+      RCLCPP_WARN(get_logger(), "%s", latched_reason_.c_str());
+      publishStatus(latched_reason_);
+      return;
+    }
     if (shouldReseed(*msg)) {
       RCLCPP_WARN(
         get_logger(), "reseed guarded odom after sustained rejects: held_for=%.3fs, rejected=%zu",
@@ -340,6 +369,10 @@ private:
   double max_yaw_rate_{radians(120.0)};
   double min_dt_sec_{0.001};
   double max_hold_sec_before_reseed_{2.0};
+  double warmup_sec_{0.0};
+  std::optional<double> first_sample_stamp_;
+  bool latch_on_reject_{false};
+  std::string latched_reason_;
 
   std::optional<nav_msgs::msg::Odometry> last_accepted_;
   std::optional<builtin_interfaces::msg::Time> first_rejected_stamp_;

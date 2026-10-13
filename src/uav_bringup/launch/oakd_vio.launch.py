@@ -11,6 +11,8 @@ from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import PackageNotFoundError, get_package_share_directory
 import os
 import yaml
+from pathlib import Path
+import sys
 
 def _as_bool(value):
     return str(value).lower() in ("1", "true", "yes", "on")
@@ -69,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
                     )
                 ),
                 launch_arguments={
-                    "imu_frequency": "400",
+                    "imu_frequency": LaunchConfiguration("oakd_imu_frequency"),
                     "imu_axis_mode": LaunchConfiguration("oakd_imu_axis_mode"),
                     "imu_to_camera_tf_source": LaunchConfiguration(
                         "oakd_imu_to_camera_tf_source"
@@ -78,6 +80,8 @@ def launch_setup(context, *args, **kwargs):
                         "oakd_imu_to_camera_socket"
                     ),
                     "image_frequency": LaunchConfiguration("oakd_image_frequency"),
+                    "enable_sensor_diagnostics": LaunchConfiguration("oakd_enable_sensor_diagnostics"),
+                    "mono_auto_exposure_limit_us": LaunchConfiguration("oakd_mono_auto_exposure_limit_us"),
                     "image_poll_frequency": LaunchConfiguration(
                         "oakd_image_poll_frequency"
                     ),
@@ -139,6 +143,22 @@ def launch_setup(context, *args, **kwargs):
         )
     if _as_bool(LaunchConfiguration("launch_visual_slam").perform(context)):
         visual_slam_package = LaunchConfiguration("visual_slam_package").perform(context)
+        sdk_env = None
+        selected_sdk = LaunchConfiguration("vio_sdk").perform(context)
+        if selected_sdk == "sdk16":
+            # Resolve symlink-installed launch back to the workspace. Only the
+            # VIO container receives this prefix; other components keep theirs.
+            workspace = Path(__file__).resolve().parents[3]
+            sys.path.insert(0, str(workspace / "scripts"))
+            from vio_sdk_selection import sdk16_environment
+            sdk_env = sdk16_environment()
+            if visual_slam_package != "isaac_ros_visual_slam":
+                raise RuntimeError("SDK16 requires isaac_ros_visual_slam")
+            if visual_slam_node_params.get("enable_localization_n_mapping", False):
+                raise RuntimeError("SDK16 default is VIO-only; SLAM is not migrated")
+            nodes.append(LogInfo(msg="cuVSLAM 16 default: corrected local conditional covariance; hardware/flight unqualified"))
+        else:
+            raise RuntimeError("vio_sdk must be sdk16; legacy SDK15 is retained only as historical evidence")
         try:
             get_package_share_directory(visual_slam_package)
             nodes.append(
@@ -147,6 +167,7 @@ def launch_setup(context, *args, **kwargs):
                     namespace="",
                     package="rclcpp_components",
                     executable="component_container",
+                    additional_env=sdk_env,
                     composable_node_descriptions=[
                         ComposableNode(
                             name="visual_slam_node",
@@ -180,6 +201,18 @@ def launch_setup(context, *args, **kwargs):
                     )
                 )
             )
+    nodes.append(
+        Node(
+            package="uav_bringup", executable="gazebo_odometry_velocity.py",
+            name="vio_navigation_odometry", output="screen",
+            parameters=[{"input_topic": LaunchConfiguration("navigation_input_topic"),
+                         "output_topic": LaunchConfiguration("navigation_odom_topic"),
+                         "smoothing_factor": 0.45, "max_sample_period_sec": 0.25,
+                         "warmup_sec": 0.0,
+                         "use_sim_time": LaunchConfiguration("use_sim_time")}],
+            condition=IfCondition(LaunchConfiguration("launch_navigation_odometry")),
+        )
+    )
     nodes.append(
         Node(
             package="nav_guard",
@@ -217,6 +250,10 @@ def launch_setup(context, *args, **kwargs):
                     "max_hold_sec_before_reseed": LaunchConfiguration(
                         "odom_guard_max_hold_sec_before_reseed"
                     ),
+                    "warmup_sec": LaunchConfiguration("navigation_warmup_sec")
+                    if _as_bool(LaunchConfiguration("launch_navigation_odometry").perform(context)) else 0.0,
+                    "sensor_data_qos": True,
+                    "latch_on_reject": LaunchConfiguration("odom_guard_latch_on_reject"),
                 }
             ],
             condition=IfCondition(LaunchConfiguration("launch_odom_guard")),
@@ -265,6 +302,10 @@ def generate_launch_description():
         DeclareLaunchArgument("launch_oakd", default_value="true"),
         DeclareLaunchArgument("launch_visual_slam", default_value="true"),
         DeclareLaunchArgument("launch_odom_guard", default_value="true"),
+        DeclareLaunchArgument("launch_navigation_odometry", default_value="false"),
+        DeclareLaunchArgument("navigation_input_topic", default_value="/visual_slam/guarded_odometry"),
+        DeclareLaunchArgument("navigation_odom_topic", default_value="/navigation/odometry"),
+        DeclareLaunchArgument("navigation_warmup_sec", default_value="20.0"),
         DeclareLaunchArgument("launch_robot_localization", default_value="true"),
         DeclareLaunchArgument(
                 "odom_guard_input_topic",
@@ -283,6 +324,7 @@ def generate_launch_description():
                 default_value="/visual_slam/guarded_path",
             ),
         DeclareLaunchArgument("odom_guard_publish_path", default_value="true"),
+        DeclareLaunchArgument("odom_guard_latch_on_reject", default_value=LaunchConfiguration("launch_navigation_odometry")),
         DeclareLaunchArgument("odom_guard_path_max_poses", default_value="2000"),
         DeclareLaunchArgument("odom_guard_publish_tf", default_value="true"),
         DeclareLaunchArgument("odom_guard_odom_frame", default_value="odom"),
@@ -309,8 +351,13 @@ def generate_launch_description():
             ),
         DeclareLaunchArgument("publish_oakd_static_tf", default_value="true"),
         DeclareLaunchArgument("oakd_image_frequency", default_value="25"),
+        DeclareLaunchArgument("oakd_enable_sensor_diagnostics", default_value="false"),
+        DeclareLaunchArgument("oakd_mono_auto_exposure_limit_us", default_value="0"),
+        # DepthAI C++ 2.31.1 on this Pro W reports ~200 Hz for a 250 Hz request.
+        # Match the estimator's calibration_frequency to that measured rate.
+        DeclareLaunchArgument("oakd_imu_frequency", default_value="250"),
         DeclareLaunchArgument("oakd_imu_axis_mode", default_value="raw"),
-        DeclareLaunchArgument("oakd_imu_to_camera_tf_source", default_value="manual"),
+        DeclareLaunchArgument("oakd_imu_to_camera_tf_source", default_value="eeprom"),
         DeclareLaunchArgument("oakd_imu_to_camera_socket", default_value="CAM_A"),
         DeclareLaunchArgument("oakd_image_poll_frequency", default_value="75"),
         DeclareLaunchArgument("oakd_image_queue_size", default_value="2"),
@@ -329,6 +376,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
                 "visual_slam_package", default_value="isaac_ros_visual_slam"
             ),
+        DeclareLaunchArgument("vio_sdk", default_value="sdk16",
+            description="cuVSLAM16 only; legacy artifacts are historical evidence"),
         DeclareLaunchArgument(
                 "visual_slam_params_file",
                 default_value=PathJoinSubstitution(

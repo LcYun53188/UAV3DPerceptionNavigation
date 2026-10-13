@@ -1,5 +1,6 @@
 import math
 import os
+from oakd_perception.calibration import inverse_extrinsics
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
@@ -58,36 +59,30 @@ def _camera_socket_from_name(socket_name):
     return getattr(dai.CameraBoardSocket, socket_key)
 
 
-def _load_eeprom_imu_to_camera_tf(socket_name):
-    """Read OAK-D EEPROM IMU-to-camera extrinsics as static TF arguments."""
+def _extrinsics_tf_args(transform):
+    rotation, translation = inverse_extrinsics(transform)
+    qx, qy, qz, qw = _quaternion_from_matrix(rotation)
+    return ["--x", f"{translation[0]:.9f}", "--y", f"{translation[1]:.9f}",
+            "--z", f"{translation[2]:.9f}", "--qx", f"{qx:.12f}",
+            "--qy", f"{qy:.12f}", "--qz", f"{qz:.12f}", "--qw", f"{qw:.12f}"]
+
+
+def _load_eeprom_camera_tfs(socket_name):
+    """Read all physical-camera TFs in one device session before driver start."""
     import depthai as dai
 
     with dai.Device() as device:
         calib = device.readCalibration()
         socket = _camera_socket_from_name(socket_name)
-        transform = calib.getImuToCameraExtrinsics(socket, False)
-
-    # DepthAI EEPROM extrinsic translations are reported in centimeters.
-    # ROS TF uses meters, so convert here before publishing the static transform.
-    translation = [float(transform[row][3]) / 100.0 for row in range(3)]
-    rotation = [[float(transform[row][col]) for col in range(3)] for row in range(3)]
-    qx, qy, qz, qw = _quaternion_from_matrix(rotation)
-    return [
-        "--x",
-        f"{translation[0]:.9f}",
-        "--y",
-        f"{translation[1]:.9f}",
-        "--z",
-        f"{translation[2]:.9f}",
-        "--qx",
-        f"{qx:.12f}",
-        "--qy",
-        f"{qy:.12f}",
-        "--qz",
-        f"{qz:.12f}",
-        "--qw",
-        f"{qw:.12f}",
-    ]
+        def camera_mapping(destination):
+            if destination == socket:
+                return [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+            return calib.getCameraExtrinsics(socket, destination, False)
+        return [
+            _extrinsics_tf_args(calib.getImuToCameraExtrinsics(socket, False)),
+            _extrinsics_tf_args(camera_mapping(dai.CameraBoardSocket.CAM_B)),
+            _extrinsics_tf_args(camera_mapping(dai.CameraBoardSocket.CAM_C)),
+        ]
 
 
 def _manual_imu_to_camera_tf_args():
@@ -211,6 +206,8 @@ def launch_setup(context, *args, **kwargs):
             LaunchConfiguration("image_pair_max_dt_ms").perform(context)
         ),
         "imu_frame_id": LaunchConfiguration("imu_frame_id").perform(context),
+        "enable_sensor_diagnostics": LaunchConfiguration("enable_sensor_diagnostics").perform(context).lower() == "true",
+        "mono_auto_exposure_limit_us": int(LaunchConfiguration("mono_auto_exposure_limit_us").perform(context)),
         "pointcloud_frame_id": LaunchConfiguration("pointcloud_frame_id").perform(
             context
         ),
@@ -230,65 +227,21 @@ def launch_setup(context, *args, **kwargs):
         parameters=node_params,
     )
 
-    # 静态变换：oakd_imu_link -> oakd_camera_optical_frame
-    #
-    # 这组参数描述 OAK-D 设备内部 IMU/机身坐标系到相机光学坐标系的固定关系。
-    # 它不是 OAK-D 相对机器人底盘的安装位置；整台 OAK-D 的底盘安装外参在
-    # uav_bringup/launch/ekf_launch.py 中通过 base_link -> oakd_imu_link 配置。
-    #
-    # TF 链路整体应为：
-    #   base_link -> oakd_imu_link -> oakd_camera_optical_frame
-    #
-    # 坐标系含义：
-    #   - oakd_imu_link：OAK-D 内置 IMU / 相机机身参考坐标系。
-    #   - oakd_camera_optical_frame：相机光学坐标系，也是 /oakd/points 和
-    #     /oakd/points_filtered 默认使用的 frame_id。
-    #
-    # static_transform_publisher 参数顺序：
-    #   x y z yaw pitch roll parent_frame child_frame
-    #
-    # 默认优先读取 OAK-D EEPROM 的 factory calibration：
-    #   calib.getImuToCameraExtrinsics(<socket>, False)
-    # 这与 Luxonis/DepthAI 官方 IMU 文档一致，避免手写相机-IMU外参。
-    #
-    # 该 TF 与 oakd_unified_node.py 的 imu_axis_mode=raw 配套：
-    #   - /oakd/imu/raw 保持 DepthAI/OAK-D 原始 IMU 轴。
-    #   - 由这条静态 TF 描述原始 IMU frame 到 Luxonis RDF/ROS optical
-    #     camera frame 的关系。
-    #
-    # 对 Isaac ROS Visual SLAM 而言，相机-IMU外参必须和 IMU 消息的 frame
-    # 保持同一套轴约定。不要同时预转换 IMU 轴又继续使用原始 IMU 外参。
-    #
-    # 如果 EEPROM IMU extrinsics 不可用，则回退到历史手写旋转：
-    #   - yaw = 1.57 rad
-    #   - pitch = 0
-    #   - roll = 3.14 rad
-    #
-    # 这组旋转用于把 OAK-D 机身/IMU 坐标轴转换到 ROS optical frame 约定：
-    #   - optical +X：图像右方
-    #   - optical +Y：图像下方
-    #   - optical +Z：相机前方
-    #
-    # 注意：
-    #   - 如果这里旋转方向写反，点云会出现轴向翻转。
-    #   - 如果只是移动 OAK-D 在飞机上的安装位置，不应改这里，应改
-    #     base_link -> oakd_imu_link。
+    # EEPROM mappings transform source points into destination coordinates.
+    # ROS TF stores the child pose in its parent, so invert each mapping.
+    # The child frames here are physical camera frames; CameraInfo.R carries
+    # the optical rectification applied by DepthAI and consumed by cuVSLAM.
+    # Factory TFs require raw IMU axes. Manual TFs are an explicit legacy mode.
     imu_to_camera_args = _manual_imu_to_camera_tf_args()
+    left_camera_args = ["--x", LaunchConfiguration("left_camera_x")]
+    right_camera_args = ["--x", LaunchConfiguration("right_camera_x")]
     if imu_to_camera_tf_source == "eeprom":
-        try:
-            imu_to_camera_args = _load_eeprom_imu_to_camera_tf(
-                imu_to_camera_socket
-            )
-            print(
-                "Loaded OAK-D EEPROM IMU-to-camera extrinsics "
-                f"for socket {imu_to_camera_socket}: {imu_to_camera_args}"
-            )
-        except Exception as exc:
-            print(
-                "WARNING: failed to read OAK-D EEPROM IMU-to-camera "
-                f"extrinsics for socket {imu_to_camera_socket}; "
-                f"falling back to manual TF: {exc}"
-            )
+        imu_to_camera_args, left_camera_args, right_camera_args = _load_eeprom_camera_tfs(
+            imu_to_camera_socket)
+        print(f"Loaded factory physical-camera TFs via {imu_to_camera_socket}; "
+              "CameraInfo R applies the subsequent rectification rotation.")
+    elif imu_to_camera_tf_source != "manual":
+        raise ValueError(f"Unknown imu_to_camera_tf_source: {imu_to_camera_tf_source}")
 
     static_tf_node = Node(
         package="tf2_ros",
@@ -307,32 +260,16 @@ def launch_setup(context, *args, **kwargs):
         package="tf2_ros",
         executable="static_transform_publisher",
         name="oakd_center_to_left_camera_tf",
-        arguments=[
-            LaunchConfiguration("left_camera_x"),
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
-            "oakd_camera_optical_frame",
-            LaunchConfiguration("left_camera_frame_id"),
-        ],
+        arguments=left_camera_args + ["--frame-id", "oakd_camera_optical_frame",
+            "--child-frame-id", LaunchConfiguration("left_camera_frame_id")],
     )
 
     right_camera_tf_node = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
         name="oakd_center_to_right_camera_tf",
-        arguments=[
-            LaunchConfiguration("right_camera_x"),
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
-            "oakd_camera_optical_frame",
-            LaunchConfiguration("right_camera_frame_id"),
-        ],
+        arguments=right_camera_args + ["--frame-id", "oakd_camera_optical_frame",
+            "--child-frame-id", LaunchConfiguration("right_camera_frame_id")],
     )
 
     return [oakd_unified_node, static_tf_node, left_camera_tf_node, right_camera_tf_node]
@@ -347,7 +284,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "imu_to_camera_tf_source",
                 default_value="eeprom",
-                description="Use 'eeprom' OAK-D factory IMU-camera extrinsics or 'manual' fallback TF.",
+                description="Use factory physical-camera TFs; missing EEPROM fails startup. 'manual' explicitly selects legacy TFs.",
             ),
             DeclareLaunchArgument(
                 "imu_to_camera_socket",
@@ -427,6 +364,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("stereo_baseline_m", default_value="0.075"),
             DeclareLaunchArgument("image_frequency", default_value="25"),
+            DeclareLaunchArgument("enable_sensor_diagnostics", default_value="false"),
+            DeclareLaunchArgument("mono_auto_exposure_limit_us", default_value="0"),
             DeclareLaunchArgument("image_poll_frequency", default_value="75"),
             DeclareLaunchArgument("image_queue_size", default_value="2"),
             DeclareLaunchArgument("image_pair_max_dt_ms", default_value="8.0"),

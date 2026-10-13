@@ -21,6 +21,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "std_msgs/msg/header.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 
 namespace
 {
@@ -89,6 +90,8 @@ private:
     declare_parameter("imu_topic_name", "/oakd/imu/raw");
     declare_parameter("imu_frame_id", "oakd_imu_link");
     declare_parameter("imu_axis_mode", "raw");
+    declare_parameter("enable_sensor_diagnostics", false);
+    declare_parameter("mono_auto_exposure_limit_us", 0);
 
     declare_parameter("enable_passive_stereo", true);
     declare_parameter("enable_active_stereo", false);
@@ -138,6 +141,9 @@ private:
     imu_topic_name_ = get_parameter("imu_topic_name").as_string();
     imu_frame_id_ = get_parameter("imu_frame_id").as_string();
     imu_axis_mode_ = get_parameter("imu_axis_mode").as_string();
+    enable_sensor_diagnostics_ = get_parameter("enable_sensor_diagnostics").as_bool();
+    mono_auto_exposure_limit_us_ = get_parameter("mono_auto_exposure_limit_us").as_int();
+    if (mono_auto_exposure_limit_us_ < 0) {throw std::invalid_argument("Negative exposure limit");}
 
     enable_passive_stereo_ = get_parameter("enable_passive_stereo").as_bool();
     enable_active_stereo_ = get_parameter("enable_active_stereo").as_bool();
@@ -200,6 +206,10 @@ private:
     auto imu_qos = rclcpp::SensorDataQoS().keep_last(20).best_effort();
 
     imu_pub_ = create_publisher<sensor_msgs::msg::Imu>(imu_topic_name_, imu_qos);
+    if (enable_sensor_diagnostics_) {
+      imu_timing_pub_ = create_publisher<std_msgs::msg::Float64MultiArray>("/oakd/imu/timing", imu_qos);
+      exposure_pub_ = create_publisher<std_msgs::msg::Float64MultiArray>("/oakd/stereo/exposure", sensor_qos);
+    }
     if (enable_pointcloud_publish_) {
       pc_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(pointcloud_topic_, sensor_qos);
       filtered_pc_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(filtered_pointcloud_topic_, sensor_qos);
@@ -238,12 +248,17 @@ private:
     mono_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_400_P);
     mono_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);
     mono_right->setFps(static_cast<float>(image_frequency_));
+    if (mono_auto_exposure_limit_us_ > 0) {
+      mono_left->initialControl.setAutoExposureLimit(mono_auto_exposure_limit_us_);
+      mono_right->initialControl.setAutoExposureLimit(mono_auto_exposure_limit_us_);
+    }
 
     const bool low_latency_stereo =
       stereo_quality_mode_ == "low_latency" ||
       (stereo_quality_mode_ == "auto" && !enable_depth_publish_ && !enable_pointcloud_publish_);
 
     stereo->setDefaultProfilePreset(dai::node::StereoDepth::PresetMode::DEFAULT);
+    stereo->setRectificationUseSpecTranslation(false);
     stereo->setLeftRightCheck(!low_latency_stereo);
     stereo->setSubpixel(!low_latency_stereo);
 
@@ -315,10 +330,23 @@ private:
       auto calib = device_ ? device_->readCalibration() : pipeline_.getCalibrationData();
       left_intrinsics_ = readIntrinsics(calib, dai::CameraBoardSocket::CAM_B, left_intrinsics_);
       right_intrinsics_ = readIntrinsics(calib, dai::CameraBoardSocket::CAM_C, right_intrinsics_);
+      if (image_output_mode_ == "rectified") {
+        // DepthAI rectifies both images into the right camera's intrinsics.
+        // Keep physical camera TFs; cuVSLAM applies CameraInfo.R.inverse().
+        left_intrinsics_ = right_intrinsics_;
+        const auto left_r = calib.getStereoLeftRectificationRotation();
+        const auto right_r = calib.getStereoRightRectificationRotation();
+        for (size_t row = 0; row < 3; ++row) {
+          for (size_t col = 0; col < 3; ++col) {
+            left_rectification_[3 * row + col] = left_r.at(row).at(col);
+            right_rectification_[3 * row + col] = right_r.at(row).at(col);
+          }
+        }
+      }
       depth_intrinsics_ = right_intrinsics_;
       try {
         const double baseline_cm = calib.getBaselineDistance(
-          dai::CameraBoardSocket::CAM_B, dai::CameraBoardSocket::CAM_C);
+          dai::CameraBoardSocket::CAM_B, dai::CameraBoardSocket::CAM_C, false);
         if (baseline_cm > 0.0) {
           stereo_baseline_m_ = baseline_cm / 100.0;
         }
@@ -329,6 +357,9 @@ private:
         get_logger(), "Calibration loaded: left_fx=%.1f right_fx=%.1f baseline=%.4fm",
         left_intrinsics_.fx, right_intrinsics_.fx, stereo_baseline_m_);
     } catch (const std::exception & exc) {
+      if (image_output_mode_ == "rectified") {
+        throw std::runtime_error(std::string("Rectified camera calibration is required: ") + exc.what());
+      }
       RCLCPP_WARN(get_logger(), "Failed to load calibration, using defaults: %s", exc.what());
     }
   }
@@ -345,6 +376,9 @@ private:
         static_cast<double>(matrix[1][2])};
     } catch (const std::exception & exc) {
       RCLCPP_WARN(get_logger(), "Failed to read camera intrinsics, using fallback: %s", exc.what());
+      if (image_output_mode_ == "rectified") {
+        throw;
+      }
       return fallback;
     }
   }
@@ -414,11 +448,8 @@ private:
     if (!imu_queue_) {
       return;
     }
-    auto imu_data = imu_queue_->tryGet<dai::IMUData>();
-    if (!imu_data) {
-      return;
-    }
-
+    // Drain available batches so temporary image work cannot leave IMU backlog.
+    while (auto imu_data = imu_queue_->tryGet<dai::IMUData>()) {
     for (const auto & packet : imu_data->packets) {
       sensor_msgs::msg::Imu msg;
       msg.header = makeHeader(imu_frame_id_, timestampToSeconds(packet.acceleroMeter.getTimestampDevice()));
@@ -439,6 +470,15 @@ private:
       msg.linear_acceleration_covariance = {0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01};
       msg.angular_velocity_covariance = {0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001};
       imu_pub_->publish(msg);
+      if (imu_timing_pub_) {
+        std_msgs::msg::Float64MultiArray timing;
+        timing.data = {timestampToSeconds(packet.acceleroMeter.getTimestampDevice()),
+          timestampToSeconds(packet.gyroscope.getTimestampDevice()),
+          static_cast<double>(packet.acceleroMeter.getSequenceNum()),
+          static_cast<double>(packet.gyroscope.getSequenceNum())};
+        imu_timing_pub_->publish(timing);
+      }
+    }
     }
   }
 
@@ -503,8 +543,16 @@ private:
       return;
     }
 
-    auto left = latestQueueFrame<dai::ImgFrame>(left_queue_);
-    auto right = latestQueueFrame<dai::ImgFrame>(right_queue_);
+    // USB arrival is asynchronous even for hardware-synchronized exposures.
+    // Retain a lone frame until its mate arrives instead of consuming it twice.
+    if (auto frame = latestQueueFrame<dai::ImgFrame>(left_queue_)) {
+      pending_left_ = frame;
+    }
+    if (auto frame = latestQueueFrame<dai::ImgFrame>(right_queue_)) {
+      pending_right_ = frame;
+    }
+    auto left = pending_left_;
+    auto right = pending_right_;
     if (!left || !right) {
       return;
     }
@@ -513,6 +561,8 @@ private:
     const double right_seconds = timestampToSeconds(right->getTimestampDevice());
     const double pair_dt_ms = std::abs(left_seconds - right_seconds) * 1000.0;
     if (pair_dt_ms > image_pair_max_dt_ms_) {
+      if (left_seconds < right_seconds) {pending_left_.reset();}
+      else {pending_right_.reset();}
       ++image_drop_count_;
       if (image_drop_count_ <= 5 || image_drop_count_ % 30 == 0) {
         RCLCPP_WARN(
@@ -522,18 +572,30 @@ private:
       return;
     }
 
+    if (exposure_pub_) {
+      std_msgs::msg::Float64MultiArray exposure;
+      exposure.data = {static_cast<double>(left->getExposureTime().count()),
+        static_cast<double>(right->getExposureTime().count()),
+        static_cast<double>(left->getSensitivity()), static_cast<double>(right->getSensitivity()),
+        pair_dt_ms, left_seconds, right_seconds};
+      exposure_pub_->publish(exposure);
+    }
     const double device_seconds = 0.5 * (left_seconds + right_seconds);
     const auto stamp = stampFromDeviceTime(device_seconds);
 
     auto left_msg = createImageMsg(*left, left_camera_frame_id_, stamp, "mono8", 1);
     auto right_msg = createImageMsg(*right, right_camera_frame_id_, stamp, "mono8", 1);
 
-    const auto left_info = createCameraInfoMsg(
+    auto left_info = createCameraInfoMsg(
       left_msg.header, static_cast<int>(left_msg.height), static_cast<int>(left_msg.width),
       left_intrinsics_);
-    const auto right_info = createCameraInfoMsg(
+    auto right_info = createCameraInfoMsg(
       right_msg.header, static_cast<int>(right_msg.height), static_cast<int>(right_msg.width),
       right_intrinsics_, -right_intrinsics_.fx * stereo_baseline_m_);
+    left_info.r = left_rectification_;
+    right_info.r = right_rectification_;
+    pending_left_.reset();
+    pending_right_.reset();
 
     if (image_publish_order_ == "right_first") {
       right_pub_->publish(right_msg);
@@ -704,6 +766,8 @@ private:
   std::string imu_frame_id_;
   std::string imu_axis_mode_;
   bool warned_unknown_imu_axis_mode_{false};
+  bool enable_sensor_diagnostics_{false};
+  int mono_auto_exposure_limit_us_{0};
 
   bool enable_passive_stereo_{true};
   bool enable_active_stereo_{false};
@@ -752,6 +816,8 @@ private:
   Intrinsics left_intrinsics_;
   Intrinsics right_intrinsics_;
   Intrinsics depth_intrinsics_;
+  std::array<double, 9> left_rectification_{1, 0, 0, 0, 1, 0, 0, 0, 1};
+  std::array<double, 9> right_rectification_{1, 0, 0, 0, 1, 0, 0, 0, 1};
 
   dai::Pipeline pipeline_;
   std::unique_ptr<dai::Device> device_;
@@ -759,12 +825,16 @@ private:
   std::shared_ptr<dai::DataOutputQueue> depth_queue_;
   std::shared_ptr<dai::DataOutputQueue> left_queue_;
   std::shared_ptr<dai::DataOutputQueue> right_queue_;
+  std::shared_ptr<dai::ImgFrame> pending_left_;
+  std::shared_ptr<dai::ImgFrame> pending_right_;
   std::shared_ptr<dai::DataOutputQueue> mono_diagnostic_depth_queue_;
 
   std::optional<std::pair<double, double>> device_time_base_;
   std::optional<double> last_image_stamp_seconds_;
 
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr imu_timing_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr exposure_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr filtered_pc_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr left_pub_;

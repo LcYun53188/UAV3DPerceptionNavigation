@@ -35,7 +35,10 @@ visual_slam:
     imu_qos: SENSOR_DATA
     image_buffer_size: 100
     imu_buffer_size: 200
-    calibration_frequency: 250.0
+    # Pro W / BMI270: measured ~200 Hz with DepthAI C++ 2.31.1 when the
+    # sensor request is 250 Hz. This is the measured report rate, not the
+    # request rate; remeasure after changing SDK/firmware or IMU hardware.
+    calibration_frequency: 200.0
 
     enable_slam_visualization: false
     enable_observations_view: false

@@ -35,6 +35,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("use_sim_time", default_value="false"),
+            DeclareLaunchArgument("vio_sdk", default_value="sdk16"),
             DeclareLaunchArgument("launch_rviz", default_value="true"),
             DeclareLaunchArgument("launch_odom_guard", default_value="true"),
             DeclareLaunchArgument("launch_robot_localization", default_value="true"),
@@ -75,6 +76,7 @@ def generate_launch_description():
             DeclareLaunchArgument("oakd_pitch", default_value="1.88495559215"),
             DeclareLaunchArgument("oakd_roll", default_value="3.14159265359"),
             DeclareLaunchArgument("oakd_image_frequency", default_value="25"),
+            DeclareLaunchArgument("oakd_imu_frequency", default_value="250"),
             DeclareLaunchArgument("oakd_image_poll_frequency", default_value="75"),
             DeclareLaunchArgument("oakd_image_queue_size", default_value="2"),
             DeclareLaunchArgument("oakd_image_pair_max_dt_ms", default_value="8.0"),
@@ -88,16 +90,17 @@ def generate_launch_description():
             DeclareLaunchArgument("oakd_imu_axis_mode", default_value="raw"),
             DeclareLaunchArgument(
                 "oakd_imu_to_camera_tf_source",
-                default_value="manual",
+                default_value="eeprom",
                 description=(
-                    "Use 'manual' for the verified validation TF, or 'eeprom' "
-                    "to try OAK-D factory IMU-camera extrinsics."
+                    "Use factory physical-camera TFs; missing EEPROM fails startup. "
+                    "'manual' explicitly selects legacy TFs."
                 ),
             ),
             DeclareLaunchArgument("oakd_imu_to_camera_socket", default_value="CAM_A"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(oakd_vio_launch),
                 launch_arguments={
+                    "vio_sdk": LaunchConfiguration("vio_sdk"),
                     "use_sim_time": LaunchConfiguration("use_sim_time"),
                     "launch_oakd": "true",
                     "launch_visual_slam": "true",
@@ -145,6 +148,7 @@ def generate_launch_description():
                     "oakd_enable_depth_publish": "false",
                     "oakd_enable_pointcloud_publish": "false",
                     "oakd_imu_axis_mode": LaunchConfiguration("oakd_imu_axis_mode"),
+                    "oakd_imu_frequency": LaunchConfiguration("oakd_imu_frequency"),
                     "oakd_imu_to_camera_tf_source": LaunchConfiguration(
                         "oakd_imu_to_camera_tf_source"
                     ),

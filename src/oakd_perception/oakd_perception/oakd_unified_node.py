@@ -14,7 +14,7 @@ from rclpy.qos import (
     QoSReliabilityPolicy,
 )
 from sensor_msgs.msg import CameraInfo, Imu, Image, PointCloud2
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Float64MultiArray
 
 from oakd_perception.fov_boundary_filter import (
     FOVBoundaryFilter,
@@ -37,6 +37,8 @@ class OakDUnifiedNode(Node):
         self.declare_parameter("imu_topic_name", "/oakd/imu/raw")
         self.declare_parameter("imu_frame_id", "oakd_imu_link")
         self.declare_parameter("imu_axis_mode", "raw")
+        self.declare_parameter("enable_sensor_diagnostics", False)
+        self.declare_parameter("mono_auto_exposure_limit_us", 0)
 
         # ============ 深度模式开关配置 ============
         self.declare_parameter("enable_passive_stereo", True)
@@ -89,6 +91,9 @@ class OakDUnifiedNode(Node):
         self.imu_topic_name = self.get_parameter("imu_topic_name").value
         self.imu_frame_id = self.get_parameter("imu_frame_id").value
         self.imu_axis_mode = self.get_parameter("imu_axis_mode").value
+        self.enable_sensor_diagnostics = self.get_parameter("enable_sensor_diagnostics").value
+        self.mono_auto_exposure_limit_us = self.get_parameter("mono_auto_exposure_limit_us").value
+        if self.mono_auto_exposure_limit_us < 0:raise ValueError("Negative exposure limit")
         self._warned_unknown_imu_axis_mode = False
 
         # 获取深度参数
@@ -220,11 +225,18 @@ class OakDUnifiedNode(Node):
                 CameraInfo, self.depth_camera_info_topic, sensor_qos
             )
 
+        self.imu_timing_pub = self.exposure_pub = None
+        if self.enable_sensor_diagnostics:
+            self.imu_timing_pub = self.create_publisher(Float64MultiArray, '/oakd/imu/timing', sensor_qos)
+            self.exposure_pub = self.create_publisher(Float64MultiArray, '/oakd/stereo/exposure', sensor_qos)
+
         # 内部状态
         self.imu_queue = None
         self.depth_queue = None
         self.left_queue = None
         self.right_queue = None
+        self.pending_left = None
+        self.pending_right = None
         self.mono_diagnostic_depth_queue = None
         self.pipeline = dai.Pipeline()
         self.device_time_base = None
@@ -367,6 +379,7 @@ class OakDUnifiedNode(Node):
         monoLeft = self.pipeline.create(dai.node.MonoCamera)
         monoRight = self.pipeline.create(dai.node.MonoCamera)
         stereo = self.pipeline.create(dai.node.StereoDepth)
+        stereo.setRectificationUseSpecTranslation(False)
 
         monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
@@ -374,6 +387,9 @@ class OakDUnifiedNode(Node):
         monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
         monoRight.setFps(float(self.image_frequency))
+        if self.mono_auto_exposure_limit_us > 0:
+            monoLeft.initialControl.setAutoExposureLimit(self.mono_auto_exposure_limit_us)
+            monoRight.initialControl.setAutoExposureLimit(self.mono_auto_exposure_limit_us)
 
         # 主动立体配置
         ir_enabled = False
@@ -497,6 +513,8 @@ class OakDUnifiedNode(Node):
         self.left_intrinsics = default_intrinsics.copy()
         self.right_intrinsics = default_intrinsics.copy()
         self.depth_intrinsics = default_intrinsics.copy()
+        self.left_rectification = np.eye(3).flatten().tolist()
+        self.right_rectification = np.eye(3).flatten().tolist()
         self.fx = self.depth_intrinsics["fx"]
         self.fy = self.depth_intrinsics["fy"]
         self.cx = self.depth_intrinsics["cx"]
@@ -510,6 +528,12 @@ class OakDUnifiedNode(Node):
             self.right_intrinsics = self._read_camera_intrinsics(
                 calibData, dai.CameraBoardSocket.RIGHT, default_intrinsics
             )
+            if self.image_output_mode == "rectified":
+                self.left_intrinsics = self.right_intrinsics.copy()
+                self.left_rectification = np.asarray(
+                    calibData.getStereoLeftRectificationRotation()).flatten().tolist()
+                self.right_rectification = np.asarray(
+                    calibData.getStereoRightRectificationRotation()).flatten().tolist()
             self.depth_intrinsics = self.right_intrinsics.copy()
             self._load_stereo_baseline(calibData)
             self.fx = self.depth_intrinsics["fx"]
@@ -524,6 +548,8 @@ class OakDUnifiedNode(Node):
                 f"baseline={self.stereo_baseline_m:.4f}m"
             )
         except Exception as e:
+            if self.image_output_mode == "rectified":
+                raise RuntimeError("Rectified camera calibration is required") from e
             self.get_logger().warn(f"标定信息加载失败，使用默认值: {e}")
 
     def _read_camera_intrinsics(self, calib_data, socket, fallback):
@@ -537,6 +563,8 @@ class OakDUnifiedNode(Node):
                 "cy": float(intrinsics[1][2]),
             }
         except Exception as exc:
+            if self.image_output_mode == "rectified":
+                raise
             self.get_logger().warn(f"{socket} 标定信息读取失败，使用默认值: {exc}")
             return fallback.copy()
 
@@ -544,7 +572,7 @@ class OakDUnifiedNode(Node):
         """Read stereo baseline from OAK-D EEPROM calibration when available."""
         try:
             baseline_cm = calib_data.getBaselineDistance(
-                dai.CameraBoardSocket.LEFT, dai.CameraBoardSocket.RIGHT
+                dai.CameraBoardSocket.LEFT, dai.CameraBoardSocket.RIGHT, False
             )
             if baseline_cm > 0.0:
                 self.stereo_baseline_m = float(baseline_cm) / 100.0
@@ -583,66 +611,70 @@ class OakDUnifiedNode(Node):
             return
 
         try:
-            imu_data = self.imu_queue.tryGet()
-            if imu_data is None:
-                return
+            while True:
+                imu_data = self.imu_queue.tryGet()
+                if imu_data is None:break
+                for packet in imu_data.packets:
+                    imu_msg = Imu()
+                    imu_msg.header = Header()
+                    imu_msg.header.frame_id = self.imu_frame_id
 
-            for packet in imu_data.packets:
-                imu_msg = Imu()
-                imu_msg.header = Header()
-                imu_msg.header.frame_id = self.imu_frame_id
+                    accel_data = getattr(packet, "acceleroMeter", None)
+                    if accel_data is not None:
+                        ax, ay, az = self._convert_imu_vector_to_ros(
+                            float(getattr(accel_data, "x", 0.0)),
+                            float(getattr(accel_data, "y", 0.0)),
+                            float(getattr(accel_data, "z", 0.0)),
+                        )
+                        imu_msg.linear_acceleration.x = ax
+                        imu_msg.linear_acceleration.y = ay
+                        imu_msg.linear_acceleration.z = az
 
-                accel_data = getattr(packet, "acceleroMeter", None)
-                if accel_data is not None:
-                    ax, ay, az = self._convert_imu_vector_to_ros(
-                        float(getattr(accel_data, "x", 0.0)),
-                        float(getattr(accel_data, "y", 0.0)),
-                        float(getattr(accel_data, "z", 0.0)),
+                    gyro_data = getattr(packet, "gyroscope", None)
+                    if gyro_data is not None:
+                        wx, wy, wz = self._convert_imu_vector_to_ros(
+                            float(getattr(gyro_data, "x", 0.0)),
+                            float(getattr(gyro_data, "y", 0.0)),
+                            float(getattr(gyro_data, "z", 0.0)),
+                        )
+                        imu_msg.angular_velocity.x = wx
+                        imu_msg.angular_velocity.y = wy
+                        imu_msg.angular_velocity.z = wz
+
+                    device_seconds = self._extract_device_time(
+                        packet, accel_data, gyro_data
                     )
-                    imu_msg.linear_acceleration.x = ax
-                    imu_msg.linear_acceleration.y = ay
-                    imu_msg.linear_acceleration.z = az
+                    imu_msg.header.stamp = self._stamp_from_device_time(device_seconds)
 
-                gyro_data = getattr(packet, "gyroscope", None)
-                if gyro_data is not None:
-                    wx, wy, wz = self._convert_imu_vector_to_ros(
-                        float(getattr(gyro_data, "x", 0.0)),
-                        float(getattr(gyro_data, "y", 0.0)),
-                        float(getattr(gyro_data, "z", 0.0)),
-                    )
-                    imu_msg.angular_velocity.x = wx
-                    imu_msg.angular_velocity.y = wy
-                    imu_msg.angular_velocity.z = wz
-
-                device_seconds = self._extract_device_time(
-                    packet, accel_data, gyro_data
-                )
-                imu_msg.header.stamp = self._stamp_from_device_time(device_seconds)
-
-                imu_msg.linear_acceleration_covariance = [
-                    0.01,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.01,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.01,
-                ]
-                imu_msg.angular_velocity_covariance = [
-                    0.001,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.001,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.001,
-                ]
-                imu_msg.orientation_covariance[0] = -1.0
-                self.imu_pub.publish(imu_msg)
+                    imu_msg.linear_acceleration_covariance = [
+                        0.01,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.01,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.01,
+                    ]
+                    imu_msg.angular_velocity_covariance = [
+                        0.001,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.001,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.001,
+                    ]
+                    imu_msg.orientation_covariance[0] = -1.0
+                    self.imu_pub.publish(imu_msg)
+                    if self.imu_timing_pub is not None:
+                        self.imu_timing_pub.publish(Float64MultiArray(data=[
+                            self._to_seconds(accel_data.getTimestampDevice()),
+                            self._to_seconds(gyro_data.getTimestampDevice()),
+                            float(accel_data.getSequenceNum()),float(gyro_data.getSequenceNum())]))
         except Exception as e:
             self.get_logger().warn(f"IMU数据处理失败: {e}")
 
@@ -801,8 +833,14 @@ class OakDUnifiedNode(Node):
             return
 
         try:
-            inLeft = self._latest_queue_frame(self.left_queue)
-            inRight = self._latest_queue_frame(self.right_queue)
+            new_left = self._latest_queue_frame(self.left_queue)
+            new_right = self._latest_queue_frame(self.right_queue)
+            if new_left is not None:
+                self.pending_left = new_left
+            if new_right is not None:
+                self.pending_right = new_right
+            inLeft = self.pending_left
+            inRight = self.pending_right
 
             if inLeft is None or inRight is None:
                 return
@@ -812,6 +850,10 @@ class OakDUnifiedNode(Node):
             if left_seconds is not None and right_seconds is not None:
                 pair_dt_ms = abs(left_seconds - right_seconds) * 1000.0
                 if pair_dt_ms > self.image_pair_max_dt_ms:
+                    if left_seconds < right_seconds:
+                        self.pending_left = None
+                    else:
+                        self.pending_right = None
                     self.image_drop_count += 1
                     if self.image_drop_count <= 5 or self.image_drop_count % 30 == 0:
                         self.get_logger().warn(
@@ -823,6 +865,12 @@ class OakDUnifiedNode(Node):
                     return
 
             if left_seconds is not None and right_seconds is not None:
+                if getattr(self, 'exposure_pub', None) is not None:
+                    self.exposure_pub.publish(Float64MultiArray(data=[
+                        float(inLeft.getExposureTime().total_seconds()*1e6),
+                        float(inRight.getExposureTime().total_seconds()*1e6),
+                        float(inLeft.getSensitivity()),float(inRight.getSensitivity()),
+                        abs(left_seconds-right_seconds)*1000,left_seconds,right_seconds]))
                 device_seconds = 0.5 * (left_seconds + right_seconds)
             else:
                 device_seconds = self._extract_device_time(inLeft, inRight)
@@ -846,6 +894,10 @@ class OakDUnifiedNode(Node):
                 self.right_intrinsics,
                 tx=right_tx,
             )
+            left_info_msg.r = self.left_rectification
+            right_info_msg.r = self.right_rectification
+            self.pending_left = None
+            self.pending_right = None
             if self.image_publish_order == "right_first":
                 self.right_pub.publish(right_msg)
                 if self.image_inter_publish_delay_ms > 0.0:
