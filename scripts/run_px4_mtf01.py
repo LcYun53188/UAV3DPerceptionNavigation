@@ -29,8 +29,14 @@ def main():
     parser.add_argument('--no-floor-texture', action='store_true', help='Explicit featureless-floor negative comparison')
     parser.add_argument('--ui', action='store_true', help='Show owned Gazebo viewer')
     parser.add_argument('--stop-sensors', action='store_true', help='After the healthy window, stop both owned adapters and audit 12 seconds of source loss')
+    parser.add_argument('--flight', action='store_true', help='Explicit isolated FLOW_LOCAL takeoff/hover/native LAND, after successful disarmed audit; no EV/VIO source')
+    parser.add_argument('--native-manual', action='store_true', help='With --flight: native Position and simulated RC sticks, no mission gateway or Offboard heartbeat')
     parser.add_argument('--render-device', choices=('default','nvidia','intel'), default='nvidia')
     args = parser.parse_args()
+    if args.native_manual and not args.flight:
+        parser.error('--native-manual requires --flight')
+    if args.flight and (args.no_floor_texture or args.stop_sensors):
+        parser.error('Flight requires the reviewed textured floor and continuous sensor inputs')
     def interrupted(signum,frame):
         raise KeyboardInterrupt('signal '+str(signum))
     signal.signal(signal.SIGTERM,interrupted)
@@ -60,11 +66,16 @@ def execute(args, lock):
     (out/'rootfs').mkdir(parents=True)
     px4 = ROOT/lock['sitl']['path']
     build = px4/'build/px4_sitl_default'
+    build_receipt = None
+    if args.flight:
+        from build_px4_vio import BUILD, verify
+        build_receipt = verify(lock)
+        build = BUILD  # Exposes native EKF aid telemetry; does not start VIO.
     models = px4/'Tools/simulation/gz/models'
     profile = assets(out/'assets', px4/'Tools/simulation/gz/worlds/default.sdf', textured=not args.no_floor_texture)
     runtime=json.loads(subprocess.check_output(['/usr/bin/python3','-c',
         'import cv2,numpy,json,sys; print(json.dumps(dict(python=sys.version,opencv=cv2.__version__,numpy=numpy.__version__)))'],text=True))
-    fusion_file = ROOT/'simulation/px4/mtf01/fusion.json'
+    fusion_file = ROOT/('simulation/px4/mtf01/flow_local.json' if args.flight else 'simulation/px4/mtf01/fusion.json')
     fusion = read(fusion_file)
     env = dict(os.environ, ROS_DOMAIN_ID='78', ROS_LOCALHOST_ONLY='1',
         GZ_DISTRO='harmonic', GZ_PARTITION='uav_mtf01_'+run_id, GZ_IP='127.0.0.1',
@@ -76,6 +87,21 @@ def execute(args, lock):
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(build/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
     env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion['parameters'].items()})
+    if args.flight:
+        region_file=ROOT/'simulation/safe_regions/flow_local.json'
+        receipt=out/'flight-assets.json'
+        write_json(receipt,dict(schema=1,partition=env['GZ_PARTITION'],region_sha256=file_hash(region_file),
+            files={str(p.relative_to(out/'assets')):file_hash(p) for p in (out/'assets').rglob('*') if p.is_file()}))
+        env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),UAV_WORKSPACE=str(ROOT),
+            UAV_REQUIRE_VIO='0',UAV_LOCALIZATION_PROFILE='FLOW_LOCAL',UAV_ENABLE_FUSION_SWITCH='0',
+            UAV_FLIGHT_REGION_PROFILE='flow_local',UAV_FLIGHT_ASSET_RECEIPT=str(receipt),
+            UAV_FLIGHT_ASSET_SHA256=file_hash(receipt),UAV_FLIGHT_EVIDENCE=str(out),
+            UAV_FLIGHT_MODEL=profile['model']+'_7',UAV_FLIGHT_SCENARIO='full',UAV_FLIGHT_BT='0',
+            UAV_ENABLE_EGO_NAV='0',UAV_NAVIGATION_BACKEND='DIRECT',UAV_POCKET_OPERATOR='0',
+            UAV_FLIGHT_MISSION_FILE=str(ROOT/'simulation/missions/flow_local_hover.json'),
+            PX4_PARAM_COM_RC_IN_MODE='4',PX4_PARAM_COM_OF_LOSS_T='0.5',
+            PX4_PARAM_COM_OBL_RC_ACT='4',PX4_PARAM_COM_DISARM_LAND='2')
+        if args.native_manual:env['PX4_PARAM_COM_RC_IN_MODE']='1'
     inputs = [Path(__file__), PROFILE, fusion_file, ROOT/'scripts/prepare_mtf01_assets.py',
         ROOT/'scripts/mtf01_audit.py', ROOT/'scripts/vio_warehouse_scene.py',
         ROOT/'scripts/mtf01_range_bridge.py',
@@ -87,10 +113,17 @@ def execute(args, lock):
         px4/'src/modules/simulation/gz_bridge/GZBridge.cpp',
         px4/'src/modules/simulation/gz_plugins/optical_flow/OpticalFlowSensor.cpp']
     inputs.extend(p for p in (out/'assets').rglob('*') if p.is_file())
+    if args.flight:
+        inputs.extend(ROOT/name for name in ('scripts/run_px4_flight_tasks.py',
+            'scripts/run_flow_manual_tasks.py',
+            'src/uav_mission/uav_mission/flow_gate.py','src/uav_mission/uav_mission/px4_flight.py',
+            'src/uav_mission/uav_mission/flight_profiles.py','simulation/safe_regions/flow_local.json',
+            'simulation/missions/flow_local_hover.json'))
     manifest = dict(schema=1, run_id=run_id, scope='owned disarmed MTF-01 reference audit; no UART or PMW3901 firmware emulation',
         partition=env['GZ_PARTITION'], domain=78, instance=7, duration_s=args.duration,
         profile=profile, fusion=fusion, textured_floor=not args.no_floor_texture,
         stop_sensors=args.stop_sensors, runtime=runtime, versions=lock,
+        flight=args.flight,native_manual=args.native_manual,vio_build=build_receipt,
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs}, processes={})
     processes, logs, receipts = [], [], []
     result = dict(passed=False)
@@ -130,6 +163,12 @@ def execute(args, lock):
         # CUDA/venv dependency or changes to the pinned PX4 plugin binaries.
         launch('flow_adapter', ['/usr/bin/python3', ROOT/'scripts/mtf01_flow_bridge.py','--ros-args','-p','use_sim_time:=true'])
         launch('px4', [build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
+        if args.flight:
+            config=out/'qgc-config/QGroundControl';config.mkdir(parents=True)
+            (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+            launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output'],
+                dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
+                    QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen'))
         print('MTF-01 audit:', out, flush=True)
         started = time.monotonic()
         next_sample = started+12
@@ -171,6 +210,20 @@ def execute(args, lock):
             result['source_loss']=loss_assessment(loss)
             result['checks']['source_loss_detected']=result['source_loss']['passed']
         result['passed'] = all(result['checks'].values())
+        if args.flight and result['passed']:
+            flight=launch('flight_tasks',[sys.executable,ROOT/('scripts/run_flow_manual_tasks.py' if args.native_manual else 'scripts/run_px4_flight_tasks.py')])
+            until=time.monotonic()+110.
+            while flight.poll() is None and time.monotonic()<until:
+                if any(p.poll() is not None for p in processes if p is not flight):
+                    raise RuntimeError('Owned sensor/PX4 process exited during flow flight')
+                time.sleep(.1)
+            flight_file=out/'flight-observation.json'
+            flight_result=read(flight_file) if flight_file.is_file() else {}
+            result['flight']=flight_result
+            result['checks']['standalone_flow_flight']=(flight.poll()==0 and flight_result.get('passed') is True
+                and flight_result.get('standalone_flow',{}).get('passed') is True)
+            result['passed']=all(result['checks'].values())
+            result['scope']='No-GNSS/no-EV rendered MTF reference takeoff/hover/native landing; no hardware flight qualification'
     except BaseException as exc:
         result['error'] = type(exc).__name__+': '+str(exc)
         raise

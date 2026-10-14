@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "steps": [
+    {
+      "type": "TAKEOFF",
+      "height_m": 1.2
+    },
+    {
+      "type": "HOVER",
+      "duration_s": 8
+    },
+    {
+      "type": "LAND"
+    }
+  ]
+}

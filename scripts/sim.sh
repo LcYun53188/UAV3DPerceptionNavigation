@@ -5,6 +5,10 @@ if [[ "${1:-}" == "px4-vio-mtf01" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" --mtf01 --normalize --fuse-pose --scene warehouse --warehouse-floor-texture --duration 120 "$@"
 fi
+if [[ "${1:-}" == "px4-flow-local" ]]; then
+  shift
+  exec "$SCRIPT_DIR/with_px4_sim.sh" bash -e -c 'source .deps/mission-install/local_setup.bash; exec python scripts/run_px4_mtf01.py --flight "$@"' bash "$@"
+fi
 if [[ "${1:-}" == "px4-mtf01" ]]; then
   shift
   exec "$SCRIPT_DIR/with_px4_sim.sh" python "$SCRIPT_DIR/run_px4_mtf01.py" "$@"
