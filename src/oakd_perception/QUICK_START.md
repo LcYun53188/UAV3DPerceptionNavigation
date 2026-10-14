@@ -11,7 +11,7 @@
 当前可用的详细文档请直接查看：
 
 - [README.md](README.md) - 主文档与快速开始
-- [../docs/QUICK_REFERENCE.md](../../docs/QUICK_REFERENCE.md) - 启动命令与验证步骤
+- [OAK-D / cuVSLAM 定位验证](../../docs/hardware/OAKD_VISUAL_SLAM_RVIZ.md) - 启动命令与验证步骤
 - [DEPTH_MODE_CONFIG.md](DEPTH_MODE_CONFIG.md) - 深度模式详细配置
 - [IMU_QUICK_START.md](IMU_QUICK_START.md) - IMU 启动与 TF 广播
 - [FOV_FILTER_QUICK_REF.md](FOV_FILTER_QUICK_REF.md) - FOV 过滤速查

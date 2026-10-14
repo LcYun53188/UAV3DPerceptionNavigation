@@ -8,7 +8,7 @@ Build against the pinned isolated PX4 messages (do not source the older workspac
 `px4_msgs` over this environment):
 
 ```bash
-./scripts/build_px4_flight.sh
+./scripts/build/build_px4_flight.sh
 ./scripts/with_px4_sim.sh bash -e -c \
   'source .deps/mission-install/local_setup.bash; python scripts/run_px4_sitl_smoke.py --duration 30 --aircraft-state'
 ```

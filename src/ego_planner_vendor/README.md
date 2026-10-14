@@ -5,8 +5,8 @@ Upstream: https://github.com/ZJU-FAST-Lab/ego-planner-swarm
 Pinned ROS 2 revision: `23a8d5a191711dd65633df689bd00f55d4dea8f9`.
 License: upstream GPL-3.0; individual retained files carry their own notices.
 
-Run `../../scripts/prepare_ego_vendor.sh` from the workspace (or use its workspace
-relative path `scripts/prepare_ego_vendor.sh`). Source is kept in ignored
+Run `../../scripts/setup/prepare_ego_vendor.sh` from the workspace (or use its workspace
+relative path `scripts/setup/prepare_ego_vendor.sh`). Source is kept in ignored
 `.deps/ego_planner_src`; this package contains only the project build wrapper.
 All upstream source changes are in `patches/vendor/ego_planner.patch`.
 

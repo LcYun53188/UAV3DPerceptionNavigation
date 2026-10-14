@@ -1,5 +1,13 @@
 # Algorithm simulation contracts
 
+`SetMissionIntent` is the PX4 BT operator admission service. Commands bind coordinator,
+root UUID and request UUID; START alone uses a nil root before ground dispatch.
+Acceptance records a decision, not a physical state or terminal result.
+`RequestReturn` explicitly revises the same root's remaining plan to stopped return
+and native landing. It preserves home/deadline and retires prior children; ACK is
+not arrival. Pause/resume/cancel retain the existing root-scoped contracts.
+See [USB/operator contract](../../docs/flight/USB_POCKET_SIMULATION.md).
+
 `MapSnapshot`: canonical x-major, z-contiguous distance grid, voxel centers at
 `origin + (index + 0.5) * resolution`. `observed=0`, non-finite distance, invalid
 snapshot and outside AABB are unavailable. `header.stamp` is cache completion;
@@ -63,3 +71,20 @@ terminal claim. Unknown physical facts remain unavailable in the explicitly mark
 mock backend. See [protocol/field semantics](../uav_mission/PROTOCOL.md). These are
 minimum S1 interfaces; the mock endpoint does not implement the production nested
 navigation backend or change legacy algorithm executor tokens.
+
+PX4 operator return revisions add `RequestReturn.finish_mission` and
+`ResumeOriginalMission` on `/uav/px4/resume_original_mission`. In `SetMissionIntent`,
+`RESUME` continues the paused operation, `RESUME_MISSION` restores unfinished work
+from a temporary pilot return, and `END_MISSION` permanently ends ordinary work
+before return/landing. `TaskStatus.plan_revision`, `can_resume_mission` and
+`resume_step_index` expose the current plan and checkpoint capability; admission
+still requires confirmed PAUSED hold, unchanged identity/context and current health.
+Checkpoint restoration keeps root/home/deadline and generates fresh child/trajectory
+authorization. All producers/consumers of these changed ROS types must be rebuilt.
+
+`SelectLocalization` is a nil-root, coordinator/request-ID-scoped ground-only
+transaction for `VIO_FLOW` / `FLOW_HORIZONTAL`; both retain VIO height/yaw.
+`LocalizationSelection` reports actual confirmed fusion, phase, generation and
+map reinitialization requirements. Parameter ACK alone is never READY.
+`FLOW_LOCAL` is a separate boot profile, requires no VIO status/EV aid, and is
+not an in-flight target of this service. See [standalone flow contract](../../docs/flight/MTF01_STANDALONE_FLIGHT.md).

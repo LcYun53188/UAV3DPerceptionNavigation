@@ -2,7 +2,7 @@
 
 The top-level repository pins every patched submodule to an upstream commit
 that is available from the URL in `.gitmodules`. Local changes are stored only
-in this directory and are applied by `scripts/apply_vendor_patches.sh`.
+in this directory and are applied by `scripts/setup/apply_vendor_patches.sh`.
 
 `sources.json` is the machine-readable source of pinned vendor commits and
 patch paths. The preparation scripts verify repository identity, HEAD, an empty
@@ -12,7 +12,7 @@ any patch is applied. Ignored build products are not treated as source changes.
 Algorithm dependency hashes are checked against `algorithm_versions.json`.
 
 ```bash
-./scripts/apply_vendor_patches.sh --check
+./scripts/setup/apply_vendor_patches.sh --check
 python3 scripts/vendor_patches.py --ego --check
 python3 scripts/test_vendor_git.py
 ```
@@ -44,15 +44,15 @@ From a clean top-level checkout:
 ```bash
 git submodule sync --recursive
 git submodule update --init --recursive
-./scripts/apply_vendor_patches.sh
-./scripts/install_vendor_lfs_assets.sh
+./scripts/setup/apply_vendor_patches.sh
+./scripts/setup/install_vendor_lfs_assets.sh
 ```
 
 Running the apply script again is safe: it recognizes patches that are already
 present. Return to the reproducible upstream bases with:
 
 ```bash
-./scripts/apply_vendor_patches.sh --reverse
+./scripts/setup/apply_vendor_patches.sh --reverse
 git submodule update --init --recursive
 ```
 
@@ -97,7 +97,7 @@ Isaac ROS image pipeline 不再附加排除包的本地补丁；完整保留其�
 ## EGO algorithm simulation dependency
 
 EGO is kept in ignored `.deps/ego_planner_src`, not copied into the source tree or
-added as a floating submodule. Run `scripts/prepare_ego_vendor.sh` to fetch official
+added as a floating submodule. Run `scripts/setup/prepare_ego_vendor.sh` to fetch official
 `ego-planner-swarm` commit `23a8d5a191711dd65633df689bd00f55d4dea8f9` and apply
 `ego_planner.patch`. Repeated preparation verifies both the base and exact diff.
 
@@ -115,5 +115,5 @@ patch SHA-256 values for map compatibility. Python wheels are pinned separately 
 
 `isaac_ros_visual_slam.patch` retains upstream `04bf49a2daf7710d2ba2390d1772435a1baeb48d`
 and converts sequencer jitter parameters from milliseconds to nanoseconds. Rebuild with
-`scripts/build_vio_node.sh`; reviewed binary/source hashes are frozen in
+`scripts/build/build_vio_node.sh`; reviewed binary/source hashes are frozen in
 `simulation/px4/vio/pose_contract.json`. It does not change pose covariance math.

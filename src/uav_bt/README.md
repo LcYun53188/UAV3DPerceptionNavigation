@@ -1,20 +1,29 @@
 # uav_bt：PX4 与 algorithm 任务树
 
+2026-10-13：逐步骤树新增 MissionDecision，支持显式等待启动、身份绑定的暂停/恢复/取消
+请求和停稳反馈屏障，RETURN 分支保留根身份并确认返航降落。Pocket USB 摇杆可经 QGC
+手动控制，SA/SB/SD 经受管所有者请求解锁、接管及任务操作；Buttons 1 已确认为
+保持位置的拨轮，撤下返航绑定，Buttons 0 自回弹按键暂未分配。
+接口、命令与当前边界见 [Pocket USB 仿真](../../docs/flight/USB_POCKET_SIMULATION.md)。
+临时返航新增原任务检查点和 `RESUME_MISSION`，暂停返航后可恢复未完成步骤，保留
+根/home/总期限，不重复起飞；`RESUME` 仍只恢复返航，`END_MISSION` 撤销恢复能力。
+可通过无 USB 的 `return-resume-mission` / `return-hover-resume` SITL 场景验证。
+
 使用 BehaviorTree.CPP 4.9 与 rclcpp_action，调用真实 PX4 ExecuteMission 后端。
 `--bt` 现在生成逐步骤树，通过绑定根/控制世代的服务依次授权起飞、航点、悬停、返航和降落；
-网关仍拥有唯一 PX4 输出与物理停止。接口、UI 和边界见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
+网关仍拥有唯一 PX4 输出与物理停止。接口、UI 和边界见 [逐步骤 BT](../../docs/flight/PX4_STEP_BT.md)。
 可选 `--require-vio --vio-calibration-id <SHA256>` 由后端在根任务准入及运行中
 检查 VIO 源和实际 EKF 融合，复用本任务树；不满足时不解锁，运行中失效则撤销输出。
-当前缺少完整 VIO 仿真/融合遥测，不能将普通 W0 悬停称为 Pro W 悬停。
-见 [VIO 实现与门槛](../../docs/VIO_HOVER.md)。
+SDK16 实验联合链路已单轮完成同机建图/EGO/返航/降落；普通 W0 结果仍不能称为 Pro W 实机悬停。
+见 [VIO 实现与门槛](../../docs/flight/VIO_HOVER.md)。
 旧 `trees/px4_flight.xml` 整段异步节点保留作兼容模式，独立逐步骤 ROS Actions 尚待开发。
 algorithm 另有 `algorithm_mission_server`，
 使用 `algorithm_waypoints.xml` 的 ExecuteWaypoints 异步节点调用 EGO Navigate Action，
 实现父会话、两航点、暂停检查点/恢复及进展租约；运行和边界见
-[算法任务说明](../../docs/ALGORITHM_MISSIONS.md)。两种后端使用独立入口，不能混开控制。
+[算法任务说明](../../docs/navigation/ALGORITHM_MISSIONS.md)。两种后端使用独立入口，不能混开控制。
 
 ```bash
-./scripts/build_px4_flight.sh
+./scripts/build/build_px4_flight.sh
 ./scripts/sim.sh px4-flight --bt --ui
 ./scripts/sim.sh px4-flight --bt --flight-scenario pause-resume
 ./scripts/sim.sh px4-flight --bt --flight-scenario cancel

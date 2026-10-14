@@ -33,7 +33,7 @@ continues its original checked trajectory to rest when no successor is ready.
 Current scope: stopped goals and scheduled moving handovers in a static Gazebo
 world, identity map/odom alignment, conservative unknown-space policy. A failure
 never emits an unchecked alternative path. Real vehicle braking and PX4 integration
-remain future flight-control work. See `docs/EGO_NVBLOX_GAZEBO.md` for commands.
+remain future flight-control work. See `docs/simulation/EGO_NVBLOX_GAZEBO.md` for commands.
 
 The standard launch enables `managed_goals` and remaps the planner input to
 `/uav/local_goal`. The executor-owned goal manager retains `/uav/goal`, selects
@@ -44,5 +44,5 @@ Standalone unmanaged planner behavior remains available with the parameter off.
 
 The opt-in `coordinate_frame:=map` profile consumes already transformed map/base_link
 odometry and emits map trajectories. The default `odom` profile retains the identity
-assumption. See [planning contexts](../../docs/PLANNING_CONTEXT.md) for session binding
+assumption. See [planning contexts](../../docs/navigation/PLANNING_CONTEXT.md) for session binding
 and independent validation; the shadow bridge does not control PX4.

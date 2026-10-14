@@ -4,9 +4,9 @@
 
 ```bash
 # 首次下载锁定源码、SITL 所需子模块并构建；不构建 CUDA 导航栈
-./scripts/build_px4_sim.sh --jobs 4
+./scripts/build/build_px4_sim.sh --jobs 4
 # 仅准备源码并核对消息定义
-./scripts/build_px4_sim.sh --prepare-only
+./scripts/build/build_px4_sim.sh --prepare-only
 # 校验已有源码与 Agent 已解析依赖是否发生漂移
 ./scripts/with_venv.sh python scripts/prepare_px4_sim.py --check --check-external
 # 编译后的独立 ROS/Agent 运行环境
@@ -31,9 +31,9 @@ PX4 采用 `UXRCE_DDS_SYNCT=0`；ROS `/clock` 从同一 Gazebo 单向桥接。�
 
 ## MTF-01 光流／测距参考
 
-`./scripts/sim.sh px4-mtf01 --duration 45 --stop-sensors` 提供独立未解锁入口：相邻下视渲染图像计算光流，GPU 单射线模拟 0.02–8 m 测距，实际 PX4 EKF 融合及停更审计。没有实机串口配置，也没有飞行控制输入。模型与限制、OpenCV 依赖、无纹理负向对照和 OAK-D VIO 分工见 [MTF-01 仿真说明](../../docs/MTF01_SIMULATION.md)。
+`./scripts/sim.sh px4-mtf01 --duration 45 --stop-sensors` 提供独立未解锁入口：相邻下视渲染图像计算光流，GPU 单射线模拟 0.02–8 m 测距，实际 PX4 EKF 融合及停更审计。没有实机串口配置，也没有飞行控制输入。模型与限制、OpenCV 依赖、无纹理负向对照和 OAK-D VIO 分工见 [MTF-01 仿真说明](../../docs/flight/MTF01_SIMULATION.md)。
 
-`./scripts/sim.sh px4-vio-mtf01` 提供同机联合未解锁入口，默认 120 秒观察后停止 VIO；`--joint-fault flow/range/all` 选择先停止哪组 MTF 源。使用单线程 SDK／本机 CPU 0–15 等已验证参数的完整命令见 [联合接入](../../docs/MTF01_SIMULATION.md#同机联合融合)。视觉位置／高度／航向与光流／测距分别进入实际 PX4 EKF，GNSS 和磁融合关闭，视觉仍为高度参考。联合观察规则独立于 FlightServer；不能用该入口起飞。证据见 [联合报告](../../docs/validation/simulation/2026-10-11-vio-mtf01-joint/REPORT.md)。
+`./scripts/sim.sh px4-vio-mtf01` 提供同机联合未解锁入口，默认 120 秒观察后停止 VIO；`--joint-fault flow/range/all` 选择先停止哪组 MTF 源。使用单线程 SDK／本机 CPU 0–15 等已验证参数的完整命令见 [联合接入](../../docs/flight/MTF01_SIMULATION.md#同机联合融合)。视觉位置／高度／航向与光流／测距分别进入实际 PX4 EKF，GNSS 和磁融合关闭，视觉仍为高度参考。联合观察规则独立于 FlightServer；不能用该入口起飞。证据见 [联合报告](../../docs/validation/simulation/2026-10-11-vio-mtf01-joint/REPORT.md)。
 
 ## W0 真实飞行任务
 
@@ -44,7 +44,7 @@ Offboard 网关，支持起飞、三维定点导航、定时悬停、返回记�
 
 ```bash
 # PX4/Agent 已构建后，构建任务接口、桥接和执行后端
-./scripts/build_px4_flight.sh
+./scripts/build/build_px4_flight.sh
 # 默认：2 m 起飞 -> 两航点 -> 30 s 悬停 -> 返航 -> 降落
 ./scripts/sim.sh px4-flight
 # 运动中暂停、停稳、恢复新子任务，再完成整条任务
@@ -111,7 +111,7 @@ offscreen，终端输出阶段；结束后只清理本次进程组。详情及�
 早期 XML 包装整条 ExecuteMission；当前默认按 recipe 生成逐步骤 BT，通过服务逐次
 授权同一根任务中的步骤，尚非独立步骤 Actions。早期验证见 [BT/PX4 报告](../../docs/validation/simulation/2026-10-08-bt-px4/REPORT.md)。
 
-逐步骤 BT 与可视化运行：`./scripts/sim.sh px4-flight --bt --ui`；协议与范围见 [逐步骤 BT](../../docs/PX4_STEP_BT.md)。
+逐步骤 BT 与可视化运行：`./scripts/sim.sh px4-flight --bt --ui`；协议与范围见 [逐步骤 BT](../../docs/flight/PX4_STEP_BT.md)。
 
 ## 深度相机参考链路
 
@@ -148,14 +148,14 @@ nvblox 地图会话和已有 PlanningContext；这些完成前不授权 EGO 曲�
 已新增 VIO 源适配与 `--require-vio --vio-calibration-id <SHA256>`，复用现有 BT 和
 FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector 与四类 EV aid source，
 开启该门控会在没有实际融合证据时拒绝预检；尚未实现真实 VIO 悬停。
-输入、时间映射限制与后续冻结步骤见 [VIO 悬停](../../docs/VIO_HOVER.md)。
+输入、时间映射限制与后续冻结步骤见 [VIO 悬停](../../docs/flight/VIO_HOVER.md)。
 
 
 ## 独立 VIO 遥测构建与未解锁审计
 
 ```bash
-./scripts/build_px4_vio.sh --jobs 4
-./scripts/build_px4_vio.sh --check
+./scripts/build/build_px4_vio.sh --jobs 4
+./scripts/build/build_px4_vio.sh --check
 ./scripts/sim.sh px4-vision-audit --duration 35
 ```
 
@@ -163,14 +163,14 @@ FlightServer。默认 W0 控制基线不变。当前固定 DDS 缺少 selector �
 合成静止外部视觉输入经 PX4 实际 EKF 融合，验证连续就绪与停更后拒绝/停止融合。
 全程未解锁，不运行 FlightServer；GNSS/磁/光流辅助关闭，气压高度辅助保留。
 不能作为相机 VIO、动态悬停或实机验收。详细边界和证据见
-[VIO 悬停说明](../../docs/VIO_HOVER.md)。
+[VIO 悬停说明](../../docs/flight/VIO_HOVER.md)。
 
-当前开发顺序及阶段门槛见 [三阶段集成路线](../../docs/PX4_INTEGRATION_ROADMAP.md)。
+当前开发顺序及阶段门槛见 [三阶段集成路线](../../docs/development/PX4_INTEGRATION_ROADMAP.md)。
 
 ## 真实双目／IMU VIO 静止验证
 
 ```bash
-./scripts/build_vio_node.sh
+./scripts/build/build_vio_node.sh
 ./scripts/sim.sh px4-vio-sensors --ui --duration 35
 ```
 
@@ -197,7 +197,7 @@ cuVSLAM 原始 Odometry 的滑窗协方差不能直接用于 PX4：现有适配�
 ## 独立载台运动验证
 
 ```bash
-./scripts/build_vio_motion.sh
+./scripts/build/build_vio_motion.sh
 ./scripts/sim.sh px4-vio-sensors --normalize --motion --scene layered --duration 120
 ```
 
