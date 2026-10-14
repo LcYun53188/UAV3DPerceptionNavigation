@@ -4,6 +4,9 @@
 .deps/
 # ROS / colcon build products
 build/
+# Canonical build scripts are source, not colcon output.
+!/scripts/build/
+!/scripts/build/**
 install/
 log/
 /build_uav/

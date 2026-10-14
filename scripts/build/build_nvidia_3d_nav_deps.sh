@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WS_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../.." && pwd)"
+ROS_DISTRO="${ROS_DISTRO:-jazzy}"
+CUDA_HOME="${CUDA_HOME:-/usr/local/cuda-13.2}"
+cd "$WS_DIR"
+
+"$WS_DIR/scripts/setup/apply_vendor_patches.sh"
+
+for package in \
+  "ros-$ROS_DISTRO-bond" \
+  "ros-$ROS_DISTRO-bondcpp" \
+  "ros-$ROS_DISTRO-smclib"; do
+  if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
+    echo "Missing ROS system dependency: $package" >&2
+    echo "Run: ./scripts/setup/install_nvidia_3d_nav_rosdeps.sh" >&2
+    exit 2
+  fi
+done
+
+"$WS_DIR/scripts/setup/install_vendor_lfs_assets.sh" --check
+
+if [ ! -x "$CUDA_HOME/bin/nvcc" ]; then
+  echo "Missing nvcc: $CUDA_HOME/bin/nvcc" >&2
+  echo "Install CUDA Toolkit 13.2 or set CUDA_HOME before running this script." >&2
+  exit 2
+fi
+
+# ament_cmake_python creates a directory here during a non-symlink build, but
+# --symlink-install needs the same path to be a symlink. Remove only this
+# generated path when switching modes so an otherwise valid incremental build
+# is not aborted near the end of the dependency graph.
+oakd_python_build_path="$WS_DIR/build_uav/oakd_perception/ament_cmake_python/oakd_perception/oakd_perception"
+if [ -d "$oakd_python_build_path" ] && [ ! -L "$oakd_python_build_path" ]; then
+  cmake -E remove_directory "$oakd_python_build_path"
+fi
+
+exec env \
+  SKIP_WS_SETUP=true \
+  CC=/usr/bin/gcc \
+  CXX=/usr/bin/g++ \
+  CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-2}" \
+  CUDA_HOME="$CUDA_HOME" \
+  CUDAToolkit_ROOT="$CUDA_HOME" \
+  CUDACXX="$CUDA_HOME/bin/nvcc" \
+  PATH="$CUDA_HOME/bin:$PATH" \
+  LD_LIBRARY_PATH="$CUDA_HOME/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+  "$WS_DIR/scripts/with_venv.sh" colcon build --build-base build_uav --install-base install_uav --symlink-install \
+  --parallel-workers "${COLCON_PARALLEL_WORKERS:-2}" \
+  --cmake-clean-cache \
+  --packages-up-to \
+    isaac_ros_visual_slam \
+    nvblox_ros \
+    uav_bringup \
+  --packages-skip \
+    fast_lio \
+    livox_ros_driver2 \
+    livox_sdk2 \
+  --cmake-args \
+    -DBUILD_TESTING=OFF \
+    -DCMAKE_CUDA_COMPILER="$CUDA_HOME/bin/nvcc" \
+    -DCUDAToolkit_ROOT="$CUDA_HOME" \
+    -DCMAKE_CUDA_ARCHITECTURES=89 \
+    -DUSE_SYSTEM_EIGEN=ON
