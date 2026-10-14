@@ -17,7 +17,7 @@ from rclpy.executors import SingleThreadedExecutor, ExternalShutdownException
 from rclpy.qos import qos_profile_sensor_data
 from tf2_msgs.msg import TFMessage
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.srv import PauseMission,ResumeMission
+from uav_nav_interfaces.srv import PauseMission,ResumeMission,SetMissionIntent
 from unique_identifier_msgs.msg import UUID
 import uuid
 from uav_mission.px4_flight import FlightServer
@@ -51,7 +51,9 @@ def main():
     implementation_hashes={str(path.relative_to(ROOT)):file_hash(path) for path in
       [ROOT/'src/uav_nav_interfaces/msg/VioStatus.msg',ROOT/'src/uav_mission/uav_mission/vio_gate.py',
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
-       ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
+       ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_nav_interfaces/msg/TaskStatus.msg',
+       ROOT/'src/uav_nav_interfaces/srv/ResumeOriginalMission.srv',ROOT/'src/uav_nav_interfaces/srv/RequestReturn.srv',
+       ROOT/'src/uav_mission/uav_mission/mission_checkpoint.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
        ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
@@ -99,13 +101,27 @@ def main():
             pass  # SIGINT may shut down the context before owned cleanup.
     thread=threading.Thread(target=spin,daemon=True);thread.start()
     client=ActionClient(node,ExecuteMission,'/uav/px4/execute_mission')
-    result=dict(passed=False,scenario=scenario,vio_required=node.vio_gate is not None,profile=node.config['profile'],scope=('real same-aircraft takeoff/depth observation/EGO navigation/hover/return/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
+    result=dict(passed=False,scenario=scenario,vio_required=os.environ.get('UAV_REQUIRE_VIO')=='1',profile=node.config['profile'],scope=('real same-aircraft takeoff/depth observation/EGO navigation/hover/return/native landing' if os.environ.get('UAV_EXPECT_OBSERVATION')=='1' else 'real x500 takeoff/navigation/hover/return/native landing'),mock=False)
+    flow_samples=[]
+    if node.localization_profile=='FLOW_LOCAL':
+        result['scope']='Native PX4 no-GNSS/no-EV rendered MTF reference local takeoff/hover/native landing'
+        def observe_flow():
+            gate=node.vio_gate
+            flags=gate.samples.get('flags')
+            flow_samples.append(dict(mono=time.monotonic(),phase=node.phase,reason=gate.reason,
+                visual_writers=len(node.get_publishers_info_by_topic('/px4_7/fmu/in/vehicle_visual_odometry')),
+                vio_writers=len(node.get_publishers_info_by_topic('/uav/vio/status')),
+                flags={n:getattr(flags,n) for n in ('cs_opt_flow','cs_rng_hgt','cs_ev_pos','cs_ev_vel',
+                    'cs_ev_hgt','cs_ev_yaw','cs_gnss_pos','cs_gnss_vel')} if flags is not None else {}))
+        node.create_timer(.1,observe_flow)
     try:
         until=time.monotonic()+(340 if os.environ.get('UAV_EXPERIMENTAL_VIO_CHAIN')=='1' else 40 if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('warehouse','depth_reference') else 20)
         while time.monotonic()<until:
             with node.lock:
                 if node.preflight_fault_latched:
                     raise RuntimeError('VIO ground prestream failed: '+str(node.diagnostics[-1:]))
+                if node.localization_profile=='FLOW_LOCAL' and node.healthy(ground=True):
+                    node.prepare_vio_ground_mode()
                 ready=node.healthy(ground=True) and node.samples.get('vehicle_status').pre_flight_checks_pass
             if ready and os.environ.get('UAV_NAVIGATION_BACKEND')=='EGO':
                 try:
@@ -160,13 +176,63 @@ def main():
             handle=wait(client.send_goal_async(request),5)
         if not handle.accepted:raise RuntimeError('Mission rejected')
         terminal_future=handle.get_result_async()
+        operator=node.create_client(SetMissionIntent,'/uav/bt/set_intent') if use_bt else None
+        def intent(command):
+            if not operator.wait_for_service(timeout_sec=3):raise RuntimeError('BT intent service unavailable')
+            response=wait(operator.call_async(SetMissionIntent.Request(mission_uuid=handle.goal_id,
+                coordinator_instance=node.instance,request_id=UUID(uuid=list(uuid.uuid4().bytes)),command=command)),5)
+            if not response.accepted:raise RuntimeError(command+' rejected: '+response.reason)
+        def await_phase(allowed,timeout=12):
+            deadline=time.monotonic()+timeout
+            while node.phase not in allowed and time.monotonic()<deadline and not terminal_future.done():time.sleep(.02)
+            if node.phase not in allowed:raise RuntimeError('Expected phase '+str(allowed)+', observed '+node.phase)
         injected=False
         landing_cancel_rejected=False
         until=time.monotonic()+root_deadline+10.
         while not terminal_future.done() and time.monotonic()<until:
             phase=node.phase
-            if not injected and phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,(node.segment.duration if node.segment is not None else getattr(node.planned,'duration',10.))/2):
-                if scenario=='pause-resume':
+            inject_ready = (phase=='HOVER' and time.monotonic()-node.phase_started>5. if scenario=='return-hover-resume' else
+                phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,(node.segment.duration if node.segment is not None else getattr(node.planned,'duration',10.))/2))
+            if not injected and inject_ready:
+                if scenario in ('return-resume-mission','return-hover-resume'):
+                    original_root=bytes(handle.goal_id.uuid);original_home=node.home;original_deadline=node.deadline
+                    original_index=node.step_index;original_child=bytes(node.child.uuid)
+                    intent('RETURN')
+                    await_phase(('RETURN',))
+                    return_start_position=truth[-1]['position']
+                    if scenario=='return-hover-resume':
+                        movement_until=time.monotonic()+6.
+                        while (distance(truth[-1]['position'],return_start_position)<.5 and
+                                node.phase=='RETURN' and time.monotonic()<movement_until):time.sleep(.02)
+                        if distance(truth[-1]['position'],return_start_position)<.5:
+                            raise RuntimeError('Hover rejoin scenario did not move at least 0.5 m during return')
+                    else:time.sleep(.3)
+                    return_displacement=distance(truth[-1]['position'],return_start_position)
+                    intent('PAUSE')
+                    await_phase(('PAUSED',))
+                    pause_start=time.monotonic();pause_position=truth[-1]['position']
+                    time.sleep(2.)
+                    pause_points=[t for t in truth if t['mono']>=pause_start]
+                    pause_drift=max((distance(t['position'],pause_position) for t in pause_points),default=999.)
+                    checkpoint=node.return_checkpoint
+                    if checkpoint is None:raise RuntimeError('Temporary return lost its checkpoint')
+                    generation=node.generation
+                    intent('RESUME_MISSION')
+                    await_phase(('NAVIGATE','PLAN_REQUEST','HOVER'))
+                    same_identity=(bytes(node.active_goal.goal_id.uuid)==original_root and
+                        node.home==original_home and node.deadline==original_deadline)
+                    result['return_resume_mission']=dict(original_step_index=original_index,
+                        restored_step_index=node.step_index,plan_revision=node.plan_revision,
+                        pause_samples=len(pause_points),pause_drift_m=pause_drift,
+                        return_displacement_m=return_displacement,
+                        hover_remaining_s=checkpoint.hover_remaining,hover_anchor=checkpoint.hover_target,
+                        root_home_deadline_preserved=same_identity,
+                        new_child=any(node.child.uuid) and bytes(node.child.uuid)!=original_child,
+                        new_generation=node.generation>generation,
+                        passed=same_identity and node.step_index==original_index and node.plan_revision==2 and
+                            not node.return_override and any(node.child.uuid) and bytes(node.child.uuid)!=original_child and
+                            node.generation>generation and len(pause_points)>=5 and pause_drift<=.15)
+                elif scenario=='pause-resume':
                     before_child=list(node.child.uuid)
                     pause=node.create_client(PauseMission,'/uav/px4/pause')
                     resume=node.create_client(ResumeMission,'/uav/px4/resume')
@@ -244,7 +310,7 @@ def main():
                 points=[t for t in truth if e['mono']<=t['mono']<=next_e['mono']]
                 if points:
                     start=points[0]['position']
-                    hovers.append(dict(duration_s=next_e['mono']-e['mono'],samples=len(points),
+                    hovers.append(dict(step_index=e.get('step_index'),duration_s=next_e['mono']-e['mono'],samples=len(points),
                                        max_drift_m=max(distance(t['position'],start) for t in points)))
         result['hovers']=hovers
         waypoint_truth=completed_waypoint_truth(node.events,truth,home,home_truth)
@@ -256,14 +322,31 @@ def main():
         result['command_acks']=[dict(command=node.samples['vehicle_command_ack'].command,
                                      result=node.samples['vehicle_command_ack'].result)] if 'vehicle_command_ack' in node.samples else []
         expected_hover=[step['duration_s'] for step in steps if step['type']=='HOVER']
+        hover_audit=hovers
+        if scenario=='return-hover-resume':
+            hover_audit=[dict(duration_s=sum(h['duration_s'] for h in hovers if h['step_index']==i),
+                max_drift_m=max((h['max_drift_m'] for h in hovers if h['step_index']==i),default=999.))
+                for i,step in enumerate(steps) if step['type']=='HOVER']
         expected_motion=sum(step['type'] in ('TAKEOFF','NAVIGATE','RETURN') for step in steps)
         result['passed']=(terminal.status==4 and terminal.result.cleanup_confirmed and not terminal.result.mock
                           and result['final_land'] and result['final_arming']==1 and landing_cancel_rejected
-                          and len(hovers)==len(expected_hover) and len(waypoint_truth)>=expected_motion
+                          and len(hover_audit)==len(expected_hover) and len(waypoint_truth)>=expected_motion
                           and all(h['duration_s']>=duration and h['max_drift_m']<=.15
-                                  for h,duration in zip(hovers,expected_hover))
+                                  for h,duration in zip(hover_audit,expected_hover))
                           and all(w['error_m']<=.3 for w in waypoint_truth))
         if scenario=='pause-resume':result['passed']=result['passed'] and result.get('pause_resume',{}).get('passed',False)
+        if scenario in ('return-resume-mission','return-hover-resume'):
+            result['passed'] &= (result.get('return_resume_mission',{}).get('passed',False) and
+                result['phases'].count('TAKEOFF')==1 and terminal.result.reason=='LANDED_AND_DISARMED')
+        if scenario=='return-hover-resume':
+            restored_at=next((e['mono'] for e in node.events if e.get('reason')=='ORIGINAL_MISSION_RESTORED'),None)
+            index=result.get('return_resume_mission',{}).get('original_step_index',-1)
+            join_events=[e for e in node.events if restored_at is not None and e['mono']>restored_at and
+                e.get('step_index')==index and e['phase'] in ('NAVIGATE','HOVER')]
+            result['hover_rejoin_verified']=(len(join_events)==2 and
+                [e['phase'] for e in join_events]==['NAVIGATE','HOVER'] and
+                result.get('return_resume_mission',{}).get('return_displacement_m',0.)>=.5)
+            result['passed'] &= result['hover_rejoin_verified']
         if scenario=='cancel':result['passed']=(terminal.status==5 and terminal.result.cleanup_confirmed and result['cancel_hold']['final_landed_disarmed'] and result['cancel_hold']['max_drift_m']<=.15)
         if scenario in ('runner-exit','runner-stall'):
             result['passed']=(terminal.status==6 and terminal.result.reason=='BT_PROGRESS_TIMEOUT'
@@ -311,6 +394,12 @@ def main():
             if scenario in ('full', 'pause-resume') and not result.get('observation_cleanup_verified'):
                 result['passed'] &= (result['bt_step_accepts'] == list(range(len(steps))) and
                                      result['bt_step_completes'] == list(range(len(steps))))
+            if scenario in ('return-resume-mission','return-hover-resume'):
+                index=result.get('return_resume_mission',{}).get('original_step_index',-1)
+                expected_accepts=list(range(index+1))+list(range(index,len(steps)))
+                result['passed'] &= (result['bt_step_accepts']==expected_accepts and
+                    result['bt_step_completes']==list(range(len(steps))) and
+                    log.count('BT_MISSION_RESTORED')==1)
             ticks=node.runner_progress_log
             result['bt_progress']=dict(samples=len(ticks),
                 max_gap_s=max((b['mono']-a['mono'] for a,b in zip(ticks,ticks[1:])),default=None),
@@ -348,6 +437,17 @@ def main():
             valid=bool(localized_samples) and all(s['session']==node.instance and s['frame']=='odom' and
                 s['child']=='base_link' and s['stamp_matches'] for s in localized_samples))
         result['passed'] = result['passed'] and result['localized_odometry']['valid']
+        if node.localization_profile=='FLOW_LOCAL':
+            air=[s for s in flow_samples if s['phase'] in ('TAKEOFF','HOVER')]
+            standalone=(len(air)>=30 and all(s['visual_writers']==0 and s['vio_writers']==0 and
+                s['flags'].get('cs_opt_flow') and s['flags'].get('cs_rng_hgt') and
+                not any(s['flags'].get(n,True) for n in ('cs_ev_pos','cs_ev_vel','cs_ev_hgt','cs_ev_yaw',
+                    'cs_gnss_pos','cs_gnss_vel')) for s in air))
+            result['standalone_flow']=dict(passed=standalone,airborne_samples=len(air),
+                no_vio_subscriptions=not any('source'==n or n.startswith('ev_') for n in node.vio_topics),
+                max_hover_drift_m=max((h['max_drift_m'] for h in result.get('hovers',[])),default=None))
+            result['passed'] &= standalone and result['standalone_flow']['no_vio_subscriptions']
+            write_json(out/'standalone-flow-samples.json',flow_samples)
         result['observation_grid_exports']={}
         for key,(grid,metadata) in getattr(node,'observation_grid_snapshots',{}).items():
             import numpy as np

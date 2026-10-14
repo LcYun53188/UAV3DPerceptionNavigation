@@ -25,17 +25,19 @@ from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
                           BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode,
                           TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
-                          EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus, DistanceSensor, SensorOpticalFlow)
+                          EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus, ManualControlSetpoint, DistanceSensor, SensorOpticalFlow)
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
 from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus, MapSnapshot, LocalizationAlignment, ContextTrajectory, LocalizationSelection
-from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep, SelectLocalization
+from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep, RequestReturn, ResumeOriginalMission, SelectLocalization
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
 from .vio_gate import VioGate
 from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_region
+from .mission_checkpoint import ReturnCheckpoint
+
 
 class FlightServer(Node):
     def __init__(self):
@@ -65,6 +67,9 @@ class FlightServer(Node):
         self.canceling = False
         self.requests = {}
         self.owner = 'NONE'
+        self.operator_enabled = os.environ.get('UAV_POCKET_OPERATOR') == '1'
+        self.operator_arm_enabled = False
+        self.operator_navigation_enabled = False
         self.clock_last, self.clock_advance = None, time.monotonic()
         self.clock_observed = False
         self.clock_fault_latched=False
@@ -81,6 +86,12 @@ class FlightServer(Node):
         self.step_controlled = False
         self.step_grant = None
         self.step_requests = {}
+        self.return_override = False
+        self.return_after_brake = False
+        self.return_checkpoint = None
+        self.plan_revision = 0
+        self.restored_hover = None
+        self.join_hover_remaining = None
         self.runner_last_tick = 0.
         self.runner_sequence = 0
         self.runner_lost = False
@@ -94,6 +105,9 @@ class FlightServer(Node):
             suffix = f'_v{version}' if version else ''
             self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
                                      qos_profile_sensor_data, callback_group=self.state_group)
+        if self.operator_enabled:
+            self.create_subscription(ManualControlSetpoint, '/px4_7/fmu/out/manual_control_setpoint',
+                self.callback('manual_control_setpoint'), qos_profile_sensor_data, callback_group=self.state_group)
         self.vio_gate = None
         self.vio_topics = {}
         self.vio_writers = {}
@@ -190,6 +204,8 @@ class FlightServer(Node):
         self.create_service(PauseMission, '/uav/px4/pause', self.pause, callback_group=self.group)
         self.create_service(ResumeMission, '/uav/px4/resume', self.resume, callback_group=self.group)
         self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance_step, callback_group=self.group)
+        self.create_service(RequestReturn, '/uav/px4/request_return', self.request_return, callback_group=self.group)
+        self.create_service(ResumeOriginalMission, '/uav/px4/resume_original_mission', self.resume_original_mission, callback_group=self.group)
         self.planned=None
         self.accepted_plans=[]
         self.navigation_backend='DIRECT'
@@ -327,7 +343,8 @@ class FlightServer(Node):
                     control_session=list(map(int,self.session.uuid)),generation=self.generation,
                     owner=self.owner,child_uuid=list(map(int,self.child.uuid)),step_index=self.step_index,
                     admitted_ros=self.get_clock().now().nanoseconds/1e9)))
-                self.change(self.steps[self.step_index]['type'])
+                self.change('NAVIGATE' if getattr(self,'join_hover_remaining',None) is not None
+                            else self.steps[self.step_index]['type'])
             except ValueError as error:
                 self.diagnostics.append(dict(planning_rejected=str(error)))
 
@@ -565,7 +582,11 @@ class FlightServer(Node):
                     or self.owner not in ('NONE','PREFLIGHT') or not self.healthy(ground=True)):
                 return FlightServer.reject_goal(self, 'CLOCK_BUSY_OR_HEALTH')
             status, land = self.samples['vehicle_status'], self.samples['vehicle_land_detected']
-            if status.arming_state != 1 or not land.landed or not status.pre_flight_checks_pass or self.speed() > .1:
+            operator = getattr(self, 'operator_enabled', False)
+            if operator and (not self.operator_arm_enabled or not self.operator_navigation_enabled or not self.operator_input_ready()):
+                return FlightServer.reject_goal(self, 'OPERATOR_NOT_READY')
+            armed_ground = operator and status.arming_state == 2
+            if (status.arming_state != 1 and not armed_ground) or not land.landed or not status.pre_flight_checks_pass or self.speed() > .1:
                 return FlightServer.reject_goal(self, 'GROUND_PREFLIGHT_NOT_READY')
             try:
                 self.parse(request)
@@ -599,6 +620,11 @@ class FlightServer(Node):
             self.step_controlled = json.loads(handle.request.parameters_json).get('step_controlled', False)
             self.step_grant = None
             self.step_requests.clear()
+            self.return_override = self.return_after_brake = False
+            self.return_checkpoint = None
+            self.plan_revision = 0
+            self.restored_hover = self.join_hover_remaining = None
+            self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
             self.runner_last_tick = time.monotonic()
             self.runner_sequence = 0
             self.runner_lost = False
@@ -621,11 +647,69 @@ class FlightServer(Node):
             self.change('PRESTREAM')
             handle.execute()
 
+    def operator_input_ready(self):
+        message = self.samples.get('manual_control_setpoint')
+        return bool(message and self.fresh('manual_control_setpoint', .5) and message.valid
+            and 2 <= message.data_source <= 7
+            and all(math.isfinite(getattr(message, key)) for key in ('roll', 'pitch', 'yaw', 'throttle')))
+
+    def operator_command(self, operation):
+        """SITL Pocket owner uses the existing sole writer, never a second FMU publisher."""
+        with self.lock:
+            if not self.operator_enabled or self.clock_fault_latched or not self.fresh('vehicle_status', .75):
+                return False, 'OPERATOR_OR_STATUS_UNAVAILABLE'
+            status = self.samples['vehicle_status']
+            if status.system_id != 8 or status.component_id != 1 or status.failsafe:
+                return False, 'WRONG_AIRCRAFT_OR_FAILSAFE'
+            if any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic)) != 1
+                   for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode')):
+                return False, 'NON_UNIQUE_CONTROL_PUBLISHER'
+            if ((self.land_committed and self.active_goal) or
+                    (self.owner == 'AUTOPILOT' and self.phase == 'FINAL_NATIVE_LAND')):
+                return False, 'LANDING_COMMITTED'
+            landed = (self.fresh('vehicle_land_detected', 1.2) and
+                      self.samples['vehicle_land_detected'].landed and self.speed() < .1)
+            if operation == 'DISARM':
+                # Turning SA off retires automation; never force-disarm in air.
+                if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
+                    self.fault('OPERATOR_ARM_DISABLED')
+                    self.owner = 'NONE'; self.generation += 1; self.segment = None
+                if not landed:
+                    return False, 'DISARM_REJECTED_AIRBORNE'
+                self.command(400, 0)
+                return True, 'DISARM_REQUESTED'
+            if not self.operator_input_ready():
+                return False, 'QGC_JOYSTICK_NOT_CALIBRATED_OR_FRESH'
+            if operation == 'MANUAL':
+                if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
+                    self.fault('PILOT_TAKEOVER')
+                    self.owner = 'NONE'; self.generation += 1; self.segment = None
+                self.command(176, 1, 3)  # PX4 Position; observe actual mode separately.
+                return True, 'POSITION_MODE_REQUESTED'
+            if operation == 'ARM':
+                manual = self.samples['manual_control_setpoint']
+                if (self.active_goal or self.owner != 'NONE' or not landed or
+                    not self.operator_arm_enabled or not self.healthy(ground=True) or
+                    not status.pre_flight_checks_pass or manual.throttle > -.8 or
+                    max(abs(manual.roll), abs(manual.pitch), abs(manual.yaw)) > .15):
+                    return False, 'ARM_GROUND_OR_STICK_GATE'
+                # A new physical SA edge may prepare a new ground root after a
+                # pilot stop. It never revives the old Action or localization fault.
+                if self.phase == 'FAULT':
+                    if (self.reason not in ('PILOT_TAKEOVER','OPERATOR_ARM_DISABLED','CONTROL_LOST',
+                            'OPERATOR_INPUT_OR_SWITCH_LOST') or status.arming_state != 1):
+                        return False, 'LATCHED_FAULT_REQUIRES_RESTART'
+                    self.change('IDLE', 'OPERATOR_GROUND_REARM')
+                self.command(400, 1)
+                return True, 'ARM_REQUESTED'
+            return False, 'UNSUPPORTED_OPERATION'
+
     def cancel(self, handle):
         with self.lock:
             if handle != self.active_goal or self.land_committed or self.phase in ('FAULT','COMPLETE'):
                 return CancelResponse.REJECT
             self.canceling = True
+            self.return_checkpoint = None
             if self.samples['vehicle_status'].arming_state == 1:
                 self.result = ('CANCELED','GROUND_CANCEL',True)
                 self.owner = 'NONE'
@@ -633,6 +717,91 @@ class FlightServer(Node):
             else:
                 self.begin_stop('CANCEL_BRAKE')
             return CancelResponse.ACCEPT
+
+    def checkpoint_alignment(self):
+        return (self.config['alignment_id'], tuple(self.alignment.translation), self.alignment.yaw)
+
+    def checkpoint_map_context(self):
+        if self.navigation_backend != 'EGO':
+            return None
+        self.planning_ready()
+        m = self.planned.gate.inputs['map'][0]
+        a = self.planned.gate.inputs['alignment'][0]
+        # Map versions can advance. A different map/epoch/alignment cannot.
+        return (m.map_id, m.epoch, a.alignment_id, a.generation)
+
+    def save_return_checkpoint(self, now, return_index):
+        index = (self.saved_step if self.phase == 'PAUSED' else
+                 self.step_index+1 if self.phase == 'AWAIT_STEP' else self.step_index)
+        if not 0 < index < return_index or self.steps[index]['type'] not in ('NAVIGATE','HOVER','OBSERVE'):
+            return None  # A normal recipe RETURN has no unfinished ordinary work.
+        remaining = anchor = None
+        if self.steps[index]['type'] == 'HOVER':
+            if self.phase == 'AWAIT_STEP':
+                remaining, anchor = self.steps[index]['duration_s'], tuple(self.reference)
+            else:
+                remaining = (self.saved_hover if self.phase == 'PAUSED' else
+                             getattr(self,'join_hover_remaining',None))
+                if remaining is None:
+                    remaining = max(0., self.hover_until-now)
+                anchor = tuple(self.target)
+        return ReturnCheckpoint(tuple(deepcopy(self.steps)), index, remaining, anchor,
+            bytes(self.active_goal.goal_id.uuid), self.instance, bytes(self.session.uuid),
+            tuple(self.home), self.deadline, tuple(self.resets()), self.checkpoint_alignment(),
+            self.checkpoint_map_context())
+
+    def restore_original_mission(self, now):
+        checkpoint = getattr(self,'return_checkpoint',None)
+        if checkpoint is None or not self.return_override:
+            return False, 'NO_RESUMABLE_CHECKPOINT'
+        if (self.phase != 'PAUSED' or self.owner != 'HOLD_CONTROLLER' or self.canceling or
+                self.result is not None or self.land_committed):
+            return False, 'RESTORE_REQUIRES_PAUSED_RETURN'
+        if (now >= self.pause_until or now >= self.deadline-8. or self.clock_fault_latched or
+                not self.healthy() or tuple(self.resets()) != checkpoint.resets or
+                self.resets() != self.reset_baseline or not self.region(self.position()) or self.speed() > .1):
+            return False, 'RESTORE_HEALTH_OR_DEADLINE_INVALID'
+        status = self.samples['vehicle_status']
+        if status.nav_state != 14 or status.arming_state != 2 or (
+                self.runner_required and (self.runner_lost or self.runner_sequence == 0 or
+                now-self.runner_last_tick > self.config['runner_progress_max_age_s'])):
+            return False, 'RESTORE_CONTROL_OR_PROGRESS_INVALID'
+        if any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic)) != 1
+               for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode')):
+            return False, 'RESTORE_CONTROL_PUBLISHER_INVALID'
+        if (getattr(self,'operator_enabled',False) and (not self.operator_arm_enabled or
+                not self.operator_navigation_enabled or not self.operator_input_ready())):
+            return False, 'RESTORE_OPERATOR_NOT_READY'
+        try:
+            context_valid = (checkpoint.root == bytes(self.active_goal.goal_id.uuid) and
+                checkpoint.coordinator == self.instance and checkpoint.session == bytes(self.session.uuid) and
+                checkpoint.home == tuple(self.home) and checkpoint.deadline == self.deadline and
+                checkpoint.alignment == self.checkpoint_alignment() and
+                checkpoint.map_context == self.checkpoint_map_context())
+        except ValueError:
+            context_valid = False
+        if not context_valid:
+            return False, 'RESTORE_CONTEXT_CHANGED'
+        if getattr(self,'planned',None) is not None:
+            self.planned.retire()
+        self.segment = None
+        self.child = UUID()
+        self.steps = checkpoint.restore_steps()
+        self.step_index = checkpoint.next_index-1
+        self.step_grant = None
+        self.restored_hover = ((checkpoint.next_index, checkpoint.hover_target, checkpoint.hover_remaining)
+                               if checkpoint.hover_remaining is not None else None)
+        self.join_hover_remaining = None
+        self.return_override = self.return_after_brake = False
+        self.return_checkpoint = None
+        self.plan_revision += 1
+        self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
+        self.owner = 'TASK'
+        self.generation += 1
+        self.change('AWAIT_STEP', 'ORIGINAL_MISSION_RESTORED')
+        if not self.step_controlled:
+            self.next_step()
+        return True, 'ORIGINAL_MISSION_RESTORED'
 
     def service(self, verb, request, response):
         with self.lock:
@@ -653,24 +822,70 @@ class FlightServer(Node):
                     response.accepted=False;response.reason='REQUEST_ID_CONFLICT';response.phase=self.phase
                 return response
             accepted=False;reason='INVALID_PHASE'
+            if getattr(self,'localization_profile','DEFAULT')=='FLOW_LOCAL' and verb in ('return','finish','restore'):
+                response.accepted=False;response.reason='FLOW_LOCAL_RETURN_REQUIRES_VIO';response.phase=self.phase
+                self.requests[key]=(verb,(False,response.reason,self.phase))
+                return response
+            if len(self.requests) >= 256:
+                response.accepted=False;response.reason='REQUEST_LIMIT';response.phase=self.phase
+                return response
             if verb == 'pause' and self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER'):
                 self.saved_step=self.step_index
                 self.saved_hover=max(0.,self.hover_until-now) if self.phase=='HOVER' else None
+                self.saved_hover_join = ((self.step_index, tuple(self.target), self.join_hover_remaining)
+                                        if getattr(self,'join_hover_remaining',None) is not None else None)
                 self.begin_stop('PAUSING')
                 accepted=True;reason='ACCEPTED'
             elif verb == 'resume' and self.phase=='PAUSED' and now < self.pause_until and self.healthy():
                 self.owner='TASK';self.generation+=1
+                self.restored_hover = getattr(self,'saved_hover_join',None)
                 self.step_index=self.saved_step-1
                 self.next_step(resuming=True)
                 if self.saved_hover is not None:
                     self.hover_until=now+self.saved_hover
                 accepted=True;reason='ACCEPTED'
+            elif verb == 'restore':
+                accepted,reason = self.restore_original_mission(now)
+            elif (verb == 'finish' and getattr(self,'return_override',False) and
+                    self.phase in ('RETURN_BRAKE','HOLD_HANDOFF','PLAN_REQUEST','RETURN','PAUSING','PAUSED') and
+                    not self.land_committed and not self.canceling and self.result is None and self.healthy()):
+                self.return_checkpoint = None
+                self.landing_result = ('SUCCEEDED','MISSION_ENDED_LANDED_AND_DISARMED',True)
+                accepted=True;reason='RETURN_FINALIZED'
+            elif (verb in ('return','finish') and not self.land_committed and not self.canceling and
+                    self.result is None and not getattr(self,'return_override',False) and self.healthy() and
+                    self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER','PAUSED','AWAIT_STEP') and
+                    (not self.runner_required or (not self.runner_lost and self.runner_sequence > 0 and
+                        now-self.runner_last_tick <= self.config['runner_progress_max_age_s']))):
+                # Retain root/home/deadline; retire the old child before changing plan.
+                index = next((i for i, step in enumerate(self.steps) if step['type']=='RETURN'), None)
+                if index is not None:
+                    try:
+                        checkpoint = self.save_return_checkpoint(now,index) if verb=='return' else None
+                    except ValueError:
+                        checkpoint = None
+                        reason = 'RETURN_CONTEXT_INVALID'
+                        index = None
+                if index is not None:
+                    self.begin_stop('RETURN_BRAKE')
+                    if self.phase == 'RETURN_BRAKE':
+                        self.steps = self.steps[:index]+[dict(type='RETURN'),dict(type='LAND')]
+                        self.step_index = index-1
+                        self.step_grant = None
+                        self.return_override = self.return_after_brake = True
+                        self.return_checkpoint = checkpoint
+                        self.plan_revision = getattr(self,'plan_revision',0)+1
+                        self.landing_result = ('SUCCEEDED',
+                            'MISSION_ENDED_LANDED_AND_DISARMED' if verb=='finish' else 'RETURN_LANDED_AND_DISARMED',True)
+                        accepted=True;reason='RETURN_ACCEPTED'
             response.accepted,response.reason,response.phase=accepted,reason,self.phase
             self.requests[key]=(verb,(accepted,reason,self.phase))
             return response
 
     def pause(self,r,s): return self.service('pause',r,s)
     def resume(self,r,s): return self.service('resume',r,s)
+    def request_return(self,r,s): return self.service('finish' if r.finish_mission else 'return',r,s)
+    def resume_original_mission(self,r,s): return self.service('restore',r,s)
 
     def advance_step(self, request, response):
         with self.lock:
@@ -692,7 +907,7 @@ class FlightServer(Node):
             if len(self.step_requests) >= 256:
                 response.reason = 'REQUEST_LIMIT'; return response
             current = ControlSession(session_id=self.session, generation=self.generation, owner=self.owner)
-            if (not self.step_controlled or not self.runner_required or self.runner_lost or
+            if (not self.step_controlled or not self.runner_required or self.runner_lost or getattr(self,'return_override',False) or
                     self.canceling or self.result or self.land_committed):
                 response.reason = 'MISSION_STOPPING_OR_NOT_STEP_CONTROLLED'
             elif request.control_session != current or self.owner != 'TASK':
@@ -753,6 +968,8 @@ class FlightServer(Node):
     def next_step(self, resuming=False):
         if getattr(self,'planned',None) is not None:self.planned.retire()
         if self.step_controlled and not resuming:
+            if getattr(self,'return_override',False):
+                self.step_grant = self.step_index+1  # Explicit RETURN plan owns the two remaining steps.
             if self.step_grant != self.step_index+1:
                 self.segment = None
                 self.child = UUID()
@@ -764,9 +981,24 @@ class FlightServer(Node):
         step=self.steps[self.step_index]
         kind=step['type']
         self.segment=None
+        self.join_hover_remaining = None
+        join_target = None
+        restored = getattr(self,'restored_hover',None)
+        if kind == 'HOVER' and restored is not None and restored[0] == self.step_index:
+            self.restored_hover = None
+            _, anchor, remaining = restored
+            if distance(self.position(),anchor) > self.config['position_tolerance_m']:
+                # Reacquire the original hover anchor with a fresh motion child.
+                # The same HOVER leaf owns NAVIGATE/PLAN_REQUEST -> HOVER.
+                join_target = anchor
+                self.join_hover_remaining = remaining
+                kind = 'NAVIGATE'
+            else:
+                self.reference = anchor
+                step = dict(step, duration_s=remaining)
         if kind in ('TAKEOFF','NAVIGATE','RETURN'):
             if kind=='TAKEOFF': target=(self.home[0],self.home[1],self.home[2]+step['height_m'])
-            elif kind=='NAVIGATE': target=self.alignment.to_odom(step['target_map'])
+            elif kind=='NAVIGATE': target=join_target if join_target is not None else self.alignment.to_odom(step['target_map'])
             else: target=(self.home[0],self.home[1],self.reference[2])
             if not self.region(target):
                 self.fault('TARGET_OUTSIDE_W0');return
@@ -805,10 +1037,21 @@ class FlightServer(Node):
             self.hover_until=time.monotonic()+step['duration_s']
             self.target=self.reference
         elif kind=='LAND':
+            self.return_checkpoint = None
             self.land_committed=True
             self.command(21)
             self.change('LAND_REQUEST');return
         self.change(kind)
+
+    def complete_motion(self, now):
+        remaining = getattr(self,'join_hover_remaining',None)
+        if remaining is None:
+            self.next_step()
+        else:
+            self.join_hover_remaining = None
+            self.hover_until = now+remaining
+            self.reference = self.target
+            self.change('HOVER')
 
     def observation_tick(self, now, ros):
         survey=getattr(self,'survey',None)
@@ -895,6 +1138,7 @@ class FlightServer(Node):
         self.output_count+=1
 
     def fault(self, reason):
+        self.return_checkpoint = None
         if getattr(self,'planned',None) is not None:self.planned.retire()
         now=time.monotonic();ros=self.get_clock().now().nanoseconds/1e9
         self.diagnostics.append(dict(reason=reason,ages={n:dict(receive=now-self.received[n],source=ros-m.timestamp/1e6) for n,m in self.samples.items()},local=str(self.samples.get('vehicle_local_position')),status=str(self.samples.get('vehicle_status')),battery=str(self.samples.get('battery_status'))))
@@ -956,6 +1200,9 @@ class FlightServer(Node):
                 self.fault('MISSION_TIMEOUT');return
             if not self.healthy(ground=self.phase=='LANDING'):
                 self.fault('VIO_HEALTH_LOST:'+self.vio_gate.reason if getattr(self, 'vio_gate', None) is not None and self.vio_gate.reason != 'READY' else 'STALE_OR_INVALID_AIRCRAFT_STATE');return
+            if (getattr(self,'operator_enabled',False) and not self.land_committed and
+                    (not self.operator_input_ready() or not self.operator_arm_enabled or not self.operator_navigation_enabled)):
+                self.fault('OPERATOR_INPUT_OR_SWITCH_LOST');return
             if self.resets()!=self.reset_baseline:
                 self.fault('LOCALIZATION_RESET');return
             status=self.samples['vehicle_status'];phase=self.phase
@@ -1002,20 +1249,20 @@ class FlightServer(Node):
                     if reference is not None:
                         self.reference=reference
                         if distance(self.position(),reference)>self.config['tracking_margin_m']:raise ValueError('TRACKING_ENVELOPE_EXCEEDED')
-                    if finished and self.stable(self.target,now):self.next_step()
+                    if finished and self.stable(self.target,now):FlightServer.complete_motion(self,now)
                     elif now-self.phase_started>50:self.fault('PLANNED_WAYPOINT_TIMEOUT')
                 except ValueError as error:self.fault('EGO_EXECUTION:'+str(error));return
             elif phase in ('TAKEOFF','NAVIGATE','RETURN'):
                 elapsed=ros-self.segment_start
                 self.reference=self.segment.at(elapsed)
-                if elapsed >= self.segment.duration and self.stable(self.target,now):self.next_step()
+                if elapsed >= self.segment.duration and self.stable(self.target,now):FlightServer.complete_motion(self,now)
                 elif now-self.phase_started > 50:self.fault('WAYPOINT_TIMEOUT')
             elif phase=='OBSERVE':
                 self.observation_tick(now,ros)
             elif phase=='HOVER':
                 if distance(self.position(),self.target) > .4:self.fault('HOVER_DRIFT')
                 elif now >= self.hover_until and self.stable(self.target,now):self.next_step()
-            elif phase in ('PAUSING','CANCEL_BRAKE','LEASE_BRAKE'):
+            elif phase in ('PAUSING','CANCEL_BRAKE','LEASE_BRAKE','RETURN_BRAKE'):
                 if self.stable(self.reference,now):
                     self.owner='HOLD_CONTROLLER';self.generation+=1
                     self.hold_ack_count=self.output_count+3
@@ -1028,6 +1275,10 @@ class FlightServer(Node):
                     self.result=(('ABORTED','BT_PROGRESS_TIMEOUT',True) if self.runner_lost
                                  else ('CANCELED','STOPPED_AND_HOLDING',True))
                     self.change('COMPLETE')
+                elif getattr(self,'return_after_brake',False):
+                    self.return_after_brake = False
+                    self.owner='TASK';self.generation+=1
+                    self.next_step()
                 else:
                     self.pause_until=min(now+60.,self.deadline-8.)
                     self.change('PAUSED')
@@ -1072,11 +1323,14 @@ class FlightServer(Node):
                      event_sequence=self.sequence,phase=self.result[0] if self.result else self.phase,result_code=self.result[0] if self.result else '',
                      reason=self.result[1] if self.result else self.reason,control_session=ControlSession(session_id=self.session,generation=self.generation,owner=self.owner),
                      child_uuid=self.child,has_child=any(self.child.uuid),
-                     map_session=self.config['alignment_id'],total_remaining_s=max(0.,self.deadline-time.monotonic()),mock=False)
+                     map_session=self.config['alignment_id'],total_remaining_s=max(0.,self.deadline-time.monotonic()),mock=False,
+                     plan_revision=getattr(self,'plan_revision',0),
+                     can_resume_mission=getattr(self,'return_checkpoint',None) is not None,
+                     resume_step_index=self.return_checkpoint.next_index if getattr(self,'return_checkpoint',None) is not None else -1)
         s.header.stamp=self.get_clock().now().to_msg()
         self.status_pub.publish(s)
         if not self.result:self.active_goal.publish_feedback(ExecuteMission.Feedback(status=s,
-            tree_node=f'PX4_STEP[{self.step_index}]' if self.step_controlled else 'PX4_FLIGHT_SEQUENCE',fault=self.reason))
+            tree_node=(f'PX4_RETURN[{self.step_index}]' if self.return_override else f'PX4_STEP[{self.step_index}]') if self.step_controlled else 'PX4_FLIGHT_SEQUENCE',fault=self.reason))
 
     async def execute(self,handle):
         code,reason,confirmed=await self.done_future

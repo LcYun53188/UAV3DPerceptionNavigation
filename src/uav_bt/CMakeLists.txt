@@ -27,5 +27,9 @@ if(BUILD_TESTING)
     ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
   ament_add_pytest_test(bt_ros_contract test/test_runner_integration.py TIMEOUT 90
     ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+  ament_add_pytest_test(bt_decision_contract test/test_runner_decisions.py TIMEOUT 180
+    ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+  ament_add_pytest_test(usb_switch_contract test/test_usb_input.py TIMEOUT 30
+    ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
 endif()
 ament_package()

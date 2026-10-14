@@ -1,0 +1,10 @@
+# Explicit root plan revision: brake, return to root home, native landing.
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+unique_identifier_msgs/UUID request_id
+# True ends the original mission irreversibly; false is a temporary pilot return.
+bool finish_mission
+---
+bool accepted
+string reason
+string phase

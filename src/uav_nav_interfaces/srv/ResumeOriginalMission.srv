@@ -1,0 +1,9 @@
+# Restore a temporary RETURN checkpoint only after confirmed PAUSED hold.
+# Keep root/home/deadline; regenerate motion from the current position.
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+unique_identifier_msgs/UUID request_id
+---
+bool accepted
+string reason
+string phase

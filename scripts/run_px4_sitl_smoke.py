@@ -64,11 +64,24 @@ def main():
     parser.add_argument('--navigation-backend',choices=('DIRECT','EGO'),default='DIRECT',help='Explicit stopped-start EGO execution; requires external live map/alignment/planning sources')
     parser.add_argument('--bt', action='store_true', help='Execute flight through BehaviorTree.CPP runner')
     parser.add_argument('--ui', action='store_true', help='Show the owned Gazebo and QGC windows')
-    parser.add_argument('--flight-scenario', choices=['full','pause-resume','cancel','clock-fault','runner-exit','runner-stall','odometry-stale','odometry-reset'], default='full')
+    parser.add_argument('--usb-joystick', action='store_true', help='Isolated GNSS SITL profile: QGC manual input, Offboard stick takeover')
+    parser.add_argument('--operator-start', action='store_true', help='BT waits up to 60 s for an explicit switch/SetMissionIntent START')
+    parser.add_argument('--qgc-config-from', type=Path, help='Keep joystick calibration from an owned manual session config')
+    parser.add_argument('--flight-scenario', choices=['full','pause-resume','return-resume-mission','return-hover-resume','cancel','clock-fault','runner-exit','runner-stall','odometry-stale','odometry-reset'], default='full')
     parser.add_argument('--flight', action='store_true', help='Run real known-region flight mission after disarmed smoke')
     parser.add_argument('--aircraft-state', action='store_true',
                         help='Also validate the S1 observer and source/clock loss')
     args = parser.parse_args()
+    if args.qgc_config_from:
+        if (not args.usb_joystick or args.flight or not args.qgc_config_from.resolve().is_relative_to(ROOT/'.cache/simulation/sitl') or
+                not args.qgc_config_from.is_file()):
+            parser.error('--qgc-config-from requires an existing owned manual USB config file')
+    if args.operator_start and not (args.flight and args.bt and args.usb_joystick):
+        parser.error('--operator-start requires --flight --bt --usb-joystick')
+    if args.usb_joystick and (not args.ui or args.require_vio or args.vision_fusion_smoke or
+                             args.depth_camera or args.depth_reference or args.depth_mapping or
+                             args.depth_planning or args.depth_observation or args.aircraft_state):
+        parser.error('--usb-joystick requires --ui and the independent GNSS x500 profile')
     if args.depth_observation:
         if not args.flight or not args.bt or args.navigation_backend!='EGO' or args.require_vio or args.mission_file or args.flight_scenario!='full':
             parser.error('--depth-observation requires --flight --bt --navigation-backend EGO and default owned recipe')
@@ -96,8 +109,11 @@ def main():
         parser.error('--bt requires --flight')
     if args.flight_scenario in ('runner-exit','runner-stall') and not args.bt:
         parser.error('Runner fault scenarios require --bt')
-    if not 10 <= args.duration <= 180:
-        parser.error('duration must be within [10, 180] seconds')
+    if args.flight_scenario in ('return-resume-mission','return-hover-resume') and not (args.flight and args.bt):
+        parser.error('Return restoration scenarios require --flight --bt')
+    maximum_duration = 3600 if args.usb_joystick and not args.flight else 180
+    if not 10 <= args.duration <= maximum_duration:
+        parser.error(f'duration must be within [10, {maximum_duration}] seconds')
     if args.navigation_backend=='EGO' and (not args.flight or not args.bt or args.require_vio):parser.error('EGO development requires --flight --bt without VIO; camera remains fixed 5 degrees')
     lock = read(ROOT / 'simulation/px4/versions.lock.yaml')
     for key in ['sitl', 'agent', 'px4_msgs']:
@@ -164,6 +180,10 @@ def main():
                    UAV_FLIGHT_EVIDENCE=str(run_dir), UAV_FLIGHT_SCENARIO=args.flight_scenario,
                    UAV_FLIGHT_BT='1' if args.bt else '0',UAV_ENABLE_EGO_NAV='1' if args.navigation_backend=='EGO' else '0',UAV_NAVIGATION_BACKEND=args.navigation_backend, UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
+    if args.usb_joystick:
+        env.update(PX4_PARAM_COM_RC_IN_MODE='1', PX4_PARAM_COM_RC_OVERRIDE='2',
+                   PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2',
+                   UAV_FLIGHT_OPERATOR_START='1' if args.operator_start else '0')
     if args.depth_observation:
         receipt=run_dir/'depth-assets.json'
         region_file=ROOT/'simulation/safe_regions/depth_reference.json'
@@ -209,7 +229,7 @@ def main():
                     depth_generator_sha256={name:file_hash(ROOT/'scripts'/name) for name in ('prepare_px4_depth_assets.py','prepare_vio_sensor_assets.py')} if args.depth_reference else None,
                     depth_mount_audit_sha256=file_hash(ROOT/'scripts/px4_camera_mount_audit.py') if args.depth_reference else None,
                     depth_audit_sha256=file_hash(ROOT / 'scripts/px4_depth_audit.py') if args.depth_camera or args.depth_reference else None,
-                    processes={})
+                    usb_joystick=args.usb_joystick, operator_start=args.operator_start, processes={})
     write_json(run_dir / 'manifest.json', manifest)
     processes, logs, managed = [], [], {}
 
@@ -338,7 +358,18 @@ def main():
         launch('px4', [build / 'bin/px4', '-d', '-i', str(instance), '-w', run_dir / 'rootfs', build / 'etc'])
         config = run_dir / 'qgc-config/QGroundControl'
         config.mkdir(parents=True)
-        (config / 'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+        ini = '[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n'
+        if args.qgc_config_from:
+            import configparser
+            saved=configparser.ConfigParser(interpolation=None,strict=False)
+            saved.optionxform=str
+            saved.read(args.qgc_config_from)
+            if not saved.has_section('AutoConnect'):saved.add_section('AutoConnect')
+            for key,value in dict(autoConnectUDP='true',autoConnectPixhawk='false',autoConnectSiKRadio='false',
+                                  autoConnectRTKGPS='false',autoConnectLibrePilot='false').items():saved.set('AutoConnect',key,value)
+            with (config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
+        else:
+            (config / 'QGroundControl.ini').write_text(ini)
         qgc_env = dict(env, XDG_CONFIG_HOME=str(run_dir / 'qgc-config'),
                        XDG_CACHE_HOME=str(run_dir / 'qgc-cache'),
                        QT_QPA_PLATFORM=os.environ.get('QT_QPA_PLATFORM', 'xcb') if args.ui else 'offscreen')
@@ -378,8 +409,14 @@ def main():
                       xy_valid=local.xy_valid if local else None, z_valid=local.z_valid if local else None,
                       clock_start=first_clock, clock_end=clock_end,
                       position_ned=[local.x, local.y, local.z] if local else None)
+        manual_session = args.usb_joystick and not args.flight
+        if manual_session:
+            result['scope'] = 'operator-driven USB joystick SITL session; no automatic task/flight acceptance'
         result['dds_clock_passed'] = (all(samples.get(k, 0) >= 5 for k in ['vehicle_status', 'vehicle_odometry', 'vehicle_local_position', 'vehicle_land_detected', 'clock'])
-            and arming_states == {VehicleStatus.ARMING_STATE_DISARMED} and landed.landed
+            and (manual_session or arming_states == {VehicleStatus.ARMING_STATE_DISARMED})
+            and status is not None and status.arming_state == VehicleStatus.ARMING_STATE_DISARMED
+            and landed is not None and landed.landed
+            and local is not None and clock_end is not None and first_clock is not None
             and local.xy_valid and local.z_valid and clock_end > first_clock
             and writers.get('/clock') == 1 and all(v == 1 for v in writers.values())
             and all(v < 1 for v in result['receive_age_s'].values()))
@@ -426,7 +463,7 @@ def main():
             result['passed'] = result['passed'] and vision_result['passed'] and arming_states == {VehicleStatus.ARMING_STATE_DISARMED}
         if args.flight and result['passed']:
             flight = launch('flight_tasks', [sys.executable, ROOT / 'scripts/run_px4_flight_tasks.py'])
-            until = time.monotonic() + (300 if args.depth_observation else 245)
+            until = time.monotonic() + (300 if args.depth_observation else 245) + (65 if args.operator_start else 0)
             next_log,log_offset=0.,0
             while flight.poll() is None and time.monotonic() < until:
                 if time.monotonic()>=next_log:

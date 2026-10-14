@@ -1,0 +1,12 @@
+# Ground START uses a nil mission UUID. Other commands bind the active root.
+unique_identifier_msgs/UUID mission_uuid
+string coordinator_instance
+unique_identifier_msgs/UUID request_id
+# START / PAUSE / RESUME / CANCEL / RETURN / END_MISSION / RESUME_MISSION.
+# RESUME continues the paused operation; RESUME_MISSION restores original work.
+# ACK is admission, not physical completion.
+string command
+---
+bool accepted
+string reason
+string phase

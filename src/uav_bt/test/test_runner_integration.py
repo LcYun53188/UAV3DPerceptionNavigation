@@ -101,7 +101,8 @@ class Backend(Node):
         if self.step_mode and self.advances and time.monotonic()-self.step_started >= .3:
             self.step_phase = 'AWAIT_STEP' if self.step_index < 4 else 'LANDING'
         status = TaskStatus(mission_uuid=self.active_goal.goal_id, coordinator_instance='test-instance',
-                            phase=self.step_phase if self.step_mode else 'LANDING' if self.case == 'landing' else 'NAVIGATE')
+                            phase=self.step_phase if self.step_mode else 'LANDING' if self.case == 'landing' else 'NAVIGATE',
+                            plan_revision=getattr(self,'plan_revision',0))
         self.active_goal.publish_feedback(ExecuteMission.Feedback(status=status,
             tree_node=f'PX4_STEP[{self.step_index}]' if self.step_mode else ''))
         now = time.monotonic()

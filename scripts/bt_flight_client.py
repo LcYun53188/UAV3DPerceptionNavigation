@@ -16,6 +16,7 @@ class BtFlightClient:
         self.parameters_file = out/'bt-parameters.private.json'
         params = json.loads(request.parameters_json)
         params.update(runner_progress_required=True, coordinator_instance=node.instance, step_controlled=True)
+        params['operator_start_required'] = os.environ.get('UAV_FLIGHT_OPERATOR_START') == '1'
         # Authorization is never placed in a command line or archived evidence.
         fd = os.open(self.parameters_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, 'w') as stream:
@@ -34,6 +35,8 @@ class BtFlightClient:
         self.goal_id = None
 
     def wait_accepted(self, timeout=10):
+        if os.environ.get('UAV_FLIGHT_OPERATOR_START') == '1':
+            timeout = 65  # Runner bounds the explicit ground START wait to 60 s.
         until = time.monotonic()+timeout
         while time.monotonic() < until and self.process.poll() is None:
             if self.node.active_goal:
