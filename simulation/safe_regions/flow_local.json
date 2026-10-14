@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "scene": "mtf01_local",
+  "model": "x500_mtf01",
+  "profile": "standalone_flow_local",
+  "frame": "px4_local_enu",
+  "alignment_id": "flow-local-launch-only-v1",
+  "map_translation": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "map_yaw_rad": 0.0,
+  "source": "Frozen rendered MTF warehouse assets, stationary launch origin; vertical takeoff/hover/native landing only",
+  "scene_files": {
+    "worlds/default.sdf": "457a363a22c437b788a4aaf1e2335aa149efce4e5b988cdc108065663cd879b2",
+    "models/x500/model.sdf": "76d8668c9c1a10348f9b7011d892203f319e5051dc8c0eb06c62e52db8e6714e",
+    "models/x500_base/model.sdf": "d97e53de8c50f167b0b3a4f86dc21413236387f7b72cb817549362b63534e83c"
+  },
+  "bounds_min": [
+    -8.0,
+    -8.0,
+    -0.4
+  ],
+  "bounds_max": [
+    8.0,
+    8.0,
+    6.0
+  ],
+  "support_plane_world_z": 0.0,
+  "body_radius_m": 0.5,
+  "tracking_margin_m": 0.3,
+  "braking_margin_m": 1.2,
+  "max_speed_mps": 0.6,
+  "max_acceleration_mps2": 0.5,
+  "max_jerk_mps3": 0.6,
+  "position_tolerance_m": 0.2,
+  "stopped_speed_mps": 0.1,
+  "stable_duration_s": 2.0,
+  "status_max_age_s": 0.75,
+  "local_max_age_s": 0.1,
+  "land_max_age_s": 1.2,
+  "clock_stall_s": 0.5,
+  "notes": "SITL reference only. No map navigation, return, VIO, Jetson or hardware flight qualification.",
+  "estimator_profile": "FLOW_LOCAL: EV/GNSS disabled; native magnetometer heading, optical flow velocity and range height",
+  "runner_progress_max_age_s": 0.5,
+  "runner_handshake_timeout_s": 5.0,
+  "asset_files": {
+    "warehouse-layout.json": "2b5d0a312047e7890609b4da99467af24a4bb08b10e87b26f2749d1a6c2491a7",
+    "default.sdf": "50ce173ccec6b8201e5395cd277b9ae6e562cbe1fdbeed0c9b33496b228cffb5",
+    "x500_mtf01/model.sdf": "aa4eb11d4f3e974dbe33ead9faa21c779e8c9fc09f4ed80c781a4f92e333cf62",
+    "x500_mtf01/model.config": "55325c55cfe144cc114a715315e7b179acc96ca267b27be37aee5aecefac8d57",
+    "warehouse_textures/materials/textures/rack_south.png": "2188f49708e6c0f857f5adac939c6fc6f9086df3fcab333db455b21556c4c061",
+    "warehouse_textures/materials/textures/door_lintel.png": "2698fe639409688510c8effa0515f9980217ad29e15ea71d936dd559deb2336f",
+    "warehouse_textures/materials/textures/near_field.png": "af079227ebf61024dc25d4f3739fc2693b37ade6bc096f467167d657c1176fc3",
+    "warehouse_textures/materials/textures/column_sw.png": "7c032ce36d08b78df6064c999de7299b3952caa2311be5d43a589fc84450a0fd",
+    "warehouse_textures/materials/textures/room_partition_south.png": "2c9d28fa4cb00f909215105697ebd985f684cfa1677b9a47c0aac4cce4537b3f",
+    "warehouse_textures/materials/textures/rack_north.png": "15b0b4f06cf83c3f344e030617bf1086b8d2281eefa67fea2e62a93df46dc4c3",
+    "warehouse_textures/materials/textures/wall_east.png": "af079227ebf61024dc25d4f3739fc2693b37ade6bc096f467167d657c1176fc3",
+    "warehouse_textures/materials/textures/room_partition_north.png": "c74b0846b6cea253ae3fb5a63cbb7ce0dbc79100b4df50a1d59a4f03ca0c64cf",
+    "warehouse_textures/materials/textures/floor.png": "2426e105878cad543f4006dbd87782a2a9e7ad2c5fe75d091ff8d0f798f98fbc",
+    "warehouse_textures/materials/textures/wall_north.png": "c0578856b767032b2233ffcd4406df70be85ef9c42800cd0fdbbf5b48039600a",
+    "warehouse_textures/materials/textures/wall_west.png": "b46fad7e4639e112fc3d24165e68a4ec3936afd1759d81e9767bce10a0d9211e",
+    "warehouse_textures/materials/textures/crate_east.png": "bd04c2b195ffe8e2ac4bc1f04b6ce44d1badd9e67c15a6936c20b37a811b95f6",
+    "warehouse_textures/materials/textures/column_nw.png": "181852e0dfd324877a87b21f3742ea3d47d122363a35151290c7f6c80c4b56ea",
+    "warehouse_textures/materials/textures/rack_room.png": "75e6d752ac770741e7096e5ccd8c7a1265646ad56b781cd2161961c25bdbe430",
+    "warehouse_textures/materials/textures/wall_south.png": "89de658bbbc7605c71ea93a99030bee86341b9a3cd7a88c8f65834c77504ad71",
+    "warehouse_textures/materials/textures/crate_west.png": "250e7a348340f0cccc2f9b7323e6a4eeb588de3bf00acbd41027036c4666763e"
+  }
+}

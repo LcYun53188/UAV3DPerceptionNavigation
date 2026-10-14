@@ -1,0 +1,10 @@
+# Ground-only source selection. Nil root is required; never changes an active task.
+string coordinator_instance
+unique_identifier_msgs/UUID mission_uuid
+unique_identifier_msgs/UUID request_id
+# VIO_FLOW or FLOW_HORIZONTAL. Height/yaw continue to use VIO in both.
+string profile
+---
+bool accepted
+string reason
+string phase

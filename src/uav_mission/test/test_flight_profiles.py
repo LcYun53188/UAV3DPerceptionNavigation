@@ -41,6 +41,47 @@ def test_owned_warehouse_receipt_passes(owned):
     assert load_region(root,env)['scene']=='warehouse'
 
 
+@pytest.fixture
+def flow_owned(tmp_path):
+    import shutil,sys
+    workspace=Path(__file__).resolve().parents[3]
+    sys.path.insert(0,str(workspace/'scripts'))
+    from prepare_mtf01_assets import assets
+    regions=tmp_path/'simulation/safe_regions';regions.mkdir(parents=True)
+    profile=workspace/'simulation/safe_regions/flow_local.json'
+    shutil.copy2(profile,regions/profile.name)
+    upstream=workspace/'.deps/PX4-Autopilot/Tools/simulation/gz'
+    config=json.loads(profile.read_text())
+    for name in config['scene_files']:
+        target=tmp_path/'.deps/PX4-Autopilot/Tools/simulation/gz'/name
+        target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(upstream/name,target)
+    out=tmp_path/'.cache/simulation/mtf01/owned';out.mkdir(parents=True)
+    assets(out/'assets',upstream/'worlds/default.sdf')
+    data=dict(schema=1,partition='uav_mtf01_owned',region_sha256=digest(regions/profile.name),
+        files={str(p.relative_to(out/'assets')):digest(p) for p in (out/'assets').rglob('*') if p.is_file()})
+    receipt=out/'flight-assets.json';receipt.write_text(json.dumps(data))
+    env=dict(UAV_SITL_AUTHORIZATION='owned',ROS_DOMAIN_ID='78',GZ_PARTITION=data['partition'],
+        UAV_FLIGHT_REGION_PROFILE='flow_local',UAV_REQUIRE_VIO='0',UAV_LOCALIZATION_PROFILE='FLOW_LOCAL',
+        UAV_FLIGHT_ASSET_RECEIPT=str(receipt),UAV_FLIGHT_ASSET_SHA256=digest(receipt))
+    return tmp_path,env,out
+
+
+def test_standalone_flow_boot_assets_pass_without_vio_calibration(flow_owned):
+    root,env,_=flow_owned
+    assert load_region(root,env)['profile']=='standalone_flow_local'
+
+
+@pytest.mark.parametrize('fault',['asset','VIO','EGO','runtime_switch','partition'])
+def test_standalone_flow_boot_rejects_mixed_ownership_and_asset_drift(flow_owned,fault):
+    root,env,out=flow_owned
+    if fault=='asset':(out/'assets/default.sdf').write_text('changed')
+    elif fault=='VIO':env['UAV_REQUIRE_VIO']='1'
+    elif fault=='EGO':env['UAV_ENABLE_EGO_NAV']='1'
+    elif fault=='runtime_switch':env['UAV_ENABLE_FUSION_SWITCH']='1'
+    else:env['GZ_PARTITION']='uav_mtf01_other'
+    with pytest.raises(RuntimeError):load_region(root,env)
+
+
 @pytest.mark.parametrize('key,value',[('UAV_SITL_AUTHORIZATION',''),('ROS_DOMAIN_ID','0'),
     ('GZ_PARTITION','uav_px4_s0_run'),('UAV_FLIGHT_REGION_PROFILE','arbitrary'),
     ('UAV_REQUIRE_VIO','0'),('UAV_VIO_FUSION_PROFILE','full_odometry'),

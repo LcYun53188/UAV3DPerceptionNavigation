@@ -14,13 +14,32 @@ def load_region(root,env):
         raise RuntimeError('Requires owned local SITL supervisor, domain 78 and nonce')
     partition=env.get('GZ_PARTITION','')
     profile=env.get('UAV_FLIGHT_REGION_PROFILE','W0')
-    if profile not in ('W0','warehouse','depth_reference','vio_chain') or not partition.startswith(
+    if profile not in ('W0','warehouse','depth_reference','vio_chain','flow_local') or not partition.startswith(
+            'uav_mtf01_' if profile=='flow_local' else
             'uav_px4_s0_' if profile in ('W0','depth_reference') else 'uav_warehouse_flight_'):
         raise RuntimeError('Flight scene/partition mismatch')
     config=json.loads((root/f'simulation/safe_regions/{profile}.json').read_text())
     for name,expected in config['scene_files'].items():
         if digest(root/'.deps/PX4-Autopilot/Tools/simulation/gz'/name)!=expected:
             raise RuntimeError('Pinned scene/model hash mismatch: '+name)
+    if profile=='flow_local':
+        if (env.get('UAV_REQUIRE_VIO')!='0' or env.get('UAV_LOCALIZATION_PROFILE')!='FLOW_LOCAL' or
+                env.get('UAV_ENABLE_FUSION_SWITCH')=='1' or env.get('UAV_ENABLE_EGO_NAV')=='1'):
+            raise RuntimeError('Flow local requires independent native fusion without VIO or mapped navigation')
+        receipt=Path(env.get('UAV_FLIGHT_ASSET_RECEIPT','')).resolve()
+        if not receipt.is_relative_to(root/'.cache/simulation/mtf01'):
+            raise RuntimeError('Flow receipt outside owned simulation cache')
+        if digest(receipt)!=env.get('UAV_FLIGHT_ASSET_SHA256'):
+            raise RuntimeError('Flow asset receipt hash mismatch')
+        data=json.loads(receipt.read_text())
+        if (data.get('schema')!=1 or data.get('partition')!=partition or
+                data.get('region_sha256')!=digest(root/'simulation/safe_regions/flow_local.json') or
+                data.get('files')!=config['asset_files']):
+            raise RuntimeError('Flow scene/region/partition mismatch')
+        for name,expected in data['files'].items():
+            path=(receipt.parent/'assets'/name).resolve()
+            if not path.is_relative_to(receipt.parent/'assets') or digest(path)!=expected:
+                raise RuntimeError('Flow asset drift: '+name)
     if profile=='depth_reference':
         if env.get('UAV_REQUIRE_VIO')=='1':raise RuntimeError('Depth observation requires official GNSS/inertial EKF')
         receipt=Path(env.get('UAV_FLIGHT_ASSET_RECEIPT','')).resolve()

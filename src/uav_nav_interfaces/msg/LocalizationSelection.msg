@@ -1,0 +1,13 @@
+std_msgs/Header header
+string coordinator_instance
+unique_identifier_msgs/UUID request_id
+string active_profile
+string requested_profile
+string phase
+string reason
+uint32 generation
+bool ready
+bool navigation_allowed
+bool requires_map_reinitialization
+string height_yaw_source
+bool mock

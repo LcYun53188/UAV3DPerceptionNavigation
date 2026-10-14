@@ -103,6 +103,13 @@ class VisionFusionAudit:
                 source.pose.pose.orientation.w,source.pose.pose.orientation.z = math.cos(.3),math.sin(.3)
                 identity = dict(source_session=self.session,calibration_id=self.calibration)
                 if self.alignment.binding is None:
+                    if self.alignment_samples:
+                        previous=self.alignment_samples[-1].header.stamp
+                        gap=ros-previous.sec-previous.nanosec/1e9
+                        if not 0 < gap <= .081:
+                            # Gazebo startup may pause/jump. Bind only a complete
+                            # recent continuous window; keep alignment rules intact.
+                            self.alignment_samples.clear()
                     self.alignment_samples.append(source)
                     if (ros-self.alignment_samples[0].header.stamp.sec-self.alignment_samples[0].header.stamp.nanosec/1e9 >= 2.
                             and 'vehicle' in self.last and 'land' in self.last):

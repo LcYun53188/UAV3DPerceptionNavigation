@@ -25,18 +25,17 @@ from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
                           BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode,
                           TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
-                          EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus)
+                          EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus, DistanceSensor, SensorOpticalFlow)
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from uav_nav_interfaces.action import ExecuteMission
-from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus, MapSnapshot, LocalizationAlignment, ContextTrajectory
-from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep
+from uav_nav_interfaces.msg import TaskStatus, ControlSession, ControlStatus, MissionProgress, LocalizedOdometry, VioStatus, MapSnapshot, LocalizationAlignment, ContextTrajectory, LocalizationSelection
+from uav_nav_interfaces.srv import PauseMission, ResumeMission, AdvanceFlightStep, SelectLocalization
 from unique_identifier_msgs.msg import UUID
 from px4_comm_bridge.converters import vehicle_odometry_to_ros
 from .vio_gate import VioGate
 from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_region
-
 
 class FlightServer(Node):
     def __init__(self):
@@ -99,6 +98,35 @@ class FlightServer(Node):
         self.vio_topics = {}
         self.vio_writers = {}
         self.vio_graph_checked = 0.
+        self.localization_selector = None
+        self.localization_profile = os.environ.get('UAV_LOCALIZATION_PROFILE', 'DEFAULT')
+        if self.localization_profile not in ('DEFAULT', 'FLOW_LOCAL'):
+            raise RuntimeError('Unsupported localization startup profile')
+        if self.localization_profile == 'FLOW_LOCAL':
+            if (os.environ.get('UAV_REQUIRE_VIO') == '1' or
+                    os.environ.get('UAV_ENABLE_FUSION_SWITCH') == '1' or
+                    self.config.get('profile') != 'standalone_flow_local'):
+                raise RuntimeError('FLOW_LOCAL requires its independent reviewed startup profile')
+            from .flow_gate import FlowGate
+            self.vio_gate = FlowGate()
+            inputs = [('flags', EstimatorStatusFlags), ('selector', EstimatorSelectorStatus),
+                      ('optical_flow', EstimatorAidSource2d), ('rng_hgt', EstimatorAidSource1d),
+                      ('range_sensor', DistanceSensor), ('flow_sensor', SensorOpticalFlow)]
+            names = dict(flags='estimator_status_flags', selector='estimator_selector_status',
+                         optical_flow='estimator_aid_src_optical_flow', rng_hgt='estimator_aid_src_rng_hgt',
+                         range_sensor='distance_sensor',flow_sensor='sensor_optical_flow')
+            self.vio_topics['local'] = '/px4_7/fmu/out/vehicle_local_position'
+            for name, kind in inputs:
+                # The owned SITL adapters are the original sensor writers.
+                # Native aid telemetry independently proves PX4 consumed them.
+                topic = '/px4_7/fmu/'+('in/' if name in ('range_sensor','flow_sensor') else 'out/')+names[name]
+                version = getattr(kind, 'MESSAGE_VERSION', 0)
+                if version: topic += f'_v{version}'
+                self.vio_topics[name] = topic
+                def flow_receive(message, key=name):
+                    self.vio_gate.receive(key, message, time.monotonic())
+                self.input_subscriptions['flow_'+name] = self.create_subscription(
+                    kind, topic, flow_receive, qos_profile_sensor_data, callback_group=self.state_group)
         if os.environ.get('UAV_REQUIRE_VIO') == '1':
             calibration = os.environ.get('UAV_VIO_CALIBRATION_ID', '')
             if not re.fullmatch('[0-9a-f]{64}', calibration):
@@ -123,12 +151,23 @@ class FlightServer(Node):
                 self.vio_topics[name] = topic
                 def receiver(key):
                     def receive(message):
-                        self.vio_gate.receive(key, message, time.monotonic())
+                        if self.localization_selector is not None:
+                            self.localization_selector.receive(key,message,time.monotonic())
+                        else:self.vio_gate.receive(key, message, time.monotonic())
                     return receive
                 if name=='local':continue  # Existing aircraft-state callback forwards this sample.
                 self.input_subscriptions['vio_'+name] = self.create_subscription(
                     kind, topic, receiver(name),
                     qos_profile_sensor_data, callback_group=self.state_group)
+        if os.environ.get('UAV_ENABLE_FUSION_SWITCH')=='1':
+            if self.vio_gate is None or not self.vio_gate.joint_sim or not self.nonce:
+                raise RuntimeError('Fusion switching requires the explicitly owned joint VIO/MTF profile')
+            from .localization_selector import LocalizationSelector
+            from .sitl_fusion_parameters import SitlFusionParameters
+            backend=SitlFusionParameters(root,os.environ['UAV_FLIGHT_EVIDENCE'],self.fusion_ground_safe)
+            self.localization_selector=LocalizationSelector(calibration,backend)
+            self.localization_pub=self.create_publisher(LocalizationSelection,'/uav/localization/selection',10)
+            self.create_service(SelectLocalization,'/uav/localization/select',self.select_localization,callback_group=self.group)
         self.mode_pub = self.create_publisher(OffboardControlMode, '/px4_7/fmu/in/offboard_control_mode', 10)
         self.setpoint_pub = self.create_publisher(TrajectorySetpoint, '/px4_7/fmu/in/trajectory_setpoint', 10)
         self.command_pub = self.create_publisher(VehicleCommand, '/px4_7/fmu/in/vehicle_command', 10)
@@ -165,7 +204,65 @@ class FlightServer(Node):
             self.create_subscription(ContextTrajectory,'/planning/bound_trajectory',self.planned_result,10,callback_group=self.state_group)
         self.create_timer(.02, self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME), callback_group=self.state_group)
 
+    def fusion_ground_safe(self):
+        """Physical write authority; intentionally independent of changing aiding flags."""
+        selector=getattr(self,'localization_selector',None)
+        if (self.clock_fault_latched or self.localization_fault_latched or
+                (selector is not None and selector.fault) or self.active_goal or self.reserved or self.owner!='NONE'):
+            return False
+        if not all(self.fresh(name,age) for name,age in
+                   [('vehicle_status',.75),('vehicle_local_position',.5),('vehicle_land_detected',1.2)]):
+            return False
+        s,p,land=(self.samples[name] for name in ('vehicle_status','vehicle_local_position','vehicle_land_detected'))
+        return (s.system_id==8 and s.component_id==1 and s.arming_state==1 and not s.failsafe and
+                land.landed and all(math.isfinite(getattr(p,n)) for n in ('x','y','z','vx','vy','vz')) and
+                self.speed()<.1 and getattr(self,'planned',None) is None and
+                all(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic))==1
+                    for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode')) and
+                not self.get_publishers_info_by_topic('/planning/source/map') and
+                not self.get_publishers_info_by_topic('/uav/map/snapshot'))
+
+    def fusion_tick(self):
+        selector=self.localization_selector
+        writers={name:self.get_publishers_info_by_topic(topic) for name,topic in self.vio_topics.items()}
+        identities=tuple(sorted((name,tuple(bytes(item.endpoint_gid) for item in entries))
+                                for name,entries in writers.items()))
+        selector.tick(time.monotonic(),self.get_clock().now().nanoseconds/1e9,
+            {name:len(entries) for name,entries in writers.items()},self.fusion_ground_safe(),identities,
+            native_landing=self.phase=='LANDING' and self.samples.get('vehicle_status') is not None
+                and self.samples['vehicle_status'].nav_state in (18,20))
+        self.vio_gate=selector.health_gate
+        message=LocalizationSelection(coordinator_instance=self.instance,
+            request_id=UUID(uuid=list(selector.request_id)),active_profile=selector.active_profile,
+            requested_profile=selector.requested_profile,phase=selector.phase,reason=selector.reason,
+            generation=selector.generation,ready=selector.ready,navigation_allowed=selector.navigation_allowed,
+            requires_map_reinitialization=selector.generation>0,height_yaw_source='VIO',mock=False)
+        message.header.stamp=self.get_clock().now().to_msg()
+        self.localization_pub.publish(message)
+
+    def select_localization(self, request, response):
+        with self.lock:
+            selector=getattr(self,'localization_selector',None)
+            response.phase=selector.phase if selector is not None else 'DISABLED'
+            if selector is None:response.reason='FUSION_SWITCH_DISABLED';return response
+            if request.coordinator_instance!=self.instance or any(request.mission_uuid.uuid):
+                response.reason='STALE_IDENTITY_OR_NON_NIL_ROOT';return response
+            self.fusion_tick()
+            response.accepted,response.reason=selector.request(request.profile,request.request_id.uuid,
+                time.monotonic(),self.fusion_ground_safe())
+            response.phase=selector.phase
+            return response
+
+    def destroy_node(self):
+        selector=getattr(self,'localization_selector',None)
+        if selector is not None:selector.backend.close()
+        return super().destroy_node()
+
     def forward_vio_local(self,name,message,now):
+        selector=getattr(self,'localization_selector',None)
+        if name=='vehicle_local_position' and selector is not None:
+            selector.receive('local',message,now)
+            return
         gate=getattr(self,'vio_gate',None)
         if name=='vehicle_local_position' and gate is not None and gate.pose_only:
             gate.receive('local',message,now)
@@ -264,6 +361,11 @@ class FlightServer(Node):
         gate = getattr(self, 'vio_gate', None)
         if gate is None:
             return True
+        selector=getattr(self,'localization_selector',None)
+        if selector is not None:
+            self.fusion_tick()
+            self.vio_gate=selector.health_gate
+            return selector.ready
         now = time.monotonic()
         if now-self.vio_graph_checked >= .1:
             self.vio_writers = {name: len(self.get_publishers_info_by_topic(topic))
@@ -293,13 +395,14 @@ class FlightServer(Node):
             return False
         s, p, b = (self.samples[n] for n in ('vehicle_status', 'vehicle_local_position', 'battery_status'))
         return (s.system_id == 8 and s.component_id == 1 and not s.failsafe and not s.failure_detector_status
-                and p.heading_good_for_control and p.xy_valid and p.z_valid and p.v_xy_valid and p.v_z_valid and not p.dead_reckoning
+                and (p.heading_good_for_control or getattr(getattr(self,'vio_gate',None),'pure_flow',False))
+                and p.xy_valid and p.z_valid and p.v_xy_valid and p.v_z_valid and not p.dead_reckoning
                 and all(math.isfinite(v) for v in (p.x,p.y,p.z,p.vx,p.vy,p.vz,p.eph,p.epv))
                 and 0 <= p.eph <= 1 and 0 <= p.epv <= 1 and b.connected and b.warning == 0 and b.remaining > .2)
 
     def prepare_vio_ground_mode(self):
         """Ground-only Offboard preparation; PX4 must pass prechecks before BT arms."""
-        if (self.config['scene']!='warehouse' or self.active_goal or self.reserved or self.owner!='NONE'
+        if (self.config['scene'] not in ('warehouse','mtf01_local') or self.active_goal or self.reserved or self.owner!='NONE'
                 or self.preflight_fault_latched or self.clock_fault_latched or self.result is not None
                 or not self.healthy(ground=True) or not self.fresh('vehicle_land_detected',1.2)):
             return False
@@ -405,6 +508,9 @@ class FlightServer(Node):
             raise ValueError('Invalid steps')
         if any(not isinstance(s,dict) or 'type' not in s for s in steps):raise ValueError('Invalid step object')
         types = [s['type'] for s in steps]
+        if getattr(self, 'localization_profile', 'DEFAULT') == 'FLOW_LOCAL' and (
+                navigation != 'DIRECT' or any(t not in ('TAKEOFF','HOVER','LAND') for t in types)):
+            raise ValueError('FLOW_LOCAL only admits local takeoff/hover/landing; mapped tasks require VIO')
         if types[0] != 'TAKEOFF' or types[-1] != 'LAND' or types.count('TAKEOFF') != 1 or types.count('LAND') != 1:
             raise ValueError('Sequence must take off once and end in native landing')
         if getattr(self,'config',{}).get('observation_enabled') and navigation=='EGO' and (types.count('OBSERVE')!=1 or types.index('OBSERVE')!=1):
@@ -452,6 +558,9 @@ class FlightServer(Node):
 
     def goal(self, request):
         with self.lock:
+            selector=getattr(self,'localization_selector',None)
+            if selector is not None and not selector.navigation_allowed:
+                return FlightServer.reject_goal(self,'LOCALIZATION_NOT_NAVIGATION_READY')
             if (self.clock_fault_latched or getattr(self,'preflight_fault_latched',False) or self.active_goal or self.reserved
                     or self.owner not in ('NONE','PREFLIGHT') or not self.healthy(ground=True)):
                 return FlightServer.reject_goal(self, 'CLOCK_BUSY_OR_HEALTH')
@@ -820,6 +929,7 @@ class FlightServer(Node):
         with self.lock:
             now=time.monotonic();ros=self.get_clock().now().nanoseconds/1e9
             backwards = self.update_clock_watchdog(now, ros)
+            if getattr(self,'localization_selector',None) is not None:self.fusion_tick()
             self.publish_control(now)
             if not self.active_goal or self.result:
                 if self.owner=='PREFLIGHT':

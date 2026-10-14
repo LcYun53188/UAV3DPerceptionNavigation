@@ -12,13 +12,15 @@ class VioGate:
                           'cs_mag','cs_mag_hdg','cs_mag_3d','cs_opt_flow','cs_rng_hgt','cs_aux_gpos')
 
     def __init__(self, calibration_id, stable_s=2., *, fusion_profile="full_odometry"):
-        if fusion_profile not in ("full_odometry", "aligned_pose_v1", "aligned_pose_mtf_sim_v1"):
+        if fusion_profile not in ("full_odometry", "aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1"):
             raise ValueError("VIO_FUSION_PROFILE_UNSUPPORTED")
-        self.joint_sim = fusion_profile == "aligned_pose_mtf_sim_v1"
-        self.pose_only = fusion_profile in ("aligned_pose_v1", "aligned_pose_mtf_sim_v1")
+        self.flow_horizontal = fusion_profile == "flow_horizontal_mtf_sim_v1"
+        self.joint_sim = fusion_profile in ("aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1")
+        self.pose_only = fusion_profile in ("aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1")
         if self.joint_sim:
             self.forbidden_pose_aids = tuple(n for n in self.forbidden_pose_aids if n not in ("cs_opt_flow", "cs_rng_hgt"))
         self.aids = ("ev_pos", "ev_hgt", "ev_yaw") if self.pose_only else ("ev_pos", "ev_hgt", "ev_vel", "ev_yaw")
+        if self.flow_horizontal: self.aids = ("ev_hgt", "ev_yaw")
         if self.pose_only: self.required = ("source", "flags", "selector", "local") + self.aids
         if self.joint_sim: self.required += ("optical_flow", "rng_hgt")
         self.local_identity = self.local_candidate = None
@@ -110,9 +112,14 @@ class VioGate:
                         'reject_ver_vel','reject_yaw','fs_bad_hdg','fs_bad_acc_vertical','fs_bad_acc_clipping'))):
             return self.fail('VIO_EKF_FLAGS_INVALID')
         if self.pose_only:
+            if self.flow_horizontal and flags.cs_ev_pos:
+                return self.fail('FLOW_HORIZONTAL_EV_POSITION_STILL_ACTIVE')
             if flags.cs_ev_vel or any(getattr(flags,n) for n in self.forbidden_pose_aids):
                 return self.fail('VIO_UNEXPECTED_AIDING')
             local = self.samples['local']
+            if self.flow_horizontal and (not local.dist_bottom_valid or
+                    not math.isfinite(local.dist_bottom) or not .08 <= local.dist_bottom <= 8.):
+                return self.fail('FLOW_HORIZONTAL_RANGE_INVALID')
             if (not all(getattr(local,n) for n in ('xy_valid','z_valid','v_xy_valid','v_z_valid','heading_good_for_control'))
                     or local.dead_reckoning or not -.05 <= ros-local.timestamp_sample/1e6 <= .5
                     or not all(math.isfinite(getattr(local,n)) for n in ('x','y','z','vx','vy','vz','heading','heading_var','eph','epv','evh','evv'))

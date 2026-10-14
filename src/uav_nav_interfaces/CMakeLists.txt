@@ -11,9 +11,9 @@ find_package(nav_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME} "msg/StateDimension.msg" "msg/AircraftState.msg" "msg/MapSnapshot.msg" "msg/TimedTrajectory.msg" "msg/PlannerStatus.msg" "msg/TrajectoryRequest.msg"
 
   "msg/VioStatus.msg" "msg/LocalizedOdometry.msg" "msg/LocalizationAlignment.msg" "msg/PlanningContext.msg" "msg/ContextTrajectory.msg"
-  "msg/ControlSession.msg" "msg/ControlStatus.msg" "msg/TaskStatus.msg" "msg/MissionProgress.msg"
+  "msg/ControlSession.msg" "msg/ControlStatus.msg" "msg/TaskStatus.msg" "msg/MissionProgress.msg" "msg/LocalizationSelection.msg"
   "action/ExecuteMission.action" "action/NavigateToPose3D.action"
-  "srv/PauseMission.srv" "srv/ResumeMission.srv" "srv/ManageControlSession.srv" "srv/AdvanceFlightStep.srv"
+  "srv/PauseMission.srv" "srv/ResumeMission.srv" "srv/ManageControlSession.srv" "srv/AdvanceFlightStep.srv" "srv/SelectLocalization.srv"
   DEPENDENCIES std_msgs geometry_msgs builtin_interfaces unique_identifier_msgs action_msgs nav_msgs)
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
