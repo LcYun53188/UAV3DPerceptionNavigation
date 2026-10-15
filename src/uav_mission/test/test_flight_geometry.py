@@ -36,3 +36,20 @@ def test_full_envelope_region(p,valid):
 @pytest.mark.parametrize('p', [(math.nan,0,0),(math.inf,0,0),(1,2)])
 def test_invalid_coordinates_rejected(p):
     with pytest.raises(ValueError):ned_enu(p)
+
+
+def test_quintic_feedforward_matches_position_and_obeys_motion_limits():
+    s=Segment((.1,-.2,2.),(.8,-1.,1.5),.25,.15,.2)
+    dt=1e-4
+    for fraction in (.1,.25,.5,.75,.9):
+        t=s.duration*fraction
+        position,velocity,acceleration=s.state(t)
+        numeric_v=tuple((b-a)/(2*dt) for a,b in zip(s.at(t-dt),s.at(t+dt)))
+        numeric_a=tuple((b-a)/(2*dt) for a,b in zip(s.state(t-dt)[1],s.state(t+dt)[1]))
+        assert position==s.at(t)
+        assert velocity==pytest.approx(numeric_v,abs=1e-8)
+        assert acceleration==pytest.approx(numeric_a,abs=1e-8)
+        assert math.sqrt(sum(v*v for v in velocity))<=.25+1e-10
+        assert math.sqrt(sum(a*a for a in acceleration))<=.15+1e-10
+    for t in (-1.,0.,s.duration,s.duration+1):
+        assert s.state(t)[1:]==((0.,0.,0.),(0.,0.,0.))

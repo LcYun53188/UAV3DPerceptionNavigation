@@ -143,3 +143,45 @@ def test_preflight_resets_settle_before_map_binding():
         b.update('map',m,float(mono));b.update('odom',o,float(mono))
         assert b.ready(now,float(mono))==(mono>=8)
     assert b.identity[2][0]==1
+
+
+def test_prewarmed_node_waits_for_clearance_and_first_valid_map(tmp_path):
+    import json
+    from types import SimpleNamespace as NS
+    from uav_nav_sim.planning_sources_node import PlanningSources
+    marker=tmp_path/'map-admission.json'
+    updates=[];published=[];ticks=[]
+    binding=NS(inputs={},retired='')
+    def update(name,message,mono):
+        binding.inputs[name]=(message,mono);updates.append((name,message));return True
+    binding.update=update
+    node=NS(preflight_admission_path=str(marker),preflight_admitted=False,
+        binding=binding,unique=lambda:True,map_pub=NS(publish=published.append),
+        tick=lambda:ticks.append(True))
+    node.preflight_ready=lambda:PlanningSources.preflight_ready(node)
+    m,o,_=inputs()
+    for receipt in (None, '[]', '{', '{}', '{"schema":2,"source_ready":true,"native_map_cleared":true}',
+                    '{"schema":1,"source_ready":true,"native_map_cleared":false}'):
+        if receipt is not None:marker.write_text(receipt)
+        PlanningSources.receive(node,'map',m)
+        PlanningSources.receive(node,'odom',o)
+        PlanningSources.tick(node)  # No clock access or publication before admission.
+        assert not updates and not published and not node.preflight_admitted
+    marker.write_text(json.dumps(dict(schema=1,source_ready=True,native_map_cleared=True)))
+    warmup=deepcopy(m);warmup.valid=False
+    PlanningSources.receive(node,'map',warmup)
+    assert not updates and not published
+    PlanningSources.receive(node,'map',m)
+    assert published==[m] and published[0] is m
+    invalid=deepcopy(m);invalid.valid=False
+    PlanningSources.receive(node,'map',invalid)
+    assert published==[m,invalid]  # Active invalidations are never hidden.
+    binding.retired='MAP_SESSION_CHANGED'
+    PlanningSources.receive(node,'map',invalid)
+    assert ticks==[True]
+
+
+def test_prewarm_marker_is_optional_for_existing_profiles():
+    from types import SimpleNamespace as NS
+    from uav_nav_sim.planning_sources_node import PlanningSources
+    assert PlanningSources.preflight_ready(NS(preflight_admitted=True))

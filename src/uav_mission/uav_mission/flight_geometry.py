@@ -29,8 +29,13 @@ class Alignment:
     def to_odom(self, point):
         a, b, d = self.translation
         x, y, z = finite3(point)
+        return self.vector_to_odom((x-a,y-b,z-d))
+
+    def vector_to_odom(self, vector):
+        """Rotate a derivative without translating it as a position."""
+        x, y, z = finite3(vector)
         c, s = math.cos(self.yaw), math.sin(self.yaw)
-        return c*(x-a)+s*(y-b), -s*(x-a)+c*(y-b), z-d
+        return c*x+s*y, -s*x+c*y, z
 
 
 def distance(a, b):
@@ -48,11 +53,19 @@ class Segment:
                             math.sqrt(6*length/acceleration), (60*length/jerk)**(1/3))
 
     def at(self, elapsed):
+        return self.state(elapsed)[0]
+
+    def state(self, elapsed):
+        """Position, velocity and acceleration of the same stopped quintic."""
         if not math.isfinite(elapsed):
             raise ValueError('Invalid trajectory time')
         t = min(1., max(0., elapsed/self.duration))
         u = 10*t**3-15*t**4+6*t**5
-        return tuple(a+(b-a)*u for a, b in zip(self.start, self.end))
+        du = (30*t**2-60*t**3+30*t**4)/self.duration
+        ddu = (60*t-180*t**2+120*t**3)/self.duration**2
+        delta = tuple(b-a for a,b in zip(self.start,self.end))
+        return (tuple(a+d*u for a,d in zip(self.start,delta)),
+                tuple(d*du for d in delta),tuple(d*ddu for d in delta))
 
 
 def in_region(point, lower=(-8., -8., -.4), upper=(8., 8., 6.), margin=2.):

@@ -16,11 +16,13 @@ class ObservationSurvey:
         self.target=self.targets[0]
         self.segment=Segment(self.anchor,self.target,*limits)
         self.started_ros=ros
+        self.velocity=self.acceleration=(0.,0.,0.)
 
     def sample(self, ros, now, stable):
+        self.velocity=self.acceleration=(0.,0.,0.)
         if self.state in ('MOVE','RETURN'):
             elapsed=ros-self.started_ros
-            reference=self.segment.at(elapsed)
+            reference,self.velocity,self.acceleration=self.segment.state(elapsed)
             if elapsed>=self.segment.duration and stable(self.target,now):
                 if self.state=='RETURN':self.state='DONE'
                 else:self.state='SCAN';self.scan_started_ros=ros

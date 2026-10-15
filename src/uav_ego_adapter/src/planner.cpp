@@ -13,6 +13,7 @@
 #include "safe_seed.hpp"
 #include "swept_segment.hpp"
 #include "free_volume.hpp"
+#include "braking_volume.hpp"
 
 using V = Eigen::Vector3d;
 using Snapshot = uav_nav_interfaces::msg::MapSnapshot;
@@ -28,6 +29,8 @@ class Planner : public rclcpp::Node {
       throw std::runtime_error("coordinate_frame must be odom (legacy identity) or map");
     }
     radius_ = declare_parameter("body_radius", 0.3);
+    braking_ = declare_parameter("horizontal_braking_margin", 0.0);
+    if(!std::isfinite(braking_) || braking_<0.) throw std::runtime_error("Invalid horizontal braking margin");
     vmax_ = declare_parameter("max_velocity", 0.5);
     amax_ = declare_parameter("max_acceleration", 1.0);
     jmax_ = declare_parameter("max_jerk", 2.0);
@@ -94,8 +97,8 @@ class Planner : public rclcpp::Node {
   bool collision(const Snapshot& s, const V& p, double r) {
     if (!p.allFinite()) return true;
     V origin(s.origin.x,s.origin.y,s.origin.z);
-    Eigen::Vector3i lo=((p-V::Constant(r)-origin)/s.resolution).array().floor().cast<int>();
-    Eigen::Vector3i hi=((p+V::Constant(r)-origin)/s.resolution).array().floor().cast<int>();
+    const auto bounds=brakingBounds(p,origin,r,braking_,s.resolution);
+    const auto& lo=bounds.first;const auto& hi=bounds.second;
     Eigen::Vector3i idx=((p-origin)/s.resolution).array().floor().cast<int>();
     for (int a=0;a<3;++a) if(lo[a]<0 || hi[a]>=static_cast<int>(s.shape[a])) return true;
     auto address=[&s](int x,int y,int z) { return (static_cast<size_t>(x)*s.shape[1]+y)*s.shape[2]+z; };
@@ -251,7 +254,7 @@ class Planner : public rclcpp::Node {
   }
   FreeVolume free_volume_;
   std::string last_status_,coordinate_frame_;
-  double radius_,vmax_,amax_,jmax_,map_timeout_;
+  double radius_,braking_,vmax_,amax_,jmax_,map_timeout_;
   bool managed_=false,continuous_=true;
   builtin_interfaces::msg::Time goal_stamp_;
   uint64_t id_=0; bool pending_=false,executing_=false,goal_active_=false;V goal_;

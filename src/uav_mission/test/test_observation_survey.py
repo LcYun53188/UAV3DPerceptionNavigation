@@ -34,3 +34,13 @@ def test_survey_motion_stays_inside_conservative_known_region():
     for t in range(10):
         p,_,done=s.sample(t/2,0.,lambda *args:False)
         assert in_region(p,(-3,-3,-.4),(3,3,5),2.) and not done
+
+
+def test_survey_feedforward_is_zero_during_scan_and_at_completion():
+    s=survey()
+    s.sample(s.segment.duration/2,1.,lambda *args:False)
+    assert any(abs(v)>0 for v in s.velocity)
+    s.sample(s.segment.duration,2.,lambda *args:True)
+    assert s.state=='SCAN' and s.velocity==s.acceleration==(0.,0.,0.)
+    s.sample(s.segment.duration+1,3.,lambda *args:True)
+    assert s.velocity==s.acceleration==(0.,0.,0.)

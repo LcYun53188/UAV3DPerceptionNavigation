@@ -48,6 +48,26 @@ def test_checked_curve_uses_original_clock_and_inverse_alignment():
     assert done and p==pytest.approx([1.,-1.,1.])
 
 
+def test_ego_feedforward_matches_aligned_position_derivatives_and_retires():
+    e,b=setup();e.admit(b,authorization(),10.1,1.1)
+    e.sample(authorization(),10.2,1.2)
+    assert e.velocity==e.acceleration==(0.,0.,0.)  # Future start remains stopped.
+    dt=1e-3
+    def position(t):return np.asarray(e.alignment.to_odom(e.curve(t)))
+    for elapsed in (.3,1.,3.,6.3):
+        ros=e.start_ros+elapsed;refresh(e,ros,ros-9.)
+        e.sample(authorization(),ros,ros-9.)
+        numeric_v=(position(elapsed+dt)-position(elapsed-dt))/(2*dt)
+        numeric_a=(position(elapsed+dt)-2*position(elapsed)+position(elapsed-dt))/dt**2
+        assert e.velocity==pytest.approx(numeric_v,abs=1e-7)
+        assert e.acceleration==pytest.approx(numeric_a,abs=1e-7)
+    ros=e.start_ros+e.duration+1.;refresh(e,ros,ros-9.)
+    _,done=e.sample(authorization(),ros,ros-9.)
+    assert done and e.velocity==e.acceleration==(0.,0.,0.)
+    e.retire()
+    assert e.velocity==e.acceleration==(0.,0.,0.)
+
+
 @pytest.mark.parametrize('change',['owner','context','map','reset','start','unknown','limits','region'])
 def test_admission_rechecks_authorization_context_geometry_and_motion(change):
     e,b=setup();auth=authorization()

@@ -1,6 +1,8 @@
 """Managed source binding for an explicitly defined map <- odom frame."""
 import math
 import time
+import json
+from pathlib import Path
 import rclpy
 from rclpy.clock import Clock, ClockType
 from rclpy.node import Node
@@ -23,6 +25,8 @@ class PlanningSources(Node):
         transform.translation.x, transform.translation.y, transform.translation.z = translation
         transform.rotation.z = math.sin(yaw/2); transform.rotation.w = math.cos(yaw/2)
         self.binding = SourceBinding(session, alignment_id, transform, self.declare_parameter('settle_seconds',0.).value)
+        self.preflight_admission_path=self.declare_parameter('preflight_admission_path','').value
+        self.preflight_admitted=not self.preflight_admission_path
         self.gids = {}
         qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.map_pub = self.create_publisher(MapSnapshot, '/planning/source/map', qos)
@@ -44,7 +48,21 @@ class PlanningSources(Node):
             self.gids[name] = gid
         return True
 
+    def preflight_ready(self):
+        if self.preflight_admitted:return True
+        try:receipt=json.loads(Path(self.preflight_admission_path).read_text())
+        except (OSError,ValueError):return False
+        self.preflight_admitted=(isinstance(receipt,dict) and receipt.get('schema')==1
+            and receipt.get('native_map_cleared') is True and receipt.get('source_ready') is True)
+        return self.preflight_admitted
+
     def receive(self, name, message):
+        if not self.preflight_ready():return
+        # The warmed mapper publishes invalid startup maps. The first binding
+        # must use a valid map from its promoted epoch, never capture the
+        # discarded GPU warmup identity and retire when that epoch changes.
+        if (self.preflight_admission_path and name=='map'
+                and 'map' not in self.binding.inputs and not message.valid):return
         if not self.unique():return
         accepted = self.binding.update(name, message, time.monotonic())
         if name == 'map' and accepted:
@@ -53,6 +71,7 @@ class PlanningSources(Node):
         if self.binding.retired:self.tick()
 
     def tick(self):
+        if not self.preflight_ready():return
         unique = self.unique()
         now = self.get_clock().now()
         message = self.binding.alignment(now.nanoseconds/1e9, time.monotonic(), now.to_msg())

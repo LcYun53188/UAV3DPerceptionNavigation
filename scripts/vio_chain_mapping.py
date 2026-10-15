@@ -30,13 +30,15 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
     if sum((graph_only,depth_only,binding_only))>1:raise ValueError('Conflicting mapping startup stages')
     transport=dict(env,FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
                    FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
+    config=read(ROOT/('simulation/safe_regions/'+env.get('UAV_FLIGHT_REGION_PROFILE','vio_chain')+'.json'))
     def start(name, command):
         return launch(name,['env','-u','AMENT_PREFIX_PATH','-u','COLCON_PREFIX_PATH','-u','CMAKE_PREFIX_PATH','-u','PYTHONPATH',
             'bash','-e','-c','source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; shift; exec "$@"',
             'mapping',str(ROOT),*map(str,command)],transport)
     if binding_only:
         start('planning_sources',['ros2','run','uav_nav_sim','planning_sources','--ros-args','-p','use_sim_time:=true',
-            '-p',f'localization_session:={run_id}','-p','alignment_id:=depth-map-is-ekf-odom-v1','-p','settle_seconds:=5.0'])
+            '-p',f'localization_session:={run_id}','-p','alignment_id:=depth-map-is-ekf-odom-v1','-p','settle_seconds:=5.0',
+            '-p',f'preflight_admission_path:={out/"map-admission.json"}'])
         return
     if not graph_only:start('depth_bridge',['ros2','run','ros_gz_bridge','parameter_bridge',
         '/px4_reference/rgbd/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
@@ -48,22 +50,24 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '--params-file',ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml','-p','use_sim_time:=true','-p','use_color:=false',
         '-p','voxel_size:=0.2','-p','integrate_depth_rate_hz:=5.0',
         '-p','update_mesh_rate_hz:=0.0','-p','publish_layer_rate_hz:=0.0','-p','publish_debug_vis_rate_hz:=0.0',
-        '-p','static_mapper.projective_integrator_max_integration_distance_m:=6.0',
+        '-p',f'static_mapper.projective_integrator_max_integration_distance_m:={config.get("depth_integration_distance_m",6.0)}',
         '-r','camera_0/depth/image:=/uav/mapping/depth','-r','camera_0/depth/camera_info:=/uav/mapping/camera_info'])
     start('map_session',['ros2','run','uav_nav_sim','map_session','--ros-args','-p','use_sim_time:=true',
         '-p','resolution:=0.2',
         '-p',f'preflight_admission_path:={out/"map-admission.json"}',
         '-p',f'scene_id:={file_hash(out/"assets/default.sdf")}',
-        '-p','aabb_min:=[-5.0,-5.0,0.0]','-p','aabb_size:=[10.0,10.0,4.0]',
+        '-p','aabb_min:='+json.dumps(list(map(float,config.get('map_aabb_min',[-5.0,-5.0,0.0])))),
+        '-p','aabb_size:='+json.dumps(list(map(float,config.get('map_aabb_size',[10.0,10.0,4.0])))),
         '-r','/rgbd_camera/depth_image:=/px4_depth/image','-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'])
-    config=read(ROOT/'simulation/safe_regions/vio_chain.json');limits=config['ego_limits']
+    limits=config['ego_limits']
     if not graph_only:launch_mapping(launch,env,out,run_id,binding_only=True)
     common=['--ros-args','-p','use_sim_time:=true','-p','body_radius:=0.8',
             '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}']
     start('planning_context',['ros2','run','uav_nav_sim','planning_context',*common,
         '-r','/planning/source/odometry:=/uav/px4/localized_odometry'])
     command=[ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner',*common,
-        '-p','coordinate_frame:=map','-p','managed_goals:=true']
+        '-p','coordinate_frame:=map','-p','managed_goals:=true',
+        '-p',f'horizontal_braking_margin:={config["braking_margin_m"]}']
     for source,target in {'/uav/map/snapshot':'/planning/ego/map','/uav/localization/odometry':'/planning/ego/odometry',
                          '/uav/goal':'/planning/ego/goal','/uav/trajectory':'/planning/ego/trajectory','/uav/planned_path':'/planning/ego/path'}.items():
         command += ['-r',source+':='+target]

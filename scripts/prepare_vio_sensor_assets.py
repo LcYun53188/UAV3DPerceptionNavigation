@@ -16,7 +16,7 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         raise ValueError('Unknown reference scene')
     if warehouse_floor_texture and scene!='warehouse':
         raise ValueError('Floor texture comparison requires warehouse scene')
-    if warehouse_variant not in ('baseline','complex') or (warehouse_variant!='baseline' and scene!='warehouse'):
+    if warehouse_variant not in ('baseline','complex','avoidance') or (warehouse_variant!='baseline' and scene!='warehouse'):
         raise ValueError('Complex variant requires warehouse scene')
     if real_time_factor is not None and (not math.isfinite(real_time_factor) or not .8<=real_time_factor<=1.):
         raise ValueError('Reference pacing must be within [0.8,1.0]')

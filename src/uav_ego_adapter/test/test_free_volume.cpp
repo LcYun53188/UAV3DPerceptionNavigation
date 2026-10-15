@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include "../src/free_volume.hpp"
+#include "../src/braking_volume.hpp"
 
 TEST(FreeVolume, ClearCentreCannotHideBlockedBodyVoxel) {
   const std::array<uint32_t,3> shape{8,7,6};
@@ -42,4 +43,26 @@ TEST(FreeVolume, PrefixMatchesBruteForceForAllBoxes) {
       }
       EXPECT_EQ(volume.isFree(Eigen::Vector3i(x,y,z),Eigen::Vector3i(a,b,c)),expected);
     }
+}
+
+TEST(FreeVolume, HorizontalBrakingReserveBlocksObstacleWithoutInflatingHeight) {
+  const std::array<uint32_t,3> shape{40,40,30};
+  std::vector<float> distance(40*40*30,4.f);
+  std::vector<uint8_t> observed(distance.size(),1);
+  const Eigen::Vector3d point(4.,4.,3.),origin(0.,0.,0.);
+  const auto body=brakingBounds(point,origin,.8,0.,.2);
+  const auto brake=brakingBounds(point,origin,.8,1.2,.2);
+  EXPECT_EQ(body.first.z(),brake.first.z());EXPECT_EQ(body.second.z(),brake.second.z());
+  // Occupied cell 1.6 m ahead: outside body, inside stopping reserve.
+  const size_t obstacle=(size_t(28)*40+20)*30+15;
+  distance[obstacle]=0.f;
+  FreeVolume volume;volume.update(shape,distance,observed);
+  EXPECT_TRUE(volume.isFree(body.first,body.second));
+  EXPECT_FALSE(volume.isFree(brake.first,brake.second));
+  // Raising the aircraft clears this cell without weakening horizontal reserve.
+  const auto above=brakingBounds(Eigen::Vector3d(4.,4.,4.2),origin,.8,1.2,.2);
+  EXPECT_TRUE(volume.isFree(above.first,above.second));
+  distance[obstacle]=4.f;observed[obstacle]=0;
+  volume.update(shape,distance,observed);
+  EXPECT_FALSE(volume.isFree(brake.first,brake.second));
 }

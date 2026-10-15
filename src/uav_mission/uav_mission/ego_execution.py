@@ -80,6 +80,8 @@ class EgoExecution:
 
     def retire(self):
         self.authorization=None;self.curve=None;self.gate.goal=None
+        self.velocity_curve=self.acceleration_curve=None
+        self.velocity=self.acceleration=(0.,0.,0.)
         self.bound_context=None;self.last_checked_version=None
 
     def ready(self, ros, mono):
@@ -127,10 +129,13 @@ class EgoExecution:
         if any(not self.region(self.alignment.to_odom(p)) for p in candidate.c):raise ValueError('CURVE_OUTSIDE_FLIGHT_REGION')
         checked=g.bind(trajectory,ros,mono)
         self.curve=candidate;self.start_ros=stamp(checked.start_time);self.duration=float(candidate.t[-4])
+        self.velocity_curve=candidate.derivative(1)
+        self.acceleration_curve=candidate.derivative(2)
         self.bound_context=g.context_id;self.trajectory_id=checked.trajectory_id
         self.last_checked_version=message.version;self.used.add(key)
 
     def sample(self, authorization, ros, mono):
+        self.velocity=self.acceleration=(0.,0.,0.)
         try:
             if self.authorization is None or authorization!=self.authorization:raise ValueError('CONTROL_SESSION_MISMATCH')
             self.ready(ros,mono)
@@ -143,6 +148,9 @@ class EgoExecution:
             if message.version!=self.last_checked_version:
                 validate_trajectory(self.curve,self.gate.grid,self.gate.radius,self.gate.limits,start=elapsed)
                 self.last_checked_version=message.version
+            if self.start_ros<=ros<self.start_ros+self.duration:
+                self.velocity=self.alignment.vector_to_odom(self.velocity_curve(elapsed))
+                self.acceleration=self.alignment.vector_to_odom(self.acceleration_curve(elapsed))
             return self.alignment.to_odom(self.curve(elapsed)),ros>=self.start_ros+self.duration
         except ValueError:
             self.retire();raise
