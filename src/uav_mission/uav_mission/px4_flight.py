@@ -24,7 +24,7 @@ from rclpy.task import Future
 from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
                           BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode,
-                          TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags,
+                          TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags, HomePosition, VehicleGlobalPosition,
                           EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus, ManualControlSetpoint, DistanceSensor, SensorOpticalFlow)
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped, PoseStamped
@@ -37,9 +37,11 @@ from px4_comm_bridge.converters import vehicle_odometry_to_ros
 from .vio_gate import VioGate
 from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_region
 from .mission_checkpoint import ReturnCheckpoint
+from .home_reference import local_home, native_rtl_home
+from .pilot_intervention import PilotIntervention
 
 
-class FlightServer(Node):
+class FlightServer(PilotIntervention, Node):
     def __init__(self):
         super().__init__('px4_flight_gateway')
         self.nonce = os.environ.get('UAV_SITL_AUTHORIZATION', '')
@@ -89,6 +91,10 @@ class FlightServer(Node):
         self.return_override = False
         self.return_after_brake = False
         self.return_checkpoint = None
+        self.return_home_reference = None
+        self.pilot_control = self.pilot_pending = None
+        self.pilot_abort_reason = None
+        self.home_frame_epoch_us = 0
         self.plan_revision = 0
         self.restored_hover = None
         self.join_hover_remaining = None
@@ -100,14 +106,14 @@ class FlightServer(Node):
                                  10, callback_group=self.state_group)
         for name, kind in [('vehicle_status', VehicleStatus), ('vehicle_local_position', VehicleLocalPosition),
                            ('vehicle_land_detected', VehicleLandDetected), ('battery_status', BatteryStatus),
-                           ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry), ('failsafe_flags',FailsafeFlags)]:
+                           ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry), ('failsafe_flags',FailsafeFlags),
+                           ('home_position',HomePosition),('vehicle_global_position',VehicleGlobalPosition)]:
             version=getattr(kind,'MESSAGE_VERSION',0)
             suffix = f'_v{version}' if version else ''
             self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
                                      qos_profile_sensor_data, callback_group=self.state_group)
-        if self.operator_enabled:
-            self.create_subscription(ManualControlSetpoint, '/px4_7/fmu/out/manual_control_setpoint',
-                self.callback('manual_control_setpoint'), qos_profile_sensor_data, callback_group=self.state_group)
+        self.create_subscription(ManualControlSetpoint, '/px4_7/fmu/out/manual_control_setpoint',
+            self.callback('manual_control_setpoint'), qos_profile_sensor_data, callback_group=self.state_group)
         self.vio_gate = None
         self.vio_topics = {}
         self.vio_writers = {}
@@ -146,6 +152,10 @@ class FlightServer(Node):
             if not re.fullmatch('[0-9a-f]{64}', calibration):
                 raise RuntimeError('VIO mission requires reviewed calibration/config SHA256')
             self.vio_gate = VioGate(calibration,fusion_profile=os.environ.get('UAV_VIO_FUSION_PROFILE','full_odometry'))
+            if self.vio_gate.primary_mtf and (self.config.get('profile')!='experimental_sdk16_static_avoidance'
+                    or os.environ.get('UAV_EXPERIMENTAL_VIO_CHAIN')!='1'
+                    or os.environ.get('UAV_ENABLE_FUSION_SWITCH')=='1'):
+                raise RuntimeError('VIO primary MTF requires the fixed owned avoidance experiment')
             inputs = [('source', '/uav/vio/status', VioStatus),
                       ('flags', '/px4_7/fmu/out/estimator_status_flags', EstimatorStatusFlags),
                       ('selector', '/px4_7/fmu/out/estimator_selector_status', EstimatorSelectorStatus),
@@ -159,6 +169,9 @@ class FlightServer(Node):
             if self.vio_gate.joint_sim:
                 inputs += [("optical_flow", "/px4_7/fmu/out/estimator_aid_src_optical_flow", EstimatorAidSource2d),
                            ("rng_hgt", "/px4_7/fmu/out/estimator_aid_src_rng_hgt", EstimatorAidSource1d)]
+            if self.vio_gate.primary_mtf:
+                inputs += [('flow_input','/px4_7/fmu/in/sensor_optical_flow',SensorOpticalFlow),
+                           ('range_input','/px4_7/fmu/in/distance_sensor',DistanceSensor)]
             for name, topic, kind in inputs:
                 version = getattr(kind, 'MESSAGE_VERSION', 0)
                 topic += f'_v{version}' if version else ''
@@ -292,6 +305,10 @@ class FlightServer(Node):
                         self.fault('SOURCE_TIME_RESET')
                     return
                 self.samples[name], self.received[name] = msg, time.monotonic()
+                if name=='vehicle_local_position' and old is not None and (
+                        msg.xy_reset_counter!=old.xy_reset_counter or msg.z_reset_counter!=old.z_reset_counter or
+                        msg.ref_timestamp!=old.ref_timestamp):
+                    self.home_frame_epoch_us=msg.timestamp
                 FlightServer.forward_vio_local(self,name,msg,self.received[name])
                 if name in ('vehicle_local_position', 'vehicle_odometry'):
                     self.check_localization_reset()
@@ -354,7 +371,9 @@ class FlightServer(Node):
 
     def change(self, phase, reason=''):
         self.phase, self.reason = phase, reason
-        if phase in ('FAULT','COMPLETE'):self.child=UUID()
+        if phase in ('FAULT','COMPLETE'):
+            self.child=UUID()
+            self.pilot_control=self.pilot_pending=None
         self.phase_started = time.monotonic()
         self.sequence += 1
         self.stable_since = None
@@ -498,10 +517,16 @@ class FlightServer(Node):
         return in_region(point,c['bounds_min'],c['bounds_max'],
                          c['body_radius_m']+c['tracking_margin_m']+c['braking_margin_m'])
 
+    def known_region(self, point):
+        c=self.config
+        return in_region(point,c.get('known_clearance_bounds_min',c['bounds_min']),
+            c.get('known_clearance_bounds_max',c['bounds_max']),
+            c['body_radius_m']+c['tracking_margin_m']+c['braking_margin_m'])
+
     def parse(self, request):
         if request.backend != 'PX4_KNOWN_REGION' or request.mission_type != 'FLIGHT_SEQUENCE':
             raise ValueError('Unsupported mission backend/type')
-        if not math.isfinite(request.timeout_s) or not 20 <= request.timeout_s <= 240:
+        if not math.isfinite(request.timeout_s) or not 20 <= request.timeout_s <= getattr(self,'config',{}).get('mission_timeout_max_s',240.):
             raise ValueError('Invalid deadline')
         params = json.loads(request.parameters_json)
         if not isinstance(params,dict):raise ValueError('Mission parameters must be an object')
@@ -556,7 +581,7 @@ class FlightServer(Node):
                     raise ValueError('Observation leaves insufficient landing deadline')
                 if self.config.get('observation_offsets_enu'):
                     from .observation_survey import ObservationSurvey
-                    ObservationSurvey(target,home,self.config['observation_offsets_enu'],self.region,
+                    ObservationSurvey(target,home,self.config['observation_offsets_enu'],self.known_region,
                         self.config['observation_yaw_rate_rps'],
                         tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
                             for k in ('max_speed_mps','max_acceleration_mps2','max_jerk_mps3')),0.)
@@ -569,8 +594,9 @@ class FlightServer(Node):
                 continue
             else:
                 raise ValueError('Unsupported flight step')
-            if not self.region(target):
-                raise ValueError('Target/envelope outside W0')
+            admitted=self.region(target) if kind=='NAVIGATE' and navigation=='EGO' else self.known_region(target)
+            if not admitted:
+                raise ValueError('Target/envelope outside admitted region')
         return steps
 
     def goal(self, request):
@@ -622,6 +648,9 @@ class FlightServer(Node):
             self.step_requests.clear()
             self.return_override = self.return_after_brake = False
             self.return_checkpoint = None
+            self.return_home_reference = None
+            self.pilot_control = self.pilot_pending = None
+            self.pilot_abort_reason = None
             self.plan_revision = 0
             self.restored_hover = self.join_hover_remaining = None
             self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
@@ -680,12 +709,55 @@ class FlightServer(Node):
                 return True, 'DISARM_REQUESTED'
             if not self.operator_input_ready():
                 return False, 'QGC_JOYSTICK_NOT_CALIBRATED_OR_FRESH'
-            if operation == 'MANUAL':
+            if operation=='RTL':
+                if landed or status.arming_state!=2:
+                    return False,'RTL_REQUIRES_AIRBORNE_ARMED_AIRCRAFT'
+                if self.active_goal or self.owner!='NONE':
+                    return False,'ACTIVE_TASK_USE_END_MISSION'
+                if not self.healthy() or not self.fresh('failsafe_flags',1.5):
+                    return False,'RTL_POSITION_OR_HEALTH_UNAVAILABLE'
+                if not self.fresh('vehicle_global_position',.5):
+                    return False,'PX4_GLOBAL_POSITION_UNAVAILABLE'
+                try:
+                    reference=native_rtl_home(self.samples.get('home_position'),
+                        self.samples.get('vehicle_local_position'),self.samples.get('vehicle_global_position'),
+                        self.samples.get('failsafe_flags'),self.get_clock().now().nanoseconds/1e9,
+                        writer_count=len(self.get_publishers_info_by_topic('/px4_7/fmu/out/home_position')),
+                        frame_epoch_us=self.home_frame_epoch_us)
+                except ValueError as error:return False,str(error)
+                self.command(20)
+                self.owner='AUTOPILOT';self.generation+=1
+                self.native_rtl_requested=time.monotonic()
+                self.diagnostics.append(dict(native_return_home=reference.evidence()))
+                self.change('NATIVE_RTL_REQUEST','OPERATOR_PX4_RTL_REQUESTED')
+                return True,'PX4_NATIVE_RTL_REQUESTED'
+            if operation == 'LAND':
+                if landed:
+                    return False, 'ALREADY_LANDED'
+                if self.active_goal or self.owner != 'NONE':
+                    return False, 'ACTIVE_TASK_USE_END_MISSION'
+                if not self.healthy():
+                    return False, 'LAND_POSITION_OR_HEIGHT_UNAVAILABLE'
+                self.command(21)
+                self.land_committed = True
+                self.owner = 'AUTOPILOT'
+                self.generation += 1
+                self.change('FINAL_NATIVE_LAND', 'OPERATOR_LOCAL_LAND_REQUESTED')
+                return True, 'NATIVE_LOCAL_LAND_REQUESTED'
+            if operation in ('MANUAL', 'ACRO', 'VIO_POSITION', 'FLOW_POSITION'):
+                if operation in ('VIO_POSITION', 'FLOW_POSITION'):
+                    gate = getattr(self, 'vio_gate', None)
+                    flow = bool(gate is not None and (getattr(gate, 'pure_flow', False) or getattr(gate, 'flow_horizontal', False)))
+                    if gate is None or flow != (operation == 'FLOW_POSITION') or not self.vio_healthy():
+                        return False, 'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY'
                 if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
                     self.fault('PILOT_TAKEOVER')
                     self.owner = 'NONE'; self.generation += 1; self.segment = None
-                self.command(176, 1, 3)  # PX4 Position; observe actual mode separately.
-                return True, 'POSITION_MODE_REQUESTED'
+                if self.owner=='AUTOPILOT' and self.phase in ('NATIVE_RTL_REQUEST','NATIVE_RTL'):
+                    self.owner='NONE';self.generation+=1
+                    self.change('IDLE','NATIVE_RTL_PILOT_TAKEOVER')
+                self.command(176, 1, 5 if operation == 'ACRO' else 3)
+                return True, 'ACRO_MODE_REQUESTED' if operation == 'ACRO' else 'POSITION_MODE_REQUESTED'
             if operation == 'ARM':
                 manual = self.samples['manual_control_setpoint']
                 if (self.active_goal or self.owner != 'NONE' or not landed or
@@ -704,18 +776,66 @@ class FlightServer(Node):
                 return True, 'ARM_REQUESTED'
             return False, 'UNSUPPORTED_OPERATION'
 
+    def px4_home(self):
+        return local_home(self.samples.get('home_position'),self.get_clock().now().nanoseconds/1e9,
+            writer_count=len(self.get_publishers_info_by_topic('/px4_7/fmu/out/home_position')),
+            frame_epoch_us=self.home_frame_epoch_us)
+
+    def capture_return_home(self):
+        if self.config.get('return_home_source')!='PX4_HOME_POSITION':return None
+        if self.navigation_backend!='EGO':raise ValueError('RETURN_REQUIRES_AVOIDANCE_NAVIGATION')
+        reference=FlightServer.px4_home(self)
+        target=(reference.position_enu[0],reference.position_enu[1],self.reference[2])
+        if not self.region(target):raise ValueError('PX4_RETURN_HOME_OUTSIDE_REGION')
+        return reference
+
+    def bind_return_home(self):
+        reference=FlightServer.capture_return_home(self)
+        if reference is not None:
+            self.return_home_reference=reference
+            self.diagnostics.append(dict(return_home=reference.evidence()))
+
+    def return_target(self):
+        if self.config.get('return_home_source')!='PX4_HOME_POSITION':
+            return self.home[0],self.home[1],self.reference[2]
+        if self.return_home_reference is None:FlightServer.bind_return_home(self)
+        current=FlightServer.px4_home(self)
+        if current.position_enu!=self.return_home_reference.position_enu:
+            raise ValueError('PX4_RETURN_HOME_CHANGED')
+        return current.position_enu[0],current.position_enu[1],self.reference[2]
+
+    def native_rtl_tick(self,now):
+        # PX4 owns this flight: observe its mode/landing, never stream Offboard
+        # or claim that a request ACK proves RTL actually started or completed.
+        if not self.fresh('vehicle_status',.75) or not self.fresh('vehicle_land_detected',1.2):return
+        status=self.samples['vehicle_status']
+        if self.samples['vehicle_land_detected'].landed and status.arming_state==1:
+            self.owner='NONE';self.generation+=1;self.change('NATIVE_RTL_CLOSED','LANDED_AND_DISARMED')
+        elif status.nav_state==status.NAVIGATION_STATE_AUTO_RTL:
+            if self.phase=='NATIVE_RTL_REQUEST':self.change('NATIVE_RTL','PX4_RTL_MODE_CONFIRMED')
+        elif status.nav_state==status.NAVIGATION_STATE_AUTO_LAND:
+            self.land_committed=True;self.change('FINAL_NATIVE_LAND','PX4_RTL_NATIVE_LAND')
+        elif self.phase=='NATIVE_RTL' or now-self.native_rtl_requested>3.:
+            self.owner='NONE';self.generation+=1
+            self.change('IDLE','PX4_RTL_EXITED' if self.phase=='NATIVE_RTL' else 'PX4_RTL_NOT_CONFIRMED')
+
     def cancel(self, handle):
         with self.lock:
             if handle != self.active_goal or self.land_committed or self.phase in ('FAULT','COMPLETE'):
                 return CancelResponse.REJECT
             self.canceling = True
             self.return_checkpoint = None
+            self.return_home_reference = None
             if self.samples['vehicle_status'].arming_state == 1:
                 self.result = ('CANCELED','GROUND_CANCEL',True)
                 self.owner = 'NONE'
                 self.change('COMPLETE')
             else:
-                self.begin_stop('CANCEL_BRAKE')
+                if getattr(self,'pilot_control',None) in ('ENTERING','ACTIVE'):
+                    self.request_pilot_reacquire('CANCEL',time.monotonic())
+                elif getattr(self,'pilot_control',None) in ('PRESTREAM','OFFBOARD'):
+                    self.pilot_pending='CANCEL'
+                else:self.begin_stop('CANCEL_BRAKE')
             return CancelResponse.ACCEPT
 
     def checkpoint_alignment(self):
@@ -794,6 +914,7 @@ class FlightServer(Node):
         self.join_hover_remaining = None
         self.return_override = self.return_after_brake = False
         self.return_checkpoint = None
+        self.return_home_reference = None
         self.plan_revision += 1
         self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
         self.owner = 'TASK'
@@ -822,6 +943,13 @@ class FlightServer(Node):
                     response.accepted=False;response.reason='REQUEST_ID_CONFLICT';response.phase=self.phase
                 return response
             accepted=False;reason='INVALID_PHASE'
+            if getattr(self,'pilot_control',None) and verb in ('resume','return','finish','restore'):
+                if verb in ('resume','finish'):
+                    accepted,reason=self.request_pilot_reacquire(verb,now)
+                else:reason='INTERVENTION_USE_RESUME_OR_END_MISSION'
+                response.accepted,response.reason,response.phase=accepted,reason,self.phase
+                self.requests[key]=(verb,(accepted,reason,self.phase))
+                return response
             if getattr(self,'localization_profile','DEFAULT')=='FLOW_LOCAL' and verb in ('return','finish','restore'):
                 response.accepted=False;response.reason='FLOW_LOCAL_RETURN_REQUIRES_VIO';response.phase=self.phase
                 self.requests[key]=(verb,(False,response.reason,self.phase))
@@ -861,14 +989,18 @@ class FlightServer(Node):
                 index = next((i for i, step in enumerate(self.steps) if step['type']=='RETURN'), None)
                 if index is not None:
                     try:
+                        return_home=FlightServer.capture_return_home(self)
                         checkpoint = self.save_return_checkpoint(now,index) if verb=='return' else None
-                    except ValueError:
+                    except ValueError as error:
                         checkpoint = None
-                        reason = 'RETURN_CONTEXT_INVALID'
+                        reason = 'RETURN_CONTEXT_INVALID:'+str(error)
                         index = None
                 if index is not None:
                     self.begin_stop('RETURN_BRAKE')
                     if self.phase == 'RETURN_BRAKE':
+                        if return_home is not None:
+                            self.return_home_reference=return_home
+                            self.diagnostics.append(dict(return_home=return_home.evidence()))
                         self.steps = self.steps[:index]+[dict(type='RETURN'),dict(type='LAND')]
                         self.step_index = index-1
                         self.step_grant = None
@@ -950,7 +1082,11 @@ class FlightServer(Node):
             self.fault('BT_PROGRESS_TIMEOUT')
         else:
             self.canceling = True
-            self.begin_stop('LEASE_BRAKE')
+            if getattr(self,'pilot_control',None) in ('ENTERING','ACTIVE'):
+                self.request_pilot_reacquire('LEASE_LOST',now)
+            elif getattr(self,'pilot_control',None) in ('PRESTREAM','OFFBOARD'):
+                self.pilot_pending='LEASE_LOST'
+            else:self.begin_stop('LEASE_BRAKE')
 
     def begin_stop(self, phase):
         self.segment = None  # Retire old reference timeline before braking.
@@ -980,6 +1116,8 @@ class FlightServer(Node):
         self.child=UUID(uuid=list(uuid.uuid4().bytes))
         step=self.steps[self.step_index]
         kind=step['type']
+        if kind not in ('RETURN','LAND') and not getattr(self,'return_override',False):
+            self.return_home_reference=None
         self.segment=None
         self.join_hover_remaining = None
         join_target = None
@@ -999,7 +1137,9 @@ class FlightServer(Node):
         if kind in ('TAKEOFF','NAVIGATE','RETURN'):
             if kind=='TAKEOFF': target=(self.home[0],self.home[1],self.home[2]+step['height_m'])
             elif kind=='NAVIGATE': target=join_target if join_target is not None else self.alignment.to_odom(step['target_map'])
-            else: target=(self.home[0],self.home[1],self.reference[2])
+            else:
+                try:target=FlightServer.return_target(self)
+                except ValueError as error:self.fault('RETURN_HOME:'+str(error));return
             if not self.region(target):
                 self.fault('TARGET_OUTSIDE_W0');return
             if kind in ('NAVIGATE','RETURN') and getattr(self,'navigation_backend','DIRECT')=='EGO':
@@ -1028,7 +1168,7 @@ class FlightServer(Node):
             if self.config.get('observation_offsets_enu'):
                 from .observation_survey import ObservationSurvey
                 self.observe_completion_scan_started_ros=None
-                self.survey=ObservationSurvey(self.target,self.home,self.config['observation_offsets_enu'],self.region,
+                self.survey=ObservationSurvey(self.target,self.home,self.config['observation_offsets_enu'],self.known_region,
                     self.config['observation_yaw_rate_rps'],
                     tuple(min(self.config[k],self.config.get('observation_'+k,self.config[k]))
                             for k in ('max_speed_mps','max_acceleration_mps2','max_jerk_mps3')),
@@ -1083,9 +1223,18 @@ class FlightServer(Node):
                                 +self.planned.gate.grid.resolution*.5)
             clear=not grid.collision(self.alignment.to_map(self.position()),
                                      observation_radius)
+            required_volumes=[]
+            for offset in self.config.get('observation_required_offsets_enu',[]):
+                point=self.alignment.to_map(tuple(a+b for a,b in zip(self.home,finite3(offset))))
+                point_clear=not grid.collision(point,observation_radius)
+                clear=clear and point_clear
+                if now-self.last_observation_sample>=1.:
+                    required_volumes.append(dict(point_map=list(point),clear=point_clear,
+                        diagnostics=grid.diagnostics(point,observation_radius)))
             if now-self.last_observation_sample>=1.:
                 volume=grid.diagnostics(self.alignment.to_map(self.position()),
                     observation_radius)
+                if required_volumes:volume['required_route_volumes']=required_volumes
                 if survey is not None and survey.state in ('SCAN','DONE'):
                     from uav_nav_sim.planning_context import stamp
                     m=self.planned.gate.inputs.get('map')
@@ -1102,7 +1251,9 @@ class FlightServer(Node):
                             radius_m=observation_radius,
                             braking_margin_m=self.config['braking_margin_m'],survey_index=survey.index,
                             survey_state=survey.state,diagnostics=volume))
-            reason='READY' if clear else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME'
+            reason='READY' if clear else ('UNOBSERVED_OR_OCCUPIED_ROUTE_VOLUME'
+                if required_volumes and any(not v['clear'] for v in required_volumes)
+                else 'UNOBSERVED_OR_OCCUPIED_START_VOLUME')
         except ValueError as error:reason=str(error)
         if now-self.last_observation_sample>=1.:
             self.last_observation_sample=now
@@ -1128,17 +1279,34 @@ class FlightServer(Node):
         self.last_command=time.monotonic()
         self.commands.append(dict(command=command,param1=p1,param2=p2,ros=now/1e6,phase=self.phase))
 
-    def stream(self):
+    def offboard_heartbeat(self):
         stamp=self.get_clock().now().nanoseconds//1000
         self.mode_pub.publish(OffboardControlMode(timestamp=stamp,position=True))
+
+    def stream(self):
+        stamp=self.get_clock().now().nanoseconds//1000
+        FlightServer.offboard_heartbeat(self)
+        survey=getattr(self,'survey',None) if self.phase=='OBSERVE' else None
+        planned=getattr(self,'planned',None)
+        motion=survey
+        if (self.phase in ('NAVIGATE','RETURN') and getattr(self,'navigation_backend',None)=='EGO'
+                and planned is not None and planned.curve is not None):
+            motion=planned
+        # Moving references have analytic feedforward. Position-only
+        # setpoints otherwise require a persistent P-controller tracking error
+        # to produce motion, consuming the same reserved tracking margin.
+        velocity=list(ned_enu(motion.velocity)) if motion is not None else [math.nan]*3
+        acceleration=list(ned_enu(motion.acceleration)) if motion is not None else [math.nan]*3
         msg=TrajectorySetpoint(timestamp=stamp,position=list(ned_enu(self.reference)),
-                               velocity=[math.nan]*3,acceleration=[math.nan]*3,jerk=[math.nan]*3,
+                               velocity=velocity,acceleration=acceleration,jerk=[math.nan]*3,
                                yaw=self.yaw,yawspeed=math.nan)
         self.setpoint_pub.publish(msg)
         self.output_count+=1
 
     def fault(self, reason):
+        self.pilot_control = self.pilot_pending = None
         self.return_checkpoint = None
+        self.return_home_reference = None
         if getattr(self,'planned',None) is not None:self.planned.retire()
         now=time.monotonic();ros=self.get_clock().now().nanoseconds/1e9
         self.diagnostics.append(dict(reason=reason,ages={n:dict(receive=now-self.received[n],source=ros-m.timestamp/1e6) for n,m in self.samples.items()},local=str(self.samples.get('vehicle_local_position')),status=str(self.samples.get('vehicle_status')),battery=str(self.samples.get('battery_status'))))
@@ -1189,6 +1357,8 @@ class FlightServer(Node):
                 elif self.owner=='AUTOPILOT' and self.phase=='FINAL_NATIVE_LAND' and self.fresh('vehicle_land_detected',1.2) and self.fresh('vehicle_status',.75):
                     if self.samples['vehicle_land_detected'].landed and self.samples['vehicle_status'].arming_state==1:
                         self.owner='NONE';self.generation+=1;self.change('FINAL_HOLD_CLOSED')
+                elif self.owner=='AUTOPILOT' and self.phase in ('NATIVE_RTL_REQUEST','NATIVE_RTL'):
+                    FlightServer.native_rtl_tick(self,now)
                 return
             if self.clock_fault_latched:
                 self.fault('CLOCK_FAULT');return
@@ -1198,6 +1368,10 @@ class FlightServer(Node):
                     self.fault('NON_UNIQUE_CONTROL_OR_CLOCK_PUBLISHER');return
             if now >= self.deadline:
                 self.fault('MISSION_TIMEOUT');return
+            if (getattr(self,'return_home_reference',None) is not None and not self.land_committed
+                    and self.phase in ('RETURN_BRAKE','HOLD_HANDOFF','PLAN_REQUEST','RETURN','PAUSING','PAUSED')):
+                try:FlightServer.return_target(self)
+                except ValueError as error:self.fault('RETURN_HOME:'+str(error));return
             if not self.healthy(ground=self.phase=='LANDING'):
                 self.fault('VIO_HEALTH_LOST:'+self.vio_gate.reason if getattr(self, 'vio_gate', None) is not None and self.vio_gate.reason != 'READY' else 'STALE_OR_INVALID_AIRCRAFT_STATE');return
             if (getattr(self,'operator_enabled',False) and not self.land_committed and
@@ -1208,6 +1382,17 @@ class FlightServer(Node):
             status=self.samples['vehicle_status'];phase=self.phase
             if not self.region(self.position()):
                 self.fault('W0_ENVELOPE_VIOLATION');return
+            if getattr(self,'pilot_control',None):
+                if status.arming_state!=2:self.fault('PILOT_UNEXPECTED_DISARM');return
+                self.check_runner_progress(now)
+                if self.result:return
+                if self.pilot_tick(now):
+                    self.publish_status()
+                    self.trace.append(dict(mono=now,ros=ros,phase=self.phase,position_enu=self.position(),
+                        reference=self.reference,speed=self.speed(),nav_state=status.nav_state,
+                        armed=status.arming_state,generation=self.generation,owner=self.owner,
+                        pilot_control=self.pilot_control))
+                    return
             if phase not in ('PRESTREAM','OFFBOARD_REQUEST','ARM_REQUEST','LANDING') and status.arming_state!=2:
                 self.fault('UNEXPECTED_DISARM');return
             if phase=='LANDING' and status.arming_state==1 and (not self.samples['vehicle_land_detected'].landed or self.speed()>.1):
@@ -1272,7 +1457,8 @@ class FlightServer(Node):
                 # Gateway is the only owner; acknowledge only after fresh stream cycles.
                 if self.canceling:
                     self.final_hold_until=now+30.
-                    self.result=(('ABORTED','BT_PROGRESS_TIMEOUT',True) if self.runner_lost
+                    self.result=(('ABORTED',self.pilot_abort_reason,True) if getattr(self,'pilot_abort_reason',None) else
+                                 ('ABORTED','BT_PROGRESS_TIMEOUT',True) if self.runner_lost
                                  else ('CANCELED','STOPPED_AND_HOLDING',True))
                     self.change('COMPLETE')
                 elif getattr(self,'return_after_brake',False):
@@ -1306,7 +1492,9 @@ class FlightServer(Node):
         mode='UNKNOWN'
         if self.fresh('vehicle_status',.75):
             raw=self.samples['vehicle_status'].nav_state
-            mode='OFFBOARD' if raw==14 else 'AUTO_LAND' if raw in (18,20) else 'OTHER'
+            mode=('OFFBOARD' if raw==14 else 'AUTO_LAND' if raw in (18,20) else
+                'POSITION' if raw==VehicleStatus.NAVIGATION_STATE_POSCTL else
+                'ACRO' if raw==VehicleStatus.NAVIGATION_STATE_ACRO else 'OTHER')
         remaining=(max(0.,self.config['runner_progress_max_age_s']-(now-self.runner_last_tick))
                    if self.runner_required and self.runner_sequence > 0 and self.owner=='TASK' else .1)
         status=ControlStatus(coordinator_instance=self.instance,

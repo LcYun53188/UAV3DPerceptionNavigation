@@ -10,8 +10,10 @@ from uav_mission.flight_geometry import Alignment,in_region
 
 
 def fixture():
-    return SimpleNamespace(nonce='owned-test',position=lambda:(0.,0.,0.),
+    node=SimpleNamespace(nonce='owned-test',position=lambda:(0.,0.,0.),
                            alignment=Alignment(),region=in_region)
+    node.known_region=lambda point: FlightServer.known_region(node,point) if 'bounds_min' in getattr(node,'config',{}) else node.region(point)
+    return node
 
 
 def request(steps=None,authorization='owned-test'):
@@ -379,7 +381,7 @@ def test_planned_step_requests_curve_without_creating_direct_segment(kind):
     alignment=Alignment()
     f=SimpleNamespace(step_controlled=False,step_index=-1,steps=[dict(type=kind,target_map=alignment.to_map((3.,2.,2.)))],
         navigation_backend='EGO',planned=SimpleNamespace(retire=lambda:None,start=lambda *args:calls.append(args)),
-        home=(0.,0.,0.),reference=(0.,0.,2.),region=in_region,alignment=alignment,
+        home=(0.,0.,0.),reference=(0.,0.,2.),region=in_region,alignment=alignment,config={},
         instance='instance',active_goal=SimpleNamespace(goal_id=UUID(uuid=[1]*16)),session=UUID(uuid=[2]*16),
         generation=3,owner='TASK',planning_ready=lambda:None,
         planning_goal_pub=SimpleNamespace(get_subscription_count=lambda:1,publish=lambda m:calls.append(m)),
@@ -541,6 +543,21 @@ def test_observation_does_not_dispatch_with_unknown_ego_seed_padding():
     node.planned.gate.grid = Grid(grid.origin, grid.resolution, distance.copy(), fresh_observed)
     FlightServer.observation_tick(node, 21., 21.)
     assert advanced == [True]
+    advanced.clear()
+    node.home=(0.,0.,0.)
+    node.config['observation_required_offsets_enu']=[[0.,1.,2.04]]
+    fresh_observed=fresh_observed.copy()
+    fresh_observed[40,65,20]=False  # Outside current box, inside future return box.
+    node.planned.gate.grid=Grid(grid.origin,grid.resolution,distance.copy(),fresh_observed.copy())
+    FlightServer.observation_tick(node,22.,22.)
+    assert not advanced
+    assert node.observation_samples[-1]['reason']=='UNOBSERVED_OR_OCCUPIED_ROUTE_VOLUME'
+    required=node.observation_samples[-1]['volume']['required_route_volumes'][0]
+    assert required['diagnostics']['unknown']==1 and not required['clear']
+    fresh_observed[40,65,20]=True
+    node.planned.gate.grid=Grid(grid.origin,grid.resolution,distance.copy(),fresh_observed.copy())
+    FlightServer.observation_tick(node,23.,23.)
+    assert advanced==[True]
 
 
 def test_returned_observation_sweeps_once_while_waiting_for_map_clearance(monkeypatch):
@@ -567,3 +584,39 @@ def test_returned_observation_sweeps_once_while_waiting_for_map_clearance(monkey
     blocked[0]=False
     FlightServer.observation_tick(node,1001.,1001.)
     assert advanced==[True]
+
+
+@pytest.mark.parametrize('phase',['OBSERVE','PAUSING','PAUSED','LEASE_BRAKE','PRESTREAM','TAKEOFF','NAVIGATE'])
+def test_survey_feedforward_is_frame_converted_and_never_leaks_to_other_phases(phase):
+    import math
+    sent=[]
+    node=SimpleNamespace(phase=phase,survey=SimpleNamespace(velocity=(.1,-.2,.3),acceleration=(-.01,.02,-.03)),
+        reference=(1.,2.,3.),yaw=.4,output_count=0,
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10000000000)),
+        mode_pub=SimpleNamespace(publish=lambda m:None),setpoint_pub=SimpleNamespace(publish=sent.append))
+    FlightServer.stream(node)
+    msg=sent[0]
+    assert list(msg.position)==pytest.approx([2.,1.,-3.])
+    if phase=='OBSERVE':
+        assert list(msg.velocity)==pytest.approx([-.2,.1,-.3])
+        assert list(msg.acceleration)==pytest.approx([.02,-.01,.03])
+    else:
+        assert all(math.isnan(v) for v in list(msg.velocity)+list(msg.acceleration))
+
+
+@pytest.mark.parametrize('phase',['NAVIGATE','RETURN','PAUSING','PAUSED','LEASE_BRAKE','PLAN_REQUEST','HOVER','FINAL_NATIVE_LAND'])
+def test_ego_derivatives_are_sent_only_while_following_an_admitted_curve(phase):
+    import math
+    sent=[]
+    node=SimpleNamespace(phase=phase,navigation_backend='EGO',
+        planned=SimpleNamespace(curve=object(),velocity=(.1,-.2,.3),acceleration=(-.01,.02,-.03)),
+        reference=(1.,2.,3.),yaw=.4,output_count=0,
+        get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10000000000)),
+        mode_pub=SimpleNamespace(publish=lambda m:None),setpoint_pub=SimpleNamespace(publish=sent.append))
+    FlightServer.stream(node)
+    msg=sent[0]
+    if phase in ('NAVIGATE','RETURN'):
+        assert list(msg.velocity)==pytest.approx([-.2,.1,-.3])
+        assert list(msg.acceleration)==pytest.approx([.02,-.01,.03])
+    else:
+        assert all(math.isnan(v) for v in list(msg.velocity)+list(msg.acceleration))

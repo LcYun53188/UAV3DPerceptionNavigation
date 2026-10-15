@@ -3,6 +3,7 @@
 import argparse
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -24,6 +25,7 @@ from vio_sdk_parameters import stream_parameters
 from vio_sdk_runtime import SdkRuntimeReceipt
 from vio_ui_lifecycle import grounded_for_viewers
 from vio_render_device import environment as render_environment,capture as capture_renderer
+from vio_evidence import nullable
 
 
 def main():
@@ -31,8 +33,13 @@ def main():
     parser.add_argument('--imu-noise-model',choices=('ideal','declared'),default='ideal',help='Declared white IMU noise and matching estimator model; OpenVINS disarmed experiment only')
     parser.add_argument('--experimental-chain',action='store_true',help='Explicit SDK16/MTF simulation flight with covariance qualification deferred; sequence connects real depth/EGO')
     parser.add_argument('--flight',choices=('hover','hover-low','sequence'),help='Owned warehouse BT flight; separate from disarmed audits')
+    from no_gnss_flight_cases import CASES,INPUT_CASES
+    parser.add_argument('--flight-case',choices=CASES,default='full',help='Explicit no-GNSS return/landing/intervention acceptance; full remains the normal mission')
     parser.add_argument('--sdk-debug-dump',action='store_true',help='Explicit SDK-consumed input dump; diagnostic load, not VIO qualification')
-    parser.add_argument('--sdk-information-log',action='store_true',help='Record native conditional/full information for SDK16 diagnostics; extra I/O, not production latency evidence')
+    parser.add_argument('--sdk-information-log',action='store_true',help='Record native conditional/full information for SDK16 disarmed or experimental-chain diagnostics; extra I/O, not production latency evidence')
+    parser.add_argument('--sdk-schur-diagnostic',action='store_true',help='Explicit isolated passive Hessian capture; requires SDK16 information logging')
+    parser.add_argument('--sdk-schur64',action='store_true',help='Explicit isolated double precision marginalization candidate; no default SDK replacement')
+    parser.add_argument('--vio-primary',action='store_true',help='Fixed SDK64 avoidance profile: mandatory EV fusion and fresh MTF inputs, opportunistic auxiliary fusion; joint ground preflight remains mandatory')
     parser.add_argument('--sdk-profile',action='store_true',help='Explicit Nsight CUDA/NVTX trace; disarmed diagnostic only, never source qualification')
     parser.add_argument('--sdk-executor',choices=('standalone','single_thread'),default='standalone',help='Explicit SDK executor comparison; single_thread matches the navigation component container')
     parser.add_argument('--estimator',choices=('cuvslam',),default='cuvslam',help='cuVSLAM only; OpenVINS development paused')
@@ -44,7 +51,7 @@ def main():
     parser.add_argument('--camera-pitch-deg',type=int,choices=(0,5,15,30),default=5,help='Default fixed 5 degree downward rig; other angles are historical reproduction only')
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
     parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
-    parser.add_argument('--warehouse-variant',choices=('baseline','complex'),default='baseline',help='Complex geometry and multiscale texture experiment; disarmed only')
+    parser.add_argument('--warehouse-variant',choices=('baseline','complex','avoidance'),default='baseline',help='Complex geometry and multiscale texture experiment; disarmed only')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--same-aircraft-motion',action='store_true',help='Test-only wrench on actual disarmed x500 after ground fusion READY; never motor flight')
     parser.add_argument('--fixture-attitude-amplitude',type=float,choices=(0.,.12),default=0.,help='Actual roll/pitch excitation on the disarmed SDK16 fixture')
@@ -66,7 +73,21 @@ def main():
     parser.add_argument('--normalize',action='store_true',help='Audit reviewed SDK pose normalization; EV requires --fuse-pose or --flight')
     parser.add_argument('--source-warmup-seconds',type=float,default=None,help='Original-sample-time startup exclusion; default 20 s for disarmed PX4 pose fusion, 0 s for source-only audits and historical qualified flight')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
+    parser.add_argument('--pocket-session',action='store_true',help='Persistent disarmed startup with sole Pocket flight owner; no automatic mission')
+    parser.add_argument('--device',default='/dev/input/js0')
+    parser.add_argument('--qgc-config-from',type=Path)
+    parser.add_argument('--session-duration',type=float,default=3600.)
     args = parser.parse_args()
+    if args.flight_case!='full' and (not args.experimental_chain or args.flight!='sequence' or
+            args.warehouse_variant!='avoidance' or not args.vio_primary or args.pocket_session):
+        parser.error('Flight cases require the explicit no-GNSS VIO-primary avoidance sequence, without a Pocket operator')
+    if args.flight_case in INPUT_CASES and not args.qgc_config_from:
+        parser.error('Input acceptance needs --qgc-config-from with actual virtual joystick calibration')
+    if args.pocket_session and (not args.experimental_chain or args.flight!='sequence' or not args.diagnostic_ui or args.keep_running or args.ui_hold_seconds or not 60<=args.session_duration<=14400):
+        parser.error('Pocket requires experimental sequence, diagnostic UI and bounded session, without automatic postflight retention')
+    if args.warehouse_variant=='avoidance' and (not args.experimental_chain or args.flight!='sequence'):
+        parser.error('Avoidance scene requires experimental depth/EGO sequence')
+    region_name='vio_avoidance' if args.warehouse_variant=='avoidance' else 'vio_chain' if args.experimental_chain else 'warehouse'
     if args.experimental_chain and (not args.flight or args.sdk_candidate!="sdk16" or not args.mtf01 or args.scene!="warehouse" or args.camera_pitch_deg!=5 or args.reset_source or args.same_aircraft_motion or args.motion):
         parser.error("Experimental chain requires default SDK16, MTF, warehouse, fixed 5 degrees and a motor-flight task")
     selected_sdk=args.sdk_candidate
@@ -78,8 +99,14 @@ def main():
 
     if args.sdk_candidate and (args.reset_source or (args.flight and not args.experimental_chain)):
         parser.error(('OpenVINS' if openvins else 'SDK16')+' candidate requires disarmed diagnostics without reset or flight')
-    if args.sdk_information_log and (args.sdk_candidate!='sdk16' or args.flight):
-        parser.error('--sdk-information-log requires default SDK16 disarmed diagnostics')
+    if args.sdk_information_log and (args.sdk_candidate!='sdk16' or (args.flight and not args.experimental_chain)):
+        parser.error('--sdk-information-log requires default SDK16 disarmed or experimental-chain diagnostics')
+    if args.sdk_schur_diagnostic and (args.sdk_candidate!='sdk16' or not args.sdk_information_log):
+        parser.error('--sdk-schur-diagnostic requires SDK16 and --sdk-information-log')
+    if args.sdk_schur64 and (args.sdk_candidate!='sdk16' or args.sdk_schur_diagnostic):
+        parser.error('--sdk-schur64 requires SDK16 without the passive diagnostic variant')
+    if args.vio_primary and (not args.experimental_chain or args.warehouse_variant!='avoidance' or not args.sdk_schur64):
+        parser.error('--vio-primary requires the explicitly owned SDK64 avoidance experiment')
     if args.imu_noise_model=='declared' and not openvins:
         parser.error('Declared IMU noise is an isolated OpenVINS disarmed experiment')
     if args.same_aircraft_motion and (args.sdk_candidate not in ('sdk16','sdk16-stock','sdk16-marginal','openvins') or not args.fuse_pose or
@@ -258,6 +285,10 @@ def main():
         from build_vio_sdk16_ros_candidate import PREFIX, FOLDER, CONTRACT, COMMIT
         if args.sdk_candidate=='sdk16':
             from build_vio_sdk16_default import PREFIX, FOLDER, CONTRACT
+            if args.sdk_schur_diagnostic:
+                from build_vio_sdk16_schur_diagnostic import PREFIX, FOLDER, CONTRACT
+            if args.sdk_schur64:
+                from build_vio_sdk16_schur64 import PREFIX, FOLDER, CONTRACT
         if args.sdk_candidate=='sdk16-marginal':
             from build_vio_sdk16_marginal_candidate import PREFIX, FOLDER, CONTRACT
         reviewed=FOLDER/'ros-contract.json'
@@ -276,17 +307,18 @@ def main():
             LD_LIBRARY_PATH=str(PREFIX/'lib')+':'+env.get('LD_LIBRARY_PATH',''))
         if args.sdk_candidate=='sdk16-marginal' or args.sdk_information_log:
             vio_env['CUVSLAM_COVARIANCE_DIAGNOSTIC']=str(out/'sdk16-information.csv')
+        if args.sdk_schur_diagnostic:
+            vio_env['CUVSLAM_SCHUR_DIAGNOSTIC']=str(out/'sdk16-schur.csv')
         if openvins:
             prefixes=[PREFIX/package for package in ('ov_core','ov_init','ov_msckf')]
             vio_env=dict(env,AMENT_PREFIX_PATH=':'.join(map(str,prefixes))+':'+env.get('AMENT_PREFIX_PATH',''),
                 LD_LIBRARY_PATH=':'.join(str(p/'lib') for p in prefixes)+':'+env.get('LD_LIBRARY_PATH',''))
             from prepare_openvins_config import generate
-            import math
             focal=profile['width']/(2*math.tan(profile['horizontal_fov_rad']/2))
             intrinsic=dict(focal=[focal,focal],principal=[profile['width']/2,profile['height']/2],size=[profile['width'],profile['height']])
             generate(dict(parameters=params,frames=frames,profile=profile),[intrinsic,intrinsic],out/'openvins-config',imu_axes='flu')
     bounded_gc_observation = args.experimental_chain or not args.flight and (args.same_aircraft_motion or (args.sdk_candidate and args.fuse_pose))
-    inputs = [Path(__file__),ROOT/'scripts/vio_sdk_selection.py',ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
+    inputs = [Path(__file__),ROOT/'scripts/vio_evidence.py',ROOT/'scripts/vio_sdk_selection.py',ROOT/'scripts/vio_stereo_ui.py',ROOT/'scripts/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz',ROOT/'scripts/px4_vio_sensor_audit.py',ROOT/'scripts/vio_sensor_transforms.py',ROOT/'scripts/prepare_vio_sensor_assets.py',
               ROOT/'scripts/vio_sensor_quality.py',ROOT/'scripts/run_px4_vio_sensors.sh',ROOT/'scripts/vio_render_device.py',ROOT/'scripts/vio_sdk_parameters.py',ROOT/'scripts/vio_sdk_runtime.py',ROOT/'scripts/vio_pose_window.py',ROOT/'scripts/px4_vio_pose_audit.py',ROOT/'scripts/vio_observer_gc.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -370,10 +402,10 @@ def main():
         from vio_warehouse_scene import box_clearance
         layout=read(out/'assets/warehouse-layout.json')
         box_clearance(layout['layout'])
-        region=ROOT/('simulation/safe_regions/vio_chain.json' if args.experimental_chain else 'simulation/safe_regions/warehouse.json')
+        region=ROOT/('simulation/safe_regions/'+region_name+'.json')
         config=read(region);margin=sum(config[k] for k in ('body_radius_m','tracking_margin_m','braking_margin_m'))
-        if any(config['bounds_min'][i]+margin!=layout['layout']['flight_box_min'][i] or
-               config['bounds_max'][i]-margin!=layout['layout']['flight_box_max'][i] for i in (0,1)):
+        if any(not math.isclose(config.get('known_clearance_bounds_min',config['bounds_min'])[i]+margin,layout['layout']['flight_box_min'][i],abs_tol=1e-9) or
+               not math.isclose(config.get('known_clearance_bounds_max',config['bounds_max'])[i]-margin,layout['layout']['flight_box_max'][i],abs_tol=1e-9) for i in (0,1)):
             raise RuntimeError('Warehouse profile/clearance bounds mismatch')
         if args.experimental_chain:
             if not (args.headless_rendering and args.render_device=='nvidia' and sdk_image_depth==1
@@ -407,24 +439,45 @@ def main():
             calibration_id=calibration,region_sha256=file_hash(region),
             files={str(p.relative_to(out)):file_hash(p) for p in receipt_files}))
         env.update(UAV_SITL_AUTHORIZATION=str(uuid.uuid4()),UAV_WORKSPACE=str(ROOT),
-            UAV_REQUIRE_VIO='1',UAV_VIO_FUSION_PROFILE='aligned_pose_mtf_sim_v1' if args.experimental_chain else 'aligned_pose_v1',UAV_VIO_CALIBRATION_ID=calibration,
-            UAV_FLIGHT_REGION_PROFILE='vio_chain' if args.experimental_chain else 'warehouse',UAV_FLIGHT_ASSET_RECEIPT=str(out/'flight-assets.json'),
+            UAV_REQUIRE_VIO='1',UAV_VIO_FUSION_PROFILE=('aligned_pose_mtf_primary_sim_v1' if args.vio_primary else 'aligned_pose_mtf_sim_v1') if args.experimental_chain else 'aligned_pose_v1',UAV_VIO_CALIBRATION_ID=calibration,
+            UAV_FLIGHT_REGION_PROFILE=region_name,UAV_FLIGHT_ASSET_RECEIPT=str(out/'flight-assets.json'),
             UAV_FLIGHT_ASSET_SHA256=file_hash(out/'flight-assets.json'),UAV_FLIGHT_MODEL=profile['model']+'_7',
             UAV_FLIGHT_MISSION_FILE=str(ROOT/('simulation/missions/'+{'hover':'warehouse_vio_hover.json','hover-low':'warehouse_vio_hover_low.json','sequence':'warehouse_vio_sequence.json'}[args.flight])),
-            UAV_FLIGHT_HOLD_RECEIPT='1',UAV_FLIGHT_EVIDENCE=str(out),UAV_FLIGHT_ADMISSION=str(out/'flight-admission.json'),UAV_FLIGHT_SCENARIO='full',UAV_FLIGHT_BT='1',
+            UAV_FLIGHT_HOLD_RECEIPT='1',UAV_FLIGHT_EVIDENCE=str(out),UAV_FLIGHT_ADMISSION=str(out/'flight-admission.json'),UAV_FLIGHT_SCENARIO=args.flight_case,UAV_FLIGHT_BT='1',
             PX4_PARAM_COM_RC_IN_MODE='4',PX4_PARAM_COM_OF_LOSS_T='0.5',PX4_PARAM_COM_OBL_RC_ACT='4',PX4_PARAM_COM_DISARM_LAND='2')
         if args.experimental_chain:
             env.update(UAV_EXPERIMENTAL_VIO_CHAIN='1',UAV_FLIGHT_COORDINATOR_INSTANCE=run_id)
             if args.flight=='sequence':
-                env.update(UAV_FLIGHT_MISSION_FILE=str(ROOT/'simulation/missions/depth_observation.json'),
+                env.update(UAV_FLIGHT_MISSION_FILE=str(ROOT/('simulation/missions/vio_static_avoidance.json' if args.warehouse_variant=='avoidance' else 'simulation/missions/depth_observation.json')),
                     UAV_EXPECT_OBSERVATION='1',UAV_ENABLE_EGO_NAV='1',UAV_NAVIGATION_BACKEND='EGO')
-            inputs += [ROOT/'scripts/vio_chain_mapping.py']
+            inputs += [ROOT/'scripts/vio_chain_mapping.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources_node.py',ROOT/'src/uav_ego_adapter/src/planner.cpp',ROOT/'src/uav_ego_adapter/src/braking_volume.hpp',ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner']
         inputs += [region,out/'flight-assets.json',out/'source-prerequisites.json',
             ROOT/'scripts/px4_vio_flight_session.py',ROOT/'scripts/run_px4_flight_tasks.py',
             ROOT/'src/uav_mission/uav_mission/flight_profiles.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',
-            Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']
+            ROOT/'src/uav_mission/uav_mission/vio_gate.py',
+            ROOT/'src/uav_mission/uav_mission/mtf_inputs.py',
+            ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/observation_survey.py',
+            ROOT/'src/uav_mission/uav_mission/ego_execution.py',
+            ROOT/'src/uav_mission/uav_mission/home_reference.py',
+            ROOT/'src/uav_mission/uav_mission/pilot_intervention.py',
+            ROOT/'scripts/no_gnss_flight_cases.py',
+            ROOT/'scripts/bt_flight_client.py',
+            Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'src/uav_bt/src/mission_runner.cpp',ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']
+    if args.pocket_session or (args.flight and args.experimental_chain and args.warehouse_variant=='avoidance'):
+        # Exercise the same native descent used by the operator session. Fast
+        # default LAND is a different VIO motion envelope, not an acceptance of
+        # the Pocket's deliberately slow landing configuration.
+        env.update(PX4_PARAM_MPC_LAND_SPEED='0.3',PX4_PARAM_MPC_LAND_CRWL='0.2',
+            PX4_PARAM_NAV_RCL_ACT='3',PX4_PARAM_COM_RC_OVERRIDE='0')
+    if args.pocket_session:
+        env.update(UAV_LOCALIZATION_PROFILE='DEFAULT',PX4_PARAM_COM_RC_IN_MODE='1',UAV_ENABLE_FUSION_SWITCH='0')
+        inputs += [ROOT/'scripts/pocket_operator_session.py',ROOT/'scripts/pocket_uav_switches.py']
+    if args.flight_case in INPUT_CASES:
+        env['PX4_PARAM_COM_RC_IN_MODE']='1'
+    if args.flight_case!='full':
+        inputs += [ROOT/'scripts/no_gnss_flight_cases.py',ROOT/'scripts/pocket_validation_input.py',ROOT/'scripts/pocket_virtual_joystick.py']
     manifest = dict(run_id=run_id,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
-        diagnostic_ui=args.diagnostic_ui,ui_hold_seconds=args.ui_hold_seconds,keep_running=args.keep_running,flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=None if args.flight else args.duration,flight_observation_limit_s=280. if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
+        diagnostic_ui=args.diagnostic_ui,ui_hold_seconds=args.ui_hold_seconds,keep_running=args.keep_running,flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=args.session_duration if args.pocket_session else None if args.flight else args.duration,flight_observation_limit_s=config.get('flight_observation_limit_s',280.) if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,source_warmup_seconds=source_warmup_seconds,effective_sdk_image_depth=sdk_image_depth,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,sdk_profile=args.sdk_profile,sdk_cpu_list=args.sdk_cpu_list,sdk_executor=args.sdk_executor,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         mtf01=args.mtf01,joint_fault=args.joint_fault if args.mtf01 else None,
@@ -433,6 +486,15 @@ def main():
     if args.same_aircraft_motion:
         manifest.update(same_aircraft_motion=True,fixture_profile=fixture_profile,
                         scope='same-aircraft actual x500 dynamic fusion, disarmed wrench fixture, NOT motor flight')
+    manifest['thread_budget']=dict(opencv_flow=1,openblas=env.get('OPENBLAS_NUM_THREADS'),omp=env.get('OMP_NUM_THREADS'))
+    manifest['sdk_information_log']=args.sdk_information_log
+    manifest['sdk_schur_diagnostic']=args.sdk_schur_diagnostic
+    manifest['sdk_schur64']=args.sdk_schur64
+    manifest['vio_primary']=args.vio_primary
+    manifest['flight_fusion_policy']=dict(primary='EV position/height/yaw',
+        auxiliary_fusion='opportunistic' if args.vio_primary else 'mandatory',
+        auxiliary_raw_integrity_required=args.vio_primary,joint_ground_preflight_required=args.experimental_chain)
+    manifest['production_latency_evidence']=False if args.sdk_information_log else None
     manifest['estimator']=args.estimator
     manifest['candidate_contract']=source_contract
     manifest['selected_sdk']=selected_sdk
@@ -440,6 +502,10 @@ def main():
     if args.experimental_chain:
         manifest['scope']='owned same-aircraft SDK16/MTF Gazebo/PX4 flight; covariance qualification deferred; not hardware acceptance'
     manifest['covariance_qualification_deferred']=args.experimental_chain
+    manifest['pocket_session']=args.pocket_session
+    manifest['flight_case']=args.flight_case
+    if args.pocket_session:
+        manifest.update(usb_joystick=True,automatic_flight=False,joystick_device=args.device,localization_profile='VIO_FLOW',operator_environment={k:v for k,v in env.items() if k.startswith('UAV_') and k not in ('UAV_SITL_AUTHORIZATION','UAV_WORKSPACE')})
     manifest['chain_depth']=chain_depth
     manifest['covariance_kind']=candidate.get('covariance','legacy SDK15 right tangent') if candidate else 'legacy SDK15 right tangent'
     if args.experimental_chain:
@@ -526,8 +592,11 @@ def main():
             # Range must start before PX4's stuck detector timeout; stationary
             # first samples arriving after ten seconds can remain classified stuck.
             mtf_processes['range']=launch('mtf_range',[sys.executable,ROOT/'scripts/mtf01_range_bridge.py','--ros-args','-p','use_sim_time:=true'])
-            if not args.experimental_chain:
-                mtf_processes['flow']=launch('mtf_flow',['/usr/bin/python3',ROOT/'scripts/mtf01_flow_bridge.py','--ros-args','-p','use_sim_time:=true'])
+            # Load OpenCV and discover DDS before source binding. For the joint
+            # experimental chain, compute/warm images now but publish no flow
+            # until 50 distinct fresh EV samples have actually been observed.
+            mtf_processes['flow']=launch('mtf_flow',['/usr/bin/python3',ROOT/'scripts/mtf01_flow_bridge.py','--ros-args','-p','use_sim_time:=true']+
+                (['-p','wait_for_ev_samples:=50'] if args.experimental_chain else []))
         normalizer=None
         def launch_vio():
             nonlocal normalizer
@@ -558,10 +627,20 @@ def main():
         # Observe the aircraft's physical spawn/settling; never fabricate motion.
         if not args.motion: launch_vio()
         launch('px4',[build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
-        config = out/'qgc-config/QGroundControl';config.mkdir(parents=True)
-        (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+        qgc_config = out/'qgc-config/QGroundControl';qgc_config.mkdir(parents=True)
+        (qgc_config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+        if (args.pocket_session or args.flight_case in INPUT_CASES) and args.qgc_config_from:
+            import configparser
+            saved=configparser.ConfigParser(interpolation=None);saved.optionxform=str
+            with args.qgc_config_from.open() as stream:saved.read_file(stream)
+            if not saved.has_section('AutoConnect'):saved.add_section('AutoConnect')
+            for key in ('autoConnectPixhawk','autoConnectSiKRadio','autoConnectRTKGPS','autoConnectLibrePilot'):saved['AutoConnect'][key]='false'
+            saved['AutoConnect']['autoConnectUDP']='true'
+            with (qgc_config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
         qgc_env = dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
+        if args.flight_case in INPUT_CASES:
+            launch('pocket_test_input',[sys.executable,ROOT/'scripts/pocket_validation_input.py',out])
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
         if args.motion or pose_fusion_mode:
@@ -607,52 +686,71 @@ def main():
                 # discard the startup map before binding the aligned mission.
                 from vio_chain_mapping import launch_mapping, native_map_file
                 launch_mapping(launch,env,out,run_id,graph_only=True)
-            flight_process=launch('flight_gateway',[sys.executable,ROOT/'scripts/run_px4_flight_tasks.py'])
+                launch_mapping(launch,env,out,run_id,binding_only=True)
+                write_json(out/'mapping-startup.json',dict(planning_source_process_prewarmed=True,
+                    activation_requires='map-admission.json and first valid promoted map',
+                    scope='DDS startup before source qualification; no early map binding'))
+            command=([sys.executable,ROOT/'scripts/pocket_operator_session.py','--device',args.device,'--input-profile','uav-aetr-v1','--session',out,'--enable-sitl-control'] if args.pocket_session else [sys.executable,ROOT/'scripts/run_px4_flight_tasks.py'])
+            flight_process=launch('flight_gateway',command)
             if chain_depth:
                 empty_map=out/'prewarm-empty.nvblx'
                 native_map_file(node,'save',empty_map)
                 launch_mapping(launch,env,out,run_id,depth_only=True)
+            preflight_blocked=''
+            joint_startup_recorded=False
             ready_until=time.monotonic()+(300. if chain_depth else 190. if args.experimental_chain else 40.)
             while time.monotonic()<ready_until:
                 rclpy.spin_once(node,timeout_sec=.02)
-                if args.experimental_chain and 'flow' not in mtf_processes and len(fusion_audit.outputs)>=50:
-                    mtf_processes['flow']=launch('mtf_flow',['/usr/bin/python3',ROOT/'scripts/mtf01_flow_bridge.py','--ros-args','-p','use_sim_time:=true'])
-                    write_json(out/'joint-startup.json',dict(vio_outputs_before_mtf=len(fusion_audit.outputs),ros=fusion_audit.ros(),scope='VIO first; prevent optical flow boot integration before EV yaw/position alignment'))
-                if fusion_audit.stream.fault:raise RuntimeError('VIO preflight fault: '+fusion_audit.stream.fault)
+                if args.experimental_chain and not joint_startup_recorded and len(fusion_audit.outputs)>=50:
+                    joint_startup_recorded=True
+                    write_json(out/'joint-startup.json',dict(vio_outputs_before_mtf=len(fusion_audit.outputs),ros=fusion_audit.ros(),flow_process_prewarmed=True,scope='Flow output waits for 50 fresh EV samples; process loads before source binding'))
+                if any(p.poll() is not None for p in processes):raise RuntimeError('Owned preflight process exited; inspect logs')
+                preflight_fault=fusion_audit.stream.fault or fusion_audit.gate.fault
+                if preflight_fault:
+                    if not args.pocket_session:raise RuntimeError('VIO preflight fault: '+preflight_fault)
+                    preflight_blocked='VIO preflight fault: '+preflight_fault
+                    break
                 if (fusion_audit.gate.reason=='READY' and runtime_receipt.result()['passed']
                         and (not args.experimental_chain or (candidate_audit.states and candidate_audit.covariance_stamps
                             and candidate_audit.writer_valid
                             and (candidate_audit.states[-1][0]-candidate_audit.covariance_stamps[0])/1e9>=120.))):break
-            else:raise RuntimeError('VIO preflight fusion unavailable: '+fusion_audit.gate.reason)
+            else:
+                if not args.pocket_session:raise RuntimeError('VIO preflight fusion unavailable: '+fusion_audit.gate.reason)
+                preflight_blocked='VIO preflight fusion unavailable: '+fusion_audit.gate.reason
             if args.experimental_chain:
                 from vio_sdk16_state_audit import loaded_candidate_receipt
                 candidate_loaded=loaded_candidate_receipt(manifest['processes']['vio']['pid'],PREFIX)
                 write_json(out/'sdk16-loaded-libraries.json',candidate_loaded)
                 if not candidate_loaded['passed']:raise RuntimeError('Experimental flight SDK library identity mismatch')
-            if chain_depth:
-                # Start a fresh map only after the EKF/VIO launch alignment has
-                # settled; ground initialization resets must not smear TSDF.
-                from vio_chain_mapping import launch_mapping
-                native_map_file(node,'load',empty_map)
-                write_json(out/'map-admission.json',dict(schema=1,native_map_cleared=True,
-                    source_ready=True,empty_map_sha256=file_hash(empty_map),
-                    scope='GPU startup map discarded; fresh epoch before planning binding'))
-                launch_mapping(launch,env,out,run_id,binding_only=True)
-                settle_until=time.monotonic()+10.
-                while time.monotonic()<settle_until:
-                    rclpy.spin_once(node,timeout_sec=.02)
-                    if fusion_audit.stream.fault:raise RuntimeError('VIO map startup fault: '+fusion_audit.stream.fault)
-                if fusion_audit.gate.reason!='READY':
-                    raise RuntimeError('VIO map startup not ready: '+fusion_audit.gate.reason)
-            preflight=audit.result()
-            write_json(out/'sensor-preflight.json',preflight)
-            sensor_failures=[k for k,v in preflight['checks'].items() if not v and k!='only_pose_fmu_input']
-            if sensor_failures:raise RuntimeError('Sensor preflight failed: '+str(sensor_failures))
-            write_json(out/'flight-admission.pending.json',dict(calibration_id=calibration,sensor_checks_passed=True))
-            os.replace(out/'flight-admission.pending.json',out/'flight-admission.json')
-        until = time.monotonic()+(280. if args.flight else args.duration)
+            if not preflight_blocked:
+                if chain_depth:
+                    # Start a fresh map only after the EKF/VIO launch alignment has
+                    # settled; ground initialization resets must not smear TSDF.
+                    from vio_chain_mapping import launch_mapping
+                    native_map_file(node,'load',empty_map)
+                    write_json(out/'map-admission.json',dict(schema=1,native_map_cleared=True,
+                        source_ready=True,empty_map_sha256=file_hash(empty_map),
+                        scope='GPU startup map discarded; fresh epoch before planning binding'))
+                    settle_until=time.monotonic()+10.
+                    while time.monotonic()<settle_until:
+                        rclpy.spin_once(node,timeout_sec=.02)
+                        if fusion_audit.stream.fault:raise RuntimeError('VIO map startup fault: '+fusion_audit.stream.fault)
+                    if fusion_audit.gate.reason!='READY':
+                        raise RuntimeError('VIO map startup not ready: '+fusion_audit.gate.reason)
+                preflight=audit.result()
+                write_json(out/'sensor-preflight.json',preflight)
+                sensor_failures=[k for k,v in preflight['checks'].items() if not v and k!='only_pose_fmu_input']
+                if sensor_failures:raise RuntimeError('Sensor preflight failed: '+str(sensor_failures))
+                write_json(out/'flight-admission.pending.json',dict(calibration_id=calibration,sensor_checks_passed=True,
+                    fusion_profile=env['UAV_VIO_FUSION_PROFILE'],joint_ground_preflight=args.experimental_chain))
+                os.replace(out/'flight-admission.pending.json',out/'flight-admission.json')
+        if args.pocket_session:
+            write_json(out/'live-session.json',dict(state='POCKET_PREFLIGHT_BLOCKED' if preflight_blocked else 'POCKET_ADMITTED',reason=preflight_blocked,automatic_flight=False,qualification=False,arm_and_task_admitted=not bool(preflight_blocked)))
+            print(('POCKET_DIAGNOSTIC_BLOCKED '+preflight_blocked+' ' if preflight_blocked else 'POCKET_SESSION ')+str(out),flush=True)
+        until = time.monotonic()+(args.session_duration if args.pocket_session else config.get('flight_observation_limit_s',280.) if args.flight else args.duration)
+        heartbeat=0.
         before_reset = None
-        while time.monotonic()<until:
+        while time.monotonic()<until or (args.pocket_session and not grounded_for_viewers(audit.last,audit.receive,time.monotonic())):
             if args.sdk_candidate and candidate_loaded is None and runtime_receipt.result()['passed']:
                 from vio_sdk16_state_audit import loaded_candidate_receipt
                 if openvins:
@@ -670,7 +768,18 @@ def main():
                 fixture_trigger.tick(fusion_audit,motion_audit,truth_isolated=truth_probe.passed)
             if not args.flight and any(p.poll() is not None for p in processes):
                 raise RuntimeError('Owned simulation process exited; inspect per-process logs')
-            if args.flight and ((out/'flight-observation.json').exists() or flight_process.poll() is not None):break
+            if args.pocket_session:
+                if any(p.poll() is not None for p in processes):raise RuntimeError('Owned Pocket process exited')
+                if (out/'close-ui').exists() and grounded_for_viewers(audit.last,audit.receive,time.monotonic()):break
+                now=time.monotonic()
+                if now-heartbeat>=5.:
+                    write_json(out/'live-heartbeat.json',dict(system_ns=time.time_ns(),gate=fusion_audit.gate.reason,source_fault=fusion_audit.stream.fault,landed=getattr(audit.last.get('land'),'landed',None),arming=getattr(audit.last.get('vehicle'),'arming_state',None)))
+                    for records,limit in ((fusion_audit.history,50000),(fusion_audit.outputs,12000),(fusion_audit.echoes,12000)):
+                        if len(records)>limit:del records[:-limit]
+                    if len(pose_audit.raw)>12000:
+                        for key in list(pose_audit.raw)[:-12000]:del pose_audit.raw[key]
+                    heartbeat=now
+            elif args.flight and ((out/'flight-observation.json').exists() or flight_process.poll() is not None):break
             if args.reset_source and pose_audit.reset_time is None and time.monotonic() > until-8.:
                 before_reset = audit.result()
                 before_reset['normalized_pose'] = pose_audit.result(calibration)
@@ -678,7 +787,9 @@ def main():
                 if not before_reset['passed'] or not before_reset['normalized_pose']['passed']:
                     raise RuntimeError('Sensor/normalized source not ready before reset')
                 pose_audit.request_reset()
-        if args.flight:
+        if args.pocket_session:
+            result=dict(passed=not fusion_audit.stream.fault,scope='Pocket live diagnostic; mission outcomes separate; no automatic flight')
+        elif args.flight:
             if not (out/'flight-observation.json').exists():raise RuntimeError('Warehouse flight deadline exceeded or gateway exit')
             result=dict(passed=flight_process.poll() is None,
                 scope='warehouse BT actual VIO takeoff/hover/native landing',flight=read(out/'flight-observation.json'))
@@ -791,6 +902,13 @@ def main():
     except Exception as exc:
         result.update(passed=False,error=str(exc))
     finally:
+        # Stop the operator while its localization/sensors still run, allowing
+        # its bounded cancellation/landing cleanup to finish with fresh VIO.
+        if args.pocket_session and flight_process is not None and flight_process.poll() is None:
+            flight_process.send_signal(signal.SIGTERM)
+            operator_deadline=time.monotonic()+75.
+            while flight_process.poll() is None and time.monotonic()<operator_deadline:
+                rclpy.spin_once(node,timeout_sec=.02)
         # No further live observer spins occur in cleanup. Restore the caller's
         # GC state before expensive statistics and owned-process teardown.
         observation_gc.restore()
@@ -840,7 +958,7 @@ def main():
                 if normalizer is not None:stop(normalizer)
                 fusion_audit.timing.write(out/'fusion-timing.json')
                 for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
-                write_json(out/'normalized-poses.json',list(pose_audit.poses))
+                write_json(out/'normalized-poses.json',nullable(list(pose_audit.poses)))
                 write_json(out/'normalized-status.json',list(pose_audit.statuses))
                 write_json(out/'ui-session.json',dict(result_snapshot=result,state='LANDED_DISARMED_VIEWERS_OPEN',diagnostic=True,qualification=False,close_file=str(out/'close-ui'),terminal=terminal))
                 # No observer spins or EV publishing after the mission terminal.
@@ -860,19 +978,22 @@ def main():
             if fusion_audit is not None:
                 fusion_audit.timing.write(out/'fusion-timing.json')
                 for name,evidence in fusion_audit.evidence().items():write_json(out/name,evidence)
-            write_json(out/'odometry.json',list(audit.records))
+            from vio_evidence import nullable,save_raw_sdk
+            if pose_audit is not None:save_raw_sdk(out/'sdk-poses-raw.npz',pose_audit.raw)
+            write_json(out/'numeric-evidence-contract.json',dict(nonfinite_json='null',raw_sdk='sdk-poses-raw.npz',scope='Invalid source values retained for diagnosis; never repaired or admitted to flight'))
+            write_json(out/'odometry.json',nullable(list(audit.records)))
             write_json(out/'samples.json',{k:list(v) for k,v in audit.samples.items()})
             if pose_audit is not None:
-                write_json(out/'normalized-poses.json',list(pose_audit.poses))
+                write_json(out/'normalized-poses.json',nullable(list(pose_audit.poses)))
                 write_json(out/'normalized-status.json',list(pose_audit.statuses))
                 if motion_audit is not None:
                     write_json(out/'truth.json',motion_audit.truth)
                     write_json(out/'motion-imu.json',motion_audit.imu)
                 if fixture_trigger is not None:write_json(out/'fixture-trigger.json',fixture_trigger.started)
-                write_json(out/'sdk-poses.json',[dict(stamp=t,covariance=list(m.pose.covariance),
+                write_json(out/'sdk-poses.json',nullable([dict(stamp=t,covariance=list(m.pose.covariance),
                     position=[m.pose.pose.position.x,m.pose.pose.position.y,m.pose.pose.position.z],
                     quaternion=[m.pose.pose.orientation.x,m.pose.pose.orientation.y,m.pose.pose.orientation.z,m.pose.pose.orientation.w])
-                    for t,m in pose_audit.raw.items()])
+                    for t,m in pose_audit.raw.items()]))
         except Exception as exc:
             result.update(passed=False,evidence_error=str(exc))
         result['root_exit_codes'] = {name:p.returncode for name,p in zip(manifest['processes'],processes)}
@@ -921,10 +1042,17 @@ def main():
             if args.experimental_chain:
                 result['experimental_mission_passed']=bool(result['sdk16_candidate_checks_passed']
                     and result.get('flight',{}).get('passed'))
+                if args.warehouse_variant=='avoidance' and not args.flight_case.startswith('local-land-'):
+                    result['experimental_mission_passed'] &= (result.get('flight',{}).get('action_status')==4
+                        and result.get('flight',{}).get('observation_task_succeeded') is True)
                 result['scope']='owned SDK16/MTF simulation mission; covariance qualification deferred; not hardware acceptance'
                 result['covariance_qualification_deferred']=True
                 result['global_covariance_qualified']=False
                 result['passed']=result['experimental_mission_passed']
+                if args.flight_case.startswith('local-land-'):
+                    result['experimental_mission_passed']=False
+                    result['no_gnss_landing_case_passed']=bool(result['sdk16_candidate_checks_passed'] and result.get('flight',{}).get('passed'))
+                    result['passed']=result['no_gnss_landing_case_passed']
             else:
                 result['passed']=False  # Experimental diagnostics never qualify the flight source.
         if args.sdk_profile:
@@ -933,7 +1061,8 @@ def main():
             result['passed']=False
         write_json(out/'result.json',result)
     if args.sdk_candidate:
-        print(('OpenVINS' if openvins else 'SDK16')+(' experimental simulation flight:' if args.experimental_chain else ' disarmed diagnostic:'), 'PASS' if result.get('experimental_mission_passed',result.get('estimator_candidate_checks_passed',result.get('sdk16_candidate_checks_passed'))) else 'FAIL',
+        print(('No-GNSS local landing case:' if args.flight_case.startswith('local-land-') else
+            ('OpenVINS' if openvins else 'SDK16')+(' experimental simulation flight:' if args.experimental_chain else ' disarmed diagnostic:')), 'PASS' if result.get('no_gnss_landing_case_passed',result.get('experimental_mission_passed',result.get('estimator_candidate_checks_passed',result.get('sdk16_candidate_checks_passed')))) else 'FAIL',
               '(flight qualification pending)',out,flush=True)
     else:
         print('Stereo/IMU VIO:', 'PASS' if result['passed'] else 'FAIL',out,flush=True)

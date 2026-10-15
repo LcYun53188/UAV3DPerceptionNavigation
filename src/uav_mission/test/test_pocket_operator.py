@@ -59,6 +59,109 @@ def test_manual_takeover_retires_task_before_mode_command():
     assert f.owner=='NONE' and f.segment is None
 
 
+def test_acro_takeover_uses_same_sole_writer_and_retires_task():
+    f,calls=operator();f.active_goal=object();f.owner='TASK';f.segment=object()
+    assert FlightServer.operator_command(f,'ACRO')==(True,'ACRO_MODE_REQUESTED')
+    assert calls==[('fault','PILOT_TAKEOVER'),(176,1,5)]
+    assert f.owner=='NONE' and f.segment is None
+
+
+def test_acro_rejects_missing_input_and_committed_landing():
+    f,calls=operator();f.samples['manual_control_setpoint'].valid=False
+    assert not FlightServer.operator_command(f,'ACRO')[0]
+    assert calls==[]
+    f,calls=operator();f.active_goal=object();f.land_committed=True
+    assert FlightServer.operator_command(f,'ACRO')==(False,'LANDING_COMMITTED')
+    assert calls==[]
+
+
+@pytest.mark.parametrize('operation', ['VIO_POSITION', 'FLOW_POSITION'])
+def test_requested_localization_cannot_silently_use_gnss(operation):
+    f,calls=operator()
+    assert FlightServer.operator_command(f,operation)==(False,'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY')
+    assert calls==[]
+
+
+@pytest.mark.parametrize('flow', [True, False])
+def test_source_mode_requires_matching_ready_gate(flow):
+    f,calls=operator();f.vio_gate=SimpleNamespace(pure_flow=flow);f.vio_healthy=lambda:True
+    operation='FLOW_POSITION' if flow else 'VIO_POSITION'
+    assert FlightServer.operator_command(f,operation)==(True,'POSITION_MODE_REQUESTED')
+    assert calls==[(176,1,3)]
+
+
+def test_manual_local_land_is_committed_native_output_and_cannot_be_overridden():
+    f,calls=operator();f.samples['vehicle_land_detected'].landed=False
+    f.change=lambda phase,reason:setattr(f,'phase',phase)
+    assert FlightServer.operator_command(f,'LAND')==(True,'NATIVE_LOCAL_LAND_REQUESTED')
+    assert calls==[(21,)] and f.owner=='AUTOPILOT' and f.land_committed
+    assert FlightServer.operator_command(f,'ACRO')==(False,'LANDING_COMMITTED')
+
+
+def test_local_land_rejects_active_task_and_missing_position():
+    f,calls=operator();f.samples['vehicle_land_detected'].landed=False;f.active_goal=object()
+    assert FlightServer.operator_command(f,'LAND')==(False,'ACTIVE_TASK_USE_END_MISSION')
+    f.active_goal=None;f.healthy=lambda:False
+    assert FlightServer.operator_command(f,'LAND')==(False,'LAND_POSITION_OR_HEIGHT_UNAVAILABLE')
+    assert calls==[]
+
+
+def rtl_operator():
+    from px4_msgs.msg import HomePosition,VehicleLocalPosition,VehicleGlobalPosition,FailsafeFlags,VehicleStatus
+    f,calls=operator();f.samples['vehicle_status']=VehicleStatus(system_id=8,component_id=1,arming_state=2)
+    f.samples['vehicle_land_detected'].landed=False
+    f.samples.update(home_position=HomePosition(timestamp=1000000,x=2.,y=3.,z=0.,valid_lpos=True,
+        valid_hpos=True,valid_alt=True,lat=47.,lon=8.,alt=488.),
+        vehicle_local_position=VehicleLocalPosition(xy_global=True,z_global=True),
+        vehicle_global_position=VehicleGlobalPosition(timestamp=10000000,lat=47.,lon=8.,alt=488.),
+        failsafe_flags=FailsafeFlags())
+    f.home_frame_epoch_us=0;f.diagnostics=[]
+    f.get_clock=lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=10000000000))
+    def change(phase,reason):f.phase=phase;f.reason=reason
+    f.change=change
+    return f,calls
+
+
+def test_manual_return_requests_native_rtl_without_offboard_or_immediate_success():
+    f,calls=rtl_operator()
+    assert FlightServer.operator_command(f,'RTL')==(True,'PX4_NATIVE_RTL_REQUESTED')
+    assert calls==[(20,)] and f.owner=='AUTOPILOT' and f.phase=='NATIVE_RTL_REQUEST'
+    assert not f.land_committed
+    assert f.diagnostics[-1]['native_return_home']['position_enu']==[3.,2.,0.]
+    FlightServer.native_rtl_tick(f,f.native_rtl_requested+1.)
+    assert f.phase=='NATIVE_RTL_REQUEST'  # Sending the command is not mode confirmation.
+    f.samples['vehicle_status'].nav_state=5
+    FlightServer.native_rtl_tick(f,f.native_rtl_requested+2.)
+    assert f.phase=='NATIVE_RTL'
+    f.samples['vehicle_land_detected'].landed=True;f.samples['vehicle_status'].arming_state=1
+    FlightServer.native_rtl_tick(f,f.native_rtl_requested+3.)
+    assert f.phase=='NATIVE_RTL_CLOSED' and f.owner=='NONE' and calls==[(20,)]
+
+
+@pytest.mark.parametrize('fault',['home','global','busy','writers','ground'])
+def test_manual_rtl_has_no_output_when_native_requirements_are_missing(fault):
+    f,calls=rtl_operator()
+    if fault=='home':f.samples['home_position'].valid_hpos=False
+    elif fault=='global':f.samples['vehicle_local_position'].xy_global=False
+    elif fault=='busy':f.active_goal=object()
+    elif fault=='writers':f.get_publishers_info_by_topic=lambda t:[object()]*(2 if 'home_position' in t else 1)
+    elif fault=='ground':f.samples['vehicle_land_detected'].landed=True
+    assert not FlightServer.operator_command(f,'RTL')[0]
+    assert calls==[] and f.owner=='NONE'
+
+
+def test_unconfirmed_rtl_releases_gateway_without_claiming_a_return():
+    f,calls=rtl_operator();FlightServer.operator_command(f,'RTL')
+    FlightServer.native_rtl_tick(f,f.native_rtl_requested+4.)
+    assert f.owner=='NONE' and f.reason=='PX4_RTL_NOT_CONFIRMED'
+
+
+def test_explicit_pilot_takeover_releases_native_rtl_ownership():
+    f,calls=rtl_operator();FlightServer.operator_command(f,'RTL')
+    assert FlightServer.operator_command(f,'ACRO')[0]
+    assert f.owner=='NONE' and f.phase=='IDLE' and calls==[(20,),(176,1,5)]
+
+
 def test_sa_off_airborne_cannot_cut_motors_and_retires_automation():
     f,calls=operator();f.active_goal=object();f.owner='TASK'
     f.samples['vehicle_land_detected'].landed=False
@@ -114,3 +217,21 @@ def test_return_request_retires_before_plan_revision_and_preserves_root_deadline
     assert FlightServer.service(f,'return',req,RequestReturn.Response()).accepted
     assert calls==[('retire','RETURN_BRAKE')]
     assert not FlightServer.service(f,'pause',req,RequestReturn.Response()).accepted
+
+
+def test_failed_return_checkpoint_does_not_bind_a_new_home_or_brake():
+    from unique_identifier_msgs.msg import UUID
+    from uav_nav_interfaces.srv import RequestReturn
+    import time
+    f,calls=rtl_operator();f.config={'return_home_source':'PX4_HOME_POSITION','runner_progress_max_age_s':.5}
+    f.instance='current';f.active_goal=SimpleNamespace(goal_id=UUID(uuid=[1]*16));f.requests={}
+    f.result=None;f.canceling=False;f.return_override=False;f.phase='NAVIGATE';f.reference=(0.,0.,3.)
+    f.navigation_backend='EGO';f.return_home_reference=None;f.region=lambda _:True
+    f.runner_required=False;f.step_index=1
+    f.steps=[dict(type=t) for t in ('TAKEOFF','NAVIGATE','RETURN','LAND')]
+    def invalid(*_):raise ValueError('CHECKPOINT_CHANGED')
+    f.save_return_checkpoint=invalid
+    f.begin_stop=lambda *_:calls.append('brake')
+    req=RequestReturn.Request(mission_uuid=f.active_goal.goal_id,coordinator_instance='current',request_id=UUID(uuid=[2]*16))
+    result=FlightServer.service(f,'return',req,RequestReturn.Response())
+    assert not result.accepted and f.return_home_reference is None and not f.diagnostics and not calls

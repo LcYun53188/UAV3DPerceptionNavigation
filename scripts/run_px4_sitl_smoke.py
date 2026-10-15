@@ -181,6 +181,8 @@ def main():
                    UAV_FLIGHT_BT='1' if args.bt else '0',UAV_ENABLE_EGO_NAV='1' if args.navigation_backend=='EGO' else '0',UAV_NAVIGATION_BACKEND=args.navigation_backend, UAV_VIO_FUSION_PROFILE=args.vio_fusion_profile, PX4_PARAM_COM_RC_IN_MODE='4',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2', PX4_PARAM_EKF2_MAG_TYPE='6')
     if args.usb_joystick:
+        env.update(PX4_PARAM_MPC_LAND_SPEED='0.3', PX4_PARAM_MPC_LAND_CRWL='0.2',
+                   PX4_PARAM_EKF2_MAG_TYPE='6')
         env.update(PX4_PARAM_COM_RC_IN_MODE='1', PX4_PARAM_COM_RC_OVERRIDE='2',
                    PX4_PARAM_COM_OF_LOSS_T='0.5', PX4_PARAM_COM_OBL_RC_ACT='4', PX4_PARAM_COM_DISARM_LAND='2',
                    UAV_FLIGHT_OPERATOR_START='1' if args.operator_start else '0')
@@ -527,7 +529,7 @@ def main():
         write_json(run_dir / 'failure.json', dict(error=failure))
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
         for process in reversed(processes):
             stop(process)
         for log in logs:

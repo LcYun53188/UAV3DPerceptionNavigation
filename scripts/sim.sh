@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "${1:-}" == "pocket-panel" ]]; then
+  shift
+  exec python3 "$SCRIPT_DIR/pocket_panel.py" "$@"
+fi
+if [[ "${1:-}" == "px4-vio-pocket" ]]; then
+  shift
+  exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" --experimental-chain --flight sequence --pocket-session --normalize --mtf01 --scene warehouse --warehouse-variant avoidance --warehouse-floor-texture --quality-policy bounded_gap --real-time-factor 0.8 --render-device nvidia --sdk-image-depth 1 --headless-rendering --sdk-executor single_thread --sdk-cpu-list 0-15 --image-resolution 480x300 --ui --diagnostic-ui --duration 120 "$@"
+fi
+if [[ "${1:-}" == "px4-flow-pocket" ]]; then
+  shift
+  exec "$SCRIPT_DIR/with_px4_sim.sh" bash -e -c 'source .deps/mission-install/local_setup.bash; exec python scripts/run_px4_mtf01.py --usb-joystick --ui "$@"' bash "$@"
+fi
 if [[ "${1:-}" == "px4-vio-mtf01" ]]; then
   shift
   exec "$SCRIPT_DIR/run_px4_vio_sensors.sh" --mtf01 --normalize --fuse-pose --scene warehouse --warehouse-floor-texture --duration 120 "$@"

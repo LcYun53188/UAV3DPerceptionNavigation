@@ -25,6 +25,12 @@ from uav_mission.flight_geometry import distance
 from sim_validation import write_json,ROOT,file_hash
 
 
+def observation_passed(task_passed, cleanup_verified, profile):
+    # A safely rejected depth-observation diagnostic can pass its negative
+    # test. Static avoidance requires the actual navigation task to complete.
+    return bool(task_passed or (cleanup_verified and profile!='experimental_sdk16_static_avoidance'))
+
+
 def completed_waypoint_truth(events, truth, home, home_truth):
     """Audit only motion followed by an accepted next recipe step, never a stop."""
     reached=[]
@@ -53,8 +59,8 @@ def main():
        ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/vio_input_node.py',
        ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_nav_interfaces/msg/TaskStatus.msg',
        ROOT/'src/uav_nav_interfaces/srv/ResumeOriginalMission.srv',ROOT/'src/uav_nav_interfaces/srv/RequestReturn.srv',
-       ROOT/'src/uav_mission/uav_mission/mission_checkpoint.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
-       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+       ROOT/'src/uav_mission/uav_mission/mission_checkpoint.py',ROOT/'src/uav_mission/uav_mission/home_reference.py',ROOT/'src/uav_mission/uav_mission/pilot_intervention.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
+       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/no_gnss_flight_cases.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
                      'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',
@@ -62,6 +68,10 @@ def main():
             implementation_hashes[name]=file_hash(ROOT/name)
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
+    prewarmed=None
+    if use_bt and os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='vio_avoidance':
+        from bt_flight_client import prewarm_runner
+        prewarmed=prewarm_runner(node,out,ROOT)
     map_diagnostics=[]
     from std_msgs.msg import String
     def map_diagnostic_receive(message):
@@ -89,10 +99,15 @@ def main():
                     frames.add(pose.get('name',''))
                     if pose.get('name')==os.environ.get('UAV_FLIGHT_MODEL','x500_7'):
                         p=pose['position']
-                        truth.append(dict(mono=time.monotonic(),position=[p.get('x',0),p.get('y',0),p.get('z',0)],phase=node.phase))
+                        stamp=msg.get('header',{}).get('stamp',{})
+                        source_sim_s=float(stamp.get('sec',0))+float(stamp.get('nsec',0))/1e9
+                        truth.append(dict(mono=time.monotonic(),source_sim_s=source_sim_s,
+                            position=[p.get('x',0),p.get('y',0),p.get('z',0)],phase=node.phase))
             except (ValueError,KeyError):
                 pass
     truth_thread=threading.Thread(target=read_truth,daemon=True);truth_thread.start()
+    from no_gnss_flight_cases import NoGnssCase
+    flight_case=NoGnssCase(scenario,node,out,truth)
     executor=SingleThreadedExecutor();executor.add_node(node)
     def spin():
         try:
@@ -152,16 +167,20 @@ def main():
         b=(home[0]-2,home[1]+2,home[2]+2)
         recipe=Path(os.environ.get('UAV_FLIGHT_MISSION_FILE') or ROOT/'simulation/missions/W0_flight_sequence.json')
         steps=json.loads(recipe.read_text())['steps']
+        if scenario.startswith('local-land-'):
+            steps=[dict(type='TAKEOFF',height_m=2.),dict(type='HOVER',duration_s=20.),dict(type='LAND')]
         for step in steps:
             if step['type']=='NAVIGATE' and 'offset_enu' in step:
                 offset=step.pop('offset_enu')
                 step['target_map']=alignment.to_map(tuple(home[i]+offset[i] for i in range(3)))
         result['steps']=steps
-        result['navigation_backend']=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT')
+        navigation='DIRECT' if scenario.startswith('local-land-') else os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT')
+        result['navigation_backend']=navigation
+        if scenario.startswith('local-land-'):result['scope']='No-GNSS known-region takeoff, actual QGC pilot mode, native slow local LAND; no map-return acceptance'
         result['recipe_sha256']=file_hash(recipe)
-        root_deadline=min(240.,max(210.,max((step.get('timeout_s',0.) for step in steps if step['type']=='OBSERVE'),default=0.)+45.))
+        root_deadline=min(node.config.get('mission_timeout_max_s',240.),max(node.config.get('mission_timeout_max_s',210.) if 'mission_timeout_max_s' in node.config else 210.,max((step.get('timeout_s',0.) for step in steps if step['type']=='OBSERVE'),default=0.)+45.))
         request=ExecuteMission.Goal(mission_type='FLIGHT_SEQUENCE',backend='PX4_KNOWN_REGION',timeout_s=root_deadline,
-                                   parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps,navigation_backend=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT'))))
+                                   parameters_json=json.dumps(dict(authorization=node.nonce,steps=steps,navigation_backend=navigation)))
         def wait(f,timeout):
             until=time.monotonic()+timeout
             while not f.done() and time.monotonic()<until:time.sleep(.02)
@@ -170,7 +189,7 @@ def main():
         if not client.wait_for_server(timeout_sec=5):raise RuntimeError('Action discovery failed')
         if use_bt:
             from bt_flight_client import BtFlightClient
-            bt=BtFlightClient(node,request,out,ROOT)
+            bt=BtFlightClient(node,request,out,ROOT,prewarmed=prewarmed)
             handle=bt.wait_accepted()
         else:
             handle=wait(client.send_goal_async(request),5)
@@ -191,10 +210,23 @@ def main():
         until=time.monotonic()+root_deadline+10.
         while not terminal_future.done() and time.monotonic()<until:
             phase=node.phase
-            inject_ready = (phase=='HOVER' and time.monotonic()-node.phase_started>5. if scenario=='return-hover-resume' else
+            inject_ready = (phase=='HOVER' and time.monotonic()-node.phase_started>1.
+                if scenario in ('pilot-intervention','finish-mission','local-land-manual','local-land-position') else
+                phase=='HOVER' and time.monotonic()-node.phase_started>5. if scenario=='return-hover-resume' else
                 phase=='NAVIGATE' and time.monotonic()-node.phase_started>min(5.,(node.segment.duration if node.segment is not None else getattr(node.planned,'duration',10.))/2))
             if not injected and inject_ready:
-                if scenario in ('return-resume-mission','return-hover-resume'):
+                if scenario.startswith('local-land-'):
+                    flight_case.local_land()
+                elif scenario=='pilot-intervention':
+                    flight_case.intervene(intent)
+                elif scenario=='finish-mission':
+                    root=bytes(handle.goal_id.uuid);original_home=node.home;original_deadline=node.deadline
+                    flight_case.missing_home_refusal()
+                    intent('END_MISSION')
+                    await_phase(('RETURN_BRAKE','HOLD_HANDOFF','PLAN_REQUEST','RETURN'))
+                    flight_case.evidence.update(passed=True,root_home_deadline_preserved=
+                        bytes(node.active_goal.goal_id.uuid)==root and node.home==original_home and node.deadline==original_deadline)
+                elif scenario in ('return-resume-mission','return-hover-resume'):
                     original_root=bytes(handle.goal_id.uuid);original_home=node.home;original_deadline=node.deadline
                     original_index=node.step_index;original_child=bytes(node.child.uuid)
                     intent('RETURN')
@@ -319,11 +351,15 @@ def main():
         result['final_truth']=truth[-1]['position']
         result['final_land']=node.samples['vehicle_land_detected'].landed
         result['final_arming']=node.samples['vehicle_status'].arming_state
+        result['return_home_references']=[row['return_home'] for row in node.diagnostics if 'return_home' in row]
+        if getattr(getattr(node,'vio_gate',None),'primary_mtf',False):
+            result['fusion_profile']='aligned_pose_mtf_primary_sim_v1'
+            result['auxiliary_fusion_events']=list(node.vio_gate.auxiliary_history)
         result['command_acks']=[dict(command=node.samples['vehicle_command_ack'].command,
                                      result=node.samples['vehicle_command_ack'].result)] if 'vehicle_command_ack' in node.samples else []
         expected_hover=[step['duration_s'] for step in steps if step['type']=='HOVER']
         hover_audit=hovers
-        if scenario=='return-hover-resume':
+        if scenario in ('return-hover-resume','pilot-intervention'):
             hover_audit=[dict(duration_s=sum(h['duration_s'] for h in hovers if h['step_index']==i),
                 max_drift_m=max((h['max_drift_m'] for h in hovers if h['step_index']==i),default=999.))
                 for i,step in enumerate(steps) if step['type']=='HOVER']
@@ -335,6 +371,14 @@ def main():
                                   for h,duration in zip(hover_audit,expected_hover))
                           and all(w['error_m']<=.3 for w in waypoint_truth))
         if scenario=='pause-resume':result['passed']=result['passed'] and result.get('pause_resume',{}).get('passed',False)
+        if scenario=='pilot-intervention':result['passed'] &= flight_case.evidence.get('passed',False)
+        if scenario=='finish-mission':
+            result['passed']=(terminal.status==4 and terminal.result.reason=='MISSION_ENDED_LANDED_AND_DISARMED'
+                and terminal.result.cleanup_confirmed and not terminal.result.mock and result['final_land']
+                and result['final_arming']==1 and landing_cancel_rejected
+                and flight_case.evidence.get('root_home_deadline_preserved',False)
+                and flight_case.evidence.get('missing_home_refused_without_control_mutation',False)
+                and any(w['phase']=='RETURN' for w in waypoint_truth) and all(w['error_m']<=.3 for w in waypoint_truth))
         if scenario in ('return-resume-mission','return-hover-resume'):
             result['passed'] &= (result.get('return_resume_mission',{}).get('passed',False) and
                 result['phases'].count('TAKEOFF')==1 and terminal.result.reason=='LANDED_AND_DISARMED')
@@ -379,7 +423,7 @@ def main():
                 and result['max_truth_displacement_m']>=1.5 and len(waypoint_truth)>=1
                 and max((v['angle_rad'] for v in result['observations']),default=0)>=2*math.pi
                 and result['observation_measured_yaw_sweep_rad']>=5.8)
-            result['passed']=result['passed'] or result['observation_cleanup_verified']
+            result['passed']=observation_passed(result['passed'],result['observation_cleanup_verified'],node.config['profile'])
         if bt:
             if scenario not in ('runner-exit','runner-stall'):
                 bt.process.wait(timeout=5)
@@ -411,11 +455,26 @@ def main():
         if 'vehicle_status' in node.samples:result['final_arming']=node.samples['vehicle_status'].arming_state
         if 'vehicle_land_detected' in node.samples:result['final_land']=node.samples['vehicle_land_detected'].landed
         if scenario=='clock-fault':result['passed']=result['passed'] and result.get('outputs_at_action_result')==node.output_count
+        if scenario.startswith('local-land-'):
+            result['passed']=(flight_case.evidence.get('passed',False) and terminal.status==6
+                and terminal.result.reason=='PILOT_TAKEOVER' and result['final_land'] and result['final_arming']==1
+                and bt.process.returncode==1)
+        result['no_gnss_case']=flight_case.evidence
         if scenario=='clock-fault':result['clock_fault_latched']=node.clock_fault_latched
         if scenario=='clock-fault':result['passed']=(terminal.status==6 and terminal.result.reason in ('CLOCK_FAULT','STALE_OR_INVALID_AIRCRAFT_STATE') and node.clock_fault_latched)
     except Exception as exc:
         result['error']=str(exc)
+        if scenario in ('pilot-intervention','local-land-manual','local-land-position'):
+            with node.lock:
+                if node.active_goal and not node.result:node.fault('ACCEPTANCE_CLIENT_ABORT')
+            until=time.monotonic()+3
+            while node.active_goal and time.monotonic()<until:time.sleep(.02)
+            status=node.samples.get('vehicle_status')
+            if node.operator_enabled and status and status.nav_state in (status.NAVIGATION_STATE_POSCTL,status.NAVIGATION_STATE_ACRO):
+                with node.lock:accepted,reason=node.operator_command('LAND')
+                result['acceptance_cleanup_land']=dict(accepted=accepted,reason=reason)
     finally:
+        result['no_gnss_case']=flight_case.evidence
         if (not result['passed'] or scenario in ('clock-fault','odometry-stale','odometry-reset')) and node.samples.get('vehicle_status') and node.samples['vehicle_status'].arming_state==2:
             until=time.monotonic()+40
             while time.monotonic()<until:
@@ -478,9 +537,12 @@ def main():
         if os.environ.get('UAV_FLIGHT_HOLD_RECEIPT')=='1':
             while not (out/'release-flight-gateway').exists():time.sleep(.02)
         if bt:bt.close()
+        elif prewarmed:
+            if prewarmed[0].poll() is None:prewarmed[0].terminate()
+            prewarmed[0].wait(timeout=5);prewarmed[1].close()
         truth_process.terminate()
         truth_process.wait(timeout=5);truth_thread.join(timeout=2)
-        client.destroy();executor.shutdown();node.destroy_node();rclpy.try_shutdown();thread.join(timeout=3)
+        executor.shutdown();thread.join(timeout=3);client.destroy();node.destroy_node();rclpy.try_shutdown()
         write_json(out/'flight-gc-pauses.json',gc_pauses.stop())
         flight_gc.restore()
         write_json(out/'flight-gc-policy.json',flight_gc.receipt())

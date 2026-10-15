@@ -62,7 +62,24 @@ public:
       });
     instance_ = node_->declare_parameter<std::string>("coordinator_instance", "");
     const auto path = node_->declare_parameter<std::string>("parameters_file", "");
+    const double wait_seconds = node_->declare_parameter<double>("parameters_wait_s", 0.0);
+    const auto owned_env=[](const char* key,const char* expected) {
+      const char* value=std::getenv(key);return value && std::string(value)==expected;
+    };
+    if (!std::isfinite(wait_seconds) || wait_seconds<0.0 || wait_seconds>14400.0 ||
+        (wait_seconds>0.0 && !(owned_env("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") &&
+          owned_env("UAV_EXPERIMENTAL_VIO_CHAIN","1") && owned_env("ROS_DOMAIN_ID","78")))) {
+      throw std::runtime_error("Invalid owned runner prewarm wait");
+    }
     std::ifstream input(path);
+    if (!input && wait_seconds>0.0) {
+      std::cout << "BT_PREWARM_WAIT no mission authorization yet" << std::endl;
+      const auto until=Steady::now()+std::chrono::duration_cast<Steady::duration>(std::chrono::duration<double>(wait_seconds));
+      while (!input && rclcpp::ok() && !stop_requested && Steady::now()<until) {
+        rclcpp::sleep_for(20ms);
+        input.clear();input.open(path);
+      }
+    }
     if (!input || instance_.empty()) {
       throw std::runtime_error("parameters_file and coordinator_instance are required");
     }
@@ -88,8 +105,15 @@ public:
       throw std::runtime_error("Mission must require progress from the current coordinator");
     }
     budget_ = node_->declare_parameter<double>("timeout_s", 210.0);
-    if (!std::isfinite(budget_) || budget_ < 20.0 || budget_ > 240.0) {
-      throw std::runtime_error("timeout_s must be 20..240 seconds");
+    const auto env_is=[](const char* key,const char* expected) {
+      const char* value=std::getenv(key);return value && std::string(value)==expected;
+    };
+    // Longer observed-map route only in the owned simulation profile. The
+    // flight gateway independently validates this same frozen profile limit.
+    const double maximum=env_is("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") &&
+      env_is("UAV_EXPERIMENTAL_VIO_CHAIN","1") && env_is("ROS_DOMAIN_ID","78") ? 420.0 : 240.0;
+    if (!std::isfinite(budget_) || budget_ < 20.0 || budget_ > maximum) {
+      throw std::runtime_error("timeout_s outside the bounded flight profile");
     }
   }
 

@@ -69,7 +69,7 @@ files:
   sha256: 77f04cd05880c692f9bd9fc751525c7c296a8cdee252f9652c2c6f7c7fdb8fc9
 - path: requirements/simulation-validation.txt
   sha256: 2e7bd1235bce4ce910329e2ff58638e327456e9839e8f7b3ed11d7200f1c44e1
-- path: /home/nuc/Program/QGC/QGroundControl-x86_64.AppImage
+- path: /home/nuc/Program/UAV/QGroundControl-x86_64.AppImage
   sha256: 9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344
 vio:
   algorithm: Isaac ROS Visual SLAM / cuVSLAM VIO-only
@@ -88,7 +88,7 @@ deferred:
     validation required only when Jetson work resumes
 artifacts:
   qgc:
-    path: /home/nuc/Program/QGC/QGroundControl-x86_64.AppImage
+    path: /home/nuc/Program/UAV/QGroundControl-x86_64.AppImage
     version: 5.1.5
     version_evidence: AppImage embedded AppStream release + binary v5.1.5 string
     sha256: 9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344

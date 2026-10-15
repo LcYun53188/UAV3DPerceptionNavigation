@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SA arm, SB manual/navigation, SD start/pause/resume in an owned USB SITL."""
+"""Owned Pocket SITL control with explicit legacy USB or UAV AETR profiles."""
 import argparse
 import fcntl
 import json
@@ -11,6 +11,7 @@ import time
 import uuid
 
 from pocket_switches import PocketSwitches
+from pocket_uav_switches import PocketUavSwitches
 from usb_joystick import Joystick
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +23,7 @@ def prepare_manual(node, switches, prepared):
     if (not prepared and not switches.navigation and node.active_goal is None and
             status is not None and status.arming_state == 1 and land is not None and land.landed and
             node.operator_input_ready()):
-        accepted, _ = node.operator_command('MANUAL')
+        accepted, _ = node.operator_command(getattr(switches, 'requested_mode', 'MANUAL'))
         return accepted
     return prepared
 
@@ -35,6 +36,7 @@ def return_intent(node):
 
 
 def run_intent(node):
+    if getattr(node,'pilot_control',None):return 'RESUME'
     if node.phase != 'PAUSED':
         return None  # A separate, guarded ground START; never restore a moving return.
     return ('RESUME_MISSION' if getattr(node,'return_override',False) and
@@ -43,15 +45,31 @@ def run_intent(node):
 
 def bind_session(path):
     session = Path(path).resolve()
-    if not session.is_relative_to(ROOT/'.cache/simulation/sitl'):
+    if not any(session.is_relative_to(ROOT/'.cache/simulation'/name) for name in ('sitl','mtf01','vio-sensors')):
         raise ValueError('Session must be in the owned SITL cache')
     manifest = json.loads((session/'manifest.json').read_text())
-    if (not manifest.get('usb_joystick') or manifest.get('model') != 'x500_7' or
-            manifest.get('domain') != 78 or not manifest['partition'].startswith('uav_px4_s0_')):
-        raise ValueError('Requires the isolated GNSS x500 USB profile')
+    flow = manifest.get('localization_profile') == 'FLOW_LOCAL'
+    vio=manifest.get('localization_profile')=='VIO_FLOW'
+    expected_model, prefix = ('x500_vio_ref_7','uav_warehouse_flight_') if vio else ('x500_mtf01_7', 'uav_mtf01_') if flow else ('x500_7', 'uav_px4_s0_')
+    if (not manifest.get('usb_joystick') or manifest.get('model') != expected_model or
+            manifest.get('domain') != 78 or not manifest['partition'].startswith(prefix)):
+        raise ValueError('Requires an isolated GNSS or FLOW_LOCAL Pocket USB profile')
     frozen = manifest.get('px4_parameter_overrides',{})
     if (frozen.get('PX4_PARAM_COM_OF_LOSS_T') != '0.5' or frozen.get('PX4_PARAM_COM_OBL_RC_ACT') != '4'):
         raise ValueError('Restart the manual USB profile with the frozen Offboard-loss landing parameters')
+    if flow:
+        expected=json.loads((ROOT/'simulation/px4/mtf01/flow_local.json').read_text())['parameters']
+        if any(frozen.get('PX4_PARAM_'+key) != str(value) for key,value in expected.items()):
+            raise ValueError('FLOW_LOCAL fusion parameters differ from the reviewed profile')
+        if manifest.get('flight') or not json.loads((session/'ground-audit.json').read_text()).get('passed'):
+            raise ValueError('FLOW_LOCAL Pocket requires successful ground fusion audit and no automatic flight')
+    if vio:
+        expected=json.loads((ROOT/'simulation/px4/mtf01/joint_fusion.json').read_text())['parameters']
+        if (not manifest.get('pocket_session') or not manifest.get('experimental_chain') or
+                frozen.get('PX4_PARAM_COM_RC_IN_MODE')!='1' or frozen.get('PX4_PARAM_EKF2_IMU_CTRL')!='5' or
+                frozen.get('PX4_PARAM_NAV_RCL_ACT')!='3' or frozen.get('PX4_PARAM_COM_RC_OVERRIDE')!='0' or
+                any(frozen.get('PX4_PARAM_'+key)!=str(value) for key,value in expected.items())):
+            raise ValueError('VIO Pocket requires the isolated experimental joint fusion profile')
     pid = manifest['processes']['px4']['pid']
     command = Path(f'/proc/{pid}/cmdline').read_bytes().split(b'\0')
     expected = str(session/'rootfs').encode()
@@ -60,9 +78,83 @@ def bind_session(path):
     return session, manifest
 
 
-def observe(device, return_button=None):
-    joystick, switches = Joystick(device), PocketSwitches(return_button=return_button)
+def operator_environment(session, manifest):
+    if manifest.get('localization_profile')=='VIO_FLOW':
+        recorded=manifest.get('operator_environment',{})
+        region=recorded.get('UAV_FLIGHT_REGION_PROFILE')
+        if region not in ('vio_chain','vio_avoidance'):raise ValueError('Unreviewed VIO Pocket region')
+        mission='vio_static_avoidance.json' if region=='vio_avoidance' else 'depth_observation.json'
+        primary=manifest.get('vio_primary') is True
+        if primary and (region!='vio_avoidance' or manifest.get('sdk_schur64') is not True):
+            raise ValueError('VIO primary Pocket requires the owned SDK64 avoidance profile')
+        expected=dict(UAV_REQUIRE_VIO='1',UAV_LOCALIZATION_PROFILE='DEFAULT',UAV_VIO_FUSION_PROFILE='aligned_pose_mtf_primary_sim_v1' if primary else 'aligned_pose_mtf_sim_v1',
+            UAV_VIO_CALIBRATION_ID=manifest['calibration_id'],UAV_ENABLE_FUSION_SWITCH='0',
+            UAV_FLIGHT_REGION_PROFILE=region,UAV_ENABLE_EGO_NAV='1',UAV_NAVIGATION_BACKEND='EGO',
+            UAV_EXPERIMENTAL_VIO_CHAIN='1',UAV_EXPECT_OBSERVATION='1',
+            UAV_FLIGHT_COORDINATOR_INSTANCE=manifest['run_id'],UAV_FLIGHT_MODEL='x500_vio_ref_7',
+            UAV_FLIGHT_ASSET_RECEIPT=str(session/'flight-assets.json'),UAV_FLIGHT_EVIDENCE=str(session),
+            UAV_FLIGHT_ADMISSION=str(session/'flight-admission.json'),
+            UAV_FLIGHT_MISSION_FILE=str(ROOT/'simulation/missions'/mission))
+        from sim_validation import file_hash
+        expected['UAV_FLIGHT_ASSET_SHA256']=file_hash(session/'flight-assets.json')
+        if any(recorded.get(key)!=value for key,value in expected.items()):
+            raise ValueError('VIO Pocket environment/asset ownership mismatch')
+        return expected
+    if manifest.get('localization_profile') != 'FLOW_LOCAL':
+        return dict(UAV_REQUIRE_VIO='0', UAV_LOCALIZATION_PROFILE='DEFAULT',
+                    UAV_ENABLE_FUSION_SWITCH='0', UAV_FLIGHT_REGION_PROFILE='W0', UAV_ENABLE_EGO_NAV='0')
+    expected=dict(UAV_REQUIRE_VIO='0', UAV_LOCALIZATION_PROFILE='FLOW_LOCAL', UAV_ENABLE_FUSION_SWITCH='0',
+                  UAV_FLIGHT_REGION_PROFILE='flow_local', UAV_ENABLE_EGO_NAV='0', UAV_NAVIGATION_BACKEND='DIRECT',
+                  UAV_FLIGHT_ASSET_RECEIPT=str(session/'flight-assets.json'),
+                  UAV_FLIGHT_EVIDENCE=str(session), UAV_FLIGHT_MODEL='x500_mtf01_7')
+    recorded=manifest.get('operator_environment', {})
+    if any(recorded.get(key)!=value for key,value in expected.items()):
+        raise ValueError('FLOW_LOCAL operator environment/asset ownership mismatch')
+    from sim_validation import file_hash
+    expected['UAV_FLIGHT_ASSET_SHA256']=file_hash(session/'flight-assets.json')
+    if recorded.get('UAV_FLIGHT_ASSET_SHA256')!=expected['UAV_FLIGHT_ASSET_SHA256']:
+        raise ValueError('FLOW_LOCAL asset receipt changed')
+    return expected
+
+
+def source_admitted(session, manifest):
+    if manifest.get('localization_profile')!='VIO_FLOW':return True
     try:
+        admission=json.loads((session/'flight-admission.json').read_text())
+        valid=isinstance(admission,dict) and admission.get('sensor_checks_passed') is True and admission.get('calibration_id')==manifest['calibration_id']
+        if valid and manifest.get('vio_primary') is True:
+            valid=(admission.get('fusion_profile')=='aligned_pose_mtf_primary_sim_v1'
+                and admission.get('joint_ground_preflight') is True)
+        return valid
+    except (OSError,ValueError):return False
+
+
+def validate_virtual_device(device, joystick, profile):
+    if profile != 'uav-aetr-v1':
+        return
+    from pocket_virtual_joystick import NAME
+    name = Path('/sys/class/input') / Path(device).resolve().name / 'device/name'
+    if (not name.exists() or name.read_text().strip() != NAME or
+            (joystick.axes, joystick.buttons) != (9, 3)):
+        raise ValueError('UAV AETR profile requires the matching virtual Pocket device')
+
+
+def switches_for(profile, return_button=None):
+    if profile == 'uav-aetr-v1':
+        if return_button is not None:
+            raise ValueError('UAV profile reserves button 0 for CH10, not return')
+        return PocketUavSwitches()
+    return PocketSwitches(return_button=return_button)
+
+
+def pause_intent(node):
+    return 'RESUME' if node.phase == 'PAUSED' else 'PAUSE'
+
+
+def observe(device, return_button=None, profile='legacy-usb'):
+    joystick, switches = Joystick(device), switches_for(profile, return_button)
+    try:
+        validate_virtual_device(device, joystick, profile)
         while True:
             event = joystick.read(.05)
             if event:
@@ -76,7 +168,7 @@ def observe(device, return_button=None):
         joystick.close()
 
 
-def control(session, device, return_button=None):
+def control(session, device, return_button=None, profile='legacy-usb'):
     from copy import deepcopy
     import rclpy
     from rclpy.executors import SingleThreadedExecutor
@@ -84,23 +176,46 @@ def control(session, device, return_button=None):
     from uav_mission.px4_flight import FlightServer
     from uav_nav_interfaces.srv import SetMissionIntent
     session, manifest = bind_session(session)
+    if profile == 'uav-aetr-v1':
+        overrides = manifest.get('px4_parameter_overrides', {})
+        if overrides.get('PX4_PARAM_MPC_LAND_SPEED') != '0.3' or overrides.get('PX4_PARAM_MPC_LAND_CRWL') != '0.2':
+            raise ValueError('Restart the owned USB session with slow native landing parameters')
     if manifest.get('flight_recipe_sha256'):
         raise ValueError('Pocket owner requires a manual session without another flight supervisor')
     os.environ.update(ROS_DOMAIN_ID='78', ROS_LOCALHOST_ONLY='1', UAV_POCKET_OPERATOR='1',
         UAV_SITL_AUTHORIZATION=str(uuid.uuid4()), UAV_WORKSPACE=str(ROOT), GZ_PARTITION=manifest['partition'])
+    os.environ.update(operator_environment(session, manifest))
     rclpy.init(args=['--ros-args', '-p', 'use_sim_time:=true'], signal_handler_options=SignalHandlerOptions.NO)
+    from vio_observer_gc import ObservationGcGuard
+    observation_gc=ObservationGcGuard(manifest.get('localization_profile')=='VIO_FLOW')
     node = FlightServer()
     executor = SingleThreadedExecutor(); executor.add_node(node)
-    joystick, switches = Joystick(device), PocketSwitches(return_button=return_button)
+    joystick, switches = Joystick(device), switches_for(profile, return_button)
+    validate_virtual_device(device, joystick, profile)
     intent = node.create_client(SetMissionIntent, '/uav/bt/set_intent')
     runner = None
     runner_log = None
     parameters = session/'pocket-bt.private.json'
+    warming = None
     requests = []
     pending = None
     outcomes = []
     stopping = False
     manual_prepared = False
+    auto_prepared = False
+    intervention_requested = False
+    resume_when_paused = False
+    previous_navigation = switches.navigation
+    heartbeat=0.
+    def warm_next_runner():
+        nonlocal warming
+        if os.environ.get('UAV_FLIGHT_REGION_PROFILE')!='vio_avoidance':return
+        from bt_flight_client import prewarm_runner
+        number=len(outcomes)+1
+        warming=prewarm_runner(node,session,ROOT,parameters,
+            log_name=f'pocket-bt-{number}.log',tree_name=f'pocket-tree-{number}.xml',
+            wait_seconds=float(manifest.get('duration_s') or 3600.))
+    warm_next_runner()
     def stop_requested(*_):
         nonlocal stopping
         stopping = True
@@ -120,7 +235,7 @@ def control(session, device, return_button=None):
         return True, verb+'_REQUESTED'
 
     def start_task():
-        nonlocal runner, runner_log
+        nonlocal runner, runner_log, warming
         if runner is not None and runner.poll() is None:
             return False, 'RUNNER_STILL_ACTIVE'
         if node.active_goal is not None or node.owner != 'NONE' or node.phase == 'FAULT':
@@ -130,30 +245,36 @@ def control(session, device, return_button=None):
         if (not node.healthy(ground=True) or not node.samples['vehicle_land_detected'].landed or
                 node.samples['vehicle_status'].arming_state != 2 or node.speed() > .1):
             return False, 'GROUND_ARMED_STILL_REQUIRED'
-        recipe = deepcopy(json.loads((ROOT/'simulation/missions/W0_flight_sequence.json').read_text())['steps'])
+        if not source_admitted(session,manifest):return False,'SOURCE_PREFLIGHT_PENDING'
+        if os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='vio_avoidance' and (warming is None or warming[0].poll() is not None):
+            return False,'PREWARM_RUNNER_UNAVAILABLE_RESTART_SESSION'
+        recipe_file=Path(os.environ['UAV_FLIGHT_MISSION_FILE']) if manifest.get('localization_profile')=='VIO_FLOW' else ROOT/'simulation/missions'/('flow_local_hover.json' if node.localization_profile=='FLOW_LOCAL' else 'W0_flight_sequence.json')
+        recipe = deepcopy(json.loads(recipe_file.read_text())['steps'])
         home = node.position()
         for step in recipe:
             if 'offset_enu' in step:
                 offset = step.pop('offset_enu')
                 step['target_map'] = node.alignment.to_map(tuple(home[i]+offset[i] for i in range(3)))
-        request = dict(authorization=node.nonce, steps=recipe, navigation_backend='DIRECT',
+        request = dict(authorization=node.nonce, steps=recipe, navigation_backend=os.environ.get('UAV_NAVIGATION_BACKEND','DIRECT'),
             runner_progress_required=True, coordinator_instance=node.instance, step_controlled=True)
-        parameters.unlink(missing_ok=True)
-        fd = os.open(parameters, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
+        staging=session/'pocket-bt.pending.private.json'
+        fd = os.open(staging, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
         with os.fdopen(fd, 'w') as stream:
             json.dump(request, stream)
+        os.replace(staging,parameters)
         if runner_log is not None:
             runner_log.close()
         number = len(outcomes)+1
-        runner_log = (session/f'pocket-bt-{number}.log').open('w')
-        runner = subprocess.Popen([str(ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner'),
+        runner_log = warming[1] if warming else (session/f'pocket-bt-{number}.log').open('w')
+        runner = warming[0] if warming else subprocess.Popen([str(ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner'),
             '--ros-args', '-p', f'parameters_file:={parameters}', '-p', f'coordinator_instance:={node.instance}',
-            '-p', 'timeout_s:=210.0', '-p', f'tree_output_file:={session / ("pocket-tree-"+str(number)+".xml")}'],
+            '-p', f'timeout_s:={node.config.get("mission_timeout_max_s",240.)}', '-p', f'tree_output_file:={session / ("pocket-tree-"+str(number)+".xml")}'],
             stdout=runner_log, stderr=subprocess.STDOUT)
+        warming=None
         return True, 'GROUND_TASK_DISPATCH_REQUESTED'
 
     try:
-        print('Pocket owner ready: SA arm, SB navigation enable, SD run/pause. QGC calibration/fresh input required.', flush=True)
+        print(f'Pocket owner ready: {profile}. QGC calibration/fresh input required.', flush=True)
         while rclpy.ok() and not stopping:
             executor.spin_once(timeout_sec=.01)
             now = time.monotonic()
@@ -164,40 +285,114 @@ def control(session, device, return_button=None):
                 switches.receive(event, now)
             node.operator_arm_enabled = switches.arm
             node.operator_navigation_enabled = switches.navigation
+            if now-heartbeat>=1.:
+                status=node.samples.get('vehicle_status');land=node.samples.get('vehicle_land_detected')
+                state=dict(system_ns=time.time_ns(),source_admitted=source_admitted(session,manifest),
+                    operator_input_ready=node.operator_input_ready(),auto_prepared=auto_prepared,
+                    owner=node.owner,phase=node.phase,arming=getattr(status,'arming_state',None),
+                    nav_state=getattr(status,'nav_state',None),landed=getattr(land,'landed',None))
+                (session/'pocket-live.pending.json').write_text(json.dumps(state)+'\n')
+                os.replace(session/'pocket-live.pending.json',session/'pocket-live.json')
+                heartbeat=now
             # Apply the initial manual mode only after QGC is ready, on the ground
             # and disarmed. This never arms or starts a task.
-            prepared = prepare_manual(node, switches, manual_prepared)
+            admitted=source_admitted(session,manifest)
+            prepared = prepare_manual(node, switches, manual_prepared) if admitted else manual_prepared
             if prepared and not manual_prepared:
                 print('Initial manual mode requested; actual PX4 mode confirms the transition', flush=True)
             manual_prepared = prepared
             if pending is not None and pending.done():
                 response = pending.result()
                 print(f'Task admission: {response.accepted} {response.reason}', flush=True)
+                if not response.accepted:
+                    intervention_requested=resume_when_paused=False
                 pending = None
+            if node.phase=='PAUSED' and pending is None:
+                if resume_when_paused:
+                    accepted,reason=task_intent('RESUME')
+                    resume_when_paused=False
+                    print(f'Intervention resume: {accepted} {reason}',flush=True)
+                elif intervention_requested and not node.pilot_control:
+                    accepted,reason=node.enter_pilot_control()
+                    intervention_requested=accepted
+                    print(f'Intervention handoff: {accepted} {reason}',flush=True)
             if runner is not None and runner.poll() is not None:
                 outcomes.append(dict(exit_code=runner.returncode, result=node.result))
                 print(f'Root terminal: exit={runner.returncode} result={node.result}', flush=True)
                 runner = None
                 parameters.unlink(missing_ok=True)
+            if (warming is None and runner is None and outcomes and node.owner=='NONE' and
+                    node.samples.get('vehicle_status') is not None and node.samples['vehicle_status'].arming_state==1 and
+                    node.samples.get('vehicle_land_detected') is not None and node.samples['vehicle_land_detected'].landed):
+                warm_next_runner()
             for command in switches.tick(now):
                 node.operator_arm_enabled = switches.arm
                 node.operator_navigation_enabled = switches.navigation
-                if command in ('ARM','DISARM','MANUAL'):
+                if not admitted and command in ('ARM','PREPARE','RUN','INTERVENE','MANUAL','ACRO','VIO_POSITION','FLOW_POSITION','RTL'):
+                    accepted,reason=False,'SOURCE_PREFLIGHT_PENDING'
+                elif command in ('ARM','DISARM','MANUAL','ACRO','VIO_POSITION','FLOW_POSITION','LAND','RTL'):
+                    if command != 'ARM':
+                        auto_prepared = False
+                        intervention_requested = resume_when_paused = False
                     accepted, reason = node.operator_command(command)
+                elif command == 'PREPARE':
+                    auto_prepared = (switches.navigation and node.active_goal is None and node.owner == 'NONE'
+                        and node.phase != 'FAULT' and node.operator_input_ready() and node.healthy(ground=True)
+                        and node.samples['vehicle_land_detected'].landed and node.speed() <= .1)
+                    if auto_prepared and os.environ.get('UAV_NAVIGATION_BACKEND')=='EGO':
+                        try:node.planning_ready()
+                        except ValueError:auto_prepared=False
+                    accepted, reason = auto_prepared, 'TASK_PREPARED' if auto_prepared else 'TASK_PREPARATION_GATE'
                 elif command == 'RUN':
+                    was_intervention=intervention_requested or bool(node.pilot_control)
+                    intervention_requested=False
                     verb = run_intent(node)
-                    accepted, reason = task_intent(verb) if verb else start_task()
+                    if was_intervention and node.phase in ('PAUSING','HOLD_HANDOFF'):
+                        resume_when_paused=True
+                        accepted,reason=True,'RESUME_AFTER_STOP_REQUESTED'
+                    elif profile == 'uav-aetr-v1' and not auto_prepared and verb is None:
+                        accepted, reason = False, 'TASK_PREPARATION_REQUIRED'
+                    else:
+                        accepted, reason = task_intent(verb) if verb else start_task()
+                elif command == 'INTERVENE':
+                    accepted,reason=node.pilot_request_ready()
+                    if accepted:
+                        if node.pilot_control:reason='INTERVENTION_ALREADY_REQUESTED'
+                        elif node.phase!='PAUSED':accepted,reason=task_intent('PAUSE')
+                        intervention_requested=accepted
+                        resume_when_paused=False
                 elif command == 'PAUSE':
                     accepted, reason = task_intent('PAUSE')
                 elif command == 'TOGGLE_RETURN':
                     accepted, reason = task_intent(return_intent(node))
+                elif command == 'END_MISSION':
+                    auto_prepared = False
+                    intervention_requested = resume_when_paused = False
+                    if profile=='uav-aetr-v1' and os.environ.get('UAV_NAVIGATION_BACKEND')!='EGO':
+                        accepted,reason=False,'RETURN_REQUIRES_AVOIDANCE_NAVIGATION'
+                    else:accepted, reason = task_intent('END_MISSION')
+                elif command == 'TOGGLE_PAUSE':
+                    if intervention_requested or node.pilot_control:
+                        accepted,reason=False,'INTERVENTION_USE_SC_EXECUTE_TO_RESUME'
+                    else:accepted, reason = task_intent(pause_intent(node))
+                elif command == 'CANCEL':
+                    auto_prepared = False
+                    intervention_requested = resume_when_paused = False
+                    accepted, reason = task_intent('CANCEL')
                 else:
                     accepted, reason = False, 'SA_OR_SB_NOT_ENABLED'
                 row = dict(mono=now, command=command, accepted=accepted, reason=reason)
                 requests.append(row); print(json.dumps(row), flush=True)
+            if switches.navigation != previous_navigation:
+                if not switches.navigation:
+                    auto_prepared = False
+                previous_navigation = switches.navigation
     except (KeyboardInterrupt, OSError) as error:
         print(f'Pocket owner stopping: {error}', flush=True)
     finally:
+        if warming is not None:
+            if warming[0].poll() is None:warming[0].terminate()
+            warming[0].wait(timeout=5);warming[1].close()
         if runner is not None and runner.poll() is None:
             runner.send_signal(signal.SIGTERM)
             until = time.monotonic()+10
@@ -207,34 +402,40 @@ def control(session, device, return_button=None):
                 node.fault('USB_OPERATOR_STOP_UNCONFIRMED')
                 runner.kill(); runner.wait(timeout=3)
         # Keep the sole gateway alive for its bounded post-cancel hold/landing.
-        until = time.monotonic()+45
+        until = time.monotonic()+60
         while node.owner in ('TASK','HOLD_CONTROLLER','AUTOPILOT') and time.monotonic()<until:
             executor.spin_once(timeout_sec=.02)
         snapshot = dict(requests=requests, outcomes=outcomes, final_owner=node.owner,
+            input_profile=profile,
             phase=node.phase, result=node.result, commands=node.commands,
             scope='Pocket operator session; physical state remains separate from request admission')
         (session/'pocket-operator.json').write_text(json.dumps(snapshot, indent=2)+'\n')
         parameters.unlink(missing_ok=True)
         if runner_log is not None:
             runner_log.close()
+        observation_gc.restore()
         joystick.close(); executor.shutdown(); node.destroy_node(); rclpy.try_shutdown()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device', default=DEVICE)
+    parser.add_argument('--input-profile', choices=['legacy-usb', 'uav-aetr-v1'], default='legacy-usb')
     parser.add_argument('--session', help='Owned manual SITL evidence directory')
     parser.add_argument('--return-button', type=int, choices=[0], help='Explicitly enable the verified Linux momentary button 0; default unassigned')
     parser.add_argument('--enable-sitl-control', action='store_true')
     args = parser.parse_args()
+    if args.input_profile == 'uav-aetr-v1':
+        if args.device == DEVICE or args.return_button is not None:
+            parser.error('UAV virtual profile requires explicit --device and no --return-button')
     if not args.enable_sitl_control:
-        return observe(args.device, args.return_button)
+        return observe(args.device, args.return_button, args.input_profile)
     if not args.session:
         parser.error('--enable-sitl-control requires --session')
     session, _ = bind_session(args.session)
     with (session/'pocket-operator.lock').open('a') as handle:
         fcntl.flock(handle, fcntl.LOCK_EX|fcntl.LOCK_NB)
-        control(session, args.device, args.return_button)
+        control(session, args.device, args.return_button, args.input_profile)
 
 
 if __name__ == '__main__':

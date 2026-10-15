@@ -31,10 +31,21 @@ def main():
     parser.add_argument('--stop-sensors', action='store_true', help='After the healthy window, stop both owned adapters and audit 12 seconds of source loss')
     parser.add_argument('--flight', action='store_true', help='Explicit isolated FLOW_LOCAL takeoff/hover/native LAND, after successful disarmed audit; no EV/VIO source')
     parser.add_argument('--native-manual', action='store_true', help='With --flight: native Position and simulated RC sticks, no mission gateway or Offboard heartbeat')
+    parser.add_argument('--usb-joystick', action='store_true', help='Persistent FLOW_LOCAL warehouse/Pocket session; no automatic arm or flight')
+    parser.add_argument('--session-duration', type=float, default=3600, help='Operator session seconds after successful ground audit')
+    parser.add_argument('--device', default='/dev/input/js0', help='Explicit virtual Pocket joystick for the operator session')
+    parser.add_argument('--qgc-config-from', type=Path, help='Preserve calibration from an owned SITL QGC config')
     parser.add_argument('--render-device', choices=('default','nvidia','intel'), default='nvidia')
     args = parser.parse_args()
     if args.native_manual and not args.flight:
         parser.error('--native-manual requires --flight')
+    if args.usb_joystick and (not args.ui or args.flight or args.native_manual or args.no_floor_texture or args.stop_sensors):
+        parser.error('--usb-joystick requires --ui, textured continuous sensors and no automatic flight flags')
+    if not 20 <= args.session_duration <= 3600:
+        parser.error('session-duration must be within [20,3600] seconds')
+    if args.qgc_config_from and (not args.usb_joystick or not args.qgc_config_from.is_file() or
+            not any(args.qgc_config_from.resolve().is_relative_to(ROOT/'.cache/simulation'/name) for name in ('sitl','mtf01'))):
+        parser.error('--qgc-config-from requires an owned QGC config and --usb-joystick')
     if args.flight and (args.no_floor_texture or args.stop_sensors):
         parser.error('Flight requires the reviewed textured floor and continuous sensor inputs')
     def interrupted(signum,frame):
@@ -67,7 +78,8 @@ def execute(args, lock):
     px4 = ROOT/lock['sitl']['path']
     build = px4/'build/px4_sitl_default'
     build_receipt = None
-    if args.flight:
+    local_control = args.flight or args.usb_joystick
+    if local_control:
         from build_px4_vio import BUILD, verify
         build_receipt = verify(lock)
         build = BUILD  # Exposes native EKF aid telemetry; does not start VIO.
@@ -75,7 +87,7 @@ def execute(args, lock):
     profile = assets(out/'assets', px4/'Tools/simulation/gz/worlds/default.sdf', textured=not args.no_floor_texture)
     runtime=json.loads(subprocess.check_output(['/usr/bin/python3','-c',
         'import cv2,numpy,json,sys; print(json.dumps(dict(python=sys.version,opencv=cv2.__version__,numpy=numpy.__version__)))'],text=True))
-    fusion_file = ROOT/('simulation/px4/mtf01/flow_local.json' if args.flight else 'simulation/px4/mtf01/fusion.json')
+    fusion_file = ROOT/('simulation/px4/mtf01/flow_local.json' if local_control else 'simulation/px4/mtf01/fusion.json')
     fusion = read(fusion_file)
     env = dict(os.environ, ROS_DOMAIN_ID='78', ROS_LOCALHOST_ONLY='1',
         GZ_DISTRO='harmonic', GZ_PARTITION='uav_mtf01_'+run_id, GZ_IP='127.0.0.1',
@@ -87,7 +99,7 @@ def execute(args, lock):
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(build/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
     env.update({'PX4_PARAM_'+k:str(v) for k,v in fusion['parameters'].items()})
-    if args.flight:
+    if local_control:
         region_file=ROOT/'simulation/safe_regions/flow_local.json'
         receipt=out/'flight-assets.json'
         write_json(receipt,dict(schema=1,partition=env['GZ_PARTITION'],region_sha256=file_hash(region_file),
@@ -102,6 +114,9 @@ def execute(args, lock):
             PX4_PARAM_COM_RC_IN_MODE='4',PX4_PARAM_COM_OF_LOSS_T='0.5',
             PX4_PARAM_COM_OBL_RC_ACT='4',PX4_PARAM_COM_DISARM_LAND='2')
         if args.native_manual:env['PX4_PARAM_COM_RC_IN_MODE']='1'
+        if args.usb_joystick:
+            env.update(PX4_PARAM_COM_RC_IN_MODE='1', PX4_PARAM_COM_RC_OVERRIDE='2',
+                       PX4_PARAM_MPC_LAND_SPEED='0.3', PX4_PARAM_MPC_LAND_CRWL='0.2')
     inputs = [Path(__file__), PROFILE, fusion_file, ROOT/'scripts/prepare_mtf01_assets.py',
         ROOT/'scripts/mtf01_audit.py', ROOT/'scripts/vio_warehouse_scene.py',
         ROOT/'scripts/mtf01_range_bridge.py',
@@ -113,7 +128,7 @@ def execute(args, lock):
         px4/'src/modules/simulation/gz_bridge/GZBridge.cpp',
         px4/'src/modules/simulation/gz_plugins/optical_flow/OpticalFlowSensor.cpp']
     inputs.extend(p for p in (out/'assets').rglob('*') if p.is_file())
-    if args.flight:
+    if local_control:
         inputs.extend(ROOT/name for name in ('scripts/run_px4_flight_tasks.py',
             'scripts/run_flow_manual_tasks.py',
             'src/uav_mission/uav_mission/flow_gate.py','src/uav_mission/uav_mission/px4_flight.py',
@@ -124,6 +139,12 @@ def execute(args, lock):
         profile=profile, fusion=fusion, textured_floor=not args.no_floor_texture,
         stop_sensors=args.stop_sensors, runtime=runtime, versions=lock,
         flight=args.flight,native_manual=args.native_manual,vio_build=build_receipt,
+        usb_joystick=args.usb_joystick,model=profile['model']+'_7',namespace='/px4_7',
+        localization_profile='FLOW_LOCAL' if local_control else None,
+        px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
+        operator_environment={k:env[k] for k in ('UAV_REQUIRE_VIO','UAV_LOCALIZATION_PROFILE','UAV_ENABLE_FUSION_SWITCH',
+            'UAV_FLIGHT_REGION_PROFILE','UAV_FLIGHT_ASSET_RECEIPT','UAV_FLIGHT_ASSET_SHA256',
+            'UAV_FLIGHT_EVIDENCE','UAV_FLIGHT_MODEL','UAV_ENABLE_EGO_NAV','UAV_NAVIGATION_BACKEND') if k in env},
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs}, processes={})
     processes, logs, receipts = [], [], []
     result = dict(passed=False)
@@ -163,9 +184,18 @@ def execute(args, lock):
         # CUDA/venv dependency or changes to the pinned PX4 plugin binaries.
         launch('flow_adapter', ['/usr/bin/python3', ROOT/'scripts/mtf01_flow_bridge.py','--ros-args','-p','use_sim_time:=true'])
         launch('px4', [build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
-        if args.flight:
+        if local_control:
             config=out/'qgc-config/QGroundControl';config.mkdir(parents=True)
-            (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+            if args.qgc_config_from:
+                import configparser
+                saved=configparser.ConfigParser(interpolation=None,strict=False);saved.optionxform=str
+                saved.read(args.qgc_config_from)
+                if not saved.has_section('AutoConnect'):saved.add_section('AutoConnect')
+                for key,value in dict(autoConnectUDP='true',autoConnectPixhawk='false',autoConnectSiKRadio='false',
+                                      autoConnectRTKGPS='false',autoConnectLibrePilot='false').items():saved.set('AutoConnect',key,value)
+                with (config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
+            else:
+                (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
             launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output'],
                 dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
                     QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen'))
@@ -210,6 +240,24 @@ def execute(args, lock):
             result['source_loss']=loss_assessment(loss)
             result['checks']['source_loss_detected']=result['source_loss']['passed']
         result['passed'] = all(result['checks'].values())
+        if args.usb_joystick and result['passed']:
+            write_json(out/'ground-audit.json', result)
+            owner=launch('pocket_operator',[sys.executable,ROOT/'scripts/pocket_operator_session.py',
+                '--device',args.device,'--input-profile','uav-aetr-v1','--session',str(out),'--enable-sitl-control'])
+            live=dict(session=str(out),profile='FLOW_LOCAL',scene='warehouse',scope='operator session; no automatic arm/takeoff',
+                      ground_audit_passed=True,operator_pid=owner.pid)
+            write_json(out/'live-session.json',live)
+            print('FLOW_LOCAL Pocket ready:',out,flush=True)
+            until=time.monotonic()+args.session_duration
+            while time.monotonic()<until:
+                if any(p.poll() is not None for p in processes):
+                    raise RuntimeError('Owned FLOW_LOCAL operator/sensor process exited')
+                time.sleep(.1)
+            final=snapshot('final-')
+            write_json(out/'final-state.json',final)
+            result['operator_session_closed_ground_disarmed']=final['vehicle_status'].get('arming_state')==1
+            result['passed'] &= result['operator_session_closed_ground_disarmed']
+            result['scope']='FLOW_LOCAL warehouse Pocket session; ground fusion audit, no automatic flight acceptance'
         if args.flight and result['passed']:
             flight=launch('flight_tasks',[sys.executable,ROOT/('scripts/run_flow_manual_tasks.py' if args.native_manual else 'scripts/run_px4_flight_tasks.py')])
             until=time.monotonic()+110.
