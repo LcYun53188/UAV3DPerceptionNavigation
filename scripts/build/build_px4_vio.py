@@ -53,7 +53,7 @@ def validate_topics(base, extended):
 
 def inputs(lock):
     source = ROOT / lock['sitl']['path']
-    files = [ROOT/'simulation/px4/versions.lock.yaml', CONFIG, Path(__file__),
+    files = [ROOT/'simulation/px4/versions.lock.yaml', CONFIG, Path(__file__).resolve(),
              ROOT/'requirements/px4-sim.txt', PATCH, STATUS_PATCH, source/YAW, source/COMMANDER, source/LAND, source/'src/modules/uxrce_dds_client/generate_dds_topics.py',
              source/'src/modules/uxrce_dds_client/dds_topics.h.em',
              source/'src/modules/uxrce_dds_client/dds_topics.yaml']
