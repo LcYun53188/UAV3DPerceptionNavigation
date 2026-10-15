@@ -4,6 +4,8 @@ EstimatorStatusFlags.cs_ev_* expresses intent and is insufficient on its own.
 Default PX4 DDS does not export aid sources; missing telemetry means NOT READY.
 """
 import math
+from collections import deque
+from .mtf_inputs import mtf_source_health
 
 
 class VioGate:
@@ -12,17 +14,21 @@ class VioGate:
                           'cs_mag','cs_mag_hdg','cs_mag_3d','cs_opt_flow','cs_rng_hgt','cs_aux_gpos')
 
     def __init__(self, calibration_id, stable_s=2., *, fusion_profile="full_odometry"):
-        if fusion_profile not in ("full_odometry", "aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1"):
+        if fusion_profile not in ("full_odometry", "aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1", "aligned_pose_mtf_primary_sim_v1"):
             raise ValueError("VIO_FUSION_PROFILE_UNSUPPORTED")
         self.flow_horizontal = fusion_profile == "flow_horizontal_mtf_sim_v1"
-        self.joint_sim = fusion_profile in ("aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1")
-        self.pose_only = fusion_profile in ("aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1")
+        self.primary_mtf = fusion_profile == "aligned_pose_mtf_primary_sim_v1"
+        self.joint_sim = fusion_profile in ("aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1", "aligned_pose_mtf_primary_sim_v1")
+        self.pose_only = fusion_profile in ("aligned_pose_v1", "aligned_pose_mtf_sim_v1", "flow_horizontal_mtf_sim_v1", "aligned_pose_mtf_primary_sim_v1")
         if self.joint_sim:
             self.forbidden_pose_aids = tuple(n for n in self.forbidden_pose_aids if n not in ("cs_opt_flow", "cs_rng_hgt"))
         self.aids = ("ev_pos", "ev_hgt", "ev_yaw") if self.pose_only else ("ev_pos", "ev_hgt", "ev_vel", "ev_yaw")
         if self.flow_horizontal: self.aids = ("ev_hgt", "ev_yaw")
         if self.pose_only: self.required = ("source", "flags", "selector", "local") + self.aids
         if self.joint_sim: self.required += ("optical_flow", "rng_hgt")
+        if self.primary_mtf: self.required += ("flow_input", "range_input")
+        self.auxiliary_fusion = {}
+        self.auxiliary_history = deque(maxlen=512)
         self.local_identity = self.local_candidate = None
         self.calibration_id = calibration_id
         self.stable_s = stable_s
@@ -72,7 +78,15 @@ class VioGate:
             self.clock_advance = now
         self.last_clock = ros
         if self.clock_advance is not None and now-self.clock_advance > .5:
-            self.fault = 'VIO_CLOCK_STALLED'
+            if self.bound_identity is not None:
+                self.fault = 'VIO_CLOCK_STALLED'
+            else:
+                # Before the first qualified source, launching DDS/CUDA
+                # participants can temporarily leave /clock undelivered.
+                # Stay unavailable, then demand genuinely advancing time and
+                # the full fresh/stable fusion qualification. Never clear an
+                # established source fault or renew an old sample timestamp.
+                return self.fail('VIO_CLOCK_STALLED')
         if self.fault:
             return self.fail(self.fault)
         if any(writers.get(n) != 1 for n in self.required):
@@ -141,10 +155,45 @@ class VioGate:
                     or aid.timestamp_sample <= 0 or aid.time_last_fuse <= 0
                     or not -.05 <= ros-aid.timestamp_sample/1e6 <= .5
                     or not -.05 <= ros-aid.time_last_fuse/1e6 <= .5
-                    or abs(aid.timestamp_sample/1e6-self.stamp(source.sample_stamp)) > .2
+                    # PX4 fuses on its delayed EKF horizon. The newest source
+                    # and the last fused observation are different samples;
+                    # subtracting them wrongly applies the source's 200 ms
+                    # freshness budget to EKF buffering plus DDS delivery.
+                    # Both absolute freshness checks above remain mandatory.
+                    # An aid must also not claim a source sample from the future.
+                    or aid.timestamp_sample/1e6 > self.stamp(source.sample_stamp)+.05
                     or not all(math.isfinite(float(v)) and 0 <= v < 1 for v in ratios)):
                 return self.fail('VIO_EKF_NOT_FUSED:'+name)
-        if self.joint_sim:
+        if self.primary_mtf:
+            # EV remains the mandatory position/height/yaw reference. Over an
+            # obstacle, a correct downward range can jump to its top surface;
+            # PX4 must be free to reject that auxiliary height innovation.
+            # Fresh raw input, one writer, mounting and finite-value checks
+            # remain mandatory. Quality zero grants no flow confidence.
+            aliases={'flow':'flow_input','range':'range_input'}
+            valid,reason=mtf_source_health(
+                {k:self.samples[v] for k,v in aliases.items()},
+                {k:self.received[v] for k,v in aliases.items()},
+                {k:writers[v] for k,v in aliases.items()},now,ros,require_flow_quality=False)
+            if not valid:return self.fail(reason)
+            for name in ('optical_flow','rng_hgt'):
+                aid=self.samples[name]
+                if aid.estimator_instance!=0:
+                    return self.fail('VIO_MTF_ESTIMATOR_INVALID:'+name)
+                if aid.timestamp_sample/1e6>ros+.05:
+                    return self.fail('VIO_MTF_TIME_INVALID:'+name)
+                ratios=aid.test_ratio if hasattr(aid.test_ratio,'__len__') else [aid.test_ratio]
+                good=(getattr(flags,'cs_'+('opt_flow' if name=='optical_flow' else name))
+                    and aid.estimator_instance==0 and not aid.innovation_rejected
+                    and aid.time_last_fuse>0 and -.05<=ros-aid.time_last_fuse/1e6<=.5
+                    and all(math.isfinite(float(v)) and 0<=v<1 for v in ratios))
+                state='RECENT_FUSION' if good else 'AUXILIARY_UNAVAILABLE'
+                if self.auxiliary_fusion.get(name)!=state:
+                    self.auxiliary_history.append(dict(name=name,state=state,ros=ros,
+                        timestamp_sample=int(aid.timestamp_sample),time_last_fuse=int(aid.time_last_fuse),
+                        innovation_rejected=bool(aid.innovation_rejected),fused=bool(aid.fused)))
+                self.auxiliary_fusion[name]=state
+        elif self.joint_sim:
             for name in ('optical_flow', 'rng_hgt'):
                 aid = self.samples[name]
                 # Native LAND already owns descent. Near the ground, rendered

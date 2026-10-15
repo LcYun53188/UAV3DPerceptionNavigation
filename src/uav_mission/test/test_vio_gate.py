@@ -41,11 +41,58 @@ def test_continuous_fusion_required_for_two_seconds():
     ready_gate()
 
 
+def test_bootstrap_clock_stall_stays_unavailable_then_requires_full_fresh_qualification():
+    gate=VioGate(CAL)
+    assert not gate.ready(1.,1.,WRITERS)
+    assert not gate.ready(1.6,1.,WRITERS)
+    assert gate.reason=='VIO_CLOCK_STALLED' and not gate.fault and gate.bound_identity is None
+    # An unchanged clock cannot admit even freshly delivered messages.
+    update(gate,1.)
+    assert not gate.ready(1.7,1.,WRITERS)
+    for now in (2.,2.5,3.,3.5):
+        update(gate,now);assert not gate.ready(now,now,WRITERS)
+    update(gate,4.);assert gate.ready(4.,4.,WRITERS)
+
+
+def test_clock_stall_after_qualification_remains_latched_when_time_returns():
+    gate=ready_gate()
+    assert not gate.ready(12.6,12.,WRITERS)
+    assert gate.fault=='VIO_CLOCK_STALLED'
+    update(gate,13.)
+    assert not gate.ready(13.,13.,WRITERS) and gate.fault=='VIO_CLOCK_STALLED'
+
+
 def test_flags_alone_do_not_prove_fusion():
     gate = ready_gate()
     del gate.samples['ev_pos']
     assert not gate.ready(12.,12.,WRITERS)
     assert gate.reason == 'VIO_TELEMETRY_MISSING'
+
+
+def test_delayed_ekf_fusion_is_not_paired_with_newest_vio_sample():
+    gate = ready_gate()
+    # Recorded flight: live VIO=166.080, aid sample=165.876,
+    # aid publication=166.028, control tick=166.100. PX4 successfully
+    # fused the older buffered observation, with innovation ratios < 0.001.
+    for aid in gate.aids:
+        message = gate.samples[aid]
+        message.timestamp = 12028000
+        message.timestamp_sample = message.time_last_fuse = 11876000
+    gate.samples['source'].sample_stamp.nanosec = 80000000
+    assert gate.ready(12.1, 12.1, WRITERS)
+
+
+@pytest.mark.parametrize('fault', ['old_aid', 'old_fusion', 'future_aid', 'old_source'])
+def test_delayed_fusion_does_not_extend_any_freshness_budget(fault):
+    gate = ready_gate()
+    aid = gate.samples['ev_pos']
+    if fault == 'old_aid': aid.timestamp_sample = 11499000
+    if fault == 'old_fusion': aid.time_last_fuse = 11499000
+    if fault == 'future_aid': aid.timestamp_sample = 12051000
+    if fault == 'old_source':
+        gate.samples['source'].sample_stamp.nanosec = 799000000
+        gate.samples['source'].sample_stamp.sec = 11
+    assert not gate.ready(12., 12., WRITERS)
 
 
 @pytest.mark.parametrize('name', ['ev_pos','ev_hgt','ev_vel','ev_yaw'])

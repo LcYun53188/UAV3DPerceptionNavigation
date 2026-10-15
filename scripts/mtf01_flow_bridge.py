@@ -7,7 +7,33 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
-from px4_msgs.msg import SensorOpticalFlow
+from px4_msgs.msg import SensorOpticalFlow, VehicleOdometry
+
+
+class FlowStartupGate:
+    """Startup ordering only; this does not qualify VIO or authorize flight."""
+    def __init__(self, minimum):
+        if minimum not in (0, 50):
+            raise ValueError('Flow startup requires 0 or 50 EV samples')
+        self.minimum = minimum
+        self.count = self.last_stamp = 0
+        self.reset_counter = None
+
+    @property
+    def ready(self):
+        return self.count >= self.minimum
+
+    def observe(self, sample, publication, reset, now):
+        if self.ready:
+            return
+        if not (0 < sample <= publication and -.05 <= now-sample/1e6 <= .2):
+            return
+        if reset != self.reset_counter:
+            self.count = self.last_stamp = 0
+            self.reset_counter = reset
+        if sample > self.last_stamp:
+            self.count += 1
+            self.last_stamp = sample
 
 
 def track(previous, current, fov_deg=42):
@@ -61,8 +87,20 @@ class FlowBridge(Node):
         super().__init__('mtf01_flow_bridge')
         self.last_image=None
         self.last_stamp=0
+        self.declare_parameter('wait_for_ev_samples', 0)
+        self.startup = FlowStartupGate(self.get_parameter('wait_for_ev_samples').value)
+        if not self.startup.ready:
+            self.create_subscription(VehicleOdometry, '/px4_7/fmu/in/vehicle_visual_odometry',
+                                     self.on_ev, qos_profile_sensor_data)
         self.publisher=self.create_publisher(SensorOpticalFlow,'/px4_7/fmu/in/sensor_optical_flow',qos_profile_sensor_data)
         self.subscription=self.create_subscription(Image,'/mtf01/flow/image',self.receive,qos_profile_sensor_data)
+
+    def on_ev(self, message):
+        was_ready = self.startup.ready
+        self.startup.observe(message.timestamp_sample, message.timestamp,
+                             message.reset_counter, self.get_clock().now().nanoseconds/1e9)
+        if self.startup.ready and not was_ready:
+            self.get_logger().info('Optical flow enabled after 50 distinct fresh EV samples')
 
     def receive(self,image):
         stamp=image.header.stamp.sec*1000000+image.header.stamp.nanosec//1000
@@ -89,12 +127,16 @@ class FlowBridge(Node):
             msg.min_ground_distance=.08
             msg.max_ground_distance=8.
             msg.mode=SensorOpticalFlow.MODE_UNKNOWN
-            self.publisher.publish(msg)
+            if self.startup.ready:
+                self.publisher.publish(msg)
         self.last_image=gray
         self.last_stamp=stamp
 
 
 def main():
+    # 100x100 LK images do not benefit from the host-wide worker pool. Keep
+    # CPU scheduling bounded beside the continuous VIO/IMU subscribers.
+    cv2.setNumThreads(1)
     rclpy.init()
     node=FlowBridge()
     try:

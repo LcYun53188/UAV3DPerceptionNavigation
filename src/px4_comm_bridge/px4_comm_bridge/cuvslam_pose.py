@@ -15,7 +15,8 @@ SDK16_CONTRACT = 'cuvslam16_world_fixed_sdk_euler_v1_disarmed'
 SDK16_MARGINAL_CONTRACT = 'cuvslam16_marginal_world_fixed_euler_v1_disarmed'
 SDK16_CONDITIONAL_CONTRACT = 'cuvslam16_conditional_world_base_v1_disarmed'
 SDK16_WORLD_CONDITIONAL_CONTRACT = 'cuvslam16_conditional_world_base_v2_disarmed'
-SDK16_CONTRACTS = (SDK16_CONTRACT, SDK16_MARGINAL_CONTRACT, SDK16_CONDITIONAL_CONTRACT, SDK16_WORLD_CONDITIONAL_CONTRACT)
+SDK16_SCHUR64_CONTRACT = 'cuvslam16_conditional_world_base_v3_schur64_disarmed'
+SDK16_CONTRACTS = (SDK16_CONTRACT, SDK16_MARGINAL_CONTRACT, SDK16_CONDITIONAL_CONTRACT, SDK16_WORLD_CONDITIONAL_CONTRACT, SDK16_SCHUR64_CONTRACT)
 OPENVINS_CONTRACT = 'openvins_full_state_world_base_v1_disarmed'
 WORLD_FIXED_CONTRACTS = (*SDK16_CONTRACTS, OPENVINS_CONTRACT)
 SOURCE_PARAMETERS = dict(base_frame='base_link',odom_frame='odom',tracking_mode=1,

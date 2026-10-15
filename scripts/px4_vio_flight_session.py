@@ -73,7 +73,7 @@ class FlightPoseSession(RealPoseFusionAudit):
 
 
 from uav_mission.vio_gate import VioGate
-from px4_msgs.msg import EstimatorAidSource1d, EstimatorAidSource2d
+from px4_msgs.msg import EstimatorAidSource1d, EstimatorAidSource2d, SensorOpticalFlow, DistanceSensor
 
 class JointSimGate(VioGate):
     def __init__(self, calibration, **kwargs):
@@ -83,4 +83,6 @@ class JointFlightPoseSession(FlightPoseSession):
     gate_class = JointSimGate
     extra_entries = (
         ('optical_flow','/px4_7/fmu/out/estimator_aid_src_optical_flow',EstimatorAidSource2d),
-        ('rng_hgt','/px4_7/fmu/out/estimator_aid_src_rng_hgt',EstimatorAidSource1d))
+        ('rng_hgt','/px4_7/fmu/out/estimator_aid_src_rng_hgt',EstimatorAidSource1d),
+        ('flow_input','/px4_7/fmu/in/sensor_optical_flow',SensorOpticalFlow),
+        ('range_input','/px4_7/fmu/in/distance_sensor',DistanceSensor))
