@@ -53,6 +53,8 @@
 | [docs/flight/PX4_STEP_BT.md](flight/PX4_STEP_BT.md) | 本机 PX4 逐步骤 BT |
 | [docs/flight/USB_POCKET_SIMULATION.md](flight/USB_POCKET_SIMULATION.md) | Pocket USB 与行为树决策仿真 |
 | [docs/flight/VIO_HOVER.md](flight/VIO_HOVER.md) | OAK-D Pro W 辅助室内悬停 |
+| [docs/flight/VIO_POCKET_AVOIDANCE.md](flight/VIO_POCKET_AVOIDANCE.md) | Pocket 无 GNSS VIO 与静态避障仿真 |
+| [docs/flight/VIRTUAL_POCKET_PANEL.md](flight/VIRTUAL_POCKET_PANEL.md) | Pocket UAV 电脑面板 |
 
 ## 硬件定位与通信
 
@@ -80,6 +82,7 @@
 | 文档 | 主题 |
 | --- | --- |
 | [docs/history/DEVELOPMENT_LOG.md](history/DEVELOPMENT_LOG.md) | 开发日志 |
+| [docs/history/POCKET_SC_DESIGN_2026-10-13.md](history/POCKET_SC_DESIGN_2026-10-13.md) | Pocket SB／SC 早期方案（2026-10-13） |
 | [docs/history/README_2026-10-13.md](history/README_2026-10-13.md) | 项目首页历史快照（2026-10-13 整理前） |
 
 ## 模块文档
@@ -143,3 +146,5 @@
 ```bash
 rg --files docs/validation -g '*.md' | sort
 ```
+
+- [Pocket VIO／深度／EGO 静态避障仿真](flight/VIO_POCKET_AVOIDANCE.md)

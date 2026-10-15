@@ -14,13 +14,13 @@
 | `docs/development/` | 架构决策、开发计划、项目评估和依赖范围 |
 | `docs/history/` | 开发日志与日期明确的历史快照 |
 | `docs/validation/` | Git 忽略的本地报告、失败证据与原始数据 |
-| `scripts/build/` | 构建入口 |
+| `scripts/build/` | Shell／Python 构建入口 |
 | `scripts/setup/` | 安装与第三方依赖准备 |
 | `scripts/` | 统一运行入口、Python 运行器、分析工具和共享模块 |
 | `simulation/scripts/` | 场景与 Isaac Sim 启动入口 |
 | `src/<package>/` | 随模块维护的文档、测试与包内脚本 |
 
-Python 运行器和共享模块仍使用根目录导入布局，避免修改运行、测试与证据冻结的模块依赖。所有工具按用途列入脚本目录；构建、安装脚本已实际迁移，旧 `.sh` 路径为指向同一实现的相对符号链接。运行、参数和退出码继续透传；规范路径与旧路径都按真实脚本位置解析工作区根目录。
+Python 运行器和共享模块仍使用 `scripts/` 根目录导入布局，避免修改运行、测试与证据冻结的模块依赖。所有工具按用途列入脚本目录；Shell／Python 构建器和 Shell 安装脚本已实际迁移，旧 `.sh` 与构建 `.py` 路径为指向同一实现的相对符号链接。运行、参数和退出码继续透传；规范路径与旧路径都按真实脚本位置解析工作区根目录。
 
 ## 合并与引用规则
 
@@ -28,6 +28,7 @@ Python 运行器和共享模块仍使用根目录导入布局，避免修改运�
 - 阶段进展、实验指标、测试计数和临时运行状态集中到 `docs/history/DEVELOPMENT_LOG.md` 或专项报告，按日期记录；首页保留项目介绍、使用范围与操作入口。
 - 早期首页历史更新和重复操作流程保存在 `docs/history/README_2026-10-13.md`，作为历史快照保留。
 - 三份算法仿真手册按日常命令、底层参数、系统架构分工，保留有用的专门内容与现有章节锚点。
+- Pocket 资料分工：`VIRTUAL_POCKET_PANEL` 维护唯一控件表和 QGC 虚拟输入；`USB_POCKET_SIMULATION` 负责实体 HID 与 legacy-usb；`VIO_POCKET_AVOIDANCE` 负责无 GNSS VIO／地图／EGO 操作；`MTF01_STANDALONE_FLIGHT` 负责纯光流。被替代的 SC 提案移入 `history/POCKET_SC_DESIGN_2026-10-13.md`。
 - 新文档写入对应主题目录，模块细节随包维护；相对链接以文档所在目录为基准，代码块里的命令以项目根目录为基准。
 - 原始验证记录不迁移、不改写；旧报告里的文档路径可按下表定位。文档迁移不等于重新运行或重新认可历史结论。
 - 第三方源码与文档按 vendor／上游约定维护，不批量重写。新增构建脚本使用 `scripts/build/`，安装脚本使用 `scripts/setup/`。

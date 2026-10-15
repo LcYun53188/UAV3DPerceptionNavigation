@@ -47,6 +47,38 @@ MTF-01 供电 5 V、UART 信号为 3.3 V，TX／RX 交叉接入一个空闲 TELE
 
 PX4 的 `heading_good_for_control` 表示最终空中磁航向对齐；地面可能为 false。独立局部控制检查原生 `cs_tilt_align`、`cs_yaw_align`、磁融合、航向一致性和方差。后续坐标／航向重置仍立即撤销当前控制会话，不能自动接受新原点继续任务。仿真使用本机绘制下视图像与测距，传感器适配器是模拟 MTF 的数据源；这不意味着实机需要伴随计算机。
 
+## Pocket 持续操作会话
+
+```bash
+./scripts/sim.sh px4-flow-pocket --duration 35 --session-duration 3600 \
+  --device /dev/input/js0 \
+  --qgc-config-from .cache/simulation/sitl/<原会话 UUID>/qgc-config/QGroundControl/QGroundControl.ini
+```
+
+`--duration` 是地面融合审计窗口；通过后持续运行 `--session-duration` 秒。
+该入口与自动飞行 `--flight`、`--native-manual` 互斥，启动不解锁、不起飞。
+关闭 GNSS／EV 融合，使用原生 IMU、磁航向、渲染光流与下视测距。
+生成 14×14×6 m 纹理仓库，包含 14 个墙体、隔断、门洞、立柱、货架和箱体障碍，
+不修改上游 Gazebo 场景。当前未接入自主避障，复杂场景不等于避障通过。
+
+保留 Pocket 虚拟面板，在 QGC 选择并启用 `Pocket Virtual UAV AETR`。
+可通过 `--qgc-config-from` 继承本项目会话的校准；实体默认配置不作为虚拟输入校准。
+QGC 必须离开 Joystick 配置页回到 Fly 页面，才发送操纵数据。
+手动光流操作使用 **SB 手动（−1）、SC 光流（0）**，PX4 原生 Position。
+按原定义，SB 定点档与 SC VIO 档要求 VIO；本轮纯光流会话没有 VIO，会明确拒绝。
+传感器融合持续运行，开关选择控制模式，不在空中修改 EKF 参数。
+
+唯一 Pocket FlightServer 在地面审计通过后启动，继承并核对本轮资产、domain、
+分区和融合配置；不启动独立模拟接收机，不自动解锁。自动档的演示任务仅包含
+局部起飞、悬停、原生降落；返航／地图航点继续被 `FLOW_LOCAL` 门控拒绝。
+手动和定点档 SD 均请求原生慢速 LAND，使用本轮局部位置与高度，不依赖全局地理定位／Home。纯光流档不具备地图避障返航能力。SE 保留短按暂停／继续与长按取消协议。
+无 GNSS 模式的低空原生降落参数为 `MPC_LAND_SPEED=0.3`、`MPC_LAND_CRWL=0.2`。
+
+审计记录位于 `.cache/simulation/mtf01/<UUID>/ground-audit.json`、`receipts.json`、
+`parameters.json`、`renderer.json`；持续会话信息见 `live-session.json`。
+检查实际 `time_last_fuse` 递增、光流／测距成功融合，以及 GNSS／EV 关闭；
+消息出现或 QGC 窗口打开不算融合通过。静止审计通过不代表飞行或避障验证。
+
 ## VIO／光流选择的边界
 
 | 配置 | 水平定位 | 高度／航向 | 是否依赖 VIO |

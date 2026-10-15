@@ -2,7 +2,7 @@
 
 [项目首页](../README.md) · [文档总目录](../docs/README.md) · [维护约定](../docs/MAINTENANCE.md)
 
-所有命令从项目根目录运行。构建脚本位于 `scripts/build/`，安装与依赖准备位于 `scripts/setup/`；根目录旧 `.sh` 文件通过相对符号链接继续可用。Python 运行器、共享模块与原生辅助源码按现有导入布局维护，下方按用途完整分类。
+所有命令从项目根目录运行。构建脚本位于 `scripts/build/`，安装与依赖准备位于 `scripts/setup/`；根目录旧 `.sh`／构建 `.py` 文件通过相对符号链接继续可用。Python 构建器已归入 `build/`；运行器、共享模块与原生辅助源码按现有导入布局维护，下方按用途完整分类。
 
 ## 环境与使用方式
 
@@ -12,6 +12,7 @@
 | ROS／硬件 Python | `./scripts/with_venv.sh python scripts/<工具>.py ...` | .venv、ROS 2 与 install_uav |
 | PX4 Python | `./scripts/with_px4_sim.sh python scripts/<工具>.py ...` | 隔离 PX4 消息环境；额外任务环境按工具手册加载 |
 | 离线纯 Python | `python3 scripts/<工具>.py ...` | 是否需要 NumPy 等依赖，以源码与手册为准 |
+| Python 构建器 | `./scripts/with_venv.sh python scripts/build/<工具>.py ...` | PX4 构建器使用 `with_px4_sim.sh`；旧路径继续可用 |
 | 构建／安装 Shell | `./scripts/build/<工具>.sh`／`./scripts/setup/<工具>.sh` | 安装脚本可能修改系统依赖，参数和前置条件见对应手册 |
 | C++／头文件 | 由相应 Python 构建器消费 | 不作为可直接执行的命令 |
 
@@ -21,6 +22,8 @@
 
 - 算法建图、探索、地图包：[仿真控制手册](../docs/simulation/SIMULATION_CONTROL.md)。
 - PX4、BT 与取消／降落：[本机 PX4](../simulation/px4/README.md)、[任务树](../src/uav_bt/README.md)。
+- 虚拟 Pocket 面板与模式：[控件及 QGC 接入](../docs/flight/VIRTUAL_POCKET_PANEL.md)。
+- 无 GNSS VIO 避障操作：[VIO／深度／EGO](../docs/flight/VIO_POCKET_AVOIDANCE.md)。
 - 无 GNSS VIO 与光流：[VIO 验证](../docs/flight/VIO_HOVER.md)、[MTF-01](../docs/flight/MTF01_SIMULATION.md)。
 - OAK-D 硬件：[定位验证](../docs/hardware/OAKD_VISUAL_SLAM_RVIZ.md)。
 - 依赖补丁与 LFS：[Vendor 维护](../patches/vendor/README.md)。
@@ -46,19 +49,21 @@
 | [scripts/build/build_livox_sdk2.sh](build/build_livox_sdk2.sh) | 构建 Livox SDK2。 |
 | [scripts/build/build_navigation_actions.sh](build/build_navigation_actions.sh) | 增量构建第一方导航 Action、Mission 和 BT。 |
 | [scripts/build/build_nvidia_3d_nav_deps.sh](build/build_nvidia_3d_nav_deps.sh) | 构建 NVIDIA 三维导航依赖。 |
+| [scripts/build/build_openvins_candidate.py](build/build_openvins_candidate.py) | Build the pinned OpenVINS candidate in its own prefix; no production install. |
 | [scripts/build/build_px4_flight.sh](build/build_px4_flight.sh) | 构建隔离的任务、BT 与 PX4 飞行后端。 |
 | [scripts/build/build_px4_sim.sh](build/build_px4_sim.sh) | 准备并构建锁定的 PX4 SITL、Agent 与消息包。 |
+| [scripts/build/build_px4_vio.py](build/build_px4_vio.py) | Separate SITL telemetry build using the pinned upstream DDS generator. |
 | [scripts/build/build_px4_vio.sh](build/build_px4_vio.sh) | 调用独立 PX4 VIO 遥测构建器。 |
 | [scripts/build/build_uav_stack.sh](build/build_uav_stack.sh) | 使用 build_uav／install_uav 构建硬件感知与定位栈。 |
 | [scripts/build/build_vio_motion.sh](build/build_vio_motion.sh) | 构建独立 VIO 运动载台并记录构建回执。 |
 | [scripts/build/build_vio_node.sh](build/build_vio_node.sh) | 构建当前默认 SDK16 ROS VIO 节点。 |
 | [scripts/build/build_vio_same_aircraft_motion.sh](build/build_vio_same_aircraft_motion.sh) | 构建同机 VIO 运动插件并记录回执。 |
-| [scripts/build_openvins_candidate.py](build_openvins_candidate.py) | Build the pinned OpenVINS candidate in its own prefix; no production install. |
-| [scripts/build_px4_vio.py](build_px4_vio.py) | Separate SITL telemetry build using the pinned upstream DDS generator. |
-| [scripts/build_vio_sdk16_default.py](build_vio_sdk16_default.py) | Build default SDK16 VIO, preserving optimization and the SDK15 rollback. |
-| [scripts/build_vio_sdk16_marginal_candidate.py](build_vio_sdk16_marginal_candidate.py) | Isolated, source-pinned SDK16 covariance export repair; never installs SDK15. |
-| [scripts/build_vio_sdk16_ros_candidate.py](build_vio_sdk16_ros_candidate.py) | Rebuild the disarmed SDK16 ROS candidate without changing installed SDK15. |
-| [scripts/build_vio_sdk_candidate.py](build_vio_sdk_candidate.py) | Build a pinned native SDK candidate in cache, without installing ROS or PX4. |
+| [scripts/build/build_vio_sdk16_default.py](build/build_vio_sdk16_default.py) | Build default SDK16 VIO, preserving optimization and the SDK15 rollback. |
+| [scripts/build/build_vio_sdk16_marginal_candidate.py](build/build_vio_sdk16_marginal_candidate.py) | Isolated, source-pinned SDK16 covariance export repair; never installs SDK15. |
+| [scripts/build/build_vio_sdk16_ros_candidate.py](build/build_vio_sdk16_ros_candidate.py) | Rebuild the disarmed SDK16 ROS candidate without changing installed SDK15. |
+| [scripts/build/build_vio_sdk16_schur64.py](build/build_vio_sdk16_schur64.py) | Isolated double precision Schur candidate; never replaces the default SDK. |
+| [scripts/build/build_vio_sdk16_schur_diagnostic.py](build/build_vio_sdk16_schur_diagnostic.py) | Isolated passive Hessian capture; never changes the default SDK or optimizer. |
+| [scripts/build/build_vio_sdk_candidate.py](build/build_vio_sdk_candidate.py) | Build a pinned native SDK candidate in cache, without installing ROS or PX4. |
 
 ## 安装与依赖准备
 
@@ -77,12 +82,9 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| [scripts/bt_flight_client.py](bt_flight_client.py) | Owned BT subprocess and read-only root-result observer for SITL acceptance. |
-| [scripts/bt_operator_intent.py](bt_operator_intent.py) | Send one operator intent to the current isolated SITL BT, without a USB radio. |
 | [scripts/localization_selection_session.py](localization_selection_session.py) | Ground-only source selector attached to owned joint SITL; no flight publishers. |
 | [scripts/oakd_vio_motion_ui.py](oakd_vio_motion_ui.py) | Read-only hardware stereo/trajectory UI and operator-marked motion capture. |
-| [scripts/pocket_operator_session.py](pocket_operator_session.py) | SA arm, SB manual/navigation, SD start/pause/resume in an owned USB SITL. |
-| [scripts/pocket_switches.py](pocket_switches.py) | Pocket SA/SB/SD stable edges, bound to the inspected USB axes. |
+| [scripts/pocket_panel.py](pocket_panel.py) | Desktop RadioMaster Pocket UAV panel: AETR channels and optional uinput output. |
 | [scripts/record_nav_debug_bag.sh](record_nav_debug_bag.sh) | 采集导航诊断 ROS bag。 |
 | [scripts/run_cuvslam_pose_transport.py](run_cuvslam_pose_transport.py) | Synthetic DDS tests of pose warmup and reset retirement, never real VIO/flight. |
 | [scripts/run_flow_manual_tasks.py](run_flow_manual_tasks.py) | Owned no-EV/no-GNSS native Position test with a simulated RC receiver. |
@@ -138,6 +140,7 @@
 | [scripts/check_sim_environment.py](check_sim_environment.py) | Read-only S0 dependency audit. Runtime topic/TF/clock readiness is not asserted. |
 | [scripts/inspect_px4_usb.py](inspect_px4_usb.py) | Passive USB MAVLink capture. Never sends heartbeat, requests or commands. |
 | [scripts/measure_oakd_vio_performance.sh](measure_oakd_vio_performance.sh) | 采集 OAK-D VIO 性能指标。 |
+| [scripts/pocket_validation_input.py](pocket_validation_input.py) | Owned uinput stimulus for explicit computer-only flight acceptance cases. |
 | [scripts/px4_camera_mount_audit.py](px4_camera_mount_audit.py) | Read-only Gazebo Scene pose audit against the advertised body optical TF. |
 | [scripts/px4_depth_audit.py](px4_depth_audit.py) | Read-only audit of the PX4 reference depth stream (OakD-Lite model, not OAK-D Pro W calibration). |
 | [scripts/px4_mapping_tf.py](px4_mapping_tf.py) | Disarmed-only mapping TF observer. No PX4 input publishers or truth poses. |
@@ -169,6 +172,7 @@
 | [scripts/assess_vio_navigation.py](assess_vio_navigation.py) | Accept a completed simulated mission against an explicit positioning limit. |
 | [scripts/assess_vio_sdk_candidate.py](assess_vio_sdk_candidate.py) | Native candidate diagnostics, independent of ROS and flight admission. |
 | [scripts/assess_vio_sdk_profile.py](assess_vio_sdk_profile.py) | Read Nsight's exported SQLite; overlap is evidence, not causal attribution. |
+| [scripts/assess_vio_static_avoidance.py](assess_vio_static_avoidance.py) | Audit actual EGO/truth evidence; an empty-path mission cannot pass avoidance. |
 | [scripts/assess_vio_timing.py](assess_vio_timing.py) | Compare original-sample timing across owned publishers; no control/admission effects. |
 | [scripts/assess_vio_warehouse.py](assess_vio_warehouse.py) | Read-only warehouse scene/source qualification; never authorizes flight. |
 | [scripts/assess_warehouse_flight.py](assess_warehouse_flight.py) | Read-only actual warehouse BT closure audit; low flight never qualifies 1.5 m. |
@@ -189,19 +193,28 @@
 
 | 文件 | 用途 |
 | --- | --- |
+| [scripts/bt_flight_client.py](bt_flight_client.py) | Owned BT subprocess and read-only root-result observer for SITL acceptance. |
+| [scripts/bt_operator_intent.py](bt_operator_intent.py) | Send one operator intent to the current isolated SITL BT, without a USB radio. |
 | [scripts/mtf01_audit.py](mtf01_audit.py) | Assess actual PX4 uORB receipts for the isolated flow/range reference. |
 | [scripts/mtf01_flow_bridge.py](mtf01_flow_bridge.py) | Image-derived flow for a fixed +90 degree pitch camera, no truth input. |
 | [scripts/mtf01_range_bridge.py](mtf01_range_bridge.py) | Single-ray Gazebo range -> PX4, fixed down-facing body installation only. |
 | [scripts/nav_debug_lib.sh](nav_debug_lib.sh) | 导航诊断脚本共用的环境与话题配置。 |
 | [scripts/nav_launch.env](nav_launch.env) | 导航启动的公共环境变量默认值。 |
+| [scripts/no_gnss_flight_cases.py](no_gnss_flight_cases.py) | Actual QGC/uinput -> PX4 acceptance stimuli, never fabricated FMU telemetry. |
 | [scripts/openvins_covariance_replay.cpp](openvins_covariance_replay.cpp) | OpenVINS 历史候选原生协方差回放诊断。 |
 | [scripts/openvins_pose_covariance.hpp](openvins_pose_covariance.hpp) | OpenVINS 历史候选位姿协方差辅助实现。 |
 | [scripts/openvins_ros_node.cpp](openvins_ros_node.cpp) | OpenVINS 历史候选 ROS 接口源码；当前路线暂停。 |
+| [scripts/pocket_operator_session.py](pocket_operator_session.py) | Owned Pocket SITL control with explicit legacy USB or UAV AETR profiles. |
+| [scripts/pocket_panel_model.py](pocket_panel_model.py) | UAV Model 5 channel model; independent of Tk, ROS and Linux input. |
+| [scripts/pocket_switches.py](pocket_switches.py) | Pocket SA/SB/SD stable edges, bound to the inspected USB axes. |
+| [scripts/pocket_uav_switches.py](pocket_uav_switches.py) | UAV AETR virtual profile, deliberately separate from the legacy USB mapping. |
+| [scripts/pocket_virtual_joystick.py](pocket_virtual_joystick.py) | Linux uinput Pocket transport using only the standard library. |
 | [scripts/sim_validation.py](sim_validation.py) | Shared S0 artifact contracts. No ROS imports or simulation side effects. |
 | [scripts/vio_chain_mapping.py](vio_chain_mapping.py) | Attach actual depth to the VIO aircraft and start the owned mapping graph. |
 | [scripts/vio_component.launch.py](vio_component.launch.py) | Owned single-thread SDK container, using the same parameters and source topics. |
 | [scripts/vio_covariance_consistency.py](vio_covariance_consistency.py) | Truth-observer-only six-dimensional consistency rejection test. |
 | [scripts/vio_cpu_affinity.py](vio_cpu_affinity.py) | Explicit process-local scheduling comparison; no system-wide CPU changes. |
+| [scripts/vio_evidence.py](vio_evidence.py) | Preserve invalid SDK values in raw arrays and explicit nullable diagnostics. |
 | [scripts/vio_gc_pause_audit.py](vio_gc_pause_audit.py) | Passive Python GC pause evidence; never changes thresholds or GC behavior. |
 | [scripts/vio_live_evidence.py](vio_live_evidence.py) | Freeze completed mission evidence in a process independent of ROS callbacks. |
 | [scripts/vio_mtf01_joint.py](vio_mtf01_joint.py) | Disarmed joint observation only: existing VIO contract plus independent MTF aids. |
@@ -252,13 +265,21 @@
 | [scripts/build_livox_sdk2.sh](build_livox_sdk2.sh) | [scripts/build/build_livox_sdk2.sh](build/build_livox_sdk2.sh) |
 | [scripts/build_navigation_actions.sh](build_navigation_actions.sh) | [scripts/build/build_navigation_actions.sh](build/build_navigation_actions.sh) |
 | [scripts/build_nvidia_3d_nav_deps.sh](build_nvidia_3d_nav_deps.sh) | [scripts/build/build_nvidia_3d_nav_deps.sh](build/build_nvidia_3d_nav_deps.sh) |
+| [scripts/build_openvins_candidate.py](build_openvins_candidate.py) | [scripts/build/build_openvins_candidate.py](build/build_openvins_candidate.py) |
 | [scripts/build_px4_flight.sh](build_px4_flight.sh) | [scripts/build/build_px4_flight.sh](build/build_px4_flight.sh) |
 | [scripts/build_px4_sim.sh](build_px4_sim.sh) | [scripts/build/build_px4_sim.sh](build/build_px4_sim.sh) |
+| [scripts/build_px4_vio.py](build_px4_vio.py) | [scripts/build/build_px4_vio.py](build/build_px4_vio.py) |
 | [scripts/build_px4_vio.sh](build_px4_vio.sh) | [scripts/build/build_px4_vio.sh](build/build_px4_vio.sh) |
 | [scripts/build_uav_stack.sh](build_uav_stack.sh) | [scripts/build/build_uav_stack.sh](build/build_uav_stack.sh) |
 | [scripts/build_vio_motion.sh](build_vio_motion.sh) | [scripts/build/build_vio_motion.sh](build/build_vio_motion.sh) |
 | [scripts/build_vio_node.sh](build_vio_node.sh) | [scripts/build/build_vio_node.sh](build/build_vio_node.sh) |
 | [scripts/build_vio_same_aircraft_motion.sh](build_vio_same_aircraft_motion.sh) | [scripts/build/build_vio_same_aircraft_motion.sh](build/build_vio_same_aircraft_motion.sh) |
+| [scripts/build_vio_sdk16_default.py](build_vio_sdk16_default.py) | [scripts/build/build_vio_sdk16_default.py](build/build_vio_sdk16_default.py) |
+| [scripts/build_vio_sdk16_marginal_candidate.py](build_vio_sdk16_marginal_candidate.py) | [scripts/build/build_vio_sdk16_marginal_candidate.py](build/build_vio_sdk16_marginal_candidate.py) |
+| [scripts/build_vio_sdk16_ros_candidate.py](build_vio_sdk16_ros_candidate.py) | [scripts/build/build_vio_sdk16_ros_candidate.py](build/build_vio_sdk16_ros_candidate.py) |
+| [scripts/build_vio_sdk16_schur64.py](build_vio_sdk16_schur64.py) | [scripts/build/build_vio_sdk16_schur64.py](build/build_vio_sdk16_schur64.py) |
+| [scripts/build_vio_sdk16_schur_diagnostic.py](build_vio_sdk16_schur_diagnostic.py) | [scripts/build/build_vio_sdk16_schur_diagnostic.py](build/build_vio_sdk16_schur_diagnostic.py) |
+| [scripts/build_vio_sdk_candidate.py](build_vio_sdk_candidate.py) | [scripts/build/build_vio_sdk_candidate.py](build/build_vio_sdk_candidate.py) |
 | [scripts/install_cuda_13_2_stack.sh](install_cuda_13_2_stack.sh) | [scripts/setup/install_cuda_13_2_stack.sh](setup/install_cuda_13_2_stack.sh) |
 | [scripts/install_nvidia_3d_nav_rosdeps.sh](install_nvidia_3d_nav_rosdeps.sh) | [scripts/setup/install_nvidia_3d_nav_rosdeps.sh](setup/install_nvidia_3d_nav_rosdeps.sh) |
 | [scripts/install_vendor_lfs_assets.sh](install_vendor_lfs_assets.sh) | [scripts/setup/install_vendor_lfs_assets.sh](setup/install_vendor_lfs_assets.sh) |
@@ -289,3 +310,5 @@ python3 scripts/maintain_catalogs.py --check
 ```
 
 自动区域由工具维护，新增脚本可在源码首行 docstring 描述用途；Shell 和原生辅助源码的说明维护在 `maintain_catalogs.py`。检查只核对目录、项目内 Markdown 链接／锚点与 Python／Bash 语法，不启动被列出的工具。
+
+`sim.sh px4-vio-pocket --sdk-schur64 --vio-primary --device <实际虚拟摇杆路径>` 启动未解锁的 VIO／深度／EGO 操作会话；`assess_vio_static_avoidance.py <自动验收运行目录>` 检查真实静态绕障证据，见 [操作文档](../docs/flight/VIO_POCKET_AVOIDANCE.md)。

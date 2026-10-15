@@ -46,7 +46,10 @@
 | PX4／BT 逐步骤飞行仿真 | `./scripts/sim.sh px4-flight --bt --ui` | [构建与运行](simulation/px4/README.md)、[步骤授权](docs/flight/PX4_STEP_BT.md) |
 | VIO／光流／测距未解锁融合审计 | `./scripts/sim.sh px4-vio-mtf01` | [联合融合](docs/flight/MTF01_SIMULATION.md) |
 | 独立纯光流飞行仿真 | `./scripts/sim.sh px4-flow-local --duration 35 --native-manual` | [MTF-01 独立控制](docs/flight/MTF01_STANDALONE_FLIGHT.md) |
+| 无 GNSS 光流仓库＋Pocket 操作 | `./scripts/sim.sh px4-flow-pocket --duration 35` | [独立光流操作会话](docs/flight/MTF01_STANDALONE_FLIGHT.md#pocket-持续操作会话) |
 | Pocket USB 操作与定位源选择 | `scripts/usb_joystick.py`、`scripts/select_localization.py` | [USB 操作](docs/flight/USB_POCKET_SIMULATION.md) |
+| 无 GNSS VIO／深度／EGO＋Pocket | `./scripts/sim.sh px4-vio-pocket --sdk-schur64 --vio-primary --device /dev/input/js0` | [操作和静态绕障验收](docs/flight/VIO_POCKET_AVOIDANCE.md) |
+| Pocket 纯电脑虚拟面板 | `./scripts/sim.sh pocket-panel`（可加 `--uinput`） | [通道、模式与仿真接入](docs/flight/VIRTUAL_POCKET_PANEL.md) |
 | OAK-D 硬件静止与移动验证 | `scripts/audit_oakd_vio_hardware.py`、`scripts/oakd_vio_motion_ui.py` | [硬件定位](docs/hardware/OAKD_VISUAL_SLAM_RVIZ.md) |
 
 各入口先按对应手册构建、配置和检查。算法导航的 `mapping` 更新地图，`localization` 加载静态地图；场景须与地图包一致。选择一条链路运行。

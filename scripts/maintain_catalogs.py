@@ -120,6 +120,13 @@ def script_group(path: Path) -> str:
         return SCRIPT_GROUPS[1]
     if '/setup/' in relative or name.startswith(('install_', 'vendor_')):
         return SCRIPT_GROUPS[2]
+    if name in {'bt_flight_client.py', 'bt_operator_intent.py',
+                'pocket_operator_session.py', 'pocket_panel_model.py',
+                'pocket_switches.py', 'pocket_uav_switches.py',
+                'pocket_virtual_joystick.py', 'no_gnss_flight_cases.py'}:
+        return SCRIPT_GROUPS[7]
+    if name == 'pocket_validation_input.py':
+        return SCRIPT_GROUPS[5]
     if name.startswith(('run_', 'usb_', 'bt_', 'pocket_', 'select_',
                         'localization_selection_', 'oakd_vio_motion_ui', 'record_nav_')):
         return SCRIPT_GROUPS[3]
@@ -151,8 +158,8 @@ def script_catalog() -> str:
         lines.append('')
     lines += ['## 兼容入口', '', '旧路径为相对符号链接，与规范路径使用同一份实现。', '',
               '| 旧路径 | 规范路径 |', '| --- | --- |']
-    for path in sorted((ROOT / 'scripts').glob('*.sh')):
-        if path.is_symlink():
+    for path in sorted((ROOT / 'scripts').iterdir()):
+        if path.is_symlink() and path.suffix in {'.sh', '.py'}:
             lines.append(f'| {markdown_link(path, owner)} | {markdown_link(path.resolve(), owner)} |')
     return '\n'.join(lines) + '\n'
 
@@ -277,8 +284,9 @@ def check() -> int:
                     errors.append(f'{path.relative_to(ROOT)}: {result.stderr.strip()}')
         except (SyntaxError, UnicodeError) as error:
             errors.append(f'{path.relative_to(ROOT)}: {error}')
-    for path in (ROOT / 'scripts').glob('*.sh'):
-        if path.is_symlink() and (not path.exists() or not path.resolve().is_relative_to(ROOT / 'scripts')):
+    for path in (ROOT / 'scripts').iterdir():
+        if path.is_symlink() and path.suffix in {'.sh', '.py'} and (
+                not path.exists() or not path.resolve().is_relative_to(ROOT / 'scripts')):
             errors.append(f'Broken or escaping compatibility link: {path.relative_to(ROOT)}')
     if (ROOT / '.git').exists():
         # Generic build/ ignore rules must not hide the canonical build scripts.
