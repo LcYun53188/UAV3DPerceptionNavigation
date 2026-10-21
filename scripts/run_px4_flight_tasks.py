@@ -60,7 +60,7 @@ def main():
        ROOT/'src/uav_nav_interfaces/msg/LocalizedOdometry.msg',ROOT/'src/uav_nav_interfaces/msg/TaskStatus.msg',
        ROOT/'src/uav_nav_interfaces/srv/ResumeOriginalMission.srv',ROOT/'src/uav_nav_interfaces/srv/RequestReturn.srv',
        ROOT/'src/uav_mission/uav_mission/mission_checkpoint.py',ROOT/'src/uav_mission/uav_mission/home_reference.py',ROOT/'src/uav_mission/uav_mission/pilot_intervention.py',ROOT/'src/uav_mission/uav_mission/px4_flight.py',ROOT/'src/uav_mission/uav_mission/flight_geometry.py',ROOT/'src/uav_mission/uav_mission/flight_profiles.py',
-       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/no_gnss_flight_cases.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
+       ROOT/'src/uav_mission/uav_mission/observation_survey.py',ROOT/'src/uav_mission/uav_mission/manual_input_evidence.py',ROOT/'src/uav_mission/uav_mission/ego_execution.py',ROOT/'src/uav_nav_sim/uav_nav_sim/core.py',ROOT/'src/px4_comm_bridge/px4_comm_bridge/converters.py',ROOT/'scripts/run_px4_flight_tasks.py',ROOT/'scripts/no_gnss_flight_cases.py',ROOT/'scripts/run_px4_sitl_smoke.py']}
     if use_bt:
         for name in ('src/uav_bt/src/mission_runner.cpp','src/uav_bt/trees/px4_flight.xml',
                      'src/uav_nav_interfaces/srv/AdvanceFlightStep.srv',

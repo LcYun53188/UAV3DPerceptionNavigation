@@ -1,24 +1,27 @@
 """SB/SC flight matrix shared by virtual AETR and physical Pocket CH5--8.
 
 CH6/7: 988/1500/2012 us -> -1/0/+1; CH8 high is the safety edge.
-Physical buttons are deliberately disabled: the inspected wheel is not SE.
+Physical Classic USB uses button 1/2 for verified SE short/long pulses;
+button 0 is the digital S1 wheel and must never become a task command.
 """
 import time
 
 
 class PocketUavSwitches:
-    def __init__(self, *, task_buttons=True):
+    def __init__(self, *, task_buttons=True, task_button_map=None):
         self.raw, self.levels = {}, {}
         self.prepared_edge = False
         self.task_buttons = task_buttons
+        self.task_button_map = {0: 'pause', 1: 'cancel'} if task_button_map is None else dict(task_button_map)
 
     def receive(self, event, now):
         kind, index, value = event['kind'], event['index'], event['value']
         if kind == 'axis' and index in (4, 5, 6, 7):
             key = index
             level = (1 if value > 20000 else -1 if value < -20000 else 0) if index in (5, 6) else value > 20000
-        elif self.task_buttons and kind == 'button' and index in (0, 1, 2):
-            key, level = 256 + index, bool(value)
+        elif self.task_buttons and kind == 'button' and index in self.task_button_map:
+            key = 256 if self.task_button_map[index] == 'pause' else 257
+            level = bool(value)
         else:
             return
         if key not in self.raw or self.raw[key][0] != level:

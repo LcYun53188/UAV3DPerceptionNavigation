@@ -473,6 +473,7 @@ def main():
             ROOT/'src/uav_mission/uav_mission/ego_execution.py',
             ROOT/'src/uav_mission/uav_mission/home_reference.py',
             ROOT/'src/uav_mission/uav_mission/pilot_intervention.py',
+            ROOT/'src/uav_mission/uav_mission/manual_input_evidence.py',
             ROOT/'scripts/no_gnss_flight_cases.py',
             ROOT/'scripts/bt_flight_client.py',
             Path(env['UAV_FLIGHT_MISSION_FILE']),ROOT/'src/uav_bt/src/mission_runner.cpp',ROOT/'.deps/mission-install/uav_bt/lib/uav_bt/mission_runner']

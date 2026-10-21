@@ -1,4 +1,4 @@
-"""Bounded native Position handoff while the original mission stays paused."""
+"""Native Position handoffs for paused missions and explicit operator cancellation."""
 import time
 import uuid
 from px4_msgs.msg import VehicleStatus
@@ -8,6 +8,81 @@ OFFBOARD=VehicleStatus.NAVIGATION_STATE_OFFBOARD
 
 
 class PilotIntervention:
+    def begin_canceled_manual(self, root_id):
+        """Only a completed, explicitly selected root may leave final hold for sticks."""
+        if (not root_id or root_id != getattr(self,'last_terminal_goal_id',None)
+                or self.active_goal or self.result != ('CANCELED','STOPPED_AND_HOLDING',True)
+                or self.owner != 'HOLD_CONTROLLER' or self.phase != 'COMPLETE'
+                or self.land_committed or self.runner_lost or self.pilot_abort_reason):
+            return False,'CANCEL_MANUAL_REQUIRES_CLEAN_BOUND_TERMINAL'
+        gate=getattr(self,'vio_gate',None)
+        if (not self.operator_enabled or not self.operator_arm_enabled
+                or not self.operator_input_ready() or not self.healthy()
+                or gate is None or not getattr(gate,'joint_sim',False)
+                or not getattr(gate,'pose_only',False)
+                or self.samples['vehicle_status'].nav_state != OFFBOARD
+                or self.samples['vehicle_status'].arming_state != 2):
+            return False,'CANCEL_MANUAL_REQUIRES_HEALTHY_VIO_FLOW_AND_INPUT'
+        self.cancel_manual_state='WAIT_CENTER'
+        # The mission is already terminal. Its deadline and pause timeout must
+        # never resume work or schedule a normal 30-second post-cancel LAND.
+        if hasattr(self,'final_hold_until'):del self.final_hold_until
+        self.step_grant=None
+        self.return_checkpoint=self.return_home_reference=None
+        self.pilot_control=self.pilot_pending=None
+        self.segment=None
+        if self.planned is not None:self.planned.retire()
+        self.change('CANCEL_WAIT_CENTER','CANCELED_HOLD_CENTER_STICKS_AND_THROTTLE')
+        return True,'CANCELED_HOLD_WAITING_FOR_CENTERED_STICKS'
+
+    def canceled_manual_tick(self, now):
+        state=getattr(self,'cancel_manual_state',None)
+        if not state:return False
+        status=self.samples.get('vehicle_status')
+        if state=='ACTIVE':
+            # Native Position and PX4's native failsafes own the aircraft. Never
+            # reacquire Offboard or run an old mission after this handoff.
+            if self.fresh('vehicle_status',.75) and (status.nav_state != POSITION or status.arming_state != 2):
+                self.cancel_manual_state=None
+                self.owner='NONE';self.generation+=1
+                self.change('CANCELED_MANUAL_EXITED','NATIVE_POSITION_EXITED')
+            return True
+        if (self.owner!='HOLD_CONTROLLER' or self.clock_fault_latched or not self.healthy()
+                or self.resets()!=self.reset_baseline or not self.operator_input_ready()
+                or not self.operator_arm_enabled or status.arming_state != 2
+                or not self.region(self.position())
+                or any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic))!=1
+                       for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode'))
+                or len(self.get_publishers_info_by_topic('/clock'))!=1):
+            self.cancel_manual_state=None
+            self.owner='NONE';self.generation+=1
+            self.change('FAULT','CANCEL_MANUAL_HEALTH_OR_INPUT_LOST')
+            return True  # Withdraw Offboard; preserve native loss protection.
+        if status.nav_state==POSITION:
+            self.cancel_manual_state='ACTIVE'
+            self.owner='PILOT';self.generation+=1
+            self.change('CANCELED_MANUAL','CANCELED_NATIVE_VIO_FLOW_POSITION_CONFIRMED')
+            return True
+        if status.nav_state!=OFFBOARD:
+            self.cancel_manual_state=None
+            self.owner='NONE';self.generation+=1
+            self.change('FAULT','CANCEL_MANUAL_CONTROL_LOST')
+            return True
+        if state=='POSITION_REQUEST' and now>=self.cancel_manual_transition_until:
+            # A rejected mode switch must not leave an unbounded false handoff.
+            self.cancel_manual_state=None
+            self.final_hold_until=now
+            self.change('COMPLETE','CANCEL_MANUAL_POSITION_NOT_CONFIRMED')
+            return True  # Existing bounded native LAND fallback on next tick.
+        if state=='WAIT_CENTER' and self.pilot_sticks_centered() and self.speed()<=.1:
+            self.command(176,1,3)
+            self.cancel_manual_state='POSITION_REQUEST'
+            self.cancel_manual_transition_until=now+3.
+            self.change('CANCEL_POSITION_REQUEST','CANCELED_POSITION_REQUESTED')
+        # Maintain the stopped reference until PX4 actually confirms Position.
+        self.stream()
+        return True
+
     def pilot_sticks_centered(self):
         return self.operator_input_ready() and all(abs(getattr(
             self.samples['manual_control_setpoint'],key))<=.15

@@ -179,6 +179,69 @@ def test_switch_mode_preparation_never_queues_or_retries_an_arm():
     assert calls==[(176,1,3),(400,1)]
 
 
+def test_task_sa_cannot_arm_without_successful_preparation():
+    from pocket_operator_session import arm_from_switch
+    from pocket_uav_switches import PocketUavSwitches
+    f,calls=operator();switches=PocketUavSwitches(task_buttons=False)
+    switches.levels={4:True,5:1,6:-1,7:False}
+    assert arm_from_switch(f,switches)==(False,'TASK_PREPARATION_REQUIRED')
+    assert calls==[]
+
+
+@pytest.mark.parametrize('phase,cancel_state',[('FAULT',None),('CANCEL_WAIT_CENTER','WAIT_CENTER'),('CANCELED_MANUAL','ACTIVE')])
+def test_task_sd_after_root_retirement_can_request_native_land(phase,cancel_state):
+    from pocket_operator_session import end_mission_intent
+    f,calls=operator();f.phase=phase;f.cancel_manual_state=cancel_state
+    f.samples['vehicle_land_detected'].landed=False
+    f.samples['vehicle_status'].arming_state=2
+    f.change=lambda phase,reason:setattr(f,'phase',phase)
+    f.operator_command=lambda verb:FlightServer.operator_command(f,verb)
+    def no_root(_):pytest.fail('terminal root must never receive another BT intent')
+    accepted,reason=end_mission_intent(f,'pocket-rc-v2',no_root)
+    assert accepted and reason=='NATIVE_LOCAL_LAND_REQUESTED'
+    assert calls==[(21,)] and f.owner=='AUTOPILOT'
+
+
+def test_active_task_sd_still_uses_bound_end_mission_intent(monkeypatch):
+    from pocket_operator_session import end_mission_intent
+    f,calls=operator();f.active_goal=object();f.phase='NAVIGATE'
+    monkeypatch.setenv('UAV_NAVIGATION_BACKEND','EGO')
+    verbs=[]
+    assert end_mission_intent(f,'pocket-rc-v2',lambda v:(verbs.append(v)or True,'REQUESTED'))==(True,'REQUESTED')
+    assert verbs==['END_MISSION'] and calls==[]
+
+
+@pytest.mark.parametrize('home,expected',[
+    ((0.,0.,0.),'TASK_PREPARED'),
+    ((-.0087,-.21688,.02886),'TASK_PREPARATION_INVALID_REQUEST:OBSERVATION_OUTSIDE_KNOWN_REGION'),
+])
+def test_prepare_checks_actual_origin_and_all_survey_envelopes_before_arm(monkeypatch,home,expected):
+    import json
+    from pathlib import Path
+    from pocket_operator_session import prepare_task
+    from uav_mission.flight_geometry import Alignment
+    f,calls=operator();root=Path(__file__).resolve().parents[3]
+    f.config=json.loads((root/'simulation/safe_regions/vio_avoidance.json').read_text())
+    f.position=lambda:home;f.alignment=Alignment();f.instance='prepare-test';f.nonce='owned-test'
+    f.localization_profile='DEFAULT';f.planned=object();f.planning_ready=lambda:None
+    f.known_region=lambda p:FlightServer.known_region(f,p)
+    f.region=lambda p:FlightServer.region(f,p)
+    f.parse=lambda r:FlightServer.parse(f,r)
+    monkeypatch.setenv('UAV_FLIGHT_MISSION_FILE',str(root/'simulation/missions/vio_static_avoidance.json'))
+    monkeypatch.setenv('UAV_NAVIGATION_BACKEND','EGO')
+    accepted,reason=prepare_task(f,SimpleNamespace(navigation=True),{'localization_profile':'VIO_FLOW'})
+    assert reason==expected and accepted==(expected=='TASK_PREPARED')
+    assert calls==[] and f.samples['vehicle_status'].arming_state==1
+
+
+def test_exhausted_runner_cannot_prepare_another_root_or_arm():
+    from pocket_operator_session import prepare_task
+    f,calls=operator()
+    assert prepare_task(f,SimpleNamespace(navigation=True),{},runner_ready=False)==(
+        False,'PREWARM_RUNNER_UNAVAILABLE_RESTART_SESSION')
+    assert calls==[]
+
+
 def test_manual_takeover_retires_task_before_mode_command():
     f,calls=operator();f.active_goal=object();f.owner='TASK';f.segment=object()
     assert FlightServer.operator_command(f,'MANUAL')[0]

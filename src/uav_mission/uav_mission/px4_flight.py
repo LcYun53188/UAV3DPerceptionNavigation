@@ -39,6 +39,7 @@ from .flight_geometry import Alignment, Segment, ned_enu, distance, finite3, in_
 from .mission_checkpoint import ReturnCheckpoint
 from .home_reference import local_home, native_rtl_home
 from .pilot_intervention import PilotIntervention
+from .manual_input_evidence import ManualInputEvidence
 
 
 class FlightServer(PilotIntervention, Node):
@@ -70,6 +71,7 @@ class FlightServer(PilotIntervention, Node):
         self.requests = {}
         self.owner = 'NONE'
         self.operator_enabled = os.environ.get('UAV_POCKET_OPERATOR') == '1'
+        self.manual_input_evidence = ManualInputEvidence() if self.operator_enabled else None
         self.operator_arm_enabled = False
         self.operator_navigation_enabled = False
         self.clock_last, self.clock_advance = None, time.monotonic()
@@ -92,8 +94,11 @@ class FlightServer(PilotIntervention, Node):
         self.return_after_brake = False
         self.return_checkpoint = None
         self.return_home_reference = None
+        self.end_local_land = False
         self.pilot_control = self.pilot_pending = None
         self.pilot_abort_reason = None
+        self.cancel_manual_state = None
+        self.last_terminal_goal_id = None
         self.home_frame_epoch_us = 0
         self.plan_revision = 0
         self.restored_hover = None
@@ -300,6 +305,9 @@ class FlightServer(PilotIntervention, Node):
     def callback(self, name):
         def receive(msg):
             with self.lock:
+                evidence = getattr(self,'manual_input_evidence',None)
+                if name == 'manual_control_setpoint' and evidence is not None:
+                    evidence.receive(msg,time.monotonic())
                 old = self.samples.get(name)
                 if old is not None and msg.timestamp <= old.timestamp:
                     if msg.timestamp < old.timestamp and self.active_goal:
@@ -650,8 +658,11 @@ class FlightServer(PilotIntervention, Node):
             self.return_override = self.return_after_brake = False
             self.return_checkpoint = None
             self.return_home_reference = None
+            self.end_local_land = False
             self.pilot_control = self.pilot_pending = None
             self.pilot_abort_reason = None
+            self.cancel_manual_state = None
+            self.last_terminal_goal_id = None
             self.plan_revision = 0
             self.restored_hover = self.join_hover_remaining = None
             self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
@@ -782,11 +793,12 @@ class FlightServer(PilotIntervention, Node):
             if operation == 'LAND':
                 if landed:
                     return False, 'ALREADY_LANDED'
-                if self.active_goal or self.owner != 'NONE':
+                if self.active_goal or (self.owner != 'NONE' and not getattr(self,'cancel_manual_state',None)):
                     return False, 'ACTIVE_TASK_USE_END_MISSION'
                 if not FlightServer.operator_native_ready(self,height=True):
                     return False, 'LAND_POSITION_OR_HEIGHT_UNAVAILABLE'
                 self.command(21)
+                self.cancel_manual_state = None
                 self.land_committed = True
                 self.owner = 'AUTOPILOT'
                 self.generation += 1
@@ -795,6 +807,12 @@ class FlightServer(PilotIntervention, Node):
             if operation in ('MANUAL', 'ACRO', 'VIO_POSITION', 'FLOW_POSITION','ASSISTED_POSITION','STABILIZED','ALTITUDE'):
                 ready,reason=FlightServer.operator_mode_ready(self,operation)
                 if not ready:return False,reason
+                if getattr(self,'cancel_manual_state',None):
+                    if operation in ('MANUAL','VIO_POSITION','ASSISTED_POSITION') and self.cancel_manual_state!='ACTIVE':
+                        return True,'CANCELED_POSITION_HANDOFF_PENDING_CENTERED_STICKS'
+                    self.cancel_manual_state=None
+                    self.owner='NONE';self.generation+=1
+                    self.change('CANCELED_MANUAL','OPERATOR_NATIVE_MODE_REQUESTED')
                 if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
                     self.fault('PILOT_TAKEOVER')
                     self.owner = 'NONE'; self.generation += 1; self.segment = None
@@ -991,6 +1009,67 @@ class FlightServer(PilotIntervention, Node):
             self.next_step()
         return True, 'ORIGINAL_MISSION_RESTORED'
 
+    def end_task_locally(self):
+        """End before a safe return is available; PX4 LAND owns braking/descent.
+
+        This does not claim Home was reached or rely on an unfinished depth map.
+        Never reacquire Offboard or arm to carry out this safety request.
+        """
+        if (self.land_committed or self.canceling or self.result is not None
+                or self.clock_fault_latched or not self.fresh('vehicle_status', .75)
+                or not FlightServer.operator_native_ready(self, height=True)):
+            return False, 'END_LOCAL_LAND_NATIVE_STATE_UNAVAILABLE'
+        status = self.samples['vehicle_status']
+        if status.system_id != 8 or status.component_id != 1 or any(
+                len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic)) != 1
+                for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode')):
+            return False, 'END_LOCAL_LAND_CONTROL_CONTEXT_INVALID'
+        if getattr(self, 'planned', None) is not None:
+            self.planned.retire()
+        self.segment = self.survey = None
+        self.child = UUID()
+        self.step_grant = None
+        self.return_checkpoint = self.return_home_reference = None
+        self.return_override = self.return_after_brake = False
+        self.pilot_control = self.pilot_pending = None
+        self.end_local_land = self.land_committed = True
+        self.end_land_until = time.monotonic()+60.
+        self.plan_revision += 1
+        self.owner = 'AUTOPILOT'
+        self.generation += 1
+        self.landing_result = ('SUCCEEDED','MISSION_ENDED_LOCAL_LANDED_AND_DISARMED',True)
+        self.command(21)
+        self.change('LAND_REQUEST','MISSION_END_LOCAL_LAND')
+        return True, 'END_LOCAL_LAND_REQUESTED'
+
+    def end_local_land_tick(self, now):
+        """Observe native safety landing independently of VIO/map availability."""
+        if now >= self.end_land_until:
+            self.fault('END_LOCAL_LAND_TIMEOUT');return
+        if not (self.fresh('vehicle_status', .75) and self.fresh('vehicle_land_detected', 1.2)):
+            self.fault('END_LOCAL_LAND_OBSERVATION_LOST');return
+        status = self.samples['vehicle_status']
+        if status.system_id != 8 or status.component_id != 1:
+            self.fault('END_LOCAL_LAND_WRONG_AIRCRAFT');return
+        if self.phase == 'LAND_REQUEST':
+            if status.nav_state in (18,20) or (status.arming_state == 1 and self.samples['vehicle_land_detected'].landed):
+                self.change('LANDING','MISSION_END_LOCAL_LAND_CONFIRMED')
+            elif now-self.phase_started > 8:
+                self.fault('END_LOCAL_LAND_MODE_TIMEOUT')
+            elif now-self.last_command > 1:
+                self.command(21)
+        elif self.phase == 'LANDING':
+            if status.arming_state == 2 and status.nav_state not in (18,20):
+                self.fault('END_LOCAL_LAND_CONTROL_LOST');return
+            if self.samples['vehicle_land_detected'].landed and status.arming_state == 1:
+                if self.stable_since is None:self.stable_since = now
+                if now-self.stable_since >= 2:
+                    self.owner = 'NONE';self.generation += 1
+                    self.result = self.landing_result
+                    self.change('COMPLETE')
+            else:self.stable_since = None
+        self.publish_status()
+
     def service(self, verb, request, response):
         with self.lock:
             now=time.monotonic()
@@ -1009,7 +1088,20 @@ class FlightServer(PilotIntervention, Node):
                 else:
                     response.accepted=False;response.reason='REQUEST_ID_CONFLICT';response.phase=self.phase
                 return response
+            if len(self.requests) >= 256:
+                response.accepted=False;response.reason='REQUEST_LIMIT';response.phase=self.phase
+                return response
             accepted=False;reason='INVALID_PHASE'
+            # An incomplete map or an in-flight ownership transition cannot
+            # guarantee a return route. SD still ends the task through native
+            # LAND, including while another task intent is being confirmed.
+            if verb == 'finish' and (self.phase in ('PRESTREAM','OFFBOARD_REQUEST',
+                    'ARM_REQUEST','TAKEOFF','OBSERVE','PAUSING','HOLD_HANDOFF') or
+                    getattr(self,'pilot_control',None) in ('PRESTREAM','OFFBOARD','BRAKING')):
+                accepted,reason=FlightServer.end_task_locally(self)
+                response.accepted,response.reason,response.phase=accepted,reason,self.phase
+                self.requests[key]=(verb,(accepted,reason,self.phase))
+                return response
             if getattr(self,'pilot_control',None) and verb in ('resume','return','finish','restore'):
                 if verb in ('resume','finish'):
                     accepted,reason=self.request_pilot_reacquire(verb,now)
@@ -1020,9 +1112,6 @@ class FlightServer(PilotIntervention, Node):
             if getattr(self,'localization_profile','DEFAULT')=='FLOW_LOCAL' and verb in ('return','finish','restore'):
                 response.accepted=False;response.reason='FLOW_LOCAL_RETURN_REQUIRES_VIO';response.phase=self.phase
                 self.requests[key]=(verb,(False,response.reason,self.phase))
-                return response
-            if len(self.requests) >= 256:
-                response.accepted=False;response.reason='REQUEST_LIMIT';response.phase=self.phase
                 return response
             if verb == 'pause' and self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER'):
                 self.saved_step=self.step_index
@@ -1372,6 +1461,7 @@ class FlightServer(PilotIntervention, Node):
 
     def fault(self, reason):
         self.pilot_control = self.pilot_pending = None
+        self.cancel_manual_state = None
         self.return_checkpoint = None
         self.return_home_reference = None
         if getattr(self,'planned',None) is not None:self.planned.retire()
@@ -1379,7 +1469,7 @@ class FlightServer(PilotIntervention, Node):
         self.diagnostics.append(dict(reason=reason,ages={n:dict(receive=now-self.received[n],source=ros-m.timestamp/1e6) for n,m in self.samples.items()},local=str(self.samples.get('vehicle_local_position')),status=str(self.samples.get('vehicle_status')),battery=str(self.samples.get('battery_status'))))
         if self.phase not in ('FAULT','COMPLETE'):
             self.owner='NONE';self.generation+=1;self.segment=None
-            self.result=('ABORTED',reason,False)
+            if self.result is None:self.result=('ABORTED',reason,False)
             self.change('FAULT',reason)
         # Stop all automatic output. Frozen PX4 Offboard-loss policy owns fallback.
 
@@ -1411,7 +1501,9 @@ class FlightServer(PilotIntervention, Node):
             if getattr(self,'localization_selector',None) is not None:self.fusion_tick()
             self.publish_control(now)
             if not self.active_goal or self.result:
-                if self.owner=='PREFLIGHT':
+                if getattr(self,'cancel_manual_state',None):
+                    self.canceled_manual_tick(now)
+                elif self.owner=='PREFLIGHT':
                     self.preflight_tick(now)
                 elif self.owner=='HOLD_CONTROLLER' and hasattr(self,'final_hold_until'):
                     if backwards or now-self.clock_advance>.5 or not self.healthy() or self.resets()!=self.reset_baseline:
@@ -1433,6 +1525,9 @@ class FlightServer(PilotIntervention, Node):
                 self.last_graph_check=now
                 if any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+t))!=1 for t in ('offboard_control_mode','trajectory_setpoint','vehicle_command')) or len(self.get_publishers_info_by_topic('/clock'))!=1:
                     self.fault('NON_UNIQUE_CONTROL_OR_CLOCK_PUBLISHER');return
+            if getattr(self,'end_local_land',False) and self.land_committed:
+                FlightServer.end_local_land_tick(self,now)
+                return
             if now >= self.deadline:
                 self.fault('MISSION_TIMEOUT');return
             if (getattr(self,'return_home_reference',None) is not None and not self.land_committed
@@ -1590,7 +1685,8 @@ class FlightServer(PilotIntervention, Node):
         s.header.stamp=self.get_clock().now().to_msg()
         self.status_pub.publish(s)
         if not self.result:self.active_goal.publish_feedback(ExecuteMission.Feedback(status=s,
-            tree_node=(f'PX4_RETURN[{self.step_index}]' if self.return_override else f'PX4_STEP[{self.step_index}]') if self.step_controlled else 'PX4_FLIGHT_SEQUENCE',fault=self.reason))
+            tree_node=(f'PX4_END_LAND[{self.step_index}]' if getattr(self,'end_local_land',False) else
+                       f'PX4_RETURN[{self.step_index}]' if self.return_override else f'PX4_STEP[{self.step_index}]') if self.step_controlled else 'PX4_FLIGHT_SEQUENCE',fault=self.reason))
 
     async def execute(self,handle):
         code,reason,confirmed=await self.done_future
@@ -1599,6 +1695,7 @@ class FlightServer(PilotIntervention, Node):
             if code=='SUCCEEDED':handle.succeed()
             elif code=='CANCELED':handle.canceled()
             else:handle.abort()
+            self.last_terminal_goal_id=bytes(handle.goal_id.uuid)
             self.active_goal=None
             return result
 

@@ -36,7 +36,10 @@ class Backend(Node):
         self.step_mode = case.startswith('step-')
         self.step_index, self.step_phase = -1, 'PRESTREAM'
         self.advances = []
-        self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance)
+        # A delayed authorization response must not lock out aircraft feedback
+        # timers or a concurrent safety intent in the transport test backend.
+        self.create_service(AdvanceFlightStep, '/uav/px4/advance_step', self.advance,
+                            callback_group=ReentrantCallbackGroup())
         self.create_subscription(MissionProgress, '/uav/px4/mission_progress', self.progress.append, 10)
         self.server = ActionServer(self, ExecuteMission, '/uav/px4/execute_mission',
                                    self.execute, goal_callback=self.goal, cancel_callback=self.cancel,
