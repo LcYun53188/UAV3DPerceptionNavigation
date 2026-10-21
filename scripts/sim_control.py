@@ -79,6 +79,10 @@ def parser():
     start.add_argument('--partition', default='uav_ego_lab')
     start.add_argument('--goal-height', type=positive, default=1.2)
     start.add_argument('--background', action='store_true', help='后台运行；用 stop 退出')
+    start.add_argument('--startup', choices=['none', 'init', 'explore'], default='none',
+                       help='自动初始化；explore 在初始化成功后启动自主探索，仅 mapping')
+    start.add_argument('--map-bundle', type=lambda value: Path(value).expanduser().resolve(),
+                       help='启动后加载地图包，仅 localization')
     for name, help_text in [('stop', '退出整套受管仿真'), ('status', '进程、导航和地图状态'),
                             ('init', '离线放置相机，初始化起点；仅 mapping'),
                             ('cancel', '取消目标与自动探索，仿真继续运行'),
@@ -122,7 +126,37 @@ def unmanaged_launches():
     return None
 
 
+def validate_startup(args):
+    if args.startup != 'none' and (args.mode != 'mapping' or args.map_bundle):
+        raise RuntimeError('自动初始化／探索要求 mapping，且不能同时加载地图')
+    if args.map_bundle:
+        if args.mode != 'localization':
+            raise RuntimeError('加载地图包要求 localization')
+        if not all((args.map_bundle / name).is_file() for name in ('manifest.json', 'static_map.nvblx')):
+            raise RuntimeError('地图目录缺少 manifest.json 或 static_map.nvblx')
+
+
+def startup_operations(session, args):
+    if args.startup == 'none' and not args.map_bundle:
+        return
+    with lock(CACHE / 'operation.lock'):
+        operations = []
+        if args.map_bundle:
+            operations = [(['python', 'scripts/sim_ros_control.py', 'cancel'], 25),
+                          (['ros2', 'run', 'uav_nav_sim', 'map_bundle', 'load', str(args.map_bundle)], 100),
+                          (['python', 'scripts/sim_ros_control.py', 'ready'], 35)]
+        else:
+            operations = [(['python', 'scripts/survey_gazebo_map.py', '--layout', session['layout'], '--local-only'], 300)]
+            if args.startup == 'explore':
+                operations.append((['python', 'scripts/sim_ros_control.py', 'explore'], 25))
+        for arguments, timeout in operations:
+            if not alive(session):
+                raise RuntimeError('本轮仿真已退出，停止启动流程')
+            run(session, arguments, timeout=timeout)
+
+
 def start(args):
+    validate_startup(args)
     process = None
     with lock(CACHE / 'control.lock'), lock(Path(f'/tmp/uav_nav_gazebo_harmonic_{os.getuid()}.lock')) as sim_lock:
         if alive(read_session(False)):
@@ -150,15 +184,23 @@ def start(args):
         if process.poll() is not None:
             raise RuntimeError(f'启动失败，查看 {logfile}')
     print(f'已启动 PID={process.pid}，layout={args.layout}，mode={args.mode}，ROS_DOMAIN_ID={args.domain}', flush=True)
-    print(f'日志：{logfile}\n另一个终端运行 scripts/sim.sh status；建图模式执行 init，加载模式执行 load。', flush=True)
-    if not args.background:
-        print('此终端保持运行；Ctrl+C 退出整套仿真。日志用 scripts/sim.sh logs --follow 查看。', flush=True)
-        try:
+    print(f'日志：{logfile}', flush=True)
+    if args.startup != 'none' or args.map_bundle:
+        print('正在自动完成初始化／地图准备；完成后保持 Gazebo 与 RViz 运行。', flush=True)
+    else:
+        print('另一个终端运行 scripts/sim.sh status；建图模式执行 init，加载模式执行 load。', flush=True)
+    try:
+        startup_operations(session, args)
+        if not args.background:
+            print('此终端保持运行；Ctrl+C 退出整套仿真。日志用 scripts/sim.sh logs --follow 查看。', flush=True)
             code = process.wait()
             if code:
                 raise RuntimeError(f'launch 已退出（{code}），查看 {logfile}')
-        except KeyboardInterrupt:
-            stop(session)
+    except KeyboardInterrupt:
+        stop(session)
+    except (RuntimeError, OSError, subprocess.SubprocessError):
+        stop(session)
+        raise
 
 
 def stop(session):
