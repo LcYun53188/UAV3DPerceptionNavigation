@@ -76,6 +76,8 @@ PROFILES = (
                 Option('input_profile', 'Pocket 开关配置', 'uav-aetr-v1',
                        (('uav-aetr-v1', '虚拟面板（9轴／3按钮）'), ('pocket-rc-v2', '实体遥控器 SB/SC/SD（8轴／24按钮）'),
                         ('legacy-usb', '兼容旧实体 SA/SB/SD 二态配置'))),
+                Option('task', '自动任务', 'avoidance', (('avoidance', '扫描／静态避障任务'),
+                    ('intervention', '起点附近手动介入验证（水平速度上限 0.5 m/s）'))),
                 QGC, Option('session_duration', '操作会话时长（秒）', 3600, limits=(60, 14400)),
             )),
     Profile('flow-pocket', '无 GNSS 纯光流仓库＋Pocket 操作',
@@ -215,6 +217,7 @@ def command(config):
     elif key in ('vio-pocket', 'flow-pocket'):
         if key == 'vio-pocket':
             args += ['--sdk-schur64', '--vio-primary', '--input-profile', o['input_profile']]
+            if o['task']!='avoidance':args += ['--pocket-task',o['task']]
         else:
             args += ['--duration', str(o['duration']), '--input-profile', o['input_profile']]
         args += ['--device', o['device'], '--session-duration', str(o['session_duration'])]

@@ -153,6 +153,13 @@ def operator_environment(session, manifest):
         region=recorded.get('UAV_FLIGHT_REGION_PROFILE')
         if region not in ('vio_chain','vio_avoidance'):raise ValueError('Unreviewed VIO Pocket region')
         mission='vio_static_avoidance.json' if region=='vio_avoidance' else 'depth_observation.json'
+        task=manifest.get('pocket_task','avoidance')
+        if task not in ('avoidance','intervention'):raise ValueError('Unreviewed Pocket task')
+        if task=='intervention':
+            limits={'PX4_PARAM_MPC_XY_VEL_MAX':'0.5','PX4_PARAM_MPC_XY_CRUISE':'0.5','PX4_PARAM_MPC_XY_VEL_ALL':'-10'}
+            if region!='vio_avoidance' or any(manifest.get('px4_parameter_overrides',{}).get(k)!=v for k,v in limits.items()):
+                raise ValueError('Pocket intervention requires its frozen native speed limits')
+            mission='pocket_intervention.json'
         primary=manifest.get('vio_primary') is True
         if primary and (region!='vio_avoidance' or manifest.get('sdk_schur64') is not True):
             raise ValueError('VIO primary Pocket requires the owned SDK64 avoidance profile')

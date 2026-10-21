@@ -76,6 +76,8 @@ def main():
     parser.add_argument('--source-warmup-seconds',type=float,default=None,help='Original-sample-time startup exclusion; default 20 s for disarmed PX4 pose fusion, 0 s for source-only audits and historical qualified flight')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     parser.add_argument('--pocket-session',action='store_true',help='Persistent disarmed startup with sole Pocket flight owner; no automatic mission')
+    parser.add_argument('--pocket-task',choices=('avoidance','intervention'),default='avoidance',
+                        help='Pocket task recipe; intervention holds near launch with a 0.5 m/s native horizontal velocity cap')
     parser.add_argument('--manual-only',action='store_true',help='Pocket session restricted to manual flight; reject automatic task intents')
     parser.add_argument('--device',default='/dev/input/js0')
     parser.add_argument('--input-profile', choices=('uav-aetr-v1', 'pocket-rc-v2', 'legacy-usb'), default='uav-aetr-v1',
@@ -83,6 +85,9 @@ def main():
     parser.add_argument('--qgc-config-from',type=Path)
     parser.add_argument('--session-duration',type=float,default=3600.)
     args = parser.parse_args()
+    if args.pocket_task=='intervention' and not (args.pocket_session and args.experimental_chain
+            and args.flight=='sequence' and args.warehouse_variant=='avoidance' and not args.manual_only):
+        parser.error('Pocket intervention task requires the complete experimental avoidance Pocket session')
     if args.manual_only and not args.pocket_session:
         parser.error('--manual-only requires --pocket-session')
     if args.input_profile in ('legacy-usb','pocket-rc-v2') and not args.pocket_session:
@@ -463,6 +468,12 @@ def main():
             if args.flight=='sequence':
                 env.update(UAV_FLIGHT_MISSION_FILE=str(ROOT/('simulation/missions/vio_static_avoidance.json' if args.warehouse_variant=='avoidance' else 'simulation/missions/depth_observation.json')),
                     UAV_EXPECT_OBSERVATION='1',UAV_ENABLE_EGO_NAV='1',UAV_NAVIGATION_BACKEND='EGO')
+            if args.pocket_task=='intervention':
+                env['UAV_FLIGHT_MISSION_FILE']=str(ROOT/'simulation/missions/pocket_intervention.json')
+                # PX4 constrains its manual velocity parameter by this native
+                # limit. Also cap autonomous references for this dedicated test.
+                env.update(PX4_PARAM_MPC_XY_VEL_MAX='0.5',PX4_PARAM_MPC_XY_CRUISE='0.5',
+                           PX4_PARAM_MPC_XY_VEL_ALL='-10')
             inputs += [ROOT/'scripts/vio_chain_mapping.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources.py',ROOT/'src/uav_nav_sim/uav_nav_sim/planning_sources_node.py',ROOT/'src/uav_ego_adapter/src/planner.cpp',ROOT/'src/uav_ego_adapter/src/braking_volume.hpp',ROOT/'install_uav/uav_ego_adapter/lib/uav_ego_adapter/ego_nvblox_planner']
         inputs += [region,out/'flight-assets.json',out/'source-prerequisites.json',
             ROOT/'scripts/px4_vio_flight_session.py',ROOT/'scripts/run_px4_flight_tasks.py',
@@ -508,6 +519,7 @@ def main():
     manifest['sdk_schur_diagnostic']=args.sdk_schur_diagnostic
     manifest['sdk_schur64']=args.sdk_schur64
     manifest['vio_primary']=args.vio_primary
+    manifest['pocket_task']=args.pocket_task
     manifest['flight_fusion_policy']=dict(primary='EV position/height/yaw',
         auxiliary_fusion='opportunistic' if args.vio_primary else 'mandatory',
         auxiliary_raw_integrity_required=args.vio_primary,joint_ground_preflight_required=args.experimental_chain)
