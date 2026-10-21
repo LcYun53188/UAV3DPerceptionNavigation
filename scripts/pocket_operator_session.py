@@ -28,6 +28,29 @@ def prepare_manual(node, switches, prepared):
     return prepared
 
 
+def arm_from_switch(node, switches):
+    mode=getattr(switches,'requested_mode',None)
+    if isinstance(switches,PocketUavSwitches):
+        if switches.safety_held:return False,'SD_SAFETY_HELD_RELEASE_BEFORE_CONTROL'
+        ready,reason=node.operator_mode_ready(mode)
+        if not ready:return False,reason
+        expected={'STABILIZED':15,'ALTITUDE':1}.get(mode,2)
+        status=node.samples.get('vehicle_status')
+        if status is None or status.nav_state != expected:
+            prepared,detail=node.operator_command(mode)
+            return False, ('ARM_MANUAL_MODE_REQUESTED_RETRY_SWITCH' if prepared
+                           else 'ARM_MODE_PREPARE_REJECTED:'+detail)
+    accepted, reason = node.operator_command('ARM')
+    if reason == 'ARM_REQUIRES_MANUAL_MODE':
+        # Mode preparation never queues an arm. The actual PX4 mode must be
+        # confirmed before another physical switch edge can request ARM.
+        mode = getattr(switches, 'requested_mode', 'MANUAL')
+        prepared, detail = node.operator_command(mode)
+        return False, ('ARM_MANUAL_MODE_REQUESTED_RETRY_SWITCH' if prepared
+                       else 'ARM_MODE_PREPARE_REJECTED:'+detail)
+    return accepted, reason
+
+
 def return_intent(node):
     steps = getattr(node, 'steps', [])
     index = node.step_index
@@ -140,11 +163,13 @@ def validate_virtual_device(device, joystick, profile):
 
 
 def switches_for(profile, return_button=None):
-    if profile == 'uav-aetr-v1':
+    if profile in ('uav-aetr-v1', 'pocket-rc-v2'):
         if return_button is not None:
-            raise ValueError('UAV profile reserves button 0 for CH10, not return')
-        return PocketUavSwitches()
-    return PocketSwitches(return_button=return_button)
+            raise ValueError('Matrix profiles do not accept a legacy return-button binding')
+        return PocketUavSwitches(task_buttons=profile == 'uav-aetr-v1')
+    if profile == 'legacy-usb':
+        return PocketSwitches(return_button=return_button)
+    raise ValueError('Unknown Pocket profile: '+profile)
 
 
 def pause_intent(node):
@@ -168,7 +193,12 @@ def observe(device, return_button=None, profile='legacy-usb'):
         joystick.close()
 
 
-def control(session, device, return_button=None, profile='legacy-usb'):
+def manual_command_allowed(command):
+    return command in ('ARM', 'DISARM', 'MANUAL', 'ACRO', 'VIO_POSITION', 'ASSISTED_POSITION',
+                       'FLOW_POSITION', 'STABILIZED', 'ALTITUDE', 'LAND')
+
+
+def control(session, device, return_button=None, profile='legacy-usb', manual_only=False):
     from copy import deepcopy
     import rclpy
     from rclpy.executors import SingleThreadedExecutor
@@ -176,7 +206,12 @@ def control(session, device, return_button=None, profile='legacy-usb'):
     from uav_mission.px4_flight import FlightServer
     from uav_nav_interfaces.srv import SetMissionIntent
     session, manifest = bind_session(session)
-    if profile == 'uav-aetr-v1':
+    manual_only = manual_only or manifest.get('manual_only', False)
+    if manifest.get('input_profile') and manifest['input_profile'] != profile:
+        raise ValueError('Input profile does not match the owned session manifest')
+    from pocket_input import preflight_device
+    preflight_device(device, profile)
+    if profile in ('uav-aetr-v1', 'pocket-rc-v2'):
         overrides = manifest.get('px4_parameter_overrides', {})
         if overrides.get('PX4_PARAM_MPC_LAND_SPEED') != '0.3' or overrides.get('PX4_PARAM_MPC_LAND_CRWL') != '0.2':
             raise ValueError('Restart the owned USB session with slow native landing parameters')
@@ -202,6 +237,7 @@ def control(session, device, return_button=None, profile='legacy-usb'):
     outcomes = []
     stopping = False
     manual_prepared = False
+    previous_arming = None
     auto_prepared = False
     intervention_requested = False
     resume_when_paused = False
@@ -209,6 +245,7 @@ def control(session, device, return_button=None, profile='legacy-usb'):
     heartbeat=0.
     def warm_next_runner():
         nonlocal warming
+        if manual_only:return
         if os.environ.get('UAV_FLIGHT_REGION_PROFILE')!='vio_avoidance':return
         from bt_flight_client import prewarm_runner
         number=len(outcomes)+1
@@ -236,6 +273,7 @@ def control(session, device, return_button=None, profile='legacy-usb'):
 
     def start_task():
         nonlocal runner, runner_log, warming
+        if manual_only:return False, 'MANUAL_ONLY_SESSION'
         if runner is not None and runner.poll() is None:
             return False, 'RUNNER_STILL_ACTIVE'
         if node.active_goal is not None or node.owner != 'NONE' or node.phase == 'FAULT':
@@ -278,16 +316,31 @@ def control(session, device, return_button=None, profile='legacy-usb'):
         while rclpy.ok() and not stopping:
             executor.spin_once(timeout_sec=.01)
             now = time.monotonic()
+            status = node.samples.get('vehicle_status')
+            arming = getattr(status, 'arming_state', None)
+            if previous_arming == 2 and arming == 1:
+                # Native landing does not necessarily leave AUTO_TAKEOFF.
+                # Prepare the operator's manual mode again after each disarm.
+                manual_prepared = False
+            previous_arming = arming
             for _ in range(64):
                 event = joystick.read()
                 if event is None:
                     break
                 switches.receive(event, now)
             node.operator_arm_enabled = switches.arm
-            node.operator_navigation_enabled = switches.navigation
+            node.operator_navigation_enabled = switches.navigation and not manual_only
             if now-heartbeat>=1.:
                 status=node.samples.get('vehicle_status');land=node.samples.get('vehicle_land_detected')
-                state=dict(system_ns=time.time_ns(),source_admitted=source_admitted(session,manifest),
+                source_preflight_admitted=source_admitted(session,manifest)
+                source_ready=node.vio_healthy()
+                gate=getattr(node,'vio_gate',None)
+                state=dict(system_ns=time.time_ns(),source_admitted=source_preflight_admitted and source_ready,
+                    source_preflight_admitted=source_preflight_admitted,source_ready=source_ready,
+                    source_reason=getattr(gate,'reason',''),
+                    manual_only=manual_only,
+                    input_profile=profile, requested_mode=getattr(switches,'requested_mode','MANUAL'),
+                    safety_held=getattr(switches,'safety_held',False),
                     operator_input_ready=node.operator_input_ready(),auto_prepared=auto_prepared,
                     owner=node.owner,phase=node.phase,arming=getattr(status,'arming_state',None),
                     nav_state=getattr(status,'nav_state',None),landed=getattr(land,'landed',None))
@@ -327,14 +380,17 @@ def control(session, device, return_button=None, profile='legacy-usb'):
                 warm_next_runner()
             for command in switches.tick(now):
                 node.operator_arm_enabled = switches.arm
-                node.operator_navigation_enabled = switches.navigation
-                if not admitted and command in ('ARM','PREPARE','RUN','INTERVENE','MANUAL','ACRO','VIO_POSITION','FLOW_POSITION','RTL'):
+                node.operator_navigation_enabled = switches.navigation and not manual_only
+                if manual_only and not manual_command_allowed(command):
+                    accepted,reason=False,'MANUAL_ONLY_SESSION'
+                elif not admitted and command in ('ARM','PREPARE','RUN','INTERVENE','MANUAL','ACRO','VIO_POSITION','ASSISTED_POSITION','FLOW_POSITION','RTL'):
                     accepted,reason=False,'SOURCE_PREFLIGHT_PENDING'
-                elif command in ('ARM','DISARM','MANUAL','ACRO','VIO_POSITION','FLOW_POSITION','LAND','RTL'):
+                elif command in ('ARM','DISARM','MANUAL','ACRO','VIO_POSITION','ASSISTED_POSITION','FLOW_POSITION','STABILIZED','ALTITUDE','LAND','RTL'):
                     if command != 'ARM':
                         auto_prepared = False
                         intervention_requested = resume_when_paused = False
-                    accepted, reason = node.operator_command(command)
+                    accepted, reason = (arm_from_switch(node, switches) if command == 'ARM'
+                                        else node.operator_command(command))
                 elif command == 'PREPARE':
                     auto_prepared = (switches.navigation and node.active_goal is None and node.owner == 'NONE'
                         and node.phase != 'FAULT' and node.operator_input_ready() and node.healthy(ground=True)
@@ -350,7 +406,7 @@ def control(session, device, return_button=None, profile='legacy-usb'):
                     if was_intervention and node.phase in ('PAUSING','HOLD_HANDOFF'):
                         resume_when_paused=True
                         accepted,reason=True,'RESUME_AFTER_STOP_REQUESTED'
-                    elif profile == 'uav-aetr-v1' and not auto_prepared and verb is None:
+                    elif profile in ('uav-aetr-v1','pocket-rc-v2') and not auto_prepared and verb is None:
                         accepted, reason = False, 'TASK_PREPARATION_REQUIRED'
                     else:
                         accepted, reason = task_intent(verb) if verb else start_task()
@@ -368,7 +424,7 @@ def control(session, device, return_button=None, profile='legacy-usb'):
                 elif command == 'END_MISSION':
                     auto_prepared = False
                     intervention_requested = resume_when_paused = False
-                    if profile=='uav-aetr-v1' and os.environ.get('UAV_NAVIGATION_BACKEND')!='EGO':
+                    if profile in ('uav-aetr-v1','pocket-rc-v2') and os.environ.get('UAV_NAVIGATION_BACKEND')!='EGO':
                         accepted,reason=False,'RETURN_REQUIRES_AVOIDANCE_NAVIGATION'
                     else:accepted, reason = task_intent('END_MISSION')
                 elif command == 'TOGGLE_PAUSE':
@@ -379,6 +435,8 @@ def control(session, device, return_button=None, profile='legacy-usb'):
                     auto_prepared = False
                     intervention_requested = resume_when_paused = False
                     accepted, reason = task_intent('CANCEL')
+                elif command == 'BLOCKED_SAFETY_HELD':
+                    accepted, reason = False, 'SD_SAFETY_HELD_RELEASE_BEFORE_CONTROL'
                 else:
                     accepted, reason = False, 'SA_OR_SB_NOT_ENABLED'
                 row = dict(mono=now, command=command, accepted=accepted, reason=reason)
@@ -420,10 +478,11 @@ def control(session, device, return_button=None, profile='legacy-usb'):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device', default=DEVICE)
-    parser.add_argument('--input-profile', choices=['legacy-usb', 'uav-aetr-v1'], default='legacy-usb')
+    parser.add_argument('--input-profile', choices=['legacy-usb', 'uav-aetr-v1', 'pocket-rc-v2'], default='pocket-rc-v2')
     parser.add_argument('--session', help='Owned manual SITL evidence directory')
     parser.add_argument('--return-button', type=int, choices=[0], help='Explicitly enable the verified Linux momentary button 0; default unassigned')
     parser.add_argument('--enable-sitl-control', action='store_true')
+    parser.add_argument('--manual-only', action='store_true', help='Reject automatic task commands in this operator session')
     args = parser.parse_args()
     if args.input_profile == 'uav-aetr-v1':
         if args.device == DEVICE or args.return_button is not None:
@@ -435,7 +494,7 @@ def main():
     session, _ = bind_session(args.session)
     with (session/'pocket-operator.lock').open('a') as handle:
         fcntl.flock(handle, fcntl.LOCK_EX|fcntl.LOCK_NB)
-        control(session, args.device, args.return_button, args.input_profile)
+        control(session, args.device, args.return_button, args.input_profile, manual_only=args.manual_only)
 
 
 if __name__ == '__main__':

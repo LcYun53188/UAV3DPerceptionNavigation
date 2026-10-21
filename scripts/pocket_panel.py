@@ -85,8 +85,8 @@ class PocketPanel:
         self.make_switch(top, 8, 'SD · R1', ['正常', '返航'], [-1, 1], 1)
         middle = tk.Frame(controls, bg=CARD)
         middle.pack(fill='x', pady=12)
-        self.make_switch(middle, 6, 'SB · L2 / 主模式', ['手动 −1', '定点 0', '自动 +1'], [-1, 0, 1], 0)
-        self.make_switch(middle, 7, 'SC · R2 / 随主模式切换', self.model.sc_labels, [-1, 0, 1], 1)
+        self.make_switch(middle, 6, 'SB · CH6 / 主模式', ['手动 988µs', '悬停 1500µs', '任务 2012µs'], [-1, 0, 1], 0)
+        self.make_switch(middle, 7, 'SC · CH7 / 上−1 · 中0 · 下+1', self.model.sc_labels, [-1, 0, 1], 1)
         sticks = tk.Frame(controls, bg=CARD)
         sticks.pack(pady=(5, 0))
         self.left = Stick(sticks, self.model, 4, 3, '左摇杆 · 偏航 / 油门', throttle=True)
@@ -275,9 +275,9 @@ class PocketPanel:
                     selected = channels[channel - 1] == value
                     button.configure(bg=ACCENT if selected else '#304052', fg=BG if selected else INK)
                     if channel == 7:
-                        button.configure(text=self.model.sc_labels[index], state='disabled' if self.model.main_mode == 'POSITION' else 'normal')
+                        button.configure(text=self.model.sc_labels[index], state='normal')
             hint = {'MANUAL': f'手动请求：{self.model.requested_mode}；SC 选择控制 / 定位方式',
-                    'POSITION': '定点请求：VIO 保持接入；SC 档位不改变定位源',
+                    'POSITION': f'悬停请求：{self.model.requested_mode}；SC 选择融合定点／纯光流／定高',
                     'AUTO': f'自动请求：{self.model.sc_labels[int(channels[6])+1]}；需先在准备档通过准入'}[self.model.main_mode]
             landing = {'AUTO':'避障返航并降落','MANUAL':'原地缓慢降落','POSITION':'原地缓慢降落'}[self.model.main_mode]
             requirement={'MANUAL':'原地慢降需有效的局部位置与高度',

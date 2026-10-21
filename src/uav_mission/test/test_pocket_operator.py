@@ -13,8 +13,11 @@ def operator():
         operator_navigation_enabled=True, clock_fault_latched=False, active_goal=None, owner='NONE',
         land_committed=False, generation=1, segment=None, phase='IDLE', reason='',
         samples={'vehicle_status': SimpleNamespace(system_id=8,component_id=1,failsafe=False,
-            arming_state=1,pre_flight_checks_pass=True),
+            arming_state=1,nav_state=2,pre_flight_checks_pass=True),
             'vehicle_land_detected': SimpleNamespace(landed=True),
+            'vehicle_attitude': SimpleNamespace(q=[1.,0.,0.,0.]),
+            'battery_status': SimpleNamespace(connected=True,warning=0,remaining=1.),
+            'vehicle_local_position': SimpleNamespace(z_valid=True,v_z_valid=True,z=-1.,vz=0.,epv=.1),
             'manual_control_setpoint': SimpleNamespace(valid=True,data_source=2,
                 roll=0.,pitch=0.,yaw=0.,throttle=-1.)},
         fresh=lambda *_: True, speed=lambda: 0., healthy=lambda **_:True,
@@ -38,6 +41,79 @@ def test_sa_requests_arm_only_with_real_qgc_input_and_low_centered_sticks():
     assert calls==[(400,1)]
 
 
+def test_stabilized_rescue_ignores_vio_and_xy_but_keeps_native_attitude_checks():
+    f,calls=operator();f.healthy=lambda **_:False;f.vio_healthy=lambda:False
+    f.samples['vehicle_status'].failsafe=True
+    f.samples.pop('vehicle_local_position')
+    assert FlightServer.operator_command(f,'STABILIZED')==(True,'STABILIZED_MODE_REQUESTED')
+    assert calls==[(176,1,7)]  # STABILIZED, never ACRO (main mode 5).
+    f.samples['vehicle_status'].failsafe=False
+    f.samples['vehicle_status'].nav_state=15
+    assert FlightServer.operator_command(f,'ARM')==(True,'ARM_REQUESTED')
+    f.samples['vehicle_attitude'].q=[float('nan')]*4
+    assert not FlightServer.operator_command(f,'STABILIZED')[0]
+    assert calls==[(176,1,7),(400,1)]
+
+
+def test_native_land_does_not_require_vio_or_horizontal_localization():
+    f,calls=operator();f.healthy=lambda **_:False
+    f.samples['vehicle_land_detected'].landed=False
+    f.samples['vehicle_local_position'].xy_valid=False
+    f.change=lambda phase,reason:setattr(f,'phase',phase)
+    assert FlightServer.operator_command(f,'LAND')[0]
+    assert calls==[(21,)]
+
+
+@pytest.mark.parametrize('fault',['attitude','height','battery','source_age','ev_height','fake_height','no_aid'])
+def test_altitude_only_requires_native_height_and_confirmed_non_vio_source(fault):
+    import time
+    f,calls=operator()
+    f.vio_gate=SimpleNamespace(samples={'flags':SimpleNamespace(cs_ev_hgt=False,cs_fake_hgt=False,cs_rng_hgt=True,cs_baro_hgt=True)},received={'flags':time.monotonic()})
+    assert FlightServer.operator_command(f,'ALTITUDE')==(True,'ALTITUDE_MODE_REQUESTED')
+    assert calls==[(176,1,2)]
+    calls.clear()
+    if fault=='attitude':f.samples['vehicle_attitude'].q=[0.]*4
+    elif fault=='height':f.samples['vehicle_local_position'].z_valid=False
+    elif fault=='battery':f.samples['battery_status'].remaining=.1
+    elif fault=='source_age':f.vio_gate.received['flags']=0.
+    elif fault=='ev_height':f.vio_gate.samples['flags'].cs_ev_hgt=True
+    elif fault=='fake_height':f.vio_gate.samples['flags'].cs_fake_hgt=True
+    else:f.vio_gate.samples['flags'].cs_rng_hgt=f.vio_gate.samples['flags'].cs_baro_hgt=False
+    assert not FlightServer.operator_command(f,'ALTITUDE')[0]
+    assert calls==[]
+
+
+def test_vio_height_and_yaw_flow_horizontal_is_not_pure_flow():
+    f,calls=operator();f.vio_gate=SimpleNamespace(flow_horizontal=True,pure_flow=False)
+    f.vio_healthy=lambda:True
+    assert FlightServer.operator_command(f,'FLOW_POSITION')==(False,'PURE_FLOW_REQUIRES_INDEPENDENT_FLOW_LOCAL_SESSION')
+    assert calls==[]
+
+
+@pytest.mark.parametrize('pure_flow',[True,False])
+def test_assisted_position_accepts_only_a_confirmed_active_source(pure_flow):
+    f,calls=operator();f.vio_gate=SimpleNamespace(pure_flow=pure_flow);f.vio_healthy=lambda:True
+    assert FlightServer.operator_command(f,'ASSISTED_POSITION')[0]
+    assert calls==[(176,1,3)]
+    calls.clear();f.vio_healthy=lambda:False
+    assert not FlightServer.operator_command(f,'ASSISTED_POSITION')[0]
+    assert calls==[]
+
+
+def test_matrix_sa_requires_confirmed_selected_mode_and_another_physical_edge():
+    from pocket_operator_session import arm_from_switch,switches_for
+    f,calls=operator();s=switches_for('pocket-rc-v2')
+    s.levels={4:True,5:-1,6:1,7:False}
+    f.operator_command=lambda verb:FlightServer.operator_command(f,verb)
+    f.operator_mode_ready=lambda verb:FlightServer.operator_mode_ready(f,verb)
+    assert arm_from_switch(f,s)==(False,'ARM_MANUAL_MODE_REQUESTED_RETRY_SWITCH')
+    assert calls==[(176,1,7)]
+    f.samples['vehicle_status'].nav_state=15
+    assert calls==[(176,1,7)]  # Telemetry confirmation never auto-arms.
+    assert arm_from_switch(f,s)==(True,'ARM_REQUESTED')
+    assert calls==[(176,1,7),(400,1)]
+
+
 @pytest.mark.parametrize('fault',['uncalibrated','throttle','airborne','busy','wrong_aircraft','second_writer','freshness'])
 def test_arm_rejects_missing_authority_without_outputs(fault):
     f,calls=operator()
@@ -50,6 +126,57 @@ def test_arm_rejects_missing_authority_without_outputs(fault):
     elif fault=='freshness':f.fresh=lambda *_:False
     assert not FlightServer.operator_command(f,'ARM')[0]
     assert calls==[]
+
+
+@pytest.mark.parametrize('fault,expected',[
+    ('busy', 'ARM_CONTROL_BUSY'), ('land', 'ARM_NOT_LANDED_OR_MOVING'),
+    ('switch', 'ARM_SWITCH_NOT_ENABLED'), ('health', 'ARM_HEALTH_NOT_READY'),
+    ('vio', 'ARM_LOCALIZATION_NOT_READY:VIO_SOURCE_LOST'),
+    ('preflight', 'PX4_PREFLIGHT_NOT_READY'), ('throttle', 'ARM_THROTTLE_NOT_LOW'),
+    ('sticks', 'ARM_STICKS_NOT_CENTERED'),
+])
+def test_arm_rejection_identifies_the_failed_check_without_commands(fault, expected):
+    f,calls=operator()
+    if fault=='busy':f.owner='TASK'
+    elif fault=='land':f.samples['vehicle_land_detected'].landed=False
+    elif fault=='switch':f.operator_arm_enabled=False
+    elif fault in ('health','vio'):
+        f.healthy=lambda **_:False
+        if fault=='vio':f.vio_gate=SimpleNamespace(fault='VIO_SOURCE_LOST',reason='VIO_SOURCE_INVALID')
+    elif fault=='preflight':f.samples['vehicle_status'].pre_flight_checks_pass=False
+    elif fault=='throttle':f.samples['manual_control_setpoint'].throttle=0.
+    elif fault=='sticks':f.samples['manual_control_setpoint'].roll=.5
+    assert FlightServer.operator_command(f,'ARM')==(False,expected)
+    assert calls==[]
+
+
+@pytest.mark.parametrize('mode',[3,4,5,14,17,18,20])
+def test_sa_cannot_arm_in_a_native_auto_or_offboard_mode(mode):
+    f,calls=operator();f.samples['vehicle_status'].nav_state=mode
+    assert FlightServer.operator_command(f,'ARM')==(False,'ARM_REQUIRES_MANUAL_MODE')
+    assert calls==[]
+
+
+@pytest.mark.parametrize('mode',[0,1,2,10,15])
+def test_sa_retains_explicit_manual_mode_arming(mode):
+    f,calls=operator();f.samples['vehicle_status'].nav_state=mode
+    assert FlightServer.operator_command(f,'ARM')==(True,'ARM_REQUESTED')
+    assert calls==[(400,1)]
+
+
+def test_switch_mode_preparation_never_queues_or_retries_an_arm():
+    from pocket_operator_session import arm_from_switch
+    f,calls=operator();f.samples['vehicle_status'].nav_state=17
+    f.operator_command=lambda verb:FlightServer.operator_command(f,verb)
+    assert arm_from_switch(f,SimpleNamespace())==(False,'ARM_MANUAL_MODE_REQUESTED_RETRY_SWITCH')
+    assert calls==[(176,1,3)]
+    # The mode ACK alone is insufficient: current PX4 status must confirm it.
+    assert f.samples['vehicle_status'].nav_state==17
+    f.samples['vehicle_status'].nav_state=2
+    assert calls==[(176,1,3)]
+    # Only a new explicit switch call can arm after actual mode confirmation.
+    assert arm_from_switch(f,SimpleNamespace())==(True,'ARM_REQUESTED')
+    assert calls==[(176,1,3),(400,1)]
 
 
 def test_manual_takeover_retires_task_before_mode_command():
@@ -78,7 +205,9 @@ def test_acro_rejects_missing_input_and_committed_landing():
 @pytest.mark.parametrize('operation', ['VIO_POSITION', 'FLOW_POSITION'])
 def test_requested_localization_cannot_silently_use_gnss(operation):
     f,calls=operator()
-    assert FlightServer.operator_command(f,operation)==(False,'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY')
+    expected=('PURE_FLOW_REQUIRES_INDEPENDENT_FLOW_LOCAL_SESSION' if operation=='FLOW_POSITION'
+              else 'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY')
+    assert FlightServer.operator_command(f,operation)==(False,expected)
     assert calls==[]
 
 
@@ -101,7 +230,7 @@ def test_manual_local_land_is_committed_native_output_and_cannot_be_overridden()
 def test_local_land_rejects_active_task_and_missing_position():
     f,calls=operator();f.samples['vehicle_land_detected'].landed=False;f.active_goal=object()
     assert FlightServer.operator_command(f,'LAND')==(False,'ACTIVE_TASK_USE_END_MISSION')
-    f.active_goal=None;f.healthy=lambda:False
+    f.active_goal=None;f.samples['vehicle_local_position'].z_valid=False
     assert FlightServer.operator_command(f,'LAND')==(False,'LAND_POSITION_OR_HEIGHT_UNAVAILABLE')
     assert calls==[]
 

@@ -23,7 +23,7 @@ from rclpy.node import Node
 from rclpy.task import Future
 from rclpy.qos import qos_profile_sensor_data
 from px4_msgs.msg import (VehicleStatus, VehicleLocalPosition, VehicleLandDetected,
-                          BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode,
+                          BatteryStatus, FailsafeFlags, VehicleCommandAck, OffboardControlMode, VehicleAttitude,
                           TrajectorySetpoint, VehicleCommand, VehicleOdometry, EstimatorStatusFlags, HomePosition, VehicleGlobalPosition,
                           EstimatorAidSource1d, EstimatorAidSource2d, EstimatorAidSource3d, EstimatorSelectorStatus, ManualControlSetpoint, DistanceSensor, SensorOpticalFlow)
 from nav_msgs.msg import Odometry
@@ -107,7 +107,8 @@ class FlightServer(PilotIntervention, Node):
         for name, kind in [('vehicle_status', VehicleStatus), ('vehicle_local_position', VehicleLocalPosition),
                            ('vehicle_land_detected', VehicleLandDetected), ('battery_status', BatteryStatus),
                            ('vehicle_command_ack', VehicleCommandAck), ('vehicle_odometry', VehicleOdometry), ('failsafe_flags',FailsafeFlags),
-                           ('home_position',HomePosition),('vehicle_global_position',VehicleGlobalPosition)]:
+                           ('home_position',HomePosition),('vehicle_global_position',VehicleGlobalPosition),
+                           ('vehicle_attitude',VehicleAttitude)]:
             version=getattr(kind,'MESSAGE_VERSION',0)
             suffix = f'_v{version}' if version else ''
             self.input_subscriptions[name] = self.create_subscription(kind, '/px4_7/fmu/out/'+name+suffix, self.callback(name),
@@ -682,13 +683,59 @@ class FlightServer(PilotIntervention, Node):
             and 2 <= message.data_source <= 7
             and all(math.isfinite(getattr(message, key)) for key in ('roll', 'pitch', 'yaw', 'throttle')))
 
+    def operator_native_ready(self, *, height=False, ground=False):
+        """Native attitude/height rescue must not depend on companion VIO or XY."""
+        required = [('vehicle_attitude', .5), ('battery_status', 1.5)]
+        if height: required.append(('vehicle_local_position', .5))
+        if ground: required.append(('vehicle_land_detected', 1.2))
+        if not all(name in self.samples and self.fresh(name, age) for name,age in required):
+            return False
+        attitude, battery = self.samples['vehicle_attitude'], self.samples['battery_status']
+        if (not all(math.isfinite(v) for v in attitude.q) or
+                not .9 <= sum(v*v for v in attitude.q) <= 1.1 or
+                not battery.connected or battery.warning != 0 or battery.remaining <= .2):
+            return False
+        if height:
+            p=self.samples['vehicle_local_position']
+            if (not p.z_valid or not p.v_z_valid or
+                    not all(math.isfinite(v) for v in (p.z,p.vz,p.epv)) or not 0 <= p.epv <= 1):
+                return False
+        return True
+
+    def operator_mode_ready(self, operation):
+        """Check actual aiding; a Position request alone never changes its source."""
+        if operation == 'STABILIZED':
+            return (True, 'ATTITUDE_READY') if FlightServer.operator_native_ready(self) else (False, 'ATTITUDE_NOT_READY')
+        if operation == 'ALTITUDE':
+            if not FlightServer.operator_native_ready(self,height=True):
+                return False, 'NATIVE_HEIGHT_NOT_READY'
+            gate=getattr(self,'vio_gate',None)
+            flags=getattr(gate,'samples',{}).get('flags')
+            if flags is None or time.monotonic()-getattr(gate,'received',{}).get('flags',float('-inf')) > 1.5:
+                return False, 'HEIGHT_SOURCE_NOT_CONFIRMED'
+            if flags.cs_ev_hgt:
+                return False, 'NON_VIO_HEIGHT_REQUIRES_INDEPENDENT_SESSION'
+            if flags.cs_fake_hgt or not (flags.cs_rng_hgt or flags.cs_baro_hgt):
+                return False, 'NATIVE_HEIGHT_AID_NOT_FUSED'
+            return True, 'NATIVE_HEIGHT_READY'
+        if operation in ('VIO_POSITION','FLOW_POSITION','ASSISTED_POSITION'):
+            gate=getattr(self,'vio_gate',None)
+            pure_flow=bool(gate is not None and getattr(gate,'pure_flow',False))
+            if operation=='FLOW_POSITION' and not pure_flow:
+                return False, 'PURE_FLOW_REQUIRES_INDEPENDENT_FLOW_LOCAL_SESSION'
+            if gate is None or operation=='VIO_POSITION' and pure_flow or not self.vio_healthy():
+                return False, 'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY'
+            return True, 'FLOW_FALLBACK_CONFIRMED' if pure_flow and operation=='ASSISTED_POSITION' else 'LOCALIZATION_CONFIRMED'
+        return True, 'MODE_READY'
+
     def operator_command(self, operation):
         """SITL Pocket owner uses the existing sole writer, never a second FMU publisher."""
         with self.lock:
             if not self.operator_enabled or self.clock_fault_latched or not self.fresh('vehicle_status', .75):
                 return False, 'OPERATOR_OR_STATUS_UNAVAILABLE'
             status = self.samples['vehicle_status']
-            if status.system_id != 8 or status.component_id != 1 or status.failsafe:
+            rescue=operation in ('STABILIZED','ALTITUDE','LAND')
+            if status.system_id != 8 or status.component_id != 1 or status.failsafe and not rescue:
                 return False, 'WRONG_AIRCRAFT_OR_FAILSAFE'
             if any(len(self.get_publishers_info_by_topic('/px4_7/fmu/in/'+topic)) != 1
                    for topic in ('vehicle_command','trajectory_setpoint','offboard_control_mode')):
@@ -696,8 +743,9 @@ class FlightServer(PilotIntervention, Node):
             if ((self.land_committed and self.active_goal) or
                     (self.owner == 'AUTOPILOT' and self.phase == 'FINAL_NATIVE_LAND')):
                 return False, 'LANDING_COMMITTED'
+            native_ground=status.nav_state in (VehicleStatus.NAVIGATION_STATE_STAB,VehicleStatus.NAVIGATION_STATE_ALTCTL)
             landed = (self.fresh('vehicle_land_detected', 1.2) and
-                      self.samples['vehicle_land_detected'].landed and self.speed() < .1)
+                      self.samples['vehicle_land_detected'].landed and (native_ground or self.speed() < .1))
             if operation == 'DISARM':
                 # Turning SA off retires automation; never force-disarm in air.
                 if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
@@ -736,7 +784,7 @@ class FlightServer(PilotIntervention, Node):
                     return False, 'ALREADY_LANDED'
                 if self.active_goal or self.owner != 'NONE':
                     return False, 'ACTIVE_TASK_USE_END_MISSION'
-                if not self.healthy():
+                if not FlightServer.operator_native_ready(self,height=True):
                     return False, 'LAND_POSITION_OR_HEIGHT_UNAVAILABLE'
                 self.command(21)
                 self.land_committed = True
@@ -744,27 +792,46 @@ class FlightServer(PilotIntervention, Node):
                 self.generation += 1
                 self.change('FINAL_NATIVE_LAND', 'OPERATOR_LOCAL_LAND_REQUESTED')
                 return True, 'NATIVE_LOCAL_LAND_REQUESTED'
-            if operation in ('MANUAL', 'ACRO', 'VIO_POSITION', 'FLOW_POSITION'):
-                if operation in ('VIO_POSITION', 'FLOW_POSITION'):
-                    gate = getattr(self, 'vio_gate', None)
-                    flow = bool(gate is not None and (getattr(gate, 'pure_flow', False) or getattr(gate, 'flow_horizontal', False)))
-                    if gate is None or flow != (operation == 'FLOW_POSITION') or not self.vio_healthy():
-                        return False, 'REQUESTED_LOCALIZATION_NOT_ACTIVE_OR_READY'
+            if operation in ('MANUAL', 'ACRO', 'VIO_POSITION', 'FLOW_POSITION','ASSISTED_POSITION','STABILIZED','ALTITUDE'):
+                ready,reason=FlightServer.operator_mode_ready(self,operation)
+                if not ready:return False,reason
                 if self.active_goal or self.owner in ('TASK','HOLD_CONTROLLER','PREFLIGHT'):
                     self.fault('PILOT_TAKEOVER')
                     self.owner = 'NONE'; self.generation += 1; self.segment = None
                 if self.owner=='AUTOPILOT' and self.phase in ('NATIVE_RTL_REQUEST','NATIVE_RTL'):
                     self.owner='NONE';self.generation+=1
                     self.change('IDLE','NATIVE_RTL_PILOT_TAKEOVER')
-                self.command(176, 1, 5 if operation == 'ACRO' else 3)
-                return True, 'ACRO_MODE_REQUESTED' if operation == 'ACRO' else 'POSITION_MODE_REQUESTED'
+                main_mode={'ACRO':5,'STABILIZED':7,'ALTITUDE':2}.get(operation,3)
+                self.command(176, 1, main_mode)
+                return True, {'ACRO':'ACRO','STABILIZED':'STABILIZED','ALTITUDE':'ALTITUDE'}.get(operation,'POSITION')+'_MODE_REQUESTED'
             if operation == 'ARM':
                 manual = self.samples['manual_control_setpoint']
-                if (self.active_goal or self.owner != 'NONE' or not landed or
-                    not self.operator_arm_enabled or not self.healthy(ground=True) or
-                    not status.pre_flight_checks_pass or manual.throttle > -.8 or
-                    max(abs(manual.roll), abs(manual.pitch), abs(manual.yaw)) > .15):
-                    return False, 'ARM_GROUND_OR_STICK_GATE'
+                if self.active_goal or self.owner != 'NONE':
+                    return False, 'ARM_CONTROL_BUSY'
+                if not landed:
+                    return False, 'ARM_NOT_LANDED_OR_MOVING'
+                if not self.operator_arm_enabled:
+                    return False, 'ARM_SWITCH_NOT_ENABLED'
+                if status.nav_state not in (VehicleStatus.NAVIGATION_STATE_MANUAL,
+                        VehicleStatus.NAVIGATION_STATE_ALTCTL, VehicleStatus.NAVIGATION_STATE_POSCTL,
+                        VehicleStatus.NAVIGATION_STATE_ACRO, VehicleStatus.NAVIGATION_STATE_STAB):
+                    # A landed aircraft can retain AUTO_TAKEOFF or AUTO_LAND.
+                    # Arming in that mode could resume native motion immediately.
+                    # Require a confirmed manual mode and a fresh operator edge.
+                    return False, 'ARM_REQUIRES_MANUAL_MODE'
+                native=status.nav_state in (VehicleStatus.NAVIGATION_STATE_STAB,VehicleStatus.NAVIGATION_STATE_ALTCTL)
+                arm_ready=(FlightServer.operator_native_ready(self,ground=True,
+                    height=status.nav_state==VehicleStatus.NAVIGATION_STATE_ALTCTL) if native else self.healthy(ground=True))
+                if not arm_ready:
+                    gate = getattr(self, 'vio_gate', None)
+                    reason = getattr(gate, 'fault', '') or getattr(gate, 'reason', '')
+                    return False, 'ARM_LOCALIZATION_NOT_READY:'+reason if reason else 'ARM_HEALTH_NOT_READY'
+                if not status.pre_flight_checks_pass:
+                    return False, 'PX4_PREFLIGHT_NOT_READY'
+                if manual.throttle > -.8:
+                    return False, 'ARM_THROTTLE_NOT_LOW'
+                if max(abs(manual.roll), abs(manual.pitch), abs(manual.yaw)) > .15:
+                    return False, 'ARM_STICKS_NOT_CENTERED'
                 # A new physical SA edge may prepare a new ground root after a
                 # pilot stop. It never revives the old Action or localization fault.
                 if self.phase == 'FAULT':
@@ -1494,7 +1561,9 @@ class FlightServer(PilotIntervention, Node):
             raw=self.samples['vehicle_status'].nav_state
             mode=('OFFBOARD' if raw==14 else 'AUTO_LAND' if raw in (18,20) else
                 'POSITION' if raw==VehicleStatus.NAVIGATION_STATE_POSCTL else
-                'ACRO' if raw==VehicleStatus.NAVIGATION_STATE_ACRO else 'OTHER')
+                'ACRO' if raw==VehicleStatus.NAVIGATION_STATE_ACRO else
+                'STABILIZED' if raw==VehicleStatus.NAVIGATION_STATE_STAB else
+                'ALTITUDE' if raw==VehicleStatus.NAVIGATION_STATE_ALTCTL else 'OTHER')
         remaining=(max(0.,self.config['runner_progress_max_age_s']-(now-self.runner_last_tick))
                    if self.runner_required and self.runner_sequence > 0 and self.owner=='TASK' else .1)
         status=ControlStatus(coordinator_instance=self.instance,

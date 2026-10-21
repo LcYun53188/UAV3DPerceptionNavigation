@@ -14,6 +14,24 @@ EVENT = struct.Struct('<IhBB')
 INIT, BUTTON, AXIS = 0x80, 1, 2
 
 
+def qgc_environment(environment):
+    """Keep physical Pocket axes signed instead of using SDL trigger scaling.
+
+    QGC exposes these four signed axes followed by unmapped USB axes 4..7.
+    Existing QGC calibration must be redone after changing this mapping.
+    """
+    result = dict(environment)
+    mapping = ('0300fcb609120000544f000011010000,EdgeTX Radiomaster Pocket Joystick,'
+               'a:b0,b:b1,x:b3,y:b4,back:b10,guide:b12,start:b11,'
+               'leftstick:b13,rightstick:b14,leftshoulder:b6,rightshoulder:b7,'
+               'leftx:a0,lefty:a1,rightx:a2,righty:a3,platform:Linux,')
+    existing = result.get('SDL_GAMECONTROLLERCONFIG', '').strip()
+    opentx_mapping = mapping.replace('0300fcb609120000544f000011010000',
+                                    '0300bf1e09120000544f000011010000').replace('EdgeTX', 'OpenTX')
+    result['SDL_GAMECONTROLLERCONFIG'] = '\n'.join(filter(None, (existing, mapping, opentx_mapping)))
+    return result
+
+
 def devices():
     result = []
     for device in sorted(Path('/dev/input').glob('js*')):

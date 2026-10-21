@@ -21,17 +21,18 @@ class PocketModel:
 
     @property
     def requested_mode(self):
-        if self.main_mode == 'MANUAL':
-            return {-1: 'ACRO', 0: 'FLOW_POSITION', 1: 'VIO_POSITION'}[self.values[6]]
-        return 'VIO_POSITION' if self.main_mode == 'POSITION' else 'AUTO'
+        if self.main_mode == 'AUTO':
+            return 'AUTO'
+        return {-1: 'ASSISTED_POSITION', 0: 'FLOW_POSITION',
+                1: 'ALTITUDE' if self.main_mode == 'POSITION' else 'STABILIZED'}[self.values[6]]
 
     @property
     def sc_labels(self):
         if self.main_mode == 'AUTO':
             return ('起飞准备', '起飞并执行任务', '手动干预')
         if self.main_mode == 'POSITION':
-            return ('VIO 保持', 'VIO 保持', 'VIO 保持')
-        return ('Acro', '光流接入', 'VIO 接入')
+            return ('VIO＋光流定点', '纯光流定点', '仅定高')
+        return ('VIO＋光流自稳', '纯光流自稳', '纯姿态自稳')
 
     def __init__(self):
         self.values = [0., 0., -1., 0., -1., -1., -1., -1., -1., -1., -1.] + [0.] * 5

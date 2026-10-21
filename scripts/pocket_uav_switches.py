@@ -1,18 +1,23 @@
-"""UAV AETR virtual profile, deliberately separate from the legacy USB mapping."""
+"""SB/SC flight matrix shared by virtual AETR and physical Pocket CH5--8.
+
+CH6/7: 988/1500/2012 us -> -1/0/+1; CH8 high is the safety edge.
+Physical buttons are deliberately disabled: the inspected wheel is not SE.
+"""
 import time
 
 
 class PocketUavSwitches:
-    def __init__(self):
+    def __init__(self, *, task_buttons=True):
         self.raw, self.levels = {}, {}
         self.prepared_edge = False
+        self.task_buttons = task_buttons
 
     def receive(self, event, now):
         kind, index, value = event['kind'], event['index'], event['value']
         if kind == 'axis' and index in (4, 5, 6, 7):
             key = index
             level = (1 if value > 20000 else -1 if value < -20000 else 0) if index in (5, 6) else value > 20000
-        elif kind == 'button' and index in (0, 1, 2):
+        elif self.task_buttons and kind == 'button' and index in (0, 1, 2):
             key, level = 256 + index, bool(value)
         else:
             return
@@ -37,17 +42,19 @@ class PocketUavSwitches:
             return ['DISARM']
         if 5 in changed:
             self.prepared_edge = False
-        # Manual takeover has priority over task pulses. SB position always
-        # requests VIO, regardless of the previous SC position.
-        if self.main_mode != 1 and (5 in changed or self.main_mode == -1 and 6 in changed):
+        # Safety beats mode changes, ARM and task pulses in the same sample.
+        if 7 in changed and self.safety_held:
+            self.prepared_edge = False
+            return ['END_MISSION' if self.navigation else 'LAND']
+        if self.safety_held:
+            self.prepared_edge = False
+            return ['BLOCKED_SAFETY_HELD'] if changed else []
+        if self.main_mode != 1 and (5 in changed or 6 in changed):
             return [self.requested_mode]
         if 257 in changed and self.levels[257]:
             self.prepared_edge = False
             return ['CANCEL']
         commands = ['ARM'] if 4 in changed and self.arm else []
-        if 7 in changed and self.levels[7]:
-            self.prepared_edge = False
-            return commands + ['END_MISSION' if self.navigation else 'LAND']
         if self.navigation and (5 in changed or 6 in changed):
             if self.aux_mode == -1:
                 self.prepared_edge = True
@@ -74,9 +81,14 @@ class PocketUavSwitches:
 
     @property
     def requested_mode(self):
-        if self.main_mode == 0:
-            return 'VIO_POSITION'
-        return {-1: 'ACRO', 0: 'FLOW_POSITION', 1: 'VIO_POSITION'}[self.aux_mode]
+        if self.navigation:
+            return 'ASSISTED_POSITION'  # Preparation/arming never enters Auto.
+        return {-1: 'ASSISTED_POSITION', 0: 'FLOW_POSITION',
+                1: 'ALTITUDE' if self.main_mode == 0 else 'STABILIZED'}[self.aux_mode]
+
+    @property
+    def safety_held(self):
+        return bool(self.levels.get(7, False))
 
     @property
     def navigation(self):
