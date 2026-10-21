@@ -25,12 +25,16 @@ DOC_GROUPS = {
     'history': '历史资料',
 }
 SCRIPT_GROUPS = (
-    '统一入口与环境', '构建', '安装与依赖准备', '运行与交互',
+    '统一入口与环境', '仿真启动实现', '构建', '安装与依赖准备', '运行与交互',
     '场景、标定与资产准备', '在线检查与故障回归',
     '离线分析、验收与归档', '共享实现与原生辅助源码', '包内与场景启动脚本',
 )
 DESCRIPTIONS = {
-    'sim.sh': '算法仿真与 PX4 子命令统一分发入口；具体参数见对应手册。',
+    'sim.sh': '仿真统一入口；无参数进入交互菜单，也支持算法与 PX4 子命令。',
+    'environment.sh': '集中加载 PX4／Mission／VIO 环境，再执行所选仿真运行器。',
+    'compat.sh': '历史启动脚本共用的兼容转发器，不维护场景或任务参数。',
+    'launch_scene.sh': 'Gazebo 场景与传感器桥启动实现，保持原单实例锁。',
+    'launch_isaac.sh': 'Isaac Sim 4.5 UI 启动实现，复用已有安装与环境变量。',
     'with_venv.sh': '进入工作区，加载 .venv、系统 ROS 2 与 install_uav。',
     'with_px4_sim.sh': '加载隔离的 PX4 消息与仿真环境。',
     'build_algorithm_sim.sh': '构建 EGO、nvblox、算法导航与显示插件。',
@@ -88,7 +92,7 @@ def script_files() -> list[Path]:
              and '__pycache__' not in p.parts and not p.name.startswith('test_')
              and p.suffix in {'.py', '.sh', '.cpp', '.hpp', '.env'}
              and p.name != 'nav_launch.local.env']
-    files += list((ROOT / 'simulation/scripts').glob('*.sh'))
+    files += [p for p in (ROOT / 'simulation/scripts').glob('*.sh') if not p.is_symlink()]
     for package in PACKAGES:
         directory = ROOT / 'src' / package / 'scripts'
         if directory.exists():
@@ -111,32 +115,39 @@ def description(path: Path) -> str:
 def script_group(path: Path) -> str:
     relative = path.relative_to(ROOT).as_posix()
     name = path.name
+    if relative.startswith('scripts/simulation/'):
+        return SCRIPT_GROUPS[1]
     if not relative.startswith('scripts/'):
-        return SCRIPT_GROUPS[8]
-    if name in {'sim.sh', 'sim_control.py', 'sim_ros_control.py',
+        return SCRIPT_GROUPS[9]
+    if name in {'sim.sh', 'sim_menu.py', 'sim_control.py', 'sim_ros_control.py',
                 'with_venv.sh', 'with_px4_sim.sh', 'maintain_catalogs.py'}:
         return SCRIPT_GROUPS[0]
     if name.startswith('build_'):
-        return SCRIPT_GROUPS[1]
-    if '/setup/' in relative or name.startswith(('install_', 'vendor_')):
         return SCRIPT_GROUPS[2]
+    if '/setup/' in relative or name.startswith(('install_', 'vendor_')):
+        return SCRIPT_GROUPS[3]
     if name in {'bt_flight_client.py', 'bt_operator_intent.py',
                 'pocket_operator_session.py', 'pocket_panel_model.py',
                 'pocket_switches.py', 'pocket_uav_switches.py',
                 'pocket_virtual_joystick.py', 'no_gnss_flight_cases.py'}:
-        return SCRIPT_GROUPS[7]
+        return SCRIPT_GROUPS[8]
     if name == 'pocket_validation_input.py':
-        return SCRIPT_GROUPS[5]
+        return SCRIPT_GROUPS[6]
     if name.startswith(('run_', 'usb_', 'bt_', 'pocket_', 'select_',
                         'localization_selection_', 'oakd_vio_motion_ui', 'record_nav_')):
-        return SCRIPT_GROUPS[3]
-    if name.startswith('prepare_'):
         return SCRIPT_GROUPS[4]
-    if name.startswith(('check_', 'audit_', 'px4_', 'inspect_', 'survey_', 'measure_')):
+    if name.startswith('prepare_'):
         return SCRIPT_GROUPS[5]
-    if name.startswith(('analyze_', 'assess_', 'diagnose_', 'plot_', 'freeze_', 'record_')):
+    if name.startswith(('check_', 'audit_', 'px4_', 'inspect_', 'survey_', 'measure_')):
         return SCRIPT_GROUPS[6]
-    return SCRIPT_GROUPS[7]
+    if name.startswith(('analyze_', 'assess_', 'diagnose_', 'plot_', 'freeze_', 'record_')):
+        return SCRIPT_GROUPS[7]
+    return SCRIPT_GROUPS[8]
+
+
+def compatibility_links() -> list[Path]:
+    return sorted(p for directory in (ROOT / 'scripts', ROOT / 'simulation/scripts')
+                  for p in directory.iterdir() if p.is_symlink() and p.suffix in {'.sh', '.py'})
 
 
 def markdown_link(path: Path, owner: Path) -> str:
@@ -158,9 +169,8 @@ def script_catalog() -> str:
         lines.append('')
     lines += ['## 兼容入口', '', '旧路径为相对符号链接，与规范路径使用同一份实现。', '',
               '| 旧路径 | 规范路径 |', '| --- | --- |']
-    for path in sorted((ROOT / 'scripts').iterdir()):
-        if path.is_symlink() and path.suffix in {'.sh', '.py'}:
-            lines.append(f'| {markdown_link(path, owner)} | {markdown_link(path.resolve(), owner)} |')
+    for path in compatibility_links():
+        lines.append(f'| {markdown_link(path, owner)} | {markdown_link(path.resolve(), owner)} |')
     return '\n'.join(lines) + '\n'
 
 
@@ -284,8 +294,8 @@ def check() -> int:
                     errors.append(f'{path.relative_to(ROOT)}: {result.stderr.strip()}')
         except (SyntaxError, UnicodeError) as error:
             errors.append(f'{path.relative_to(ROOT)}: {error}')
-    for path in (ROOT / 'scripts').iterdir():
-        if path.is_symlink() and path.suffix in {'.sh', '.py'} and (
+    for path in compatibility_links():
+        if (
                 not path.exists() or not path.resolve().is_relative_to(ROOT / 'scripts')):
             errors.append(f'Broken or escaping compatibility link: {path.relative_to(ROOT)}')
     if (ROOT / '.git').exists():

@@ -1,8 +1,12 @@
 # Pocket 无 GNSS VIO 与静态避障仿真
 
-该入口在本机运行 Gazebo、PX4、cuVSLAM SDK16、光流／测距、实际前向深度、nvblox 与 EGO。无需 Jetson 或实体相机。启动后保持未解锁；任务由虚拟 Pocket 面板发起。
+该入口在本机运行 Gazebo、PX4、cuVSLAM SDK16、光流／测距、实际前向深度、nvblox 与 EGO。无需 Jetson 或实体相机。启动后保持未解锁；任务由实体 Pocket 或虚拟面板发起。
 
 当前是显式实验配置：SDK16 的全局协方差资格仍待验证，仅用于 Gazebo/PX4 仿真。链路就绪、任务成功、真实绕障分别记录，不互相替代；尚不代表动态障碍或实机飞行验收。
+
+全局仿真关闭 GNSS 融合及 Gazebo NavSat 数据源，参见[统一策略](../simulation/LAUNCHERS.md#全局无-gnss-策略)。
+
+总菜单的“纯手动飞行”使用 `./scripts/sim.sh run manual`，在相同仓库／VIO／建图链路中额外启用 `--manual-only`：拒绝自动任务意图，不预热 BT Runner，FlightServer 的自动导航许可始终关闭。下文的 `vio-pocket` 入口继续支持由操作员发起自动任务，两种会话用途不同。手动入口自动优先实体 Pocket（8 轴／24 按钮），没有实体则复用或创建虚拟设备（9 轴／3 按钮）；实体连接失败会明确报错，不自动更换操纵来源。QGC 校准及新鲜操纵输入仍是解锁条件。手动会话结果不等同于飞行验收。
 
 ## 启动
 
@@ -27,6 +31,16 @@
 
 设备必须是 `Pocket Virtual UAV AETR`、9 轴／3 按钮。已有 QGC 校准可通过 `--qgc-config-from /绝对路径/QGroundControl.ini` 导入。QGC 必须启用该摇杆且处于 Fly 页面；摇杆配置页面仅显示原始输入，不发送飞控控制。首次校准请按[虚拟 Pocket 文档](VIRTUAL_POCKET_PANEL.md)操作。
 
+实体 EdgeTX／OpenTX Pocket 的完整会话使用 `pocket-rc-v2` 配置；保留实体 8 轴／24 按钮的识别和校准检查，不需要虚拟面板：
+
+```bash
+./scripts/sim.sh run vio-pocket --input-profile pocket-rc-v2 \
+  --device /dev/input/by-id/usb-OpenTX_Radiomaster_Pocket_Joystick_00000000001B-joystick \
+  --qgc-config /绝对路径/QGroundControl.ini --session-duration 14400
+```
+
+实体配置与虚拟 AETR 共用 SB 手动／悬停／任务、SC 上下文三档和 SD 降落／返航；SA 仍为解锁／地面上锁，实体未验证的按钮不绑定 SE。旧二态操作须显式选择 `legacy-usb`。完整矩阵与定位能力限制见[控件定义](VIRTUAL_POCKET_PANEL.md#最新控件定义)。启动时保持原始开关档位，不自动发起动作；任务仍要求新的开关边沿、有效摇杆输入和完整定位／地图准入。纯手动入口继续禁止自动任务。Pocket 会话在 PX4 生成机体前等待 SDK 参数核验及双目／IMU 订阅就绪，使真实出生／落地过程能够被 VIO 观察；该顺序检查不代表定位或飞行已经就绪。
+
 Pocket 入口使用 480×300 双目及重新生成的标定，前向深度保持 320×240；光流 OpenCV 与 BLAS／OMP 使用单线程预算，静止面板仅在状态变化时重绘。启动预热和源稳定性检查需要数分钟；收到 `POCKET_SESSION <目录>` 后才完成启动前检查。证据位于 `.cache/simulation/vio-sensors/<UUID>/`，包括 `manifest.json`、`sensor-preflight.json`、`flight-admission.json`、`live-heartbeat.json` 和各进程日志。校准、资产、会话、控制实例均绑定；启动检查未完成时 ARM/PREPARE/RUN 请求会被拒绝。Pocket 源预热阶段若检查失败，会保留可视化诊断现场，记录 `POCKET_PREFLIGHT_BLOCKED`，并保持未生成飞行准入文件；不会自动重置失效源或起飞。
 
 原先返回任务起点的配置已通过一次实际 Gazebo/PX4 静态绕障、到点悬停、返航、最终悬停、慢速降落及上锁的完整验收。独立检查确认实际地图中有障碍占据体素、直线路线确被阻断、接纳轨迹和飞机真值保持碰撞包络、源持续有效并完成清理。该结果属于自动验收运行；可视化 Pocket 会话另做地面就绪检查。轨迹图、失败诊断与历史证据见[原策略验证报告](../validation/simulation/2026-10-15-vio-fusion-diagnostics/REPORT.md)。改用 PX4 Home 的独立验证结果见[返航点策略报告](../validation/simulation/2026-10-15-px4-home-return/REPORT.md)。
@@ -39,7 +53,20 @@ SDK 原单精度 Schur 边缘化存在已复现的数值失效：正定输入可
 
 ## 操作
 
-SB 顺序：−1 手动、0 定点、+1 自动。手动时 SC 顺序：−1 Acro、0 光流、+1 VIO；定点保持 VIO。此 VIO 会话固定使用启动时选择的 VIO 与辅助光流／测距配置，SC 的独立光流请求会拒绝跨配置切换；独立光流请在落地且未解锁时关闭本会话，再用 `px4-flow-pocket` 重新启动。
+### Position 手动起飞与未起飞自动上锁
+
+融合辅助／定点档实际使用 PX4 Position，油门用于控制升降速度，中位用于保持高度。
+本仓库锁定的 PX4 在油门超过约 65% 行程（`manual_control_setpoint.throttle > 0.3`）
+时请求起飞；只从最低推到中位仍不能起飞。起飞推力还有 `MPC_TKO_RAMP_T` 爬升过程，
+本配置为 3 秒，短促推高后立即拉低可能只使机体短暂离地。
+
+确认定位 READY、QGC 在 Fly 页面、SB 手动、SC 上档、SD 释放后，油门最低并拨 SA 解锁。
+需要手动起飞时，平稳推过上述门槛，观察实际离地后将油门回中保持高度；整个过程由飞手操作。
+`COM_DISARM_PRFLT=10` 表示解锁后未及时起飞会自动上锁，停桨本身不说明 USB 或 VIO 掉线。
+遇到“推油门无效”时先在上锁状态比较 HID axis 2 与 PX4 实际油门，再看本轮 ULog 中的
+解锁、油门、起飞及上锁原因；不要通过关闭自动上锁保护来掩盖输入或操作问题。
+
+SB 顺序：−1 手动、0 悬停、+1 任务；SC 顺序为上 −1／中 0／下 +1。手动时为融合辅助／纯光流／Stabilized 纯姿态，悬停时为融合定点／纯光流定点／无 VIO 定高。此 VIO 会话固定使用启动时选择的 VIO 与辅助光流／测距配置，独立纯光流、无 VIO 定高和空中自动降级尚未接入；不满足实际来源条件的请求会拒绝。独立光流请在落地且未解锁时关闭本会话，再用 `run flow-pocket` 重新启动。任务档及 SD 的操作如下，两种输入共用这些规则。
 
 执行任务时先 SB=+1、SC=−1 准备，再 SA 解锁、SC=0 启动。SC=+1 手动干预：先暂停并停止，再交给原生 VIO Position；四轴（含油门）居中后切回 SC=0，重新取得 Offboard 并从当前位置规划继续。SE 短按暂停／继续，长按取消；手动干预期间短按不会恢复自动控制。交接条件见[面板说明](VIRTUAL_POCKET_PANEL.md#自动飞行中的手动干预)。初始开关状态不启动任务，准备与执行要求新的操作边沿及 QGC 新鲜控制输入。
 

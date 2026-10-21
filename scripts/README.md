@@ -2,13 +2,16 @@
 
 [项目首页](../README.md) · [文档总目录](../docs/README.md) · [维护约定](../docs/MAINTENANCE.md)
 
-所有命令从项目根目录运行。构建脚本位于 `scripts/build/`，安装与依赖准备位于 `scripts/setup/`；根目录旧 `.sh`／构建 `.py` 文件通过相对符号链接继续可用。Python 构建器已归入 `build/`；运行器、共享模块与原生辅助源码按现有导入布局维护，下方按用途完整分类。
+所有命令从项目根目录运行。构建脚本位于 `scripts/build/`，安装与依赖准备位于 `scripts/setup/`；仿真启动实现在 `scripts/simulation/`，日常只使用 `sim.sh`。根目录旧 `.sh`／构建 `.py` 文件与 `simulation/scripts/` 旧入口通过相对符号链接继续可用。Python 构建器已归入 `build/`；运行器、共享模块与原生辅助源码按现有导入布局维护，下方按用途完整分类。
 
 ## 环境与使用方式
 
 | 工具类型 | 调用方式 | 说明 |
 | --- | --- | --- |
-| 算法仿真 | `./scripts/sim.sh <子命令>` | 受管会话复用 ROS 域、Gazebo 分区与场景 |
+| 仿真总入口 | `./scripts/sim.sh` 或 `./scripts/sim.sh menu` | 操作方式 → 功能配置 → 场景；检查和高级工具单独分组 |
+| 配置启动 | `./scripts/sim.sh run <类型> [选项]` | 与菜单共用默认值和校验；支持 `--config`、`--save`、`--dry-run` |
+| 算法控制 | `./scripts/sim.sh algorithm <动作>` | 受管会话复用 ROS 域、Gazebo 分区与场景 |
+| 专项仿真 | `./scripts/sim.sh advanced <运行器> [参数]` | 向原运行器传参；旧命令继续兼容 |
 | ROS／硬件 Python | `./scripts/with_venv.sh python scripts/<工具>.py ...` | .venv、ROS 2 与 install_uav |
 | PX4 Python | `./scripts/with_px4_sim.sh python scripts/<工具>.py ...` | 隔离 PX4 消息环境；额外任务环境按工具手册加载 |
 | 离线纯 Python | `python3 scripts/<工具>.py ...` | 是否需要 NumPy 等依赖，以源码与手册为准 |
@@ -20,6 +23,7 @@
 
 ## 推荐入口
 
+- 总启动菜单、配置与脚本分工：[仿真启动规划](../docs/simulation/LAUNCHERS.md)。
 - 算法建图、探索、地图包：[仿真控制手册](../docs/simulation/SIMULATION_CONTROL.md)。
 - PX4、BT 与取消／降落：[本机 PX4](../simulation/px4/README.md)、[任务树](../src/uav_bt/README.md)。
 - 虚拟 Pocket 面板与模式：[控件及 QGC 接入](../docs/flight/VIRTUAL_POCKET_PANEL.md)。
@@ -35,11 +39,27 @@
 | 文件 | 用途 |
 | --- | --- |
 | [scripts/maintain_catalogs.py](maintain_catalogs.py) | Generate workspace catalogs and check local documentation/script syntax without running tools. |
-| [scripts/sim.sh](sim.sh) | 算法仿真与 PX4 子命令统一分发入口；具体参数见对应手册。 |
+| [scripts/sim.sh](sim.sh) | 仿真统一入口；无参数进入交互菜单，也支持算法与 PX4 子命令。 |
 | [scripts/sim_control.py](sim_control.py) | Manage one Gazebo EGO/nvblox session in this workspace (Linux). |
 | [scripts/sim_ros_control.py](sim_ros_control.py) | Bounded ROS operations for sim.sh; run via with_venv.sh. |
 | [scripts/with_px4_sim.sh](with_px4_sim.sh) | 加载隔离的 PX4 消息与仿真环境。 |
 | [scripts/with_venv.sh](with_venv.sh) | 进入工作区，加载 .venv、系统 ROS 2 与 install_uav。 |
+
+## 仿真启动实现
+
+| 文件 | 用途 |
+| --- | --- |
+| [scripts/simulation/__init__.py](simulation/__init__.py) | Workspace simulation launchers; importing this package never starts a simulation. |
+| [scripts/simulation/backends.py](simulation/backends.py) | 唯一的运行器与环境映射；保留旧入口、参数顺序、信号和退出码。 |
+| [scripts/simulation/cli.py](simulation/cli.py) | 统一仿真 CLI：配置启动、交互菜单、算法控制和高级运行器入口。 |
+| [scripts/simulation/compat.sh](simulation/compat.sh) | 历史启动脚本共用的兼容转发器，不维护场景或任务参数。 |
+| [scripts/simulation/environment.sh](simulation/environment.sh) | 集中加载 PX4／Mission／VIO 环境，再执行所选仿真运行器。 |
+| [scripts/simulation/launch_isaac.sh](simulation/launch_isaac.sh) | Isaac Sim 4.5 UI 启动实现，复用已有安装与环境变量。 |
+| [scripts/simulation/launch_scene.sh](simulation/launch_scene.sh) | Gazebo 场景与传感器桥启动实现，保持原单实例锁。 |
+| [scripts/simulation/manual.py](simulation/manual.py) | Pure manual session: choose a physical Pocket or own a virtual panel fallback. |
+| [scripts/simulation/menu.py](simulation/menu.py) | 交互仿真菜单；配置与启动策略由 profiles 和 backends 统一维护。 |
+| [scripts/simulation/policy.py](simulation/policy.py) | Workspace simulation policy: no satellite measurements or GNSS aiding. |
+| [scripts/simulation/profiles.py](simulation/profiles.py) | 仿真配置注册表：菜单、命令行和 JSON 配置共用的选项与参数规则。 |
 
 ## 构建
 
@@ -84,6 +104,7 @@
 | --- | --- |
 | [scripts/localization_selection_session.py](localization_selection_session.py) | Ground-only source selector attached to owned joint SITL; no flight publishers. |
 | [scripts/oakd_vio_motion_ui.py](oakd_vio_motion_ui.py) | Read-only hardware stereo/trajectory UI and operator-marked motion capture. |
+| [scripts/pocket_input.py](pocket_input.py) | Read-only Pocket identity checks before starting owned simulation processes. |
 | [scripts/pocket_panel.py](pocket_panel.py) | Desktop RadioMaster Pocket UAV panel: AETR channels and optional uinput output. |
 | [scripts/record_nav_debug_bag.sh](record_nav_debug_bag.sh) | 采集导航诊断 ROS bag。 |
 | [scripts/run_cuvslam_pose_transport.py](run_cuvslam_pose_transport.py) | Synthetic DDS tests of pose warmup and reset retirement, never real VIO/flight. |
@@ -92,13 +113,11 @@
 | [scripts/run_mid360_fastlio_rviz.sh](run_mid360_fastlio_rviz.sh) | 启动 MID360、FAST-LIO 与 RViz。 |
 | [scripts/run_mission_protocol_smoke.py](run_mission_protocol_smoke.py) | Owned ROS Action/service protocol smoke. Synthetic data; no vehicle I/O. |
 | [scripts/run_planning_context_smoke.py](run_planning_context_smoke.py) | Real EGO + context bridge DDS regression on a synthetic ESDF, no flight outputs. |
-| [scripts/run_px4_flight.sh](run_px4_flight.sh) | 在隔离环境中启动 PX4 任务运行器。 |
 | [scripts/run_px4_flight_tasks.py](run_px4_flight_tasks.py) | Exercise real ExecuteMission against owned x500 SITL, with independent truth. |
 | [scripts/run_px4_microxrce.sh](run_px4_microxrce.sh) | 启动 PX4 Micro XRCE-DDS Agent。 |
 | [scripts/run_px4_mtf01.py](run_px4_mtf01.py) | 默认未解锁光流／测距审计；显式 --flight 支持独立光流飞行仿真。 |
 | [scripts/run_px4_sitl_smoke.py](run_px4_sitl_smoke.py) | Owned, disarmed x500 smoke session. Run with scripts/with_px4_sim.sh. |
 | [scripts/run_px4_vio_sensors.py](run_px4_vio_sensors.py) | Owned official PX4/Gazebo/QGC VIO audits and explicit warehouse BT flight. |
-| [scripts/run_px4_vio_sensors.sh](run_px4_vio_sensors.sh) | 在隔离环境中启动 VIO 传感器／实验任务运行器。 |
 | [scripts/run_rviz_nav.sh](run_rviz_nav.sh) | 启动导航 RViz。 |
 | [scripts/run_sim_scenario.py](run_sim_scenario.py) | S0 host regression runner with immutable configuration and bounded subprocesses. |
 | [scripts/run_vio_monitor.sh](run_vio_monitor.sh) | 启动 VIO 监视器。 |
@@ -207,7 +226,7 @@
 | [scripts/pocket_operator_session.py](pocket_operator_session.py) | Owned Pocket SITL control with explicit legacy USB or UAV AETR profiles. |
 | [scripts/pocket_panel_model.py](pocket_panel_model.py) | UAV Model 5 channel model; independent of Tk, ROS and Linux input. |
 | [scripts/pocket_switches.py](pocket_switches.py) | Pocket SA/SB/SD stable edges, bound to the inspected USB axes. |
-| [scripts/pocket_uav_switches.py](pocket_uav_switches.py) | UAV AETR virtual profile, deliberately separate from the legacy USB mapping. |
+| [scripts/pocket_uav_switches.py](pocket_uav_switches.py) | SB/SC flight matrix shared by virtual AETR and physical Pocket CH5--8. |
 | [scripts/pocket_virtual_joystick.py](pocket_virtual_joystick.py) | Linux uinput Pocket transport using only the standard library. |
 | [scripts/sim_validation.py](sim_validation.py) | Shared S0 artifact contracts. No ROS imports or simulation side effects. |
 | [scripts/vio_chain_mapping.py](vio_chain_mapping.py) | Attach actual depth to the VIO aircraft and start the owned mapping graph. |
@@ -245,9 +264,6 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| [simulation/scripts/run_gazebo_harmonic_nav.sh](../simulation/scripts/run_gazebo_harmonic_nav.sh) | 启动 Gazebo 场景与传感器桥，保持单实例锁。 |
-| [simulation/scripts/run_isaac_sim_45_ui.sh](../simulation/scripts/run_isaac_sim_45_ui.sh) | 从已有 Isaac Sim 4.5 安装启动 UI。 |
-| [simulation/scripts/run_uav_obstacle_course.sh](../simulation/scripts/run_uav_obstacle_course.sh) | 选择障碍场地并调用 Gazebo 场景启动器。 |
 | [src/oakd_perception/scripts/run_oakd_active_max.sh](../src/oakd_perception/scripts/run_oakd_active_max.sh) | 启动 OAK-D 主动双目强度配置。 |
 | [src/oakd_perception/scripts/run_oakd_balance.sh](../src/oakd_perception/scripts/run_oakd_balance.sh) | 启动 OAK-D 均衡深度配置。 |
 | [src/oakd_perception/scripts/run_oakd_indoor.sh](../src/oakd_perception/scripts/run_oakd_indoor.sh) | 启动 OAK-D 室内深度配置。 |
@@ -285,6 +301,12 @@
 | [scripts/install_vendor_lfs_assets.sh](install_vendor_lfs_assets.sh) | [scripts/setup/install_vendor_lfs_assets.sh](setup/install_vendor_lfs_assets.sh) |
 | [scripts/install_vpi_4_stack.sh](install_vpi_4_stack.sh) | [scripts/setup/install_vpi_4_stack.sh](setup/install_vpi_4_stack.sh) |
 | [scripts/prepare_ego_vendor.sh](prepare_ego_vendor.sh) | [scripts/setup/prepare_ego_vendor.sh](setup/prepare_ego_vendor.sh) |
+| [scripts/run_px4_flight.sh](run_px4_flight.sh) | [scripts/simulation/compat.sh](simulation/compat.sh) |
+| [scripts/run_px4_vio_sensors.sh](run_px4_vio_sensors.sh) | [scripts/simulation/compat.sh](simulation/compat.sh) |
+| [scripts/sim_menu.py](sim_menu.py) | [scripts/simulation/menu.py](simulation/menu.py) |
+| [simulation/scripts/run_gazebo_harmonic_nav.sh](../simulation/scripts/run_gazebo_harmonic_nav.sh) | [scripts/simulation/compat.sh](simulation/compat.sh) |
+| [simulation/scripts/run_isaac_sim_45_ui.sh](../simulation/scripts/run_isaac_sim_45_ui.sh) | [scripts/simulation/compat.sh](simulation/compat.sh) |
+| [simulation/scripts/run_uav_obstacle_course.sh](../simulation/scripts/run_uav_obstacle_course.sh) | [scripts/simulation/compat.sh](simulation/compat.sh) |
 
 <!-- END SCRIPT CATALOG -->
 

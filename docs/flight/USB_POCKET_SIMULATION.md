@@ -1,10 +1,23 @@
 # Pocket USB 与行为树决策仿真
 
+> 当前仿真统一无 GNSS。本文旧 GNSS／W0 启动方式已停用，保留历史说明；实体 Pocket 手动操作请运行 `./scripts/sim.sh run manual`，详见[统一启动策略](../simulation/LAUNCHERS.md#全局无-gnss-策略)。
+
 [文档总目录](../README.md) · [脚本目录](../../scripts/README.md)
 
-纯电脑输入及最新 SB/SC/SD/SE 定义见 [虚拟 Pocket 面板](VIRTUAL_POCKET_PANEL.md)。
-本文下方 SA/SB/SD 映射属于旧实体 `legacy-usb` 配置，新配置通过
-`--input-profile uav-aetr-v1` 显式选择，不能混用编号或用途。
+实体与虚拟输入共用的最新 SB/SC/SD 规划及能力限制见 [控制矩阵](VIRTUAL_POCKET_PANEL.md#最新控件定义)。
+实体新配置为 `pocket-rc-v2`（8 轴／24 按钮），SA 解锁、SB 手动／悬停／任务、
+SC 上下文三档、SD 手动／悬停时降落及任务时返航。自动选择实体输入时默认使用该配置；
+Buttons 0／1 仍未绑定。完整入口示例：
+
+```bash
+./scripts/sim.sh run vio-pocket --input-profile pocket-rc-v2 \
+  --device /dev/input/by-id/usb-OpenTX_Radiomaster_Pocket_Joystick_00000000001B-joystick
+```
+
+当前 VIO 会话不具备跨源空中自动降级，SC 纯光流／无 VIO 定高会拒绝；不得把档位请求视为定位源已切换。
+使用纯光流会话时改为 `run flow-pocket --input-profile pocket-rc-v2`，须先落地上锁并关闭旧会话。
+本文下方 SA/SB/SD 映射属于旧实体 `legacy-usb` 配置；实体新配置使用
+`--input-profile pocket-rc-v2`，虚拟面板使用 `uav-aetr-v1`，不能混用设备身份或未验证的按钮用途。
 
 RadioMaster Pocket 使用 EdgeTX，可通过 USB Joystick 模式作为电脑 HID 输入。
 连接数据 USB 口，充电 USB 口不传送摇杆数据。使用支持数据的 USB 线，遥控器开机后
@@ -23,15 +36,21 @@ USB 模式和开关通道见 [EdgeTX Joystick 配置](https://manual.edgetx.org/
 用户指定 SA 解锁、SB 手动/导航、SD 开始/暂停。后续确认 QGC Buttons 1 是有阻尼、
 不会自动回中的拨轮；撤下此前按自回弹按键解释的返航绑定。Buttons 0 是自回弹按键，
 当前仍未分配；建议用它请求返航/暂停返航/恢复返航，接入前核对对应 Linux button。
-当前 SDL 对 Pocket 采用 gamepad 映射，QGC Raw Channel Monitor 的顺序为 USB
+旧 SDL 对 Pocket 采用 gamepad 映射，QGC Raw Channel Monitor 的顺序为 USB
 轴 `[0,1,3,4,2,5,6,7]`；不能把 QGC 显示编号减一当成 Linux js 编号。
 本映射来自本机 SDL 读回、QGC 5.1.5 的
 [轴排序实现](https://github.com/mavlink/qgroundcontrol/blob/v5.1.5/src/Joystick/JoystickSDL.cc)
 和实际输入变化；遥控器 EdgeTX CH 编号是另一层。
 
+仿真运行器现在通过 `usb_joystick.qgc_environment` 为本机 Pocket 覆盖 SDL 映射：
+USB 轴 0–3 使用完整有符号范围，QGC 追加轴 4–7，Raw 1–8 对应 USB 轴 0–7。
+旧默认映射把油门轴 2 当作 `lefttrigger`，最低端 −32768 被缩放为 0，表现为
+油门最低时通道居中。修复后需重启运行器并重新完成 QGC 四轴校准，不能沿用旧轴编号校准。
+下表的 QGC 编号已按修复后的映射更新；按钮映射保持原定义。
+
 | 控件 | QGC 显示 | Linux 输入 | 低值 / 高值或按下行为 |
 | --- | --- | --- | --- |
-| SA | Raw 4 | axis 4 | 地面解除武装 / 请求解锁 |
+| SA | Raw 5 | axis 4 | 地面解除武装 / 请求解锁 |
 | SB | Raw 6 | axis 5 | Position 手动接管 / 允许导航；中档按手动处理 |
 | SD | Raw 8 | axis 7 | 暂停任务 / 地面启动或恢复已暂停任务 |
 | 保持位置的拨轮 | Buttons 1 | 历史观察到 button 1；连续轴待核对 | 当前不发任务命令；建议预留速度上限调节 |
@@ -42,6 +61,16 @@ SB 导航只授权任务，不单独进入 Offboard；SD 启动必须 SA/SB 都�
 地面停稳。SA 解锁须 QGC 已启用校准后的新鲜 MAVLink 摇杆输入、油门 ≤−0.8、
 其余摇杆偏移 ≤0.15，以及真实健康/地面门控。请求拒绝后不因开关持续保持而自动重试。
 SA 在空中拨回低档会撤销自动控制，但不直接发送强制解除武装；原生降落继续受保护。
+
+SA 无响应时先看本轮 `flight_gateway.log`：`QGC_JOYSTICK_NOT_CALIBRATED_OR_FRESH`
+表示没有新鲜有效的操纵输入，QGC Joystick 配置页仅监视通道，必须返回 Fly 页面。
+`ARM_LOCALIZATION_NOT_READY:<原因>` 表示定位门控拒绝，不能通过反复拨动 SA 清除锁存失效；
+`ARM_THROTTLE_NOT_LOW`／`ARM_STICKS_NOT_CENTERED` 分别表示油门未低或其他摇杆未居中。
+SA 只允许在飞控已确认的手动模式中解锁。落地后残留的 AUTO_TAKEOFF／AUTO_LAND
+不能直接重解锁；上锁后重新准备手动模式。若收到 `ARM_MANUAL_MODE_REQUESTED_RETRY_SWITCH`，
+本次仅请求切换模式，须等待 QGC 显示手动 Position／Acro 后再将 SA 关闭、开启一次；不排队自动解锁。
+`pocket-live.json` 的 `source_preflight_admitted` 仅表示历史启动检查通过，
+`source_ready` 和 `source_reason` 才反映当前定位状态；`source_admitted` 同时要求两者通过。
 
 先运行上面的只读识别，再启动下方手动会话。启动后终端/manifest 中记录本轮目录；
 只对该目录建立 Pocket 控制所有者：
@@ -135,7 +164,7 @@ ROS_DOMAIN_ID=78 ./scripts/with_px4_sim.sh bash -e -c \
 
 ## SB / SC 配置与能力边界
 
-当前 `uav-aetr-v1` 已实现 SB 手动／定点／自动、SC 上下文选择、自动任务手动干预、SD 分流降落／返航及 SE 短长按。控件定义只在[面板手册](VIRTUAL_POCKET_PANEL.md#最新控件定义)维护；VIO／地图／返航条件见[无 GNSS 操作手册](VIO_POCKET_AVOIDANCE.md)。
+当前实体 `pocket-rc-v2` 与虚拟 `uav-aetr-v1` 共用 SB／SC／SD 控制矩阵；虚拟面板另有 SE 短长按。控件定义只在[面板手册](VIRTUAL_POCKET_PANEL.md#最新控件定义)维护；VIO／地图／返航条件见[无 GNSS 操作手册](VIO_POCKET_AVOIDANCE.md)。
 
 本文的 `legacy-usb` 使用 `PocketSwitches`，沿用下文的 SA／SB／SD 实体 HID 映射，不读取 SC，不会因新面板支持 SC 就自动获得相同能力。实体 Pocket 需重新核对通道、校准和新鲜输入；虚拟 uinput 验收不替代该步骤。
 
@@ -160,6 +189,29 @@ python3 scripts/usb_joystick.py --device /dev/input/js0 --duration 30
 连接检查和适配器均可使用该路径，避免其他手柄插入后 js 编号变化。
 
 ## 摇杆手动飞行
+
+### 摇杆有变化，但拨动开关和 Raw 5–8 不动
+
+先关闭当前仿真会话，在遥控器的当前仿真模型中检查 **MIXES（混控）**。
+USB 摇杆输出取自模型的输出通道；设备有 8 轴、24 按钮不代表开关已经配置到这些输出。
+保留已校准的 CH1–CH4，给空的 CH5–CH8 添加以下混控；已有混控时先检查，避免叠加重复项。
+
+| 输出通道 | Source（源） | Weight（权重） | Switch（生效条件） | 本机 QGC 显示 |
+| --- | --- | --- | --- | --- |
+| CH5 | SA | 100% | 不限制 | Raw 5 |
+| CH6 | SB | 100% | 不限制 | Raw 6 |
+| CH7 | SC | 100% | 不限制 | Raw 7 |
+| CH8 | SD | 100% | 不限制 | Raw 8 |
+
+开关选在 **Source** 字段，只填在 **Switch** 条件里不能代替通道源。
+先看遥控器自己的通道监视器：对应通道应随开关档位改变，普通两档为 −100/+100，
+三档为 −100/0/+100。若遥控器端不动，继续检查该模型的混控和输出限制；
+若遥控器端会动而电脑不动，再检查 USB Joystick 的模式及通道分配。
+
+完成后选择 USB Joystick，用上面的只读命令复核 Linux axis 4–7，再进入仿真。
+当前 `legacy-usb` 的 SA/SB/SD 从通道轴读取，所以应看 **Raw Channel Monitor**；
+这些轴变化不要求下方 **Buttons** 方格点亮。SC 通道可供监视，但当前实体
+`legacy-usb` 操作器尚不使用它。自回弹按键另需确认其实际 USB 按钮事件，不能套用此表推断。
 
 ```bash
 ./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py \

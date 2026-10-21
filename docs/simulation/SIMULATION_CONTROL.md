@@ -2,10 +2,23 @@
 
 [文档总目录](../README.md) · [脚本目录](../../scripts/README.md)
 
-`scripts/sim.sh` 管理 Gazebo + EGO + nvblox 导航仿真。它负责选择场景、统一两个终端的环境、记录启动进程与日志，以及调用初始化和地图服务。底层算法、碰撞检查和探索预算不变。
+本页说明 `scripts/sim.sh algorithm` 管理的 Gazebo + EGO + nvblox 导航仿真。它负责统一两个终端的环境、记录启动进程与日志，以及调用初始化和地图服务。场景与配置通过 `sim.sh run algorithm` 选择。
 
 两航点 BT、父任务暂停恢复与 UUID 取消见 [算法任务说明](../navigation/ALGORITHM_MISSIONS.md)。
 父任务占用期间，本手册的旧 goal/cancel/explore 入口会拒绝接管；通过父 Action/服务控制任务。
+
+## 交互启动菜单
+
+总入口 `./scripts/sim.sh` 支持交互选择与 `run <类型>` 配置启动；目录分工、配置保存、命令行覆盖和全部入口见[仿真启动规划](LAUNCHERS.md)。本页维护算法会话的初始化、建图、探索和地图操作。
+
+菜单按操作方式、功能配置、场景逐层选择。`run autonomous-mapping` 自动完成初始化后启动自主探索；`run navigation` 自动初始化，或用 `--load-map --map-bundle <目录>` 加载地图。使用这两个入口时无需再单独执行 `init`／`load`；下文的 `run algorithm`／`start` 继续保留手动准备步骤。
+
+```bash
+./scripts/sim.sh
+./scripts/sim.sh run algorithm --layout expanded --mode mapping --view both
+```
+
+下文保留的 `sim.sh start/init/status/...` 是 `sim.sh algorithm start/init/status/...` 的兼容写法，行为相同。`algorithm stop` 只管理算法会话，PX4／Pocket 按各自手册退出。
 
 ## 1. 准备与适用范围
 

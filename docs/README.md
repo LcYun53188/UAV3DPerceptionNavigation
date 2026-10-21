@@ -29,6 +29,7 @@
 | --- | --- |
 | [docs/simulation/EGO_NVBLOX_GAZEBO.md](simulation/EGO_NVBLOX_GAZEBO.md) | EGO + nvblox 仿真运行指引 |
 | [docs/simulation/GAZEBO_HARMONIC_SIMULATION.md](simulation/GAZEBO_HARMONIC_SIMULATION.md) | Gazebo Harmonic 无人机场景 |
+| [docs/simulation/LAUNCHERS.md](simulation/LAUNCHERS.md) | 仿真启动入口与目录规划 |
 | [docs/simulation/SIMULATION_CONTROL.md](simulation/SIMULATION_CONTROL.md) | 仿真启动与控制脚本 |
 | [docs/simulation/SIMULATION_MANUAL.md](simulation/SIMULATION_MANUAL.md) | 无人机导航仿真使用手册 (UAV Simulation User Manual) |
 | [docs/simulation/UAV_OBSTACLE_COURSE.md](simulation/UAV_OBSTACLE_COURSE.md) | UAV 障碍穿越场地 |

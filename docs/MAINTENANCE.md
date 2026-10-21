@@ -16,9 +16,12 @@
 | `docs/validation/` | Git 忽略的本地报告、失败证据与原始数据 |
 | `scripts/build/` | Shell／Python 构建入口 |
 | `scripts/setup/` | 安装与第三方依赖准备 |
-| `scripts/` | 统一运行入口、Python 运行器、分析工具和共享模块 |
-| `simulation/scripts/` | 场景与 Isaac Sim 启动入口 |
+| `scripts/` | `sim.sh` 公共入口、Python 运行器、分析工具和共享模块 |
+| `scripts/simulation/` | 仿真 CLI、菜单、配置注册表、环境与启动实现 |
+| `simulation/scripts/` | 场景与 Isaac Sim 历史兼容链接 |
 | `src/<package>/` | 随模块维护的文档、测试与包内脚本 |
+
+仿真启动层的职责与新入口注册规则见[启动规划](simulation/LAUNCHERS.md)。固定预设只在 `scripts/simulation/backends.py` 维护，交互和命令行共用 `profiles.py`，不新增平行包装器。
 
 Python 运行器和共享模块仍使用 `scripts/` 根目录导入布局，避免修改运行、测试与证据冻结的模块依赖。所有工具按用途列入脚本目录；Shell／Python 构建器和 Shell 安装脚本已实际迁移，旧 `.sh` 与构建 `.py` 路径为指向同一实现的相对符号链接。运行、参数和退出码继续透传；规范路径与旧路径都按真实脚本位置解析工作区根目录。
 

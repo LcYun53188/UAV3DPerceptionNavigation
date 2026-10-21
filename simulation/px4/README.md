@@ -1,5 +1,7 @@
 # 本机 PX4 SITL 基础环境
 
+> 当前仿真统一无 GNSS。本文旧 GNSS／W0 启动方式已停用，保留历史说明；实体 Pocket 手动操作请运行 `./scripts/sim.sh run manual`，详见[统一启动策略](../../docs/simulation/LAUNCHERS.md#全局无-gnss-策略)。
+
 当前实现：PX4 v1.16.2、Agent v2.4.3、对应 px4_msgs 的独立构建，以及未解锁 x500 的 DDS/clock/QGC 冒烟验证。全部运行于本机，Jetson 延期。下方 W0 入口已扩展真实任务、Offboard 控制、坐标转换与已知区域；VIO/感知避障未接入。
 
 ```bash

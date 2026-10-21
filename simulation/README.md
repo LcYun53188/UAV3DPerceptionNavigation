@@ -1,6 +1,6 @@
 # 无人机仿真入口
 
-所有命令从项目根目录运行。两类入口使用不同场景与启动链路，同一时间只运行一套。
+所有命令从项目根目录运行，同一时间只运行一套仿真。运行 `./scripts/sim.sh` 打开总菜单，或用 `./scripts/sim.sh list` 查看配置类型。启动目录、配置和兼容关系见[仿真启动规划](../docs/simulation/LAUNCHERS.md)。
 
 ## 三维建图与导航
 
@@ -21,13 +21,13 @@
 
 ```bash
 # 障碍场地：立柱、门框、平台、起终点标记
-./simulation/scripts/run_uav_obstacle_course.sh
+./scripts/sim.sh run scene --arena uav_obstacle_course
 ```
 
 默认演示场地使用另一个命令，先退出上面的场景再运行：
 
 ```bash
-./simulation/scripts/run_gazebo_harmonic_nav.sh
+./scripts/sim.sh run scene --arena uav_harmonic_demo
 ```
 
 这些入口只启动 Gazebo、传感器桥、静态 TF 和里程计速度估计器，不启动 nvblox、EGO 或 RViz 导航。
@@ -38,7 +38,7 @@
 
 ## Isaac Sim UI
 
-独立入口：`./simulation/scripts/run_isaac_sim_45_ui.sh`，需已有对应安装。
+统一入口：`./scripts/sim.sh run isaac`，需已有对应安装。
 参见 [Isaac 内容说明](../docs/development/ISAAC_ROS_COMPONENTS.md)。
 
 ## 全链路仿真开发

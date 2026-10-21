@@ -6,6 +6,8 @@
 
 ## 功能与代码
 
+所有受管仿真统一使用**无 GNSS 环境**。手动入口自动优先实体 Pocket，没有实体时使用虚拟设备；旧 GNSS 任务已停用，详见[启动策略](docs/simulation/LAUNCHERS.md#全局无-gnss-策略)。
+
 | 功能 | 主要模块 |
 | --- | --- |
 | 相机、深度、点云与 IMU | `oakd_perception`、`imu_fusion`、`nav_mapping` |
@@ -38,18 +40,29 @@
 
 ## 选择运行方式
 
+直接运行总入口，按“操作方式 → 功能配置 → 场景”逐层选择：
+
+```bash
+./scripts/sim.sh
+```
+
+菜单支持预览命令、保存和加载 JSON 配置；原有子命令继续可用。菜单与命令行共用配置，使用方法和脚本分工见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
+
 | 用途 | 运行入口 | 详细说明 |
 | --- | --- | --- |
-| 在线建图、探索与 RViz 导航 | `./scripts/sim.sh start` | [仿真控制](docs/simulation/SIMULATION_CONTROL.md) |
-| 扫描、保存与加载地图 | `./scripts/sim.sh survey`、`save`、`load` | [地图操作](docs/simulation/EGO_NVBLOX_GAZEBO.md) |
-| 查看场景与传感器 | `./simulation/scripts/run_uav_obstacle_course.sh` | [Gazebo 场景](docs/simulation/GAZEBO_HARMONIC_SIMULATION.md) |
-| PX4／BT 逐步骤飞行仿真 | `./scripts/sim.sh px4-flight --bt --ui` | [构建与运行](simulation/px4/README.md)、[步骤授权](docs/flight/PX4_STEP_BT.md) |
-| VIO／光流／测距未解锁融合审计 | `./scripts/sim.sh px4-vio-mtf01` | [联合融合](docs/flight/MTF01_SIMULATION.md) |
-| 独立纯光流飞行仿真 | `./scripts/sim.sh px4-flow-local --duration 35 --native-manual` | [MTF-01 独立控制](docs/flight/MTF01_STANDALONE_FLIGHT.md) |
-| 无 GNSS 光流仓库＋Pocket 操作 | `./scripts/sim.sh px4-flow-pocket --duration 35` | [独立光流操作会话](docs/flight/MTF01_STANDALONE_FLIGHT.md#pocket-持续操作会话) |
+| Gazebo／RViz 纯手动飞行（Pocket 实体优先／虚拟回退） | `./scripts/sim.sh run manual` | [分层菜单与能力边界](docs/simulation/LAUNCHERS.md#分层菜单) |
+| Gazebo／RViz 自动建图 | `./scripts/sim.sh run autonomous-mapping` | [自动初始化与探索](docs/simulation/LAUNCHERS.md#分层菜单) |
+| Gazebo／RViz 任务点与行为树配置 | `./scripts/sim.sh run navigation` | [地图来源与任务配置](docs/simulation/LAUNCHERS.md#分层菜单) |
+| 在线建图、探索与 RViz 导航 | `./scripts/sim.sh run algorithm` | [仿真控制](docs/simulation/SIMULATION_CONTROL.md) |
+| 扫描、保存与加载地图 | `./scripts/sim.sh algorithm survey`、`save`、`load` | [地图操作](docs/simulation/EGO_NVBLOX_GAZEBO.md) |
+| 查看场景与传感器 | `./scripts/sim.sh run scene` | [Gazebo 场景](docs/simulation/GAZEBO_HARMONIC_SIMULATION.md) |
+| PX4／BT 旧 GNSS 任务（已停用，无 GNSS 定位待接入） | 参见统一无 GNSS 策略 | [构建与运行](simulation/px4/README.md)、[步骤授权](docs/flight/PX4_STEP_BT.md) |
+| VIO／光流／测距未解锁融合审计 | `./scripts/sim.sh run vio-audit` | [联合融合](docs/flight/MTF01_SIMULATION.md) |
+| 独立纯光流飞行仿真 | `./scripts/sim.sh run flow-local` | [MTF-01 独立控制](docs/flight/MTF01_STANDALONE_FLIGHT.md) |
+| 无 GNSS 光流仓库＋Pocket 操作 | `./scripts/sim.sh run flow-pocket` | [独立光流操作会话](docs/flight/MTF01_STANDALONE_FLIGHT.md#pocket-持续操作会话) |
 | Pocket USB 操作与定位源选择 | `scripts/usb_joystick.py`、`scripts/select_localization.py` | [USB 操作](docs/flight/USB_POCKET_SIMULATION.md) |
-| 无 GNSS VIO／深度／EGO＋Pocket | `./scripts/sim.sh px4-vio-pocket --sdk-schur64 --vio-primary --device /dev/input/js0` | [操作和静态绕障验收](docs/flight/VIO_POCKET_AVOIDANCE.md) |
-| Pocket 纯电脑虚拟面板 | `./scripts/sim.sh pocket-panel`（可加 `--uinput`） | [通道、模式与仿真接入](docs/flight/VIRTUAL_POCKET_PANEL.md) |
+| 无 GNSS VIO／深度／EGO＋Pocket | `./scripts/sim.sh run vio-pocket --device /dev/input/js0` | [操作和静态绕障验收](docs/flight/VIO_POCKET_AVOIDANCE.md) |
+| Pocket 纯电脑虚拟面板 | `./scripts/sim.sh run panel` | [通道、模式与仿真接入](docs/flight/VIRTUAL_POCKET_PANEL.md) |
 | OAK-D 硬件静止与移动验证 | `scripts/audit_oakd_vio_hardware.py`、`scripts/oakd_vio_motion_ui.py` | [硬件定位](docs/hardware/OAKD_VISUAL_SLAM_RVIZ.md) |
 
 各入口先按对应手册构建、配置和检查。算法导航的 `mapping` 更新地图，`localization` 加载静态地图；场景须与地图包一致。选择一条链路运行。
@@ -60,25 +73,42 @@
 
 ```bash
 # 终端 A：扩展场景、在线建图与 Gazebo/RViz；Ctrl+C 退出
-./scripts/sim.sh start
+./scripts/sim.sh run algorithm
 
 # 终端 B：初始化起点、查看状态，然后在 RViz 选点
-./scripts/sim.sh init
-./scripts/sim.sh status
+./scripts/sim.sh algorithm init
+./scripts/sim.sh algorithm status
 ```
 
 常用控制：
 
 ```bash
 # 取消导航目标，保持仿真运行
-./scripts/sim.sh cancel
+./scripts/sim.sh algorithm cancel
 # 保存地图，输出目录须尚不存在
-./scripts/sim.sh save .cache/maps/run1
+./scripts/sim.sh algorithm save .cache/maps/run1
 # 退出整套受管算法仿真
-./scripts/sim.sh stop
+./scripts/sim.sh algorithm stop
 ```
 
 探索、地图加载、日志和手动 launch 的退出方法见 [仿真控制手册](docs/simulation/SIMULATION_CONTROL.md)；PX4 的取消、降落和会话清理见 [PX4 运行说明](simulation/px4/README.md)。
+
+## 查找与结束仿真进程
+
+查看当前用户的候选进程，输出 PID、父 PID、进程组、运行时长和完整命令：
+
+```bash
+ps -u "$(id -un)" -o pid,ppid,pgid,etime,args | rg '[u]av_nav_ws|[Q]GroundControl|[g]z sim|[g]z-sim|[r]viz2|[M]icroXRCEAgent|[p]arameter_bridge'
+```
+
+确认属于本轮仿真后，优先结束顶层运行器，让它清理子进程。Pocket／PX4 会话先落地并解除武装：
+
+```bash
+read -r -p '输入已确认的仿真运行器 PID：' sim_pid
+[[ "$sim_pid" =~ ^[1-9][0-9]*$ ]] && kill -INT -- "$sim_pid"
+```
+
+算法会话可直接执行 `./scripts/sim.sh algorithm stop`。VIO Pocket 的正常关闭、残留进程的 `TERM`／`KILL` 命令及退出后复查见[会话控制与退出](docs/simulation/LAUNCHERS.md#会话控制与退出)。
 
 ## 文档与维护
 
