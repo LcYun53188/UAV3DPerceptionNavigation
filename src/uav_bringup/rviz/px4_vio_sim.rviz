@@ -27,6 +27,54 @@ Visualization Manager:
     Plane Cell Count: 40
     Reference Frame: odom
     Value: true
+  - Class: nvblox_rviz_plugin/NvbloxMesh
+    Enabled: true
+    Name: Live Depth Map
+    Mesh Color: Height
+    Min Height: 0
+    Max Height: 4
+    Cut Ceiling: true
+    Ceiling Height: 3.8
+    Topic:
+      Depth: 1
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
+      Value: /nvblox_node/mesh
+    Value: true
+  - Class: rviz_default_plugins/Odometry
+    Enabled: true
+    Name: PX4 Local Position
+    Keep: 100
+    Color: 80; 220; 255
+    Position Tolerance: 0.1
+    Angle Tolerance: 0.1
+    Shape: Arrow
+    Covariance:
+      Value: false
+    Topic:
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Value: /uav/px4/odometry
+    Value: true
+  - Class: rviz_default_plugins/Path
+    Enabled: true
+    Name: EGO Planned Path
+    Alpha: 1
+    Buffer Length: 1
+    Color: 80; 255; 130
+    Line Style: Lines
+    Line Width: 0.04
+    Pose Style: None
+    Topic:
+      Depth: 1
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
+      Value: /planning/ego/path
+    Value: true
   - Class: rviz_default_plugins/TF
     Enabled: false
     Frame Timeout: 30
@@ -113,7 +161,7 @@ Visualization Manager:
   Global Options:
     Background Color: 28; 30; 34
     Fixed Frame: odom
-    Frame Rate: 30
+    Frame Rate: 20
   Name: root
   Tools:
   - Class: rviz_default_plugins/Interact
@@ -128,13 +176,13 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4
+      Distance: 12
       Focal Point:
         X: 0
-        Y: 0
-        Z: 0
+        Y: 1.5
+        Z: 1.5
       Name: Current View
-      Pitch: 1.2
+      Pitch: 0.8
       Target Frame: odom
       Yaw: 0.8
     Saved: null

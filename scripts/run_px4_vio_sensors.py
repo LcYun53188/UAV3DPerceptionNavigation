@@ -539,6 +539,8 @@ def main():
     if args.pocket_session:
         manifest.update(usb_joystick=True,automatic_flight=False,joystick_device=args.device,localization_profile='VIO_FLOW',operator_environment={k:v for k,v in env.items() if k.startswith('UAV_') and k not in ('UAV_SITL_AUTHORIZATION','UAV_WORKSPACE')})
     manifest['chain_depth']=chain_depth
+    manifest['map_visualization']=dict(enabled=bool(chain_depth and args.ui),
+        topic='/nvblox_node/mesh',publish_rate_hz=.5 if chain_depth and args.ui else 0.)
     manifest['covariance_kind']=candidate.get('covariance','legacy SDK15 right tangent') if candidate else 'legacy SDK15 right tangent'
     if args.experimental_chain:
         import shutil
@@ -727,7 +729,7 @@ def main():
                 # Save an empty native map before warming depth integration;
                 # discard the startup map before binding the aligned mission.
                 from vio_chain_mapping import launch_mapping, native_map_file
-                launch_mapping(launch,env,out,run_id,graph_only=True)
+                launch_mapping(launch,env,out,run_id,graph_only=True,visualize=args.ui)
                 launch_mapping(launch,env,out,run_id,binding_only=True)
                 write_json(out/'mapping-startup.json',dict(planning_source_process_prewarmed=True,
                     activation_requires='map-admission.json and first valid promoted map',

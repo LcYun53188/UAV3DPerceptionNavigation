@@ -26,7 +26,7 @@ def attach_depth(directory, profile, frames):
     return dict(width=320,height=240,horizontal_fov_rad=profile['horizontal_fov_rad'],near_m=profile['near_m'],far_m=profile['far_m'],image_rate_hz=10,scope='same-aircraft ideal depth; not hardware OAK-D depth')
 
 
-def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False):
+def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False, visualize=False):
     if sum((graph_only,depth_only,binding_only))>1:raise ValueError('Conflicting mapping startup stages')
     transport=dict(env,FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
                    FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
@@ -46,10 +46,13 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '--ros-args','-r','/px4_reference/rgbd/depth_image:=/px4_depth/image',
         '-r','/px4_reference/rgbd/camera_info:=/px4_depth/camera_info'])
     if depth_only:return
+    # Mesh generation is subscriber driven. Keep headless acceptance unchanged;
+    # UI sessions stream actual reconstructed geometry at a bounded rate.
+    mesh_rate='0.5' if visualize else '0.0'
     start('nvblox',['ros2','run','nvblox_ros','nvblox_node','--ros-args',
         '--params-file',ROOT/'src/uav_bringup/config/uav_ego_nvblox.yaml','-p','use_sim_time:=true','-p','use_color:=false',
         '-p','voxel_size:=0.2','-p','integrate_depth_rate_hz:=5.0',
-        '-p','update_mesh_rate_hz:=0.0','-p','publish_layer_rate_hz:=0.0','-p','publish_debug_vis_rate_hz:=0.0',
+        '-p','update_mesh_rate_hz:='+mesh_rate,'-p','publish_layer_rate_hz:='+mesh_rate,'-p','publish_debug_vis_rate_hz:=0.0',
         '-p',f'static_mapper.projective_integrator_max_integration_distance_m:={config.get("depth_integration_distance_m",6.0)}',
         '-r','camera_0/depth/image:=/uav/mapping/depth','-r','camera_0/depth/camera_info:=/uav/mapping/camera_info'])
     start('map_session',['ros2','run','uav_nav_sim','map_session','--ros-args','-p','use_sim_time:=true',
@@ -60,7 +63,7 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '-p','aabb_size:='+json.dumps(list(map(float,config.get('map_aabb_size',[10.0,10.0,4.0])))),
         '-r','/rgbd_camera/depth_image:=/px4_depth/image','-r','/rgbd_camera/camera_info:=/px4_depth/camera_info'])
     limits=config['ego_limits']
-    if not graph_only:launch_mapping(launch,env,out,run_id,binding_only=True)
+    if not graph_only:launch_mapping(launch,env,out,run_id,binding_only=True,visualize=visualize)
     common=['--ros-args','-p','use_sim_time:=true','-p','body_radius:=0.8',
             '-p',f'max_velocity:={limits[0]}','-p',f'max_acceleration:={limits[1]}','-p',f'max_jerk:={limits[2]}']
     start('planning_context',['ros2','run','uav_nav_sim','planning_context',*common,
