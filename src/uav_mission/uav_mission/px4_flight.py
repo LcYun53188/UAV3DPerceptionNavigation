@@ -1498,6 +1498,9 @@ class FlightServer(PilotIntervention, Node):
                 try:
                     self.planning_ready()
                     reference,finished=self.planned.sample(self.planning_authorization(),ros,now)
+                    if phase=='PLAN_REQUEST' and getattr(self.planned,'arrival_only',False):
+                        self.change('NAVIGATE' if getattr(self,'join_hover_remaining',None) is not None
+                                    else self.steps[self.step_index]['type'],'NO_MOTION_AT_GOAL_CHECKED')
                     if reference is not None:
                         self.reference=reference
                         if distance(self.position(),reference)>self.config['tracking_margin_m']:raise ValueError('TRACKING_ENVELOPE_EXCEEDED')

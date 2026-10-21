@@ -120,6 +120,63 @@ def test_wait_has_fixed_planning_budget_and_retired_goals_are_rejected():
     with pytest.raises(ValueError):e.admit(b,authorization(),12.2,3.2)
 
 
+def near_goal():
+    e,b=setup();g=goal();g.header.stamp=stamp(10.01)
+    g.pose.position=deepcopy(e.gate.map_odometry.pose.pose.position)
+    g.pose.position.x+=.1
+    e.start(g,authorization(),10.01,1.01)
+    return e,b
+
+
+def test_stopped_already_at_goal_holds_actual_pose_without_a_fabricated_curve():
+    e,b=near_goal()
+    reference,done=e.sample(authorization(),10.1,1.1)
+    assert done and reference==pytest.approx([1.,0.,1.])
+    assert e.arrival_only and e.curve is None and e.bound_context==e.gate.context_id
+    assert e.velocity==e.acceleration==(0.,0.,0.)
+    with pytest.raises(ValueError,match='ALREADY_BOUND'):e.admit(b,authorization(),10.11,1.11)
+    # Fresh measured arrival can survive the ordinary spline response budget
+    # while the gateway independently confirms its physical stop duration.
+    refresh(e,13.,4.)
+    assert e.sample(authorization(),13.,4.)[1]
+    e.retire();assert not e.arrival_only
+
+
+@pytest.mark.parametrize('bad',['unknown','occupied','region','retired_goal','context','stale','owner'])
+def test_no_motion_completion_still_requires_bound_observed_clear_volume(bad):
+    e,_=near_goal();auth=authorization()
+    if bad in ('unknown','occupied'):
+        m=deepcopy(e.gate.inputs['map'][0]);m.header.stamp=stamp(10.05);m.version+=1
+        if bad=='unknown':m.observed=[0]*40000
+        else:m.distance=np.zeros(40000,dtype=np.float32)
+        e.gate.update('map',m,1.05)
+    elif bad=='region':e.region=lambda _:False
+    elif bad=='retired_goal':e.gate.goal=None
+    elif bad=='context':
+        a=deepcopy(e.gate.inputs['alignment'][0]);a.header.stamp=stamp(10.05);a.generation+=1
+        e.gate.update('alignment',a,1.05)
+    elif bad=='owner':auth=authorization(2)
+    with pytest.raises(ValueError):
+        e.sample(auth,11. if bad=='stale'else 10.1,2. if bad=='stale'else 1.1)
+    assert e.authorization is None and e.curve is None and not e.arrival_only
+
+
+@pytest.mark.parametrize('bad',['moving','displaced','new_obstacle'])
+def test_confirmed_no_motion_hold_rechecks_pose_speed_and_every_new_map(bad):
+    e,_=near_goal();assert e.sample(authorization(),10.1,1.1)[1]
+    refresh(e,10.2,1.2)
+    if bad=='new_obstacle':
+        m=deepcopy(e.gate.inputs['map'][0]);m.header.stamp=stamp(10.21);m.version+=1
+        m.observed=[0]*40000;e.gate.update('map',m,1.21)
+    else:
+        o=deepcopy(e.gate.inputs['odom'][0]);o.header.stamp=o.odometry.header.stamp=stamp(10.21)
+        if bad=='moving':o.odometry.twist.twist.linear.x=.2
+        else:o.odometry.pose.pose.position.y+=.5
+        e.gate.update('odom',o,1.21)
+    with pytest.raises(ValueError):e.sample(authorization(),10.22,1.22)
+    assert not e.arrival_only and e.authorization is None
+
+
 def test_fresh_headers_cannot_hide_stale_dynamic_map_measurement():
     e,b=setup();m=deepcopy(e.gate.inputs['map'][0]);m.version+=1;m.header.stamp=stamp(10.1);m.source_stamp=stamp(7.)
     e.gate.update('map',m,1.1)

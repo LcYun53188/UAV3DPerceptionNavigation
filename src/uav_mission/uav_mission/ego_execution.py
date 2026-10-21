@@ -80,6 +80,7 @@ class EgoExecution:
 
     def retire(self):
         self.authorization=None;self.curve=None;self.gate.goal=None
+        self.arrival_only=False;self.request_context=None
         self.velocity_curve=self.acceleration_curve=None
         self.velocity=self.acceleration=(0.,0.,0.)
         self.bound_context=None;self.last_checked_version=None
@@ -108,11 +109,12 @@ class EgoExecution:
             raise ValueError('COORDINATOR_LOCALIZATION_MISMATCH')
         self.gate.dispatch(goal,ros,mono)
         self.authorization=authorization;self.requested_ros=ros
+        self.request_context=self.gate.context_id
         self.goal=deepcopy(goal)
 
     def admit(self, bound, authorization, ros, mono):
         if self.authorization is None or authorization!=self.authorization:raise ValueError('CONTROL_SESSION_MISMATCH')
-        if self.curve is not None:raise ValueError('TRAJECTORY_ALREADY_BOUND')
+        if self.curve is not None or self.arrival_only:raise ValueError('TRAJECTORY_ALREADY_BOUND')
         self.ready(ros,mono)
         context=bound.context;g=self.gate;message=g.inputs['map'][0];a=g.inputs['alignment'][0]
         if (not context.valid or context.header.frame_id!='map' or not -.05<=ros-stamp(context.header.stamp)<=.5 or
@@ -141,6 +143,26 @@ class EgoExecution:
             self.ready(ros,mono)
             if self.bound_context is not None and self.gate.context_id!=self.bound_context:raise ValueError('EXECUTION_CONTEXT_RETIRED')
             if self.curve is None:
+                # The planner intentionally emits GOAL_REACHED without a spline
+                # for a stopped start already within 15 cm. Confirm this from
+                # fresh, bound odometry and the actual observed braking volume;
+                # do not fabricate a trajectory or wait for one until timeout.
+                g=self.gate
+                point=xyz(g.map_odometry.pose.pose.position)
+                target=xyz(self.goal.pose.position)
+                stopped=np.linalg.norm(xyz(g.map_odometry.twist.twist.linear))<=.05
+                near=np.linalg.norm(point-target)<.15
+                if self.arrival_only or near and stopped:
+                    if (not near or not stopped or self.request_context!=g.context_id
+                            or not self.arrival_only and (not g.goal or g.goal[1]!=g.context_id)):
+                        raise ValueError('NO_MOTION_ARRIVAL_CONTEXT_LOST')
+                    radius=g.radius+g.grid.resolution*.5
+                    if any(not self.region(self.alignment.to_odom(p)) or g.grid.collision(p,radius)
+                           for p in (point,target)):
+                        raise ValueError('NO_MOTION_ARRIVAL_VOLUME_UNSAFE')
+                    self.arrival_only=True;self.bound_context=g.context_id
+                    g.goal=None;self.last_checked_version=g.inputs['map'][0].version
+                    return self.alignment.to_odom(point),True
                 if ros-self.requested_ros>2.:raise ValueError('PLANNER_TIMEOUT')
                 return None,False
             elapsed=min(self.duration,max(0.,ros-self.start_ros))
