@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Owned, disarmed x500 smoke session. Run with scripts/with_px4_sim.sh.
 
-Checks DDS samples/clock and QGC log evidence. --flight explicitly enables tasks.
+Checks DDS samples/clock and QGC log evidence in a no-GNSS environment.
+Legacy GNSS flight/mapping modes are disabled until localization is integrated.
 """
 import argparse
 import fcntl
@@ -23,6 +24,7 @@ from rosgraph_msgs.msg import Clock
 from px4_msgs.msg import VehicleStatus, VehicleOdometry, VehicleLocalPosition, VehicleLandDetected
 from sim_validation import ROOT, file_hash, read, write_json
 from prepare_px4_sim import ensure_source, check_external
+from usb_joystick import qgc_environment
 
 
 def stop(process):
@@ -48,6 +50,7 @@ def free_port(port):
 
 
 def main():
+    from simulation.backends import source_hashes
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--vision-fusion-profile',choices=('full_odometry','aligned_pose_v1'),default='full_odometry')
     parser.add_argument('--vision-fusion-smoke', action='store_true', help='Separate disarmed build: synthetic EV input and actual EKF fusion telemetry')
@@ -115,6 +118,9 @@ def main():
     if not 10 <= args.duration <= maximum_duration:
         parser.error(f'duration must be within [10, {maximum_duration}] seconds')
     if args.navigation_backend=='EGO' and (not args.flight or not args.bt or args.require_vio):parser.error('EGO development requires --flight --bt without VIO; camera remains fixed 5 degrees')
+    if args.flight or args.usb_joystick or args.depth_mapping:
+        from simulation.policy import DISABLED_REASON
+        parser.error(DISABLED_REASON)
     lock = read(ROOT / 'simulation/px4/versions.lock.yaml')
     for key in ['sitl', 'agent', 'px4_msgs']:
         ensure_source(lock[key])
@@ -199,14 +205,17 @@ def main():
         if pose_profile['schema']!=1 or pose_profile['profile']!=args.vio_fusion_profile:
             raise RuntimeError('Unsupported flight VIO profile')
         env.update({'PX4_PARAM_'+name:str(value) for name,value in pose_profile['parameters'].items()})
-    manifest = dict(run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
+    from simulation.policy import no_gnss_environment
+    localization_policy = no_gnss_environment(env, world_file)
+    manifest = dict(localization_policy=localization_policy,
+                    run_id=run_id, started_at=datetime.now(timezone.utc).isoformat(),
                     domain=domain, partition=env['GZ_PARTITION'], instance=instance,
                     xrce_port=xrce_port, gcs_port=14550, px4_gcs_local_port=18577,
                     model=f'{model_name}_7', namespace='/px4_7', versions=lock,
                     flight_recipe_sha256=file_hash(args.mission_file.resolve() if args.mission_file else ROOT/'simulation/missions/W0_flight_sequence.json') if args.flight else None,
                     vio_fusion_profile=args.vio_fusion_profile,flight_profile_sha256=file_hash(ROOT/('simulation/safe_regions/depth_reference.json' if args.depth_observation else 'simulation/safe_regions/W0.json')) if args.flight else None,
                     px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
-                    tool_sha256=file_hash(Path(__file__)),
+                    tool_sha256=file_hash(Path(__file__)), launcher_sha256=source_hashes(),
                     world_sha256=file_hash(world_file),
                     server_config_sha256=file_hash(ROOT / 'simulation/px4/server_control.config'),
                     model_sha256=file_hash(model_file),
@@ -375,6 +384,7 @@ def main():
         qgc_env = dict(env, XDG_CONFIG_HOME=str(run_dir / 'qgc-config'),
                        XDG_CACHE_HOME=str(run_dir / 'qgc-cache'),
                        QT_QPA_PLATFORM=os.environ.get('QT_QPA_PLATFORM', 'xcb') if args.ui else 'offscreen')
+        qgc_env = qgc_environment(qgc_env)
         launch('qgc', [lock['artifacts']['qgc']['path'], '--allow-multiple', '--log-output',
                        '--logging', 'Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'], qgc_env)
         if args.aircraft_state:
@@ -419,9 +429,12 @@ def main():
             and status is not None and status.arming_state == VehicleStatus.ARMING_STATE_DISARMED
             and landed is not None and landed.landed
             and local is not None and clock_end is not None and first_clock is not None
-            and local.xy_valid and local.z_valid and clock_end > first_clock
+            and clock_end > first_clock
             and writers.get('/clock') == 1 and all(v == 1 for v in writers.values())
             and all(v < 1 for v in result['receive_age_s'].values()))
+        # Transport/ground-state checks do not assert a no-GNSS position solution.
+        result['localization_ready'] = bool(local is not None and local.xy_valid and local.z_valid)
+        result['scope'] = 'no-GNSS disarmed transport/sensor check; not flight readiness'
         result['passed'] = result['dds_clock_passed'] and qgc_connected and source_age is not None and math.isfinite(source_age) and abs(source_age) < .5
         if depth_audit is not None:
             depth_result = depth_audit.result(time.monotonic(), clock_end,

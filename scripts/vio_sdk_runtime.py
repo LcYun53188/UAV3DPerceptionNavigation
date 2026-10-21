@@ -1,7 +1,25 @@
 """Read-only SDK parameter receipt; never changes estimator parameters."""
+import time
 from rclpy.parameter_client import AsyncParameterClient
 from rclpy.parameter import parameter_value_to_python
 from rclpy.clock import Clock, ClockType
+
+
+def wait_for_sdk_subscriptions(node, runtime_receipt, require_processes, timeout=45.):
+    """Load the SDK before spawning PX4 so actual settling samples reach VIO."""
+    import rclpy
+    topics = ('/vio/left/image', '/vio/right/image', '/vio/imu')
+    started = time.monotonic()
+    while time.monotonic()-started < timeout:
+        require_processes('SDK before PX4 spawn')
+        endpoints = {topic: [e.node_name for e in node.get_subscriptions_info_by_topic(topic)]
+                     for topic in topics}
+        if runtime_receipt.result()['passed'] and all('visual_slam' in names for names in endpoints.values()):
+            return dict(ready=True, wait_seconds=time.monotonic()-started,
+                        subscriptions=endpoints, parameters=runtime_receipt.result(),
+                        scope='SDK loaded before aircraft spawn; no motion or flight commands')
+        rclpy.spin_once(node, timeout_sec=.05)
+    raise RuntimeError('SDK subscriptions not ready before PX4 spawn; inspect vio.log')
 
 
 class SdkRuntimeReceipt:

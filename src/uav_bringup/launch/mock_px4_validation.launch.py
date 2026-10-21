@@ -40,8 +40,7 @@ def generate_launch_description():
         name='fake_px4_sensors',
         output='screen',
         parameters=[{
-            # Harmless in no-GPS mode; required when enable_gps:=true.
-            'publish_gps': True,
+            'publish_gps': False,
         }],
     )
 
@@ -49,7 +48,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_gps',
             default_value='false',
-            description='Enable GPS fusion (dual EKF + NavSat). Set false for GPS-denied.',
+            choices=['false'],
+            description='Global simulation policy: no GNSS; GPS fusion is disabled.',
         ),
         nav_stack_launch,
         px4_mock_node,

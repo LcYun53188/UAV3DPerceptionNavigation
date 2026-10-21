@@ -56,12 +56,16 @@ def execute(args,lock,build_receipt):
         GZ_SIM_SYSTEM_PLUGIN_PATH=str(BUILD/'src/modules/simulation/gz_plugins'),
         GZ_SIM_SERVER_CONFIG_PATH=str(ROOT/'simulation/px4/server_control.config'))
     env.update({'PX4_PARAM_'+name:str(value) for name,value in fusion['parameters'].items()})
+    from simulation.policy import no_gnss_environment
+    localization_policy = no_gnss_environment(env, out/'assets/default.sdf')
     os.environ.update({name:env[name] for name in ('ROS_DOMAIN_ID','ROS_LOCALHOST_ONLY','GZ_PARTITION')})
     sources=[ROOT/name for name in ('scripts/run_fusion_switch_sitl.py','scripts/localization_selection_session.py',
         'scripts/px4_vision_audit.py','scripts/mtf01_flow_bridge.py','scripts/mtf01_range_bridge.py',
         'src/uav_mission/uav_mission/localization_selector.py','src/uav_mission/uav_mission/sitl_fusion_parameters.py',
         'src/uav_mission/uav_mission/vio_gate.py','simulation/px4/mtf01/joint_fusion.json')]
-    manifest=dict(run_id=ident,domain=78,partition=env['GZ_PARTITION'],calibration_id='a'*64,
+    from simulation.backends import source_hashes
+    sources.append(ROOT/'simulation/px4/server_control.config')
+    manifest=dict(launcher_sha256=source_hashes(),localization_policy=localization_policy,run_id=ident,domain=78,partition=env['GZ_PARTITION'],calibration_id='a'*64,
         synthetic_vio=True,scope='ground synthetic EV + actual rendered MTF/PX4 EKF; no flight or camera VIO qualification',
         vio_build=build_receipt,px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
         input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in sources},processes={})
@@ -87,9 +91,10 @@ def execute(args,lock,build_receipt):
         launch('px4',[BUILD/'bin/px4','-d','-i','7','-w',out/'rootfs',BUILD/'etc'])
         config=out/'qgc-config/QGroundControl';config.mkdir(parents=True)
         (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+        from usb_joystick import qgc_environment
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output'],
-            dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
-                QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen'))
+            qgc_environment(dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
+                QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')))
         import rclpy
         from rosgraph_msgs.msg import Clock
         from px4_vision_audit import VisionFusionAudit

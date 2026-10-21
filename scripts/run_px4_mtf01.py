@@ -33,7 +33,8 @@ def main():
     parser.add_argument('--native-manual', action='store_true', help='With --flight: native Position and simulated RC sticks, no mission gateway or Offboard heartbeat')
     parser.add_argument('--usb-joystick', action='store_true', help='Persistent FLOW_LOCAL warehouse/Pocket session; no automatic arm or flight')
     parser.add_argument('--session-duration', type=float, default=3600, help='Operator session seconds after successful ground audit')
-    parser.add_argument('--device', default='/dev/input/js0', help='Explicit virtual Pocket joystick for the operator session')
+    parser.add_argument('--device', default='/dev/input/js0', help='Explicit Pocket joystick for the operator session')
+    parser.add_argument('--input-profile', choices=('uav-aetr-v1','pocket-rc-v2','legacy-usb'), default='uav-aetr-v1')
     parser.add_argument('--qgc-config-from', type=Path, help='Preserve calibration from an owned SITL QGC config')
     parser.add_argument('--render-device', choices=('default','nvidia','intel'), default='nvidia')
     args = parser.parse_args()
@@ -53,7 +54,11 @@ def main():
     signal.signal(signal.SIGTERM,interrupted)
     if not 20 <= args.duration <= 120:
         parser.error('duration must be within [20,120] seconds')
+    input_identity=None
     lock = read(ROOT/'simulation/px4/versions.lock.yaml')
+    if args.usb_joystick:
+        from pocket_input import preflight_device
+        input_identity=preflight_device(args.device,args.input_profile)
     for key in ('sitl','agent','px4_msgs'):
         ensure_source(lock[key])
     check_external(lock)
@@ -68,10 +73,11 @@ def main():
             free_port(port)
         if Path('/tmp/px4_lock-7').exists():
             raise RuntimeError('PX4 instance 7 occupied')
-        execute(args, lock)
+        execute(args, lock, input_identity=input_identity)
 
 
-def execute(args, lock):
+def execute(args, lock, input_identity=None):
+    from simulation.backends import source_hashes
     run_id = str(uuid.uuid4())
     out = ROOT/'.cache/simulation/mtf01'/run_id
     (out/'rootfs').mkdir(parents=True)
@@ -117,6 +123,8 @@ def execute(args, lock):
         if args.usb_joystick:
             env.update(PX4_PARAM_COM_RC_IN_MODE='1', PX4_PARAM_COM_RC_OVERRIDE='2',
                        PX4_PARAM_MPC_LAND_SPEED='0.3', PX4_PARAM_MPC_LAND_CRWL='0.2')
+    from simulation.policy import no_gnss_environment
+    localization_policy = no_gnss_environment(env, out/'assets/default.sdf')
     inputs = [Path(__file__), PROFILE, fusion_file, ROOT/'scripts/prepare_mtf01_assets.py',
         ROOT/'scripts/mtf01_audit.py', ROOT/'scripts/vio_warehouse_scene.py',
         ROOT/'scripts/mtf01_range_bridge.py',
@@ -134,18 +142,23 @@ def execute(args, lock):
             'src/uav_mission/uav_mission/flow_gate.py','src/uav_mission/uav_mission/px4_flight.py',
             'src/uav_mission/uav_mission/flight_profiles.py','simulation/safe_regions/flow_local.json',
             'simulation/missions/flow_local_hover.json'))
-    manifest = dict(schema=1, run_id=run_id, scope='owned disarmed MTF-01 reference audit; no UART or PMW3901 firmware emulation',
+    if args.usb_joystick:
+        inputs.extend(ROOT/name for name in ('scripts/pocket_input.py','scripts/pocket_operator_session.py',
+            'scripts/pocket_switches.py','scripts/pocket_uav_switches.py'))
+    launcher_hashes = source_hashes()
+    manifest = dict(localization_policy=localization_policy,schema=1, run_id=run_id, launcher_sha256=launcher_hashes, scope='owned disarmed MTF-01 reference audit; no UART or PMW3901 firmware emulation',
         partition=env['GZ_PARTITION'], domain=78, instance=7, duration_s=args.duration,
         profile=profile, fusion=fusion, textured_floor=not args.no_floor_texture,
         stop_sensors=args.stop_sensors, runtime=runtime, versions=lock,
         flight=args.flight,native_manual=args.native_manual,vio_build=build_receipt,
         usb_joystick=args.usb_joystick,model=profile['model']+'_7',namespace='/px4_7',
+        input_profile=args.input_profile if args.usb_joystick else None,input_device=input_identity,
         localization_profile='FLOW_LOCAL' if local_control else None,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
         operator_environment={k:env[k] for k in ('UAV_REQUIRE_VIO','UAV_LOCALIZATION_PROFILE','UAV_ENABLE_FUSION_SWITCH',
             'UAV_FLIGHT_REGION_PROFILE','UAV_FLIGHT_ASSET_RECEIPT','UAV_FLIGHT_ASSET_SHA256',
             'UAV_FLIGHT_EVIDENCE','UAV_FLIGHT_MODEL','UAV_ENABLE_EGO_NAV','UAV_NAVIGATION_BACKEND') if k in env},
-        input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs}, processes={})
+        input_sha256={**launcher_hashes, **{str(p.relative_to(ROOT)):file_hash(p) for p in inputs}}, processes={})
     processes, logs, receipts = [], [], []
     result = dict(passed=False)
     def launch(name, command, launch_env=env):
@@ -196,9 +209,10 @@ def execute(args, lock):
                 with (config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
             else:
                 (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+            from usb_joystick import qgc_environment
             launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output'],
-                dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
-                    QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen'))
+                qgc_environment(dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
+                    QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')))
         print('MTF-01 audit:', out, flush=True)
         started = time.monotonic()
         next_sample = started+12
@@ -243,7 +257,7 @@ def execute(args, lock):
         if args.usb_joystick and result['passed']:
             write_json(out/'ground-audit.json', result)
             owner=launch('pocket_operator',[sys.executable,ROOT/'scripts/pocket_operator_session.py',
-                '--device',args.device,'--input-profile','uav-aetr-v1','--session',str(out),'--enable-sitl-control'])
+                '--device',args.device,'--input-profile',args.input_profile,'--session',str(out),'--enable-sitl-control'])
             live=dict(session=str(out),profile='FLOW_LOCAL',scene='warehouse',scope='operator session; no automatic arm/takeoff',
                       ground_audit_passed=True,operator_pid=owner.pid)
             write_json(out/'live-session.json',live)

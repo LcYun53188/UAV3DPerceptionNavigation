@@ -26,9 +26,11 @@ from vio_sdk_runtime import SdkRuntimeReceipt
 from vio_ui_lifecycle import grounded_for_viewers
 from vio_render_device import environment as render_environment,capture as capture_renderer
 from vio_evidence import nullable
+from usb_joystick import qgc_environment
 
 
 def main():
+    from simulation.backends import source_hashes
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--imu-noise-model',choices=('ideal','declared'),default='ideal',help='Declared white IMU noise and matching estimator model; OpenVINS disarmed experiment only')
     parser.add_argument('--experimental-chain',action='store_true',help='Explicit SDK16/MTF simulation flight with covariance qualification deferred; sequence connects real depth/EGO')
@@ -74,10 +76,17 @@ def main():
     parser.add_argument('--source-warmup-seconds',type=float,default=None,help='Original-sample-time startup exclusion; default 20 s for disarmed PX4 pose fusion, 0 s for source-only audits and historical qualified flight')
     parser.add_argument('--reset-source',action='store_true',help='Retire normalized source then reset actual SDK; disarmed only')
     parser.add_argument('--pocket-session',action='store_true',help='Persistent disarmed startup with sole Pocket flight owner; no automatic mission')
+    parser.add_argument('--manual-only',action='store_true',help='Pocket session restricted to manual flight; reject automatic task intents')
     parser.add_argument('--device',default='/dev/input/js0')
+    parser.add_argument('--input-profile', choices=('uav-aetr-v1', 'pocket-rc-v2', 'legacy-usb'), default='uav-aetr-v1',
+                        help='Virtual AETR or physical SB/SC/SD matrix; legacy-usb retains the old two-state mapping')
     parser.add_argument('--qgc-config-from',type=Path)
     parser.add_argument('--session-duration',type=float,default=3600.)
     args = parser.parse_args()
+    if args.manual_only and not args.pocket_session:
+        parser.error('--manual-only requires --pocket-session')
+    if args.input_profile in ('legacy-usb','pocket-rc-v2') and not args.pocket_session:
+        parser.error('Physical Pocket input requires --pocket-session')
     if args.flight_case!='full' and (not args.experimental_chain or args.flight!='sequence' or
             args.warehouse_variant!='avoidance' or not args.vio_primary or args.pocket_session):
         parser.error('Flight cases require the explicit no-GNSS VIO-primary avoidance sequence, without a Pocket operator')
@@ -180,6 +189,10 @@ def main():
             parser.error('Experimental VIO flight evidence requires at least 2 GiB free; '
                          f'available {available/1024**3:.3f} GiB')
     lock = read(ROOT/'simulation/px4/versions.lock.yaml')
+    input_identity = None
+    if args.pocket_session:
+        from pocket_input import preflight_device
+        input_identity = preflight_device(args.device, args.input_profile)
     for key in ('sitl','agent','px4_msgs'): ensure_source(lock[key])
     check_external(lock)
     for artifact in lock['build_artifacts']:
@@ -471,17 +484,20 @@ def main():
             PX4_PARAM_NAV_RCL_ACT='3',PX4_PARAM_COM_RC_OVERRIDE='0')
     if args.pocket_session:
         env.update(UAV_LOCALIZATION_PROFILE='DEFAULT',PX4_PARAM_COM_RC_IN_MODE='1',UAV_ENABLE_FUSION_SWITCH='0')
-        inputs += [ROOT/'scripts/pocket_operator_session.py',ROOT/'scripts/pocket_uav_switches.py']
+        inputs += [ROOT/'scripts/pocket_operator_session.py',ROOT/'scripts/pocket_uav_switches.py',ROOT/'scripts/vio_sdk_runtime.py']
     if args.flight_case in INPUT_CASES:
         env['PX4_PARAM_COM_RC_IN_MODE']='1'
     if args.flight_case!='full':
         inputs += [ROOT/'scripts/no_gnss_flight_cases.py',ROOT/'scripts/pocket_validation_input.py',ROOT/'scripts/pocket_virtual_joystick.py']
-    manifest = dict(run_id=run_id,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
+    launcher_hashes = source_hashes()
+    from simulation.policy import no_gnss_environment
+    localization_policy = no_gnss_environment(env, out/'assets/default.sdf')
+    manifest = dict(localization_policy=localization_policy,run_id=run_id,launcher_sha256=launcher_hashes,scope=('owned warehouse BT flight using actual simulated VIO; NOT Pro W calibration' if args.flight else 'disarmed stereo/IMU VIO reference, NOT Pro W calibration or VIO flight'),
         diagnostic_ui=args.diagnostic_ui,ui_hold_seconds=args.ui_hold_seconds,keep_running=args.keep_running,flight=args.flight,partition=env['GZ_PARTITION'],domain=78,duration_s=args.session_duration if args.pocket_session else None if args.flight else args.duration,flight_observation_limit_s=config.get('flight_observation_limit_s',280.) if args.flight else None,ui=args.ui,model=profile['model'] if args.motion else profile['model']+'_7',versions=lock,profile=profile,
         render_device=args.render_device,headless_rendering=args.headless_rendering,quality_policy=args.quality_policy,source_warmup_seconds=source_warmup_seconds,effective_sdk_image_depth=sdk_image_depth,requested_sdk_image_depth=args.sdk_image_depth,requested_ekf_delay_max_ms=args.ekf_delay_max_ms,requested_real_time_factor=args.real_time_factor,normalize=args.normalize,fuse_pose=args.fuse_pose,vio_build=vio_build,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},motion=args.motion,sdk_debug_dump=args.sdk_debug_dump,sdk_profile=args.sdk_profile,sdk_cpu_list=args.sdk_cpu_list,sdk_executor=args.sdk_executor,diagnostic_visual_only=args.diagnostic_visual_only,reset_source=args.reset_source,calibration_id=calibration,
         mtf01=args.mtf01,joint_fault=args.joint_fault if args.mtf01 else None,
-        input_sha256={str(p.relative_to(ROOT)):file_hash(p) for p in inputs},processes={})
+        input_sha256={**launcher_hashes, **{str(p.relative_to(ROOT)):file_hash(p) for p in inputs}},processes={})
     if args.mtf01:manifest['scope']='same-aircraft actual '+('OpenVINS' if openvins else 'cuVSLAM')+'/MTF-01 joint audit; disarmed, not hardware calibration or flight'
     if args.same_aircraft_motion:
         manifest.update(same_aircraft_motion=True,fixture_profile=fixture_profile,
@@ -503,6 +519,9 @@ def main():
         manifest['scope']='owned same-aircraft SDK16/MTF Gazebo/PX4 flight; covariance qualification deferred; not hardware acceptance'
     manifest['covariance_qualification_deferred']=args.experimental_chain
     manifest['pocket_session']=args.pocket_session
+    manifest['manual_only']=args.manual_only
+    manifest['input_profile']=args.input_profile if args.pocket_session else None
+    manifest['input_device']=input_identity
     manifest['flight_case']=args.flight_case
     if args.pocket_session:
         manifest.update(usb_joystick=True,automatic_flight=False,joystick_device=args.device,localization_profile='VIO_FLOW',operator_environment={k:v for k,v in env.items() if k.startswith('UAV_') and k not in ('UAV_SITL_AUTHORIZATION','UAV_WORKSPACE')})
@@ -524,6 +543,11 @@ def main():
         manifest['processes'][name] = dict(pid=process.pid,command=list(map(str,command)),started_system_ns=time.time_ns())
         write_json(out/'manifest.json',manifest)
         return process
+    def require_processes(phase):
+        for name, process in zip(manifest['processes'], processes):
+            code = process.poll()
+            if code is not None:
+                raise RuntimeError(f'{phase} process exited: {name} (exit={code}); log: {out / (name + ".log")}')
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node = rclpy.create_node('vio_sensor_observer')
     audit = SensorAudit(node,profile,frames,allow_pose_fusion=pose_fusion_mode,estimator=args.estimator)
@@ -626,6 +650,10 @@ def main():
         # A stationary VIO-only SDK can retain its unknown initial covariance.
         # Observe the aircraft's physical spawn/settling; never fabricate motion.
         if not args.motion: launch_vio()
+        if args.pocket_session:
+            from vio_sdk_runtime import wait_for_sdk_subscriptions
+            write_json(out/'vio-startup-readiness.json',
+                wait_for_sdk_subscriptions(node,runtime_receipt,require_processes))
         launch('px4',[build/'bin/px4','-d','-i','7','-w',out/'rootfs',build/'etc'])
         qgc_config = out/'qgc-config/QGroundControl';qgc_config.mkdir(parents=True)
         (qgc_config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
@@ -641,6 +669,7 @@ def main():
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
         if args.flight_case in INPUT_CASES:
             launch('pocket_test_input',[sys.executable,ROOT/'scripts/pocket_validation_input.py',out])
+        qgc_env = qgc_environment(qgc_env)
         launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output',
             '--logging','Vehicle.MultiVehicleManager,Vehicle.VehicleLinkManager'],qgc_env)
         if args.motion or pose_fusion_mode:
@@ -690,7 +719,7 @@ def main():
                 write_json(out/'mapping-startup.json',dict(planning_source_process_prewarmed=True,
                     activation_requires='map-admission.json and first valid promoted map',
                     scope='DDS startup before source qualification; no early map binding'))
-            command=([sys.executable,ROOT/'scripts/pocket_operator_session.py','--device',args.device,'--input-profile','uav-aetr-v1','--session',out,'--enable-sitl-control'] if args.pocket_session else [sys.executable,ROOT/'scripts/run_px4_flight_tasks.py'])
+            command=([sys.executable,ROOT/'scripts/pocket_operator_session.py','--device',args.device,'--input-profile',args.input_profile,'--session',out,'--enable-sitl-control', *(['--manual-only'] if args.manual_only else [])] if args.pocket_session else [sys.executable,ROOT/'scripts/run_px4_flight_tasks.py'])
             flight_process=launch('flight_gateway',command)
             if chain_depth:
                 empty_map=out/'prewarm-empty.nvblx'
@@ -704,7 +733,7 @@ def main():
                 if args.experimental_chain and not joint_startup_recorded and len(fusion_audit.outputs)>=50:
                     joint_startup_recorded=True
                     write_json(out/'joint-startup.json',dict(vio_outputs_before_mtf=len(fusion_audit.outputs),ros=fusion_audit.ros(),flow_process_prewarmed=True,scope='Flow output waits for 50 fresh EV samples; process loads before source binding'))
-                if any(p.poll() is not None for p in processes):raise RuntimeError('Owned preflight process exited; inspect logs')
+                require_processes('Owned preflight')
                 preflight_fault=fusion_audit.stream.fault or fusion_audit.gate.fault
                 if preflight_fault:
                     if not args.pocket_session:raise RuntimeError('VIO preflight fault: '+preflight_fault)
@@ -745,7 +774,9 @@ def main():
                     fusion_profile=env['UAV_VIO_FUSION_PROFILE'],joint_ground_preflight=args.experimental_chain))
                 os.replace(out/'flight-admission.pending.json',out/'flight-admission.json')
         if args.pocket_session:
-            write_json(out/'live-session.json',dict(state='POCKET_PREFLIGHT_BLOCKED' if preflight_blocked else 'POCKET_ADMITTED',reason=preflight_blocked,automatic_flight=False,qualification=False,arm_and_task_admitted=not bool(preflight_blocked)))
+            write_json(out/'live-session.json',dict(state='POCKET_PREFLIGHT_BLOCKED' if preflight_blocked else 'POCKET_ADMITTED',reason=preflight_blocked,automatic_flight=False,qualification=False,arm_and_task_admitted=not bool(preflight_blocked) and not args.manual_only,
+                arm_admitted=not bool(preflight_blocked),task_admitted=not bool(preflight_blocked) and not args.manual_only,
+                manual_only=args.manual_only,input_profile=args.input_profile,input_device=input_identity))
             print(('POCKET_DIAGNOSTIC_BLOCKED '+preflight_blocked+' ' if preflight_blocked else 'POCKET_SESSION ')+str(out),flush=True)
         until = time.monotonic()+(args.session_duration if args.pocket_session else config.get('flight_observation_limit_s',280.) if args.flight else args.duration)
         heartbeat=0.
@@ -769,7 +800,7 @@ def main():
             if not args.flight and any(p.poll() is not None for p in processes):
                 raise RuntimeError('Owned simulation process exited; inspect per-process logs')
             if args.pocket_session:
-                if any(p.poll() is not None for p in processes):raise RuntimeError('Owned Pocket process exited')
+                require_processes('Owned Pocket')
                 if (out/'close-ui').exists() and grounded_for_viewers(audit.last,audit.receive,time.monotonic()):break
                 now=time.monotonic()
                 if now-heartbeat>=5.:
@@ -789,6 +820,10 @@ def main():
                 pose_audit.request_reset()
         if args.pocket_session:
             result=dict(passed=not fusion_audit.stream.fault,scope='Pocket live diagnostic; mission outcomes separate; no automatic flight')
+            if args.manual_only:
+                result.update(manual_session_closed=True, manual_preflight_admitted=not bool(preflight_blocked),
+                    manual_final_grounded=grounded_for_viewers(audit.last,audit.receive,time.monotonic()),
+                    manual_final_source_ready=fusion_audit.gate.reason=='READY' and not fusion_audit.stream.fault and not fusion_audit.gate.fault)
         elif args.flight:
             if not (out/'flight-observation.json').exists():raise RuntimeError('Warehouse flight deadline exceeded or gateway exit')
             result=dict(passed=flight_process.poll() is None,
@@ -1059,13 +1094,20 @@ def main():
             result['sdk_profile_report_present']=(out/'sdk-trace.nsys-rep').is_file()
             result['sdk_profile_checks_passed']=result['passed'] and result['sdk_profile_report_present']
             result['passed']=False
+        if args.manual_only:
+            from vio_ui_lifecycle import manual_session_result
+            result=manual_session_result(result)
         write_json(out/'result.json',result)
-    if args.sdk_candidate:
+    if args.manual_only:
+        print('Pocket 手动会话：', '正常结束' if result.get('manual_session_passed') else 'FAIL', out, flush=True)
+    elif args.sdk_candidate:
         print(('No-GNSS local landing case:' if args.flight_case.startswith('local-land-') else
             ('OpenVINS' if openvins else 'SDK16')+(' experimental simulation flight:' if args.experimental_chain else ' disarmed diagnostic:')), 'PASS' if result.get('no_gnss_landing_case_passed',result.get('experimental_mission_passed',result.get('estimator_candidate_checks_passed',result.get('sdk16_candidate_checks_passed')))) else 'FAIL',
               '(flight qualification pending)',out,flush=True)
     else:
         print('Stereo/IMU VIO:', 'PASS' if result['passed'] else 'FAIL',out,flush=True)
+    if result.get('error'):
+        print('失败原因：' + result['error'], file=sys.stderr, flush=True)
     return 0 if result['passed'] else 1
 
 
@@ -1074,4 +1116,8 @@ if __name__ == '__main__':
     guard.parent.mkdir(parents=True,exist_ok=True)
     with guard.open('a') as handle:
         fcntl.flock(handle,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        raise SystemExit(main())
+        try:
+            raise SystemExit(main())
+        except (ValueError, OSError, RuntimeError) as exc:
+            print(f'VIO 启动检查失败：{exc}', file=sys.stderr, flush=True)
+            raise SystemExit(1)

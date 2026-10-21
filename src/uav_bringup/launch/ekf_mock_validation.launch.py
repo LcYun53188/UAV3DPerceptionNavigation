@@ -31,7 +31,7 @@ def generate_launch_description():
             '--ros-args',
             '-r', '__node:=fake_px4_sensors',
             '-p', ['rate_hz:=', rate_hz],
-            '-p', 'publish_gps:=true',
+            '-p', 'publish_gps:=false',
             '-p', 'publish_px4_odom:=false',
         ],
         output='screen',
@@ -52,7 +52,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_gps',
             default_value='false',
-            description='Enable the map EKF and navsat_transform with fake GPS.',
+            choices=['false'],
+            description='Global simulation policy: no GNSS; GPS fusion is disabled.',
         ),
         DeclareLaunchArgument(
             'rate_hz',

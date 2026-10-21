@@ -2,6 +2,8 @@
 set -eo pipefail
 workspace_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$workspace_dir"
+export PX4_PARAM_EKF2_GPS_CTRL=0
+export GZ_SIM_SERVER_CONFIG_PATH="$workspace_dir/simulation/px4/server_control.config"
 if [[ ! -f .deps/px4-msgs-install/setup.bash ]]; then
   echo 'Missing isolated px4_msgs install; run scripts/build_px4_sim.sh' >&2
   exit 1
