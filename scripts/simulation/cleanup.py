@@ -147,6 +147,8 @@ def select(processes, root=ROOT, self_pid=None):
             known |= under(entry, root/'install_uav') or under(entry, root/'.deps/mission-install')
             known |= Path(entry).name == 'ros2' and len(p.argv) > 2 and p.argv[2] in ('run', 'launch')
         known |= bool(p.argv and Path(p.argv[0]).name == 'gz' and 'sim' in p.argv[:3])
+        known |= bool(len(p.argv) > 2 and Path(p.argv[0]).name.startswith('ruby')
+                      and Path(p.argv[1]).name == 'gz' and p.argv[2] == 'sim')
         known |= bool(qgc and isolated_qgc)
         known |= executable == 'QtWebEngineProcess' and isolated_qgc
         owned = workspace and ((partition in partitions) or

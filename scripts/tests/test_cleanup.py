@@ -60,6 +60,12 @@ def test_installed_python_ros_node_and_isolated_qgc_are_selected(tmp_path):
     assert set(selected) == {100,101}
 
 
+def test_gazebo_ruby_launcher_is_detected_without_matching_shell_strings(tmp_path):
+    gazebo = process(tmp_path, exe='ruby3.2', args=['/usr/bin/ruby','/usr/bin/gz','sim','-r','-s'])
+    selected, _ = cleanup.select({100:gazebo}, tmp_path, self_pid=999)
+    assert set(selected) == {100}
+
+
 def test_recorded_algorithm_owner_uses_birth_identity_and_not_just_pid(tmp_path):
     boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     state = tmp_path/'.cache/sim/session.json'
