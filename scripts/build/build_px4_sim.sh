@@ -17,8 +17,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || { echo 'jobs must be a positive integer' >&2; exit 2; }
-./scripts/with_venv.sh python scripts/prepare_px4_sim.py
-./scripts/with_venv.sh python scripts/check_px4_interfaces.py
+./scripts/with_venv.sh python scripts/simulation/px4/prepare_px4_sim.py
+./scripts/with_venv.sh python scripts/simulation/px4/check_px4_interfaces.py
 if [[ "$prepare_only" == true ]]; then exit 0; fi
 if [[ ! -x .deps/px4-venv/bin/python ]]; then uv venv --python 3.11 .deps/px4-venv; fi
 uv pip install --python .deps/px4-venv/bin/python -r requirements/px4-sim.txt
@@ -40,4 +40,4 @@ CMAKE_BUILD_PARALLEL_LEVEL="$jobs" SKIP_WS_SETUP=true ./scripts/with_venv.sh col
   --log-base .cache/simulation/px4-msgs-colcon-log build --base-paths .deps/px4_msgs \
   --build-base .deps/px4-msgs-build --install-base .deps/px4-msgs-install --packages-select px4_msgs
 
-./scripts/with_venv.sh python scripts/prepare_px4_sim.py --check --check-external
+./scripts/with_venv.sh python scripts/simulation/px4/prepare_px4_sim.py --check --check-external

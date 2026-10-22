@@ -4,6 +4,15 @@
 The diagnostic replay has its own RPATH. The SDK15 install and its contract
 are never rewritten. Only the source-reviewed SDK16 tag is supported here.
 """
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import hashlib
 import json
@@ -23,9 +32,25 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def canonical_input_hashes(recorded):
+    """Accept registered path moves only when the exact input bytes still match."""
+    layout = json.loads((ROOT/'scripts/compat/layout.json').read_text())
+    moves = {**layout['scripts'], **layout['resources']}
+    result = {}
+    for name, digest in recorded.items():
+        path = (ROOT/moves.get(name, name)).resolve()
+        if not path.is_relative_to(ROOT) or not path.is_file() or sha(path) != digest:
+            raise RuntimeError('Native patch input drift: ' + name)
+        canonical = str(path.relative_to(ROOT))
+        if canonical in result and result[canonical] != digest:
+            raise RuntimeError('Conflicting native patch input: ' + canonical)
+        result[canonical] = digest
+    return result
+
+
 def protected_baseline():
     files = [ROOT / 'install_uav/isaac_ros_visual_slam/lib/libcuvslam.so',
-             ROOT / 'simulation/px4/vio/pose_contract.json']
+             ROOT / 'simulation/px4/vio/profiles/pose_contract.json']
     return {str(p.relative_to(ROOT)): sha(p) for p in files}
 
 
@@ -40,7 +65,7 @@ def main():
     parser.add_argument('--cuda-root', type=Path, default=Path('/usr/local/cuda-13.2'))
     parser.add_argument('--cuda-architecture', default='89')
     args = parser.parse_args()
-    profile_path = ROOT / 'simulation/px4/vio/cuvslam16_candidate.json'
+    profile_path = ROOT / 'simulation/px4/vio/profiles/cuvslam16_candidate.json'
     profile = json.loads(profile_path.read_text())
     if profile['source_commit'] != COMMIT or profile['source_url'] != URL or profile['sdk_major'] != 16:
         raise RuntimeError('Candidate profile differs from the source-reviewed build')
@@ -66,7 +91,7 @@ def main():
          '-DUSE_RERUN=OFF'],
         ['cmake', '--build', str(build), '--target', 'cuvslam', '--parallel', str(args.jobs)],
         ['g++', '-std=c++17', '-O2', '-DCUVSLAM_REPLAY_SDK_MAJOR=16',
-         str(ROOT / 'scripts/vio_sdk_covariance_replay.cpp'), f'-I{source / "libs"}',
+         str(ROOT / 'scripts/simulation/vio/sdk/vio_sdk_covariance_replay.cpp'), f'-I{source / "libs"}',
          '-I/usr/include/eigen3', f'-L{build / "bin"}', f'-Wl,-rpath,{build / "bin"}',
          '-lcuvslam', '-o', str(folder / 'replay')],
     ]
@@ -84,7 +109,7 @@ def main():
                    source_tree_sha256=files,
                    candidate_profile=profile, candidate_profile_sha256=sha(profile_path),
                    artifacts_sha256={str(p.relative_to(ROOT)): sha(p) for p in artifacts},
-                   replay_source_sha256=sha(ROOT / 'scripts/vio_sdk_covariance_replay.cpp'))
+                   replay_source_sha256=sha(ROOT / 'scripts/simulation/vio/sdk/vio_sdk_covariance_replay.cpp'))
     (folder / 'build-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print('Isolated candidate build complete; SDK15 baseline hashes unchanged')
 

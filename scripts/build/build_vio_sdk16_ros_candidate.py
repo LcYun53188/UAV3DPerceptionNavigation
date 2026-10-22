@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 """Rebuild the disarmed SDK16 ROS candidate without changing installed SDK15."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import hashlib
 import json
 from pathlib import Path
@@ -9,9 +18,9 @@ from build_vio_sdk_candidate import ROOT, COMMIT, protected_baseline, sha
 
 FOLDER=ROOT/'.cache/vio-sdk-candidate/v16.0.0'
 PREFIX=FOLDER/'ros-install/isaac_ros_visual_slam'
-PATCH=ROOT/'simulation/px4/vio/sdk16_ros_candidate.patch'
+PATCH=ROOT/'simulation/px4/vio/patches/sdk16_ros_candidate.patch'
 CONTRACT='cuvslam16_world_fixed_sdk_euler_v1_disarmed'
-PROFILE=ROOT/'simulation/px4/vio/cuvslam16_ros_candidate.json'
+PROFILE=ROOT/'simulation/px4/vio/profiles/cuvslam16_ros_candidate.json'
 
 
 def build_candidate(FOLDER=FOLDER, PREFIX=PREFIX, CONTRACT=CONTRACT, PROFILE=PROFILE, *, native_modified=False, native_inputs=None, wrapper_patch=None, wrapper_headers=()):
@@ -32,7 +41,7 @@ def build_candidate(FOLDER=FOLDER, PREFIX=PREFIX, CONTRACT=CONTRACT, PROFILE=PRO
     subprocess.run(['patch','--batch','--fuzz=0','-p1','-i',str(PATCH)],cwd=shadow,check=True)
     if wrapper_patch:
         subprocess.run(['patch','--batch','--fuzz=0','-p1','-i',str(wrapper_patch)],cwd=shadow,check=True)
-    shutil.copy2(ROOT/'scripts/vio_sdk16_covariance.hpp',shadow/'include/vio_sdk16_covariance.hpp')
+    shutil.copy2(ROOT/'scripts/simulation/vio/sdk/vio_sdk16_covariance.hpp',shadow/'include/vio_sdk16_covariance.hpp')
     for header in wrapper_headers: shutil.copy2(header,shadow/'include'/header.name)
     command=[str(ROOT/'scripts/with_venv.sh'),'colcon','--log-base',str(FOLDER/'ros-log'),'build',
         '--base-paths',str(FOLDER/'ros-src'),'--build-base',str(FOLDER/'ros-build'),
@@ -42,11 +51,11 @@ def build_candidate(FOLDER=FOLDER, PREFIX=PREFIX, CONTRACT=CONTRACT, PROFILE=PRO
     with (FOLDER/'ros-build.log').open('w') as log:
         subprocess.run(command,env=dict(os.environ,CMAKE_BUILD_PARALLEL_LEVEL='2'),stdout=log,stderr=subprocess.STDOUT,check=True)
     files=[PREFIX/'lib/libcuvslam.so',PREFIX/'lib/libvisual_slam_node.so',
-           PREFIX/'lib/isaac_ros_visual_slam/isaac_ros_visual_slam',PATCH,ROOT/'scripts/vio_sdk16_covariance.hpp',
+           PREFIX/'lib/isaac_ros_visual_slam/isaac_ros_visual_slam',PATCH,ROOT/'scripts/simulation/vio/sdk/vio_sdk16_covariance.hpp',
            source/'libs/cuvslam/cuvslam2.h',PROFILE,FOLDER/'build-receipt.json']
     if native_modified:
-        files += list(native_inputs) if native_inputs is not None else [ROOT/'simulation/px4/vio/sdk16_marginal_covariance.patch',
-                  ROOT/'scripts/vio_sdk16_marginal_covariance.hpp',ROOT/'scripts/build_vio_sdk16_marginal_candidate.py']
+        files += list(native_inputs) if native_inputs is not None else [ROOT/'simulation/px4/vio/patches/sdk16_marginal_covariance.patch',
+                  ROOT/'scripts/simulation/vio/sdk/vio_sdk16_marginal_covariance.hpp',ROOT/'scripts/build/build_vio_sdk16_marginal_candidate.py']
         files += [source/n for n in receipt['source_tree_sha256'] if n.startswith('libs/') and (n.endswith('.cpp') or n.endswith('.hpp') or n.endswith('.h'))]
     if wrapper_patch: files.append(wrapper_patch)
     files += list(wrapper_headers)

@@ -1,1 +1,0 @@
-build/build_vio_sdk16_schur64.py

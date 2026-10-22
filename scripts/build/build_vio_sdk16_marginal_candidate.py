@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 """Isolated, source-pinned SDK16 covariance export repair; never installs SDK15."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import json
 import shutil
@@ -10,9 +19,9 @@ from build_vio_sdk_candidate import ROOT, COMMIT, protected_baseline, sha, run
 FOLDER=ROOT/'.cache/vio-sdk-candidate/v16.0.0-marginal-v1'
 PREFIX=FOLDER/'ros-install/isaac_ros_visual_slam'
 CONTRACT='cuvslam16_marginal_world_fixed_euler_v1_disarmed'
-PROFILE=ROOT/'simulation/px4/vio/cuvslam16_marginal_candidate.json'
-PATCH=ROOT/'simulation/px4/vio/sdk16_marginal_covariance.patch'
-HEADER=ROOT/'scripts/vio_sdk16_marginal_covariance.hpp'
+PROFILE=ROOT/'simulation/px4/vio/profiles/cuvslam16_marginal_candidate.json'
+PATCH=ROOT/'simulation/px4/vio/patches/sdk16_marginal_covariance.patch'
+HEADER=ROOT/'scripts/simulation/vio/sdk/vio_sdk16_marginal_covariance.hpp'
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -43,7 +52,7 @@ def main():
     commands=[['cmake','-S',str(source),'-B',str(build),'-DCMAKE_BUILD_TYPE=Release',
         '-DCMAKE_CUDA_ARCHITECTURES=89','-DCUDAToolkit_ROOT=/usr/local/cuda-13.2','-DUSE_RERUN=OFF'],
         ['cmake','--build',str(build),'--target','cuvslam','--parallel',str(args.jobs)],
-        ['g++','-std=c++17','-O2','-DCUVSLAM_REPLAY_SDK_MAJOR=16',str(ROOT/'scripts/vio_sdk_covariance_replay.cpp'),
+        ['g++','-std=c++17','-O2','-DCUVSLAM_REPLAY_SDK_MAJOR=16',str(ROOT/'scripts/simulation/vio/sdk/vio_sdk_covariance_replay.cpp'),
          f'-I{source}/libs','-I/usr/include/eigen3',f'-L{build}/bin',f'-Wl,-rpath,{build}/bin','-lcuvslam','-o',str(FOLDER/'replay')]]
     for label,command in zip(('configure','build','replay'),commands):
         print('Marginal covariance candidate:',label,flush=True);run(command,FOLDER/(label+'.log'))

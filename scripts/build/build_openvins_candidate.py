@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 """Build the pinned OpenVINS candidate in its own prefix; no production install."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import json
 import os
 from pathlib import Path
@@ -42,8 +51,8 @@ def main():
     with (FOLDER/'candidate-wrapper-build.log').open('w') as log:
         subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=True)
     files=[*LIBRARIES,BINARY,FOLDER/'replay-build/openvins_replay',patch,Path(__file__),
-        ROOT/'simulation/px4/vio/openvins/CMakeLists.txt',ROOT/'scripts/prepare_openvins_config.py',
-        ROOT/'scripts/openvins_ros_node.cpp',ROOT/'scripts/openvins_covariance_replay.cpp',ROOT/'scripts/openvins_pose_covariance.hpp']
+        ROOT/'simulation/px4/vio/openvins/CMakeLists.txt',ROOT/'scripts/simulation/vio/sdk/prepare_openvins_config.py',
+        ROOT/'scripts/simulation/vio/sdk/openvins_ros_node.cpp',ROOT/'scripts/simulation/vio/sdk/openvins_covariance_replay.cpp',ROOT/'scripts/simulation/vio/sdk/openvins_pose_covariance.hpp']
     names=subprocess.check_output(['git','-C',str(SOURCE),'ls-files'],text=True).splitlines()
     files += [SOURCE/n for n in names if (SOURCE/n).is_file()]
     if protected_baseline()!=baseline:raise RuntimeError('SDK15 production baseline drift')

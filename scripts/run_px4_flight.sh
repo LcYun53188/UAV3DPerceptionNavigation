@@ -1,1 +1,0 @@
-simulation/compat.sh

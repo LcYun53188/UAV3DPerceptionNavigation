@@ -1,0 +1,1 @@
+../build/build_px4_flight.sh

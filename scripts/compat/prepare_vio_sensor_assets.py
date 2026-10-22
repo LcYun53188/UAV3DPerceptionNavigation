@@ -1,0 +1,1 @@
+../simulation/vio/runtime/prepare_vio_sensor_assets.py

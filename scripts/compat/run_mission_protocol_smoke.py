@@ -1,0 +1,1 @@
+../simulation/validation/run_mission_protocol_smoke.py

@@ -1,0 +1,1 @@
+../simulation/vio/analysis/assess_vio_static_avoidance.py

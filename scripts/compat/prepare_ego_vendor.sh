@@ -1,0 +1,1 @@
+../setup/prepare_ego_vendor.sh

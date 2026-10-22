@@ -1,1 +1,0 @@
-build/build_algorithm_sim.sh

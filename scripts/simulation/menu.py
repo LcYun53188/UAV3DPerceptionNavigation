@@ -8,8 +8,10 @@ from pathlib import Path
 import shlex
 import sys
 
-# Also support the historical scripts/sim_menu.py symlink and direct execution.
+# Also support the historical scripts/simulation/menu.py symlink and direct execution.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from support.paths import enable_imports
+enable_imports()
 from simulation.profiles import (ROOT, SIM, PROFILES, BY_KEY, validate_config,
                                  command, path_arg, read_config, save_config, manual_unavailable)
 from simulation.backends import execute

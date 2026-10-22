@@ -45,7 +45,7 @@ def test_owned_warehouse_receipt_passes(owned):
 def flow_owned(tmp_path):
     import shutil,sys
     workspace=Path(__file__).resolve().parents[3]
-    sys.path.insert(0,str(workspace/'scripts'))
+    sys.path.insert(0,str(workspace/'scripts/compat'))
     from prepare_mtf01_assets import assets
     regions=tmp_path/'simulation/safe_regions';regions.mkdir(parents=True)
     profile=workspace/'simulation/safe_regions/flow_local.json'
@@ -109,7 +109,7 @@ def depth_owned(tmp_path):
     import sys
     from pathlib import Path
     workspace=Path(__file__).resolve().parents[3]
-    sys.path.insert(0,str(workspace/'scripts'))
+    sys.path.insert(0,str(workspace/'scripts/compat'))
     from prepare_px4_depth_assets import depth_assets
     regions=tmp_path/'simulation/safe_regions';regions.mkdir(parents=True)
     profile=workspace/'simulation/safe_regions/depth_reference.json'

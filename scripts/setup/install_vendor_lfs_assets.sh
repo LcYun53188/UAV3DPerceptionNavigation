@@ -5,4 +5,4 @@ if ! git lfs version >/dev/null 2>&1; then
   echo "Git LFS is required. Install git-lfs before running this script." >&2
   exit 1
 fi
-exec python3 "$WS_DIR/scripts/vendor_lfs.py" "$@"
+exec python3 "$WS_DIR/scripts/setup/vendor_lfs.py" "$@"

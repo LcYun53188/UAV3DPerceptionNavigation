@@ -1,17 +1,1 @@
-{
-  "schema": 1,
-  "scope": "isolated native candidate; not a ROS/PX4 source contract",
-  "source_url": "https://github.com/nvidia-isaac/cuVSLAM.git",
-  "source_tag": "v16.0.0",
-  "source_commit": "05588424d0440ac80af21080fd1650408fd9282a",
-  "sdk_major": 16,
-  "cuda_architecture": "89",
-  "odometry_mode": "Inertial",
-  "async_sba": true,
-  "track_options": {"kf_max_timedelta_between_kfs_s": 1},
-  "initialization_observations": ["gravity", "gyro_bias", "acc_bias"],
-  "covariance_interpretation": "SDK16 source returns world Euler/position covariance; full ROS conversion and uncertainty consistency are pending",
-  "ros_integration_enabled": false,
-  "flight_authorized": false,
-  "minimum_acceptance_duration_after_initialization_s": 120
-}
+profiles/cuvslam16_candidate.json

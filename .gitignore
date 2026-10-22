@@ -13,6 +13,7 @@ log/
 /install_uav/
 
 scripts/nav_launch.local.env
+scripts/config/nav_launch.local.env
 
 **/__pycache__/
 **/*.py[cod]
@@ -27,3 +28,4 @@ htmlcov/
 # Validation records and standalone regression scripts stay local.
 /docs/validation/
 /scripts/test_*
+/scripts/tests/local/

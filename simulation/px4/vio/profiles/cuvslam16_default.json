@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "contract": "cuvslam16_conditional_world_base_v2_disarmed",
+  "source_commit": "05588424d0440ac80af21080fd1650408fd9282a",
+  "sdk_version": "16.0.0+0558842-modified",
+  "scope": "default SDK16 VIO; simulation/hardware diagnostics; no flight qualification",
+  "flight_authorized": false,
+  "odometry_mode": "Inertial",
+  "enable_localization_n_mapping": false,
+  "async_sba": true,
+  "keyframe_max_seconds": 1,
+  "initialization_gate": {
+    "gravity_present": true,
+    "gravity_norm_bounds_m_s2": [
+      8.0,
+      11.0
+    ],
+    "finite_imu_state": [
+      "velocity",
+      "gyro_bias",
+      "acc_bias"
+    ],
+    "matching_original_track_timestamp": true,
+    "before_initialization_covariance_output": false
+  },
+  "input_covariance": "patched native world small rotation / world physical base position; OpenCV axes, row major; local conditional information transformed with lever arm",
+  "output_covariance": "ROS world position, world-fixed infinitesimal rotation; full Jacobian with cross terms",
+  "position_covariance_basis": "constant OpenCV-to-FLU basis, without additional pose rotation",
+  "variance_budget_unchanged": 0.25,
+  "minimum_initialized_observation_s": 120.0,
+  "global_uncertainty_consistency_validated": false,
+  "covariance_kind": "conditional_pose_world_base_unqualified",
+  "optimizer_changed": false,
+  "native_euler_roundtrip": false
+}

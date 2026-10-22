@@ -1,0 +1,1 @@
+../diagnostics/run_rviz_nav.sh

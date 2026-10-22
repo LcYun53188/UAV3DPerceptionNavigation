@@ -8,6 +8,8 @@ import shlex
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from support.paths import enable_imports
+enable_imports()
 from simulation import backends, menu, profiles
 
 PROG = './scripts/sim.sh'

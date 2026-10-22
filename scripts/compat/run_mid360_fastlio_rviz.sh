@@ -1,0 +1,1 @@
+../hardware/lidar/run_mid360_fastlio_rviz.sh

@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 """Isolated passive Hessian capture; never changes the default SDK or optimizer."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import json
 import shutil
@@ -10,7 +19,7 @@ from build_vio_sdk16_ros_candidate import build_candidate
 
 FOLDER = ROOT/'.cache/vio-sdk-candidate/v16.0.0-conditional-v2-schur-diagnostic-v2'
 PREFIX = FOLDER/'ros-install/isaac_ros_visual_slam'
-PATCH = ROOT/'simulation/px4/vio/sdk16_schur_diagnostic.patch'
+PATCH = ROOT/'simulation/px4/vio/patches/sdk16_schur_diagnostic.patch'
 
 
 def main():
@@ -56,8 +65,8 @@ def main():
         artifacts_sha256={str((build/'bin/libcuvslam.so').relative_to(ROOT)):sha(build/'bin/libcuvslam.so')})
     (FOLDER/'build-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     build_candidate(FOLDER,PREFIX,CONTRACT,PROFILE,native_modified=True,
-        native_inputs=[ROOT/name for name in inputs]+[ROOT/'scripts/build_vio_sdk16_schur_diagnostic.py'],
-        wrapper_patch=WRAPPER_PATCH,wrapper_headers=[ROOT/'scripts/vio_sdk16_world_covariance.hpp'])
+        native_inputs=[ROOT/name for name in inputs]+[ROOT/'scripts/build/build_vio_sdk16_schur_diagnostic.py'],
+        wrapper_patch=WRAPPER_PATCH,wrapper_headers=[ROOT/'scripts/simulation/vio/sdk/vio_sdk16_world_covariance.hpp'])
     if protected_baseline()!=baseline: raise RuntimeError('Default SDK15 drift')
 
 

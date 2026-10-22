@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'scripts'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'scripts/compat'))
 from pocket_operator_session import operator_environment
 from run_px4_mtf01 import main
 

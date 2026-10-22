@@ -1,1 +1,0 @@
-setup/apply_vendor_patches.sh

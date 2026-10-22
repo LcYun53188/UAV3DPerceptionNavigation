@@ -1,0 +1,1 @@
+../hardware/oakd/run_vio_monitor.sh

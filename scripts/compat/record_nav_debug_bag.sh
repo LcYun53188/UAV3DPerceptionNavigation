@@ -1,0 +1,1 @@
+../diagnostics/record_nav_debug_bag.sh

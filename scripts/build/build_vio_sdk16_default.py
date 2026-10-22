@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 """Build default SDK16 VIO, preserving optimization and the SDK15 rollback."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import json
 import os
 import shutil
 import subprocess
-from build_vio_sdk_candidate import ROOT, COMMIT, URL, protected_baseline, sha, run
+from build_vio_sdk_candidate import ROOT, COMMIT, URL, protected_baseline, sha, run, canonical_input_hashes
 
 FOLDER = ROOT/'.cache/vio-sdk-candidate/v16.0.0-conditional-v2'
 PREFIX = FOLDER/'ros-install/isaac_ros_visual_slam'
 CONTRACT = 'cuvslam16_conditional_world_base_v2_disarmed'
-PROFILE = ROOT/'simulation/px4/vio/cuvslam16_default.json'
-PATCH = ROOT/'simulation/px4/vio/sdk16_conditional_world_covariance.patch'
-WRAPPER_PATCH = ROOT/'simulation/px4/vio/sdk16_world_odometry_covariance.patch'
-HEADERS = [ROOT/'scripts/vio_sdk16_conditional_covariance.hpp',
-           ROOT/'scripts/vio_sdk16_marginal_covariance.hpp']
+PROFILE = ROOT/'simulation/px4/vio/profiles/cuvslam16_default.json'
+PATCH = ROOT/'simulation/px4/vio/patches/sdk16_conditional_world_covariance.patch'
+WRAPPER_PATCH = ROOT/'simulation/px4/vio/patches/sdk16_world_odometry_covariance.patch'
+HEADERS = [ROOT/'scripts/simulation/vio/sdk/vio_sdk16_conditional_covariance.hpp',
+           ROOT/'scripts/simulation/vio/sdk/vio_sdk16_marginal_covariance.hpp']
 
 
 def main():
@@ -39,7 +48,7 @@ def main():
         receipt_path=FOLDER/'build-receipt.json'
         if not receipt_path.exists(): receipt_path=FOLDER/'source-receipt.json'
         receipt = json.loads(receipt_path.read_text())
-        if receipt['patch_inputs_sha256'] != expected_patch:
+        if canonical_input_hashes(receipt['patch_inputs_sha256']) != canonical_input_hashes(expected_patch):
             raise RuntimeError('Use a new variant folder for changed native patches')
         if any(sha(source/n) != value for n,value in receipt['source_tree_sha256'].items()):
             raise RuntimeError('Native source drift')
@@ -73,7 +82,7 @@ def main():
         ['cmake','-S',str(source),'-B',str(build),'-DCMAKE_BUILD_TYPE=Release',
          '-DCMAKE_CUDA_ARCHITECTURES=89','-DCUDAToolkit_ROOT=/usr/local/cuda-13.2','-DUSE_RERUN=OFF'],
         ['cmake','--build',str(build),'--target','cuvslam','--parallel',str(args.jobs)],
-        ['g++','-std=c++17','-O2','-DCUVSLAM_REPLAY_SDK_MAJOR=16',str(ROOT/'scripts/vio_sdk_covariance_replay.cpp'),
+        ['g++','-std=c++17','-O2','-DCUVSLAM_REPLAY_SDK_MAJOR=16',str(ROOT/'scripts/simulation/vio/sdk/vio_sdk_covariance_replay.cpp'),
          f'-I{source}/libs','-I/usr/include/eigen3',f'-L{build}/bin',f'-Wl,-rpath,{build}/bin',
          '-lcuvslam','-o',str(FOLDER/'replay')]]
     for label,command in zip(('configure','build','replay'),commands):
@@ -89,8 +98,8 @@ def main():
     (FOLDER/'build-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     from build_vio_sdk16_ros_candidate import build_candidate
     build_candidate(FOLDER,PREFIX,CONTRACT,PROFILE,native_modified=True,
-        native_inputs=[PATCH,*HEADERS,ROOT/'scripts/build_vio_sdk16_default.py'],wrapper_patch=WRAPPER_PATCH,
-        wrapper_headers=[ROOT/'scripts/vio_sdk16_world_covariance.hpp'])
+        native_inputs=[PATCH,*HEADERS,ROOT/'scripts/build/build_vio_sdk16_default.py'],wrapper_patch=WRAPPER_PATCH,
+        wrapper_headers=[ROOT/'scripts/simulation/vio/sdk/vio_sdk16_world_covariance.hpp'])
     if protected_baseline() != baseline: raise RuntimeError('SDK15 rollback drift')
 
 

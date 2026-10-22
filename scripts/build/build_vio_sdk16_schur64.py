@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """Isolated double precision Schur candidate; never replaces the default SDK."""
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import json
 import re
 import shutil
 import subprocess
-from build_vio_sdk_candidate import ROOT, COMMIT, protected_baseline, sha, run
+from build_vio_sdk_candidate import ROOT, COMMIT, protected_baseline, sha, run, canonical_input_hashes
 from build_vio_sdk16_default import FOLDER as BASE, WRAPPER_PATCH
 from build_vio_sdk16_ros_candidate import build_candidate
 
 FOLDER = ROOT/'.cache/vio-sdk-candidate/v16.0.0-conditional-v3-schur64'
 CONTRACT = 'cuvslam16_conditional_world_base_v3_schur64_disarmed'
-PROFILE = ROOT/'simulation/px4/vio/cuvslam16_schur64.json'
+PROFILE = ROOT/'simulation/px4/vio/profiles/cuvslam16_schur64.json'
 PREFIX = FOLDER/'ros-install/isaac_ros_visual_slam'
-PATCH = ROOT/'simulation/px4/vio/sdk16_schur64.patch'
+PATCH = ROOT/'simulation/px4/vio/patches/sdk16_schur64.patch'
 
 
 def main():
@@ -27,12 +36,13 @@ def main():
     for name,digest in base['source_tree_sha256'].items():
         if sha(BASE/'src'/name) != digest: raise RuntimeError('Base source drift: '+name)
     source,build = FOLDER/'src',FOLDER/'build'
-    inputs = {**base['patch_inputs_sha256'], str(PATCH.relative_to(ROOT)):sha(PATCH)}
+    inputs = canonical_input_hashes({**base['patch_inputs_sha256'], str(PATCH.relative_to(ROOT)):sha(PATCH)})
     FOLDER.mkdir(parents=True,exist_ok=True)
     receipt_path = FOLDER/'source-receipt.json'
     if source.exists():
         receipt=json.loads(receipt_path.read_text())
-        if receipt['patch_inputs_sha256'] != inputs: raise RuntimeError('Use a new diagnostic variant')
+        if canonical_input_hashes(receipt['patch_inputs_sha256']) != inputs:
+            raise RuntimeError('Use a new diagnostic variant')
         for name,digest in receipt['source_tree_sha256'].items():
             if sha(source/name)!=digest: raise RuntimeError('Diagnostic source drift: '+name)
     else:
@@ -72,14 +82,14 @@ def main():
     for label,command in zip(('configure','build'),commands):
         print('Double precision Schur candidate:',label,flush=True)
         run(command,FOLDER/(label+'.log'))
-    receipt.update(schema=1,flight_authorized=False,optimizer_changed=True,
+    receipt.update(schema=1,flight_authorized=False,optimizer_changed=True,patch_inputs_sha256=inputs,
         pinned_local_dependencies=dependencies,
         numeric_marginalization_precision="float64; original 1e-6 cutoff; float storage",protected_baseline_sha256=baseline,commands=commands,
         artifacts_sha256={str((build/'bin/libcuvslam.so').relative_to(ROOT)):sha(build/'bin/libcuvslam.so')})
     (FOLDER/'build-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     build_candidate(FOLDER,PREFIX,CONTRACT,PROFILE,native_modified=True,
-        native_inputs=[ROOT/name for name in inputs]+[ROOT/'scripts/build_vio_sdk16_schur64.py'],
-        wrapper_patch=WRAPPER_PATCH,wrapper_headers=[ROOT/'scripts/vio_sdk16_world_covariance.hpp'])
+        native_inputs=[ROOT/name for name in inputs]+[ROOT/'scripts/build/build_vio_sdk16_schur64.py'],
+        wrapper_patch=WRAPPER_PATCH,wrapper_headers=[ROOT/'scripts/simulation/vio/sdk/vio_sdk16_world_covariance.hpp'])
     if protected_baseline()!=baseline: raise RuntimeError('Default SDK15 drift')
 
 

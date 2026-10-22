@@ -1,0 +1,1 @@
+../tools/maintain_catalogs.py

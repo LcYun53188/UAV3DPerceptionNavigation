@@ -1,0 +1,1 @@
+../hardware/oakd/measure_oakd_vio_performance.sh

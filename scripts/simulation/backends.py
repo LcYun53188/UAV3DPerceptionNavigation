@@ -31,27 +31,27 @@ VIO_POCKET = (
 )
 BACKENDS = {
     'manual': Backend('自动选择实体／虚拟 Pocket 的纯手动会话', 'host', 'scripts/simulation/manual.py'),
-    'algorithm': Backend('算法会话控制', 'host', 'scripts/sim_control.py'),
+    'algorithm': Backend('算法会话控制', 'host', 'scripts/simulation/algorithm/sim_control.py'),
     'scene': Backend('Gazebo 场景与传感器桥', 'shell', 'scripts/simulation/launch_scene.sh'),
     'isaac': Backend('Isaac Sim 4.5 UI', 'shell', 'scripts/simulation/launch_isaac.sh'),
-    'panel': Backend('虚拟 Pocket 面板', 'host', 'scripts/pocket_panel.py'),
-    'sitl': Backend('PX4 未解锁基础检查', 'px4', 'scripts/run_px4_sitl_smoke.py'),
-    'flight': Backend('PX4 自动飞行任务', 'mission', 'scripts/run_px4_sitl_smoke.py',
+    'panel': Backend('虚拟 Pocket 面板', 'host', 'scripts/simulation/pocket/pocket_panel.py'),
+    'sitl': Backend('PX4 未解锁基础检查', 'px4', 'scripts/simulation/px4/run_px4_sitl_smoke.py'),
+    'flight': Backend('PX4 自动飞行任务', 'mission', 'scripts/simulation/px4/run_px4_sitl_smoke.py',
                       ('--duration', '20', '--flight')),
-    'observe': Backend('PX4 EGO 观察飞行', 'mission', 'scripts/run_px4_sitl_smoke.py',
+    'observe': Backend('PX4 EGO 观察飞行', 'mission', 'scripts/simulation/px4/run_px4_sitl_smoke.py',
                        ('--duration', '20', '--flight', '--bt', '--navigation-backend', 'EGO', '--depth-observation')),
-    'depth-camera': Backend('PX4 深度相机检查', 'px4', 'scripts/run_px4_sitl_smoke.py', ('--depth-camera',)),
-    'depth-map': Backend('PX4 深度建图检查', 'px4', 'scripts/run_px4_sitl_smoke.py', ('--depth-reference', '--depth-mapping')),
-    'depth-plan': Backend('PX4 深度规划检查', 'px4', 'scripts/run_px4_sitl_smoke.py',
+    'depth-camera': Backend('PX4 深度相机检查', 'px4', 'scripts/simulation/px4/run_px4_sitl_smoke.py', ('--depth-camera',)),
+    'depth-map': Backend('PX4 深度建图检查', 'px4', 'scripts/simulation/px4/run_px4_sitl_smoke.py', ('--depth-reference', '--depth-mapping')),
+    'depth-plan': Backend('PX4 深度规划检查', 'px4', 'scripts/simulation/px4/run_px4_sitl_smoke.py',
                           ('--depth-reference', '--depth-mapping', '--depth-planning')),
-    'vision-audit': Backend('PX4 合成 EV 融合检查', 'mission', 'scripts/run_px4_sitl_smoke.py', ('--vision-fusion-smoke',)),
-    'flow': Backend('光流／测距未解锁审计', 'px4', 'scripts/run_px4_mtf01.py'),
-    'flow-local': Backend('光流自动飞行', 'mission', 'scripts/run_px4_mtf01.py', ('--flight',)),
-    'flow-pocket': Backend('光流 Pocket 操作', 'mission', 'scripts/run_px4_mtf01.py', ('--usb-joystick', '--ui')),
-    'vio': Backend('VIO 原始运行器', 'vio', 'scripts/run_px4_vio_sensors.py'),
-    'vio-joint': Backend('VIO 联合未解锁审计', 'vio', 'scripts/run_px4_vio_sensors.py',
+    'vision-audit': Backend('PX4 合成 EV 融合检查', 'mission', 'scripts/simulation/px4/run_px4_sitl_smoke.py', ('--vision-fusion-smoke',)),
+    'flow': Backend('光流／测距未解锁审计', 'px4', 'scripts/simulation/flow/run_px4_mtf01.py'),
+    'flow-local': Backend('光流自动飞行', 'mission', 'scripts/simulation/flow/run_px4_mtf01.py', ('--flight',)),
+    'flow-pocket': Backend('光流 Pocket 操作', 'mission', 'scripts/simulation/flow/run_px4_mtf01.py', ('--usb-joystick', '--ui')),
+    'vio': Backend('VIO 原始运行器', 'vio', 'scripts/simulation/vio/runtime/run_px4_vio_sensors.py'),
+    'vio-joint': Backend('VIO 联合未解锁审计', 'vio', 'scripts/simulation/vio/runtime/run_px4_vio_sensors.py',
                          ('--mtf01', '--normalize', '--fuse-pose', '--scene', 'warehouse', '--warehouse-floor-texture', '--duration', '120')),
-    'vio-pocket': Backend('VIO 仓库 Pocket 操作', 'vio', 'scripts/run_px4_vio_sensors.py', VIO_POCKET),
+    'vio-pocket': Backend('VIO 仓库 Pocket 操作', 'vio', 'scripts/simulation/vio/runtime/run_px4_vio_sensors.py', VIO_POCKET),
 }
 
 LEGACY_COMMANDS = {
@@ -74,9 +74,16 @@ ALGORITHM_COMMANDS = ('start', 'stop', 'status', 'init', 'cancel', 'explore', 'd
 
 def source_hashes():
     """Record launch code in new run manifests, including calls via old symlinks."""
-    files = [ROOT / name for name in ('scripts/sim.sh', 'scripts/with_venv.sh', 'scripts/with_px4_sim.sh', 'scripts/pocket_input.py', 'scripts/usb_joystick.py')]
-    files += sorted(path for path in Path(__file__).parent.iterdir() if path.suffix in ('.py', '.sh'))
-    return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
+    files = [ROOT / name for name in ('scripts/sim.sh', 'scripts/with_venv.sh', 'scripts/with_px4_sim.sh',
+                                    'scripts/support/paths.py', 'scripts/compat/layout.json',
+                                    'scripts/simulation/pocket/pocket_input.py',
+                                    'scripts/simulation/pocket/usb_joystick.py')]
+    files += sorted(path for path in Path(__file__).parent.rglob('*')
+                    if not {'__pycache__', 'tests'}.intersection(path.parts)
+                    and not path.is_symlink()
+                    and path.suffix in ('.py', '.sh', '.cpp', '.hpp', '.json'))
+    return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(set(files))}
 
 
 def command(key, arguments=()):

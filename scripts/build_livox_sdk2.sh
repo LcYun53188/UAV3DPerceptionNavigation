@@ -1,1 +1,0 @@
-build/build_livox_sdk2.sh

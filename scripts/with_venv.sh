@@ -22,7 +22,7 @@ hash -r
 # under the system Python during code generation.
 VENV_SITE_PACKAGES="$VIRTUAL_ENV/lib/python$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
 LOCAL_DEPS="$WS_DIR/.deps"
-export PYTHONPATH="$VENV_SITE_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$VENV_SITE_PACKAGES:$WS_DIR/scripts:$WS_DIR/scripts/compat${PYTHONPATH:+:$PYTHONPATH}"
 export LIVOX_SDK2_ROOT="${LIVOX_SDK2_ROOT:-$LOCAL_DEPS/livox_sdk2}"
 export LD_LIBRARY_PATH="$LIVOX_SDK2_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 

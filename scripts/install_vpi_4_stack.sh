@@ -1,1 +1,0 @@
-setup/install_vpi_4_stack.sh

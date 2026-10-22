@@ -1,0 +1,1 @@
+../setup/install_vendor_lfs_assets.sh

@@ -14,6 +14,8 @@ import time
 import uuid
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from support.paths import enable_imports
+enable_imports()
 from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
@@ -47,7 +49,7 @@ def input_device(source, device, folder):
             folder.mkdir(parents=True, exist_ok=True)
             path = folder / 'pocket-panel.log'
             logfile = path.open('w')
-            panel = subprocess.Popen([sys.executable, str(ROOT / 'scripts/pocket_panel.py'), '--uinput'],
+            panel = subprocess.Popen([sys.executable, str(ROOT / 'scripts/simulation/pocket/pocket_panel.py'), '--uinput'],
                                      cwd=ROOT, stdout=logfile, stderr=subprocess.STDOUT, start_new_session=True)
             print(f'需要虚拟 Pocket，正在启动虚拟面板；日志：{path}', flush=True)
             until = time.monotonic() + 12

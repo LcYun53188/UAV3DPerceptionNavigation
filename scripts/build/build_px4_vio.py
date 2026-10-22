@@ -5,6 +5,15 @@ Managed EV yaw noise unit correction in an isolated source; locked W0 preserved.
 expanded header after initializing the upstream topic target, then verify that
 CMake/Ninja did not replace it during compilation.
 """
+
+import sys as _sys
+from pathlib import Path as _Path
+_scripts = str(_Path(__file__).resolve().parents[1])
+if _scripts not in _sys.path:
+    _sys.path.insert(0, _scripts)
+from support.paths import enable_imports as _enable_imports
+_enable_imports()
+
 import argparse
 import os
 from pathlib import Path
@@ -19,8 +28,8 @@ from prepare_px4_sim import ensure_source, check_external
 
 BUILD = ROOT / '.deps/px4-vio-sdk16-build'
 SOURCE = ROOT / '.deps/PX4-VIO-SDK16'
-PATCH = ROOT / 'simulation/px4/vio/ev_yaw_noise_units.patch'
-STATUS_PATCH = ROOT / 'simulation/px4/vio/flight_status_heartbeat.patch'
+PATCH = ROOT / 'simulation/px4/vio/patches/ev_yaw_noise_units.patch'
+STATUS_PATCH = ROOT / 'simulation/px4/vio/patches/flight_status_heartbeat.patch'
 COMMANDER = Path('src/modules/commander/Commander.cpp')
 LAND = Path('src/modules/land_detector/LandDetector.cpp')
 YAW = Path('src/modules/ekf2/EKF/aid_sources/external_vision/ev_yaw_control.cpp')
@@ -28,7 +37,7 @@ BUILD_ENV = dict(os.environ)
 BUILD_ENV.pop('PYTHONPATH', None)
 BUILD_ENV.pop('VIRTUAL_ENV', None)
 BUILD_ENV['PATH'] = str(ROOT/'.deps/px4-venv/bin') + ':' + BUILD_ENV.get('PATH', '')
-CONFIG = ROOT / 'simulation/px4/vio/dds_topics.yaml'
+CONFIG = ROOT / 'simulation/px4/vio/telemetry/dds_topics.yaml'
 ADDED = dict(estimator_selector_status='EstimatorSelectorStatus',
              estimator_aid_src_ev_pos='EstimatorAidSource2d',
              estimator_aid_src_ev_hgt='EstimatorAidSource1d',
@@ -119,8 +128,13 @@ def verify_source(lock):
 def verify(lock):
     verify_source(lock)
     manifest = read(BUILD/'vio-build.json')
-    if manifest['inputs'] != inputs(lock):
-        raise RuntimeError('VIO build inputs changed; rebuild explicitly')
+    current_inputs = inputs(lock)
+    recorded_inputs = manifest['inputs']
+    if recorded_inputs != current_inputs:
+        changed = sorted(name for name in recorded_inputs.keys() | current_inputs.keys()
+                         if recorded_inputs.get(name) != current_inputs.get(name))
+        raise RuntimeError('VIO build inputs changed: ' + ', '.join(changed)
+                           + '; rebuild explicitly: ./scripts/build/build_px4_vio.sh --jobs 4')
     for name,digest in manifest['artifacts'].items():
         if file_hash(ROOT/name) != digest:
             raise RuntimeError('VIO build artifact drift: '+name)

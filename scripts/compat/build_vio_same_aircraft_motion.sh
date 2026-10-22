@@ -1,0 +1,1 @@
+../build/build_vio_same_aircraft_motion.sh

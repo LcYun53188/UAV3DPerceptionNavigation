@@ -16,4 +16,4 @@ if [ ! -e "$source_dir" ]; then
   git clone --no-checkout "${source_info[0]}" "$source_dir"
   git -C "$source_dir" checkout --detach "${source_info[1]}"
 fi
-exec python3 "$workspace_dir/scripts/vendor_patches.py" --ego --apply
+exec python3 "$workspace_dir/scripts/setup/vendor_patches.py" --ego --apply

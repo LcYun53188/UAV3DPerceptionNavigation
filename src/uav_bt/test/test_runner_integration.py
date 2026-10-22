@@ -125,7 +125,7 @@ class Backend(Node):
     ('contradictory',1), ('halt',130), ('halt-before-accept',130), ('landing',0),
     ('step-success',0), ('step-reject',1), ('step-halt',130), ('step-early-success',1)])
 def test_ros_bt_dispatch_result_and_halt_cleanup(tmp_path, case, expected):
-    assert BINARY.exists(), 'Build scripts/build_px4_flight.sh before integration tests'
+    assert BINARY.exists(), 'Build scripts/build/build_px4_flight.sh before integration tests'
     context = Context()
     domain=80+['success','abort','reject','mock','unconfirmed','contradictory','halt','halt-before-accept','landing',
                'step-success','step-reject','step-halt','step-early-success'].index(case)

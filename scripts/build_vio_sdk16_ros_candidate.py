@@ -1,1 +1,0 @@
-build/build_vio_sdk16_ros_candidate.py

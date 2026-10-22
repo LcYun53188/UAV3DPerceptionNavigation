@@ -1,0 +1,1 @@
+../diagnostics/check_nav_stack.sh

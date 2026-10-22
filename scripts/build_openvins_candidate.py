@@ -1,1 +1,0 @@
-build/build_openvins_candidate.py
