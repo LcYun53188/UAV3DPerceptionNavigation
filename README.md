@@ -54,7 +54,7 @@
 # 纯手动程序同样支持 --input-source virtual
 ```
 
-`--device /dev/input/...` 可指定设备，`--qgc-config <文件>` 可继承校准；`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
+`--device /dev/input/...` 可指定设备；校准完成并退出后自动保存，下次同设备无需重复校准。`--qgc-config <文件>` 可显式导入，`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
 
 ## 快速运行导航仿真
 
@@ -75,6 +75,8 @@
 # 请求正常关闭；飞行中会等待操作员降落上锁
 ./scripts/sim.sh stop
 ```
+
+运行器异常退出时，用 `./scripts/sim.sh cleanup` 查看残留，确认清单后执行 `./scripts/sim.sh cleanup --apply`。
 
 地图命令通过本轮完整项目的地图服务执行。纯手动程序没有地图；旧算法仿真、自动测试、场景查看与专项检查不再列为公共启动入口。当前完整项目的任务由遥控器触发，地图操作及关闭方法见[仿真控制手册](docs/simulation/SIMULATION_CONTROL.md)。
 

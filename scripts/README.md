@@ -149,6 +149,7 @@
 | [scripts/simulation/pocket/pocket_uav_switches.py](simulation/pocket/pocket_uav_switches.py) | SB/SC flight matrix shared by virtual AETR and physical Pocket CH5--8. |
 | [scripts/simulation/pocket/pocket_validation_input.py](simulation/pocket/pocket_validation_input.py) | Owned uinput stimulus for explicit computer-only flight acceptance cases. |
 | [scripts/simulation/pocket/pocket_virtual_joystick.py](simulation/pocket/pocket_virtual_joystick.py) | Linux uinput Pocket transport using only the standard library. |
+| [scripts/simulation/pocket/qgc_calibration.py](simulation/pocket/qgc_calibration.py) | Preserve device-specific QGC calibration and repair signed Pocket throttle ranges. |
 | [scripts/simulation/pocket/usb_bt_operator.py](simulation/pocket/usb_bt_operator.py) | Explicit USB switch mapping to the bound BT; sticks remain QGC's input. |
 | [scripts/simulation/pocket/usb_joystick.py](simulation/pocket/usb_joystick.py) | Read Linux USB joystick events; inspection is the default, no flight output. |
 
@@ -176,6 +177,7 @@
 | [scripts/simulation/vio/runtime/vio_evidence.py](simulation/vio/runtime/vio_evidence.py) | Preserve invalid SDK values in raw arrays and explicit nullable diagnostics. |
 | [scripts/simulation/vio/runtime/vio_gc_pause_audit.py](simulation/vio/runtime/vio_gc_pause_audit.py) | Passive Python GC pause evidence; never changes thresholds or GC behavior. |
 | [scripts/simulation/vio/runtime/vio_live_evidence.py](simulation/vio/runtime/vio_live_evidence.py) | Freeze completed mission evidence in a process independent of ROS callbacks. |
+| [scripts/simulation/vio/runtime/vio_map_startup.py](simulation/vio/runtime/vio_map_startup.py) | Ground-only startup stability before enabling depth integration. |
 | [scripts/simulation/vio/runtime/vio_mtf01_joint.py](simulation/vio/runtime/vio_mtf01_joint.py) | Disarmed joint observation only: existing VIO contract plus independent MTF aids. |
 | [scripts/simulation/vio/runtime/vio_observer_gc.py](simulation/vio/runtime/vio_observer_gc.py) | Keep automatic cyclic GC outside a bounded owned observation/control window. |
 | [scripts/simulation/vio/runtime/vio_pose_window.py](simulation/vio/runtime/vio_pose_window.py) | Source-rate evidence uses ROS/sample time; retirement uses monotonic time. |
