@@ -17,7 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from simulation.backends import ROOT
 
 SUPERVISORS = {'manual.py', 'run_px4_mtf01.py', 'run_px4_vio_sensors.py',
-               'run_px4_sitl_smoke.py', 'run_fusion_switch_sitl.py', 'sim_control.py'}
+               'run_px4_sitl_smoke.py', 'run_fusion_switch_sitl.py', 'sim_control.py',
+               'run_sim_scenario.py', 'run_planning_context_smoke.py', 'run_mission_protocol_smoke.py'}
+WORKERS = {'run_cuvslam_pose_transport.py', 'run_flow_manual_tasks.py', 'run_px4_flight_tasks.py',
+           'pocket_operator_session.py', 'pocket_panel.py', 'pocket_validation_input.py',
+           'mtf01_flow_bridge.py', 'mtf01_range_bridge.py', 'vio_stereo_ui.py',
+           'vio_sim_clock.py', 'vio_sdk_target.py'}
 NODES = {'px4', 'MicroXRCEAgent', 'rviz2', 'component_container', 'component_container_mt',
          'nvblox_node', 'ego_nvblox_planner', 'parameter_bridge', 'static_transform_publisher',
          'mission_runner', 'map_session', 'planning_sources', 'planning_context'}
@@ -98,16 +103,13 @@ def records(root):
 def select(processes, root=ROOT, self_pid=None):
     """Return residual candidates and protected processes with ownership reasons."""
     partitions = records(root)
-    protected = set()
-    pid = os.getpid() if self_pid is None else self_pid
-    while pid in processes and pid not in protected:
-        protected.add(pid)
-        pid = processes[pid].ppid
+    excluded = ancestors(processes, os.getpid() if self_pid is None else self_pid)
+    supervised = set()
     for p in processes.values():
         script = script_path(p, root)
         if script and script.name in SUPERVISORS:
             if script.name != 'sim_control.py' or 'start' in p.argv:
-                protected.add(p.pid)
+                supervised.add(p.pid)
     # Protect recorded launchers too (the old algorithm launcher is ros2 launch).
     boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     for name in ('.cache/simulation/operator/current.json', '.cache/sim/session.json'):
@@ -115,20 +117,18 @@ def select(processes, root=ROOT, self_pid=None):
             state = json.loads((root/name).read_text())
             p = processes.get(state['pid'])
             if p and not state.get('closed') and state.get('identity') == [boot, p.birth]:
-                protected.add(p.pid)
+                supervised.add(p.pid)
         except (OSError, ValueError, KeyError, TypeError):
             continue
     # Components start their own process groups; walk ancestry rather than
     # assuming that they remain in the launcher's process group.
     while True:
-        descendants = {p.pid for p in processes.values() if p.ppid in protected}
-        # Ancestors of this cleanup command are not supervision roots.
-        roots = protected - ancestors(processes, os.getpid() if self_pid is None else self_pid)
-        descendants = {p.pid for p in processes.values() if p.ppid in roots}
-        if descendants <= protected:
+        descendants = {p.pid for p in processes.values() if p.ppid in supervised}
+        if descendants <= supervised:
             break
-        protected |= descendants
-    protected_partitions = {processes[pid].env.get('GZ_PARTITION') for pid in protected
+        supervised |= descendants
+    protected = supervised | excluded
+    protected_partitions = {processes[pid].env.get('GZ_PARTITION') for pid in supervised
                             if pid in processes}
     selected, skipped = {}, {}
     for p in processes.values():
@@ -139,11 +139,16 @@ def select(processes, root=ROOT, self_pid=None):
         executable = Path(p.exe).name
         qgc = 'qgroundcontrol' in executable.casefold() or (
             p.argv and Path(p.argv[0]).name.casefold().startswith('qgroundcontrol'))
-        known = (script is not None and script.name not in {
-                    'cleanup.py', 'cli.py', 'menu.py', 'control.py', 'control_ros.py'})
+        known = script is not None and script.name in SUPERVISORS | WORKERS
         known |= executable in NODES or executable.startswith('gz-sim')
+        if len(p.argv) > 1 and Path(p.argv[0]).name.startswith('python'):
+            entry = p.argv[1]
+            entry = str(Path(p.cwd)/entry) if not Path(entry).is_absolute() else entry
+            known |= under(entry, root/'install_uav') or under(entry, root/'.deps/mission-install')
+            known |= Path(entry).name == 'ros2' and len(p.argv) > 2 and p.argv[2] in ('run', 'launch')
         known |= bool(p.argv and Path(p.argv[0]).name == 'gz' and 'sim' in p.argv[:3])
         known |= bool(qgc and isolated_qgc)
+        known |= executable == 'QtWebEngineProcess' and isolated_qgc
         owned = workspace and ((partition in partitions) or
                  (partition or '').startswith('uav_') or isolated_qgc or
                  any(under(arg, root/'.cache/simulation') for arg in p.argv if arg.startswith('/')))
@@ -208,7 +213,7 @@ def terminate(targets, timeout=5.):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='./scripts/sim.sh cleanup', description=__doc__)
     parser.add_argument('--apply', action='store_true', help='执行清理；默认仅显示清单')
     parser.add_argument('--timeout', type=float, default=5., help='INT／TERM 各阶段等待秒数，默认 5（0.1–20）')
     args = parser.parse_args(argv)
