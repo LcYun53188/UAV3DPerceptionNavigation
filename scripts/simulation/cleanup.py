@@ -105,6 +105,7 @@ def select(processes, root=ROOT, self_pid=None):
     partitions = records(root)
     excluded = ancestors(processes, os.getpid() if self_pid is None else self_pid)
     supervised = set()
+    protected_partitions = set()
     for p in processes.values():
         script = script_path(p, root)
         if script and script.name in SUPERVISORS:
@@ -118,6 +119,8 @@ def select(processes, root=ROOT, self_pid=None):
             p = processes.get(state['pid'])
             if p and not state.get('closed') and state.get('identity') == [boot, p.birth]:
                 supervised.add(p.pid)
+                if isinstance(state.get('partition'), str):
+                    protected_partitions.add(state['partition'])
         except (OSError, ValueError, KeyError, TypeError):
             continue
     # Components start their own process groups; walk ancestry rather than
@@ -128,8 +131,8 @@ def select(processes, root=ROOT, self_pid=None):
             break
         supervised |= descendants
     protected = supervised | excluded
-    protected_partitions = {processes[pid].env.get('GZ_PARTITION') for pid in supervised
-                            if pid in processes}
+    protected_partitions.update(processes[pid].env.get('GZ_PARTITION') for pid in supervised
+                                if pid in processes)
     selected, skipped = {}, {}
     for p in processes.values():
         script = script_path(p, root)
@@ -149,8 +152,13 @@ def select(processes, root=ROOT, self_pid=None):
         known |= bool(p.argv and Path(p.argv[0]).name == 'gz' and 'sim' in p.argv[:3])
         known |= bool(len(p.argv) > 2 and Path(p.argv[0]).name.startswith('ruby')
                       and Path(p.argv[1]).name == 'gz' and p.argv[2] == 'sim')
+        # Gazebo's Ruby launcher rewrites its entire argv into one process title.
+        known |= bool(executable.startswith('ruby') and len(p.argv) == 1
+                      and p.argv[0].startswith('gz sim '))
         known |= bool(qgc and isolated_qgc)
         known |= executable == 'QtWebEngineProcess' and isolated_qgc
+        if executable == 'MicroXRCEAgent' and 'udp4' not in p.argv:
+            known = False  # Hardware serial agents are outside simulation cleanup.
         owned = workspace and ((partition in partitions) or
                  (partition or '').startswith('uav_') or isolated_qgc or
                  any(under(arg, root/'.cache/simulation') for arg in p.argv if arg.startswith('/')))

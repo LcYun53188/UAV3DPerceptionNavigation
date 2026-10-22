@@ -14,7 +14,8 @@ from simulation import cleanup
 
 
 def process(root, pid=100, *, ppid=1, exe='MicroXRCEAgent', args=None, partition='uav_test'):
-    return cleanup.Process(pid, ppid, pid, pid, '12345', tuple(args or [str(root/'.deps'/exe)]),
+    default = [str(root/'.deps'/exe)] + (['udp4','-p','8898'] if exe == 'MicroXRCEAgent' else [])
+    return cleanup.Process(pid, ppid, pid, pid, '12345', tuple(args or default),
                            str(root), '/usr/bin/'+exe, {'GZ_PARTITION': partition})
 
 
@@ -60,10 +61,17 @@ def test_installed_python_ros_node_and_isolated_qgc_are_selected(tmp_path):
     assert set(selected) == {100,101}
 
 
-def test_gazebo_ruby_launcher_is_detected_without_matching_shell_strings(tmp_path):
-    gazebo = process(tmp_path, exe='ruby3.2', args=['/usr/bin/ruby','/usr/bin/gz','sim','-r','-s'])
+@pytest.mark.parametrize('argv', [['/usr/bin/ruby','/usr/bin/gz','sim','-r','-s'],
+                                 ['gz sim -r -s --headless-rendering /workspace/assets/default.sdf']])
+def test_gazebo_ruby_launcher_is_detected_without_matching_shell_strings(tmp_path, argv):
+    gazebo = process(tmp_path, exe='ruby3.2', args=argv)
     selected, _ = cleanup.select({100:gazebo}, tmp_path, self_pid=999)
     assert set(selected) == {100}
+
+
+def test_hardware_serial_agent_is_not_a_simulation_cleanup_target(tmp_path):
+    agent = process(tmp_path, args=['MicroXRCEAgent','serial','--dev','/dev/ttyACM0'])
+    assert not cleanup.select({100:agent}, tmp_path, self_pid=999)[0]
 
 
 def test_recorded_algorithm_owner_uses_birth_identity_and_not_just_pid(tmp_path):
