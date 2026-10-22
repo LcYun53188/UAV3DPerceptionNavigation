@@ -46,6 +46,7 @@ class MapSession(Node):
         self.version = 0
         self.preflight_admission_path=self.get_parameter('preflight_admission_path').value
         self.preflight_admitted=not self.preflight_admission_path
+        self.preflight_start_stamp_ns = None
         self.busy = False
         self.loaded = False
         self.input_enabled = True
@@ -108,6 +109,8 @@ class MapSession(Node):
         def age(stamp):
             return (now_ns-stamp)/1e9 if stamp is not None else None
         data = dict(self.timing, raw_age=age(self.last_raw_stamp),
+                    preflight_admitted=getattr(self, 'preflight_admitted', True),
+                    preflight_start_stamp_ns=getattr(self, 'preflight_start_stamp_ns', None),
                     forwarded_age=age(self.last_depth_stamp),
                     cached_source_age=age(self.timing['source_stamp_ns']),
                     pending_depth=len(self.pending_depth), query_pending=self.query_pending,
@@ -145,7 +148,8 @@ class MapSession(Node):
             timing['received'] += 1
         if stream == 'depth':
             self.last_raw_stamp = Time.from_msg(msg.header.stamp).nanoseconds
-        if self.busy or not self.input_enabled or self.mode != 'mapping' or self.camera_info is None:
+        if (not getattr(self, 'preflight_admitted', True) or self.busy
+                or not self.input_enabled or self.mode != 'mapping' or self.camera_info is None):
             return
         encodings = ('rgb8', 'bgra8') if stream == 'color' else ('32FC1', '16UC1')
         if msg.encoding not in encodings or msg.header.frame_id != 'oakd_camera_optical_frame':
@@ -154,6 +158,9 @@ class MapSession(Node):
         if msg.width != info.width or msg.height != info.height or info.k[0] <= 0 or info.k[4] <= 0:
             return
         stamp = Time.from_msg(msg.header.stamp)
+        boundary = getattr(self, 'preflight_start_stamp_ns', None)
+        if boundary is not None and stamp.nanoseconds <= boundary:
+            return
         age = (self.get_clock().now()-stamp).nanoseconds/1e9
         if age < 0 or age > 0.5:
             return
@@ -179,12 +186,17 @@ class MapSession(Node):
         # Never substitute the latest pose or forward frames across an input gate.
         pending = getattr(self, f'pending_{stream}')
         timing = self.color_timing if stream == 'color' else getattr(self, 'timing', None)
-        if self.busy or not self.input_enabled or self.mode != 'mapping':
+        if (not getattr(self, 'preflight_admitted', True) or self.busy
+                or not self.input_enabled or self.mode != 'mapping'):
             pending.clear()
             return
         while pending:
             msg, info = pending[0]
             stamp = Time.from_msg(msg.header.stamp)
+            boundary = getattr(self, 'preflight_start_stamp_ns', None)
+            if boundary is not None and stamp.nanoseconds <= boundary:
+                pending.popleft()
+                continue
             age = (self.get_clock().now()-stamp).nanoseconds/1e9
             if not 0 <= age <= 0.5:
                 pending.popleft()
@@ -221,6 +233,8 @@ class MapSession(Node):
 
     def query(self):
         MapSession.promote_preflight_map(self)
+        if not getattr(self, 'preflight_admitted', True):
+            return
         if self.busy or self.query_pending or not self.esdf.service_is_ready() or (self.mode == 'localization' and not self.loaded):
             return
         req = EsdfAndGradients.Request()
@@ -293,6 +307,9 @@ class MapSession(Node):
         if receipt.get('native_map_cleared') is not True or receipt.get('source_ready') is not True:return
         self.epoch+=1;self.version=0;self.map_id=str(uuid.uuid4())
         self.pending_depth.clear();self.pending_color.clear()
+        # Reject startup frames still in DDS queues, including frames whose
+        # historical TF only becomes available after admission.
+        self.preflight_start_stamp_ns = self.get_clock().now().nanoseconds
         self.preflight_admitted=True
         self.invalidate()
 

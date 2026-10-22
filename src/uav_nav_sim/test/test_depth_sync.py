@@ -62,6 +62,49 @@ def test_expired_image_is_not_forwarded_when_tf_arrives(session):
     node.depth_pub.publish.assert_not_called()
 
 
+@pytest.mark.parametrize('stream', ['depth', 'color'])
+def test_preflight_blocks_integration_and_discards_queued_startup_frames(session, stream):
+    node, now = session
+    node.color_pub = Mock(); node.color_info_pub = Mock()
+    node.preflight_admitted = False
+    msg = depth()
+    if stream == 'color':
+        msg.encoding = 'rgb8'
+    pending = getattr(node, 'pending_'+stream)
+    publisher = getattr(node, stream+'_pub')
+    pending.append((msg, node.camera_info))
+    MapSession.image_cb(node, msg, stream)
+    MapSession.flush_images(node, stream)
+    assert not pending
+    publisher.publish.assert_not_called()
+    node.tf.lookup_transform.assert_not_called()
+
+    node.preflight_admitted = True
+    node.preflight_start_stamp_ns = 10_100_000_000
+    # A late DDS callback from before admission remains ineligible, even when
+    # the historical TF is available and the ordinary age check would pass.
+    MapSession.image_cb(node, msg, stream)
+    pending.append((msg, node.camera_info))
+    MapSession.flush_images(node, stream)
+    publisher.publish.assert_not_called()
+    assert not pending
+    now[0] = 10.2
+    fresh = depth(10.15)
+    if stream == 'color':
+        fresh.encoding = 'rgb8'
+    MapSession.image_cb(node, fresh, stream)
+    publisher.publish.assert_called_once_with(fresh)
+
+
+def test_preflight_does_not_query_or_publish_warmup_map(session):
+    node, _ = session
+    node.preflight_admission_path = '/nonexistent/map-admission.json'
+    node.preflight_admitted = False
+    node.esdf = Mock()
+    MapSession.query(node)
+    node.esdf.call_async.assert_not_called()
+
+
 def test_gate_discards_pre_teleport_image(session):
     node, _ = session
     node.tf.lookup_transform.side_effect = TransformException('missing')
