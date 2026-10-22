@@ -30,7 +30,8 @@ class MapSession(Node):
         super().__init__('uav_map_session')
         for key, val in [('mode', 'mapping'), ('scene_id', ''), ('build_id', ''), ('resolution', 0.1),
                          ('aabb_min', [-5.0, -5.0, 0.0]), ('aabb_size', [10.0, 10.0, 4.0]),
-                         ('map_timeout', 2.0), ('preflight_admission_path', '')]:
+                         ('map_timeout', 2.0), ('preflight_admission_path', ''), ('operation_guard', 'executor'),
+                         ('localization_source', 'gazebo_world_identity'), ('localization_session', ''), ('alignment_id', '')]:
             self.declare_parameter(key, val)
         self.mode = self.get_parameter('mode').value
         if self.mode not in ('mapping', 'localization'):
@@ -52,6 +53,19 @@ class MapSession(Node):
         self.latest = None
         self.executor_state = None
         self.executor_received = 0.0
+        self.operation_guard = self.get_parameter('operation_guard').value
+        if self.operation_guard not in ('executor', 'px4_ground'):
+            raise ValueError('operation_guard must be executor or px4_ground')
+        self.px4_ground_samples = {}
+        if self.operation_guard == 'px4_ground':
+            from px4_msgs.msg import VehicleStatus, VehicleLandDetected
+            for key, kind, name in (('vehicle', VehicleStatus, 'vehicle_status'),
+                                    ('land', VehicleLandDetected, 'vehicle_land_detected')):
+                version = getattr(kind, 'MESSAGE_VERSION', 0)
+                topic = '/px4_7/fmu/out/' + name + (f'_v{version}' if version else '')
+                self.create_subscription(kind, topic,
+                    lambda msg, key=key, topic=topic: self.px4_ground_samples.update(
+                        {key: (msg, time.monotonic(), topic)}), qos_profile_sensor_data)
         self.camera_info = None
         self.last_depth_stamp = None
         self.last_color_stamp = None
@@ -292,14 +306,33 @@ class MapSession(Node):
             self.destroy_timer(timer)
 
     def begin_operation(self, map_id=None):
-        if self.busy or self.executor_state != 'HOLD' or time.monotonic()-self.executor_received > 1.0:
-            raise ValueError('Map operation requires fresh HOLD state and no pending operation')
+        if getattr(self, 'operation_guard', 'executor') == 'px4_ground':
+            MapSession.require_px4_ground(self)
+        elif self.executor_state != 'HOLD' or time.monotonic()-self.executor_received > 1.0:
+            raise ValueError('Map operation requires fresh HOLD state')
+        if self.busy:
+            raise ValueError('Map operation already pending')
         self.busy = True
         self.epoch += 1
         self.version = 0
         if map_id is not None:
             self.map_id = map_id
         self.invalidate()
+
+    def require_px4_ground(self):
+        ros = self.get_clock().now().nanoseconds / 1e9
+        for key in ('vehicle', 'land'):
+            sample = self.px4_ground_samples.get(key)
+            if sample is None:
+                raise ValueError('Map operation requires PX4 landed/disarmed telemetry')
+            msg, received, topic = sample
+            if (time.monotonic()-received > 1.0 or not 0 <= ros-msg.timestamp/1e6 <= 1.0
+                    or len(self.get_publishers_info_by_topic(topic)) != 1):
+                raise ValueError('Map operation requires fresh, unique PX4 telemetry')
+        vehicle = self.px4_ground_samples['vehicle'][0]
+        land = self.px4_ground_samples['land'][0]
+        if vehicle.arming_state != 1 or not land.landed:
+            raise ValueError('Map operation requires PX4 landed and disarmed')
 
     async def save(self, req, response):
         temp = None
@@ -325,7 +358,9 @@ class MapSession(Node):
             if not result.success or not filename.is_file() or filename.stat().st_size == 0:
                 raise ValueError('nvblox save failed')
             manifest = dict(schema=1, map_id=self.map_id, scene_id=self.scene_id, build_id=self.build_id,
-                            frame_id='map', localization='gazebo_world_identity',
+                            frame_id='map', localization=self.get_parameter('localization_source').value,
+                            localization_session=self.get_parameter('localization_session').value,
+                            alignment_id=self.get_parameter('alignment_id').value,
                             resolution=self.resolution, sha256=sha256(filename),
                             created_unix=time.time(), nvblox_commit='6362295e581ef243773c8a348ac46711e4a1fca4',
                             ego_commit='23a8d5a191711dd65633df689bd00f55d4dea8f9',
