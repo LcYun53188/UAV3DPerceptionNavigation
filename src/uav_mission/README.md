@@ -10,7 +10,7 @@ Build against the pinned isolated PX4 messages (do not source the older workspac
 ```bash
 ./scripts/build/build_px4_flight.sh
 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; python scripts/run_px4_sitl_smoke.py --duration 30 --aircraft-state'
+  'source .deps/mission-install/local_setup.bash; python scripts/simulation/px4/run_px4_sitl_smoke.py --duration 30 --aircraft-state'
 ```
 
 The owned smoke session starts the observer with `use_sim_time:=true`, namespace

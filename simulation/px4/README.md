@@ -1,6 +1,6 @@
 # 本机 PX4 SITL 基础环境
 
-> 当前仿真统一无 GNSS。本文旧 GNSS／W0 启动方式已停用，保留历史说明；实体 Pocket 手动操作请运行 `./scripts/sim.sh run manual`，详见[统一启动策略](../../docs/simulation/LAUNCHERS.md#全局无-gnss-策略)。
+> 当前仿真统一无 GNSS。本文旧 GNSS／W0 启动方式已停用，保留历史说明；日常运行只使用 `./scripts/sim.sh run manual`（光流纯手动）或 `./scripts/sim.sh run full`（完整项目），详见[统一启动策略](../../docs/simulation/LAUNCHERS.md#全局无-gnss-策略)。
 
 当前实现：PX4 v1.16.2、Agent v2.4.3、对应 px4_msgs 的独立构建，以及未解锁 x500 的 DDS/clock/QGC 冒烟验证。全部运行于本机，Jetson 延期。下方 W0 入口已扩展真实任务、Offboard 控制、坐标转换与已知区域；VIO/感知避障未接入。
 
@@ -10,9 +10,9 @@
 # 仅准备源码并核对消息定义
 ./scripts/build/build_px4_sim.sh --prepare-only
 # 校验已有源码与 Agent 已解析依赖是否发生漂移
-./scripts/with_venv.sh python scripts/prepare_px4_sim.py --check --check-external
+./scripts/with_venv.sh python scripts/simulation/px4/prepare_px4_sim.py --check --check-external
 # 编译后的独立 ROS/Agent 运行环境
-./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py --duration 30
+./scripts/with_px4_sim.sh python scripts/simulation/px4/run_px4_sitl_smoke.py --duration 30
 ```
 
 源码/构建/安装均在 `.deps/`。PX4 构建用隔离的 Python 3.11 环境及 `requirements/px4-sim.txt`；ROS Jazzy 消息生成和运行用工作区已有 Python 3.12 环境。构建时清除继承的 PYTHONPATH，避免 Python 扩展 ABI 混用。Agent 安装到本工作区，不需要 sudo 或全局 ldconfig。
@@ -253,7 +253,7 @@ EV，使用独立遥测构建和显式三类融合配置。默认仍不输出 EV
 不能把这些选项作为已验证的性能修复。时序复核支持原 JSON 和 gzip 归档：
 
 ```bash
-.venv/bin/python scripts/assess_vio_timing.py <run-or-archive-directory>
+.venv/bin/python scripts/simulation/vio/analysis/assess_vio_timing.py <run-or-archive-directory>
 ```
 
 融合审计可用 `--sdk-image-depth 1..10` 显式对照 SDK 图像队列；默认 10，

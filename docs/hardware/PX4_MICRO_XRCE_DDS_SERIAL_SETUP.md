@@ -72,14 +72,14 @@ MicroXRCEAgent serial --dev /dev/ttyUSB0 -b 921600
 本项目提供了启动脚本：
 
 ```bash
-./scripts/run_px4_microxrce.sh
+./scripts/hardware/px4/run_px4_microxrce.sh
 ```
 
 也可以覆盖端口和波特率：
 
 ```bash
-PX4_SERIAL_PORT=/dev/ttyTHS1 ./scripts/run_px4_microxrce.sh
-./scripts/run_px4_microxrce.sh --port /dev/ttyUSB0 --baud 921600
+PX4_SERIAL_PORT=/dev/ttyTHS1 ./scripts/hardware/px4/run_px4_microxrce.sh
+./scripts/hardware/px4/run_px4_microxrce.sh --port /dev/ttyUSB0 --baud 921600
 ```
 
 ## 5. 启动 ROS 2 侧桥接
@@ -135,7 +135,7 @@ ros2 topic hz /fmu/in/offboard_control_mode
 - PX4 桥接包：`src/px4_comm_bridge`
 - 配置文件：`src/px4_comm_bridge/config/px4_comm_bridge.yaml`
 - 启动入口：`src/uav_bringup/launch/nav_stack.launch.py`
-- 运行脚本：`./scripts/run_px4_microxrce.sh`
+- 运行脚本：`./scripts/hardware/px4/run_px4_microxrce.sh`
 
 ## 8. 常见问题
 

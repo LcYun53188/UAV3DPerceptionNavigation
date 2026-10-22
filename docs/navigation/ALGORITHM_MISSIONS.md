@@ -87,7 +87,7 @@ identity，不包含 VIO reset_id/非 identity 定位会话恢复，相关工作
 ```bash
 ./scripts/build/build_navigation_actions.sh
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh python -m pytest -q \
-  src/uav_nav_sim/test src/uav_bt/test scripts/test_sim_control.py scripts/test_sim_validation.py
+  src/uav_nav_sim/test src/uav_bt/test scripts/tests/local/test_sim_control.py scripts/tests/local/test_sim_validation.py
 ```
 
 已有仿真先查看 `sim.sh status`。新的 lab 建图会话需完成初始化并等待退出码 0：
@@ -96,7 +96,7 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh python -m pytest -q \
 ./scripts/sim.sh start --layout lab --view none --background
 ./scripts/sim.sh init
 ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
-  python scripts/check_gazebo_algorithm_mission.py --scenario pause-resume \
+  python scripts/simulation/algorithm/check_gazebo_algorithm_mission.py --scenario pause-resume \
   --output .cache/sim/mission-pause-resume
 ```
 

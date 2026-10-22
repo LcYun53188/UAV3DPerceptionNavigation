@@ -16,14 +16,19 @@
 | `docs/validation/` | Git 忽略的本地报告、失败证据与原始数据 |
 | `scripts/build/` | Shell／Python 构建入口 |
 | `scripts/setup/` | 安装与第三方依赖准备 |
-| `scripts/` | `sim.sh` 公共入口、Python 运行器、分析工具和共享模块 |
-| `scripts/simulation/` | 仿真 CLI、菜单、配置注册表、环境与启动实现 |
+| `scripts/` | `sim.sh` 公共入口、两个环境包装器与目录说明 |
+| `scripts/hardware/` | OAK-D、MID360 与 PX4 硬件工具 |
+| `scripts/diagnostics/`、`scripts/config/` | 导航检查、记录与默认配置 |
+| `scripts/tools/`、`scripts/support/` | 目录维护与公共模块路径支持 |
+| `scripts/tests/` | 版本化检查；独立回归放 Git 忽略的 `local/` |
+| `scripts/compat/` | 历史脚本名兼容链接与迁移表 |
+| `scripts/simulation/` | 仿真 CLI、菜单、配置注册表、环境与启动实现；分类目录见下文 |
 | `simulation/scripts/` | 场景与 Isaac Sim 历史兼容链接 |
 | `src/<package>/` | 随模块维护的文档、测试与包内脚本 |
 
 仿真启动层的职责与新入口注册规则见[启动规划](simulation/LAUNCHERS.md)。固定预设只在 `scripts/simulation/backends.py` 维护，交互和命令行共用 `profiles.py`，不新增平行包装器。
 
-Python 运行器和共享模块仍使用 `scripts/` 根目录导入布局，避免修改运行、测试与证据冻结的模块依赖。所有工具按用途列入脚本目录；Shell／Python 构建器和 Shell 安装脚本已实际迁移，旧 `.sh` 与构建 `.py` 路径为指向同一实现的相对符号链接。运行、参数和退出码继续透传；规范路径与旧路径都按真实脚本位置解析工作区根目录。
+仿真运行器和共享模块实际位于 `scripts/simulation/algorithm/`、`px4/`、`flow/`、`pocket/`、`validation/` 与 `vio/{runtime,sdk,analysis}/`。VIO 资源在 `simulation/px4/vio/{profiles,patches,telemetry,plugins}/` 分类维护。脚本兼容链接集中放在 `scripts/compat/`，旧根路径不再作为可执行入口；按旧文件名调用时需改用 compat 路径。资源兼容链接保留原位置。`scripts/compat/layout.json` 记录原根路径与真实实现，目录检查会校验对应兼容链接。规范入口与兼容链接都按真实脚本位置解析工作区，不复制实现。当前命令与导入使用分类目录和公共路径支持，历史证据不改写。新增工具写入对应分类目录；迁移现有工具时才增加兼容映射。
 
 ## 合并与引用规则
 
@@ -39,13 +44,13 @@ Python 运行器和共享模块仍使用 `scripts/` 根目录导入布局，避�
 ## 目录更新与检查
 
 ```bash
-python3 scripts/maintain_catalogs.py --write
-python3 scripts/maintain_catalogs.py --check
+python3 scripts/tools/maintain_catalogs.py --write
+python3 scripts/tools/maintain_catalogs.py --check
 ```
 
 工具使用 Python 标准库、Bash，并在 Git 工作区检查目录文件是否被忽略：生成主题文档、模块文档及脚本目录，检查覆盖率、项目文档的本地链接与 Markdown 章节锚点，以及工作区脚本的 Python／Bash 语法。它不会执行被扫描脚本、启动 Gazebo、访问设备或发送飞控命令。HTTP 链接不联网核验，RST／HTML／Mermaid 的引用不在 Markdown 链接检查范围。
 
-本地 `docs/validation` 链接在目标缺失时统计为可选证据，不判为失败；历史报告不参与当前文档检查。`scripts/test_*` 只在本机存在时参与语法检查，不写入版本化目录，包内测试继续随代码管理。检查通过表示静态一致性，不代表 ROS 图、SITL 或实机验收。
+本地 `docs/validation` 链接在目标缺失时统计为可选证据，不判为失败；历史报告不参与当前文档检查。`scripts/tests/local/test_*` 只在本机存在时参与语法检查，不写入版本化目录，包内测试继续随代码管理。检查通过表示静态一致性，不代表 ROS 图、SITL 或实机验收。
 
 ## 文档旧路径迁移表
 

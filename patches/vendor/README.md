@@ -13,8 +13,8 @@ Algorithm dependency hashes are checked against `algorithm_versions.json`.
 
 ```bash
 ./scripts/setup/apply_vendor_patches.sh --check
-python3 scripts/vendor_patches.py --ego --check
-python3 scripts/test_vendor_git.py
+python3 scripts/setup/vendor_patches.py --ego --check
+python3 scripts/tests/local/test_vendor_git.py
 ```
 
 `--check` is read-only and requires all patches to be applied. Normal application
@@ -116,4 +116,4 @@ patch SHA-256 values for map compatibility. Python wheels are pinned separately 
 `isaac_ros_visual_slam.patch` retains upstream `04bf49a2daf7710d2ba2390d1772435a1baeb48d`
 and converts sequencer jitter parameters from milliseconds to nanoseconds. Rebuild with
 `scripts/build/build_vio_node.sh`; reviewed binary/source hashes are frozen in
-`simulation/px4/vio/pose_contract.json`. It does not change pose covariance math.
+`simulation/px4/vio/profiles/pose_contract.json`. It does not change pose covariance math.

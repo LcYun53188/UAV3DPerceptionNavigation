@@ -265,8 +265,8 @@ src/uav_mission/                         Task/Control/State 与暂停恢复
 src/uav_bt/                              节点、任务 XML 与运行器
 src/uav_px4_executor/                    轨迹采样、控制参考、制动/保持
 scripts/build/build_px4_sim.sh                 独立构建，不混入现有 CUDA 全量流程
-scripts/check_sim_environment.py         版本、topic、TF、时钟、发布者检查
-scripts/run_sim_scenario.py              用例运行、结果及进程清理
+scripts/simulation/validation/check_sim_environment.py         版本、topic、TF、时钟、发布者检查
+scripts/simulation/validation/run_sim_scenario.py              用例运行、结果及进程清理
 scripts/inject_sim_fault.py              仅模拟环境的故障注入
 scripts/measure_sim_navigation.py         本机资源与控制截止时间记录（待实现）
 scripts/measure_jetson_navigation.py      可选 Jetson 阶段记录（延期）
@@ -612,7 +612,7 @@ mock 验证状态逻辑，真实 PX4/SITL 注入验证飞控行为，两种证�
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=180 \
   ./scripts/with_venv.sh python -m pytest -q \
-  scripts/test_sim_control.py src/uav_nav_sim/test
+  scripts/tests/local/test_sim_control.py src/uav_nav_sim/test
 
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src/px4_comm_bridge \
   ./scripts/with_venv.sh python -m pytest -q src/px4_comm_bridge/test

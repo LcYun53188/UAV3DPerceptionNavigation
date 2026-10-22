@@ -13,7 +13,7 @@ Use the isolated build commands in [README](README.md), then:
 
 ```bash
 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; python scripts/run_mission_protocol_smoke.py'
+  'source .deps/mission-install/local_setup.bash; python scripts/simulation/validation/run_mission_protocol_smoke.py'
 ```
 
 The supervisor uses ROS domain 79, exclusive local lock and owned process group.

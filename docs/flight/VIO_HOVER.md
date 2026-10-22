@@ -97,7 +97,7 @@ SDK 位姿协方差另外发布在 `/visual_slam/tracking/vo_pose_covariance`。
 ./scripts/build/build_px4_flight.sh
 # 与 VIO 源使用相同 ROS_DOMAIN_ID；传入审核过的设备标定/安装/配置清单 SHA256。
 # 默认 unverified 仅作拒绝检查；标准化源完成审核后才显式声明 source_contract。
-./scripts/run_vio_monitor.sh --ros-args -p calibration_id:=<64位SHA256>
+./scripts/hardware/oakd/run_vio_monitor.sh --ros-args -p calibration_id:=<64位SHA256>
 ```
 
 calibration_id 是配置绑定标识，不是设备标定已经正确的证明。必须核对对应设备的
@@ -147,7 +147,7 @@ CameraInfo、双目/IMU外参和 base_link 安装外参；现有旧相机参数�
 合成 DDS 契约测试（仅消息流，不是真实相机或真实 EKF 融合）：
 
 ```bash
-./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; source install_uav/isaac_ros_visual_slam_interfaces/share/isaac_ros_visual_slam_interfaces/local_setup.bash; python scripts/run_vio_transport_smoke.py'
+./scripts/with_px4_sim.sh bash -c 'source .deps/mission-install/local_setup.bash; source install_uav/isaac_ros_visual_slam_interfaces/share/isaac_ros_visual_slam_interfaces/local_setup.bash; python scripts/simulation/vio/runtime/run_vio_transport_smoke.py'
 ```
 
 独立的未解锁实际 EKF 融合审计：
@@ -175,7 +175,7 @@ MULTI_IMU=1、MULTI_MAG=0，保留气压高度辅助。审计要求真实四类 
 
 本机 cuVSLAM 节点已通过独立构建、CUDA 加载及模拟双目／IMU静止跟踪检查。
 可用 `./scripts/build/build_vio_node.sh` 构建节点，再通过 domain 94 的
-`scripts/run_vio_node_smoke.py` 验证加载。该入口不构建可选图像预处理包，
+`scripts/simulation/vio/runtime/run_vio_node_smoke.py` 验证加载。该入口不构建可选图像预处理包，
 不代表其 CV-CUDA 依赖已修复。见 [节点加载报告](../validation/simulation/2026-10-08-vio-node-load/REPORT.md)。
 
 ```bash
@@ -220,7 +220,7 @@ USB 延迟或硬件时间映射；cuVSLAM 默认 IMU 噪声参数是算法假设
 这里的 odom 仍为 SDK 初始局部坐标系，尚未实现对 PX4 的初始化对齐或实机时间映射。
 
 须显式声明 `cuvslam15_right_tangent_base_link_v1`；受管入口另外核对
-`simulation/px4/vio/pose_contract.json` 的 SDK/header/上游转换及节点二进制指纹。
+`simulation/px4/vio/profiles/pose_contract.json` 的 SDK/header/上游转换及节点二进制指纹。
 节点查询并核对原生 base_frame、odom_frame、VIO-only、无地面约束及不覆盖采样时间。
 calibration.json 绑定参考传感器、TF、算法参数及原生实现 hash，摘要作为配置 ID；
 这不是 Pro W 标定证明。

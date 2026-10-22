@@ -2,53 +2,51 @@
 
 所有命令从项目根目录运行，同一时间只运行一套仿真。运行 `./scripts/sim.sh` 打开总菜单，或用 `./scripts/sim.sh list` 查看配置类型。启动目录、配置和兼容关系见[仿真启动规划](../docs/simulation/LAUNCHERS.md)。
 
-## 三维建图与导航
+## 文件归属与常用入口
 
-需要创建/加载地图、查看彩色网格、在 RViz 点击目标并避障时，使用 `uav_ego_nvblox.launch.py`。
-按 [仿真使用手册](../docs/simulation/SIMULATION_MANUAL.md) 或 [EGO + nvblox 仿真运行指引](../docs/simulation/EGO_NVBLOX_GAZEBO.md) 完成：
+仿真资源和运行代码分开维护：本目录存放可版本化配置、补丁与原生插件；[scripts/simulation/](../scripts/simulation/README.md) 存放分类后的启动、操作、诊断和验收代码。
 
-1. 运行 `./scripts/build/build_algorithm_sim.sh` 构建算法与显示插件。
-2. 首次使用时，以 `mode:=mapping` 启动扩展场景，运行 `survey_gazebo_map.py --layout expanded` 扫描并保存地图。
-3. 停止建图进程，以 `mode:=localization` 和相同 world / map_extent 重新启动，再用 `map_bundle load` 加载地图。
-4. 等待有效地图，在 RViz 使用 **2D Goal Pose** 选点；通过 `/uav/cancel` 取消目标。
+| 目录 | 内容 |
+| --- | --- |
+| `missions/` | 起飞、航点、悬停、返航、降落的任务配方 |
+| `scenes/` | 仓库场景几何与验收布局参数 |
+| `safe_regions/` | 控制边界、机体包络、制动余量及飞行限制 |
+| `profiles/` | 算法仿真基线配置 |
+| `scenarios/`、`acceptance/`、`schema/` | 回归场景、验收条件及数据格式 |
+| `px4/` | PX4 版本锁、无 GNSS 服务器配置及专项资源 |
+| `px4/mtf01/` | 光流与测距传感器、融合及独立飞行配置 |
+| `px4/vio/profiles/` | VIO 传感器、位姿契约、融合及 SDK 候选配置 |
+| `px4/vio/patches/` | VIO／PX4 源码补丁 |
+| `px4/vio/telemetry/` | DDS 发布列表和飞控日志主题 |
+| `px4/vio/plugins/` | 运动载台及同机运动插件源码 |
+| `px4/vio/openvins/` | 保留的 OpenVINS 候选构建配置 |
+| `assets/` | 外部仿真资产说明 |
+| `scripts/` | 历史 Shell 入口兼容链接 |
 
-[项目首页](../README.md#快速运行导航仿真) 提供在线建图的双终端命令；地图加载见 [控制手册](../docs/simulation/SIMULATION_CONTROL.md#4-加载地图导航)。
-当前链路使用 Gazebo 真值定位、nvblox 三维地图、EGO 规划和简化速度执行器，不包含 PX4 SITL。
+`px4/vio/` 根目录的旧文件名是兼容链接，真实资源在上述分类目录中维护。Gazebo 世界和模型继续随 `uav_bringup/gazebo/` 维护，任务树随 `uav_bt/trees/` 维护。
 
-## 场景与传感器查看
-
-准备 Gazebo Harmonic / ros_gz，并构建 `uav_bringup`（可使用 `./scripts/build/build_uav_stack.sh`）后，选择一个入口运行：
+## 两个仿真程序
 
 ```bash
-# 障碍场地：立柱、门框、平台、起终点标记
-./scripts/sim.sh run scene --arena uav_obstacle_course
+./scripts/sim.sh run manual  # 光流／测距纯手动，无 VIO
+./scripts/sim.sh run full    # VIO／建图／导航完整项目
 ```
 
-默认演示场地使用另一个命令，先退出上面的场景再运行：
+两者默认实体 HID；显式添加 `--input-source virtual` 使用电脑模拟遥控器。启动保持未解锁，不自动起飞。光流程序没有 VIO、地图或自动任务；完整项目运行 PX4 动力学、VIO、nvblox、EGO 和遥控器任务控制。
+
+## 在另一终端操作
 
 ```bash
-./scripts/sim.sh run scene --arena uav_harmonic_demo
+./scripts/sim.sh status
+./scripts/sim.sh logs --follow
+# 完整项目：落地上锁后保存地图包和三维模型，输出路径须不存在
+./scripts/sim.sh save .cache/maps/run1
+./scripts/sim.sh export-mesh .cache/maps/run1.ply
+./scripts/sim.sh stop
 ```
 
-这些入口只启动 Gazebo、传感器桥、静态 TF 和里程计速度估计器，不启动 nvblox、EGO 或 RViz 导航。
-其中 `uav_obstacle_course.sdf` 不适用导航指引中 lab / expanded 的扫描布局和地图包。
+控制命令自动读取当前程序的 ROS 域、Gazebo 分区与运行目录。`stop` 请求在落地上锁后关闭，不发送飞行指令。构建、校准、退出与能力边界见[启动说明](../docs/simulation/LAUNCHERS.md)和[控制手册](../docs/simulation/SIMULATION_CONTROL.md)。
 
-参数与话题见 [Gazebo 场景说明](../docs/simulation/GAZEBO_HARMONIC_SIMULATION.md)，场地布局见 [无人机障碍场地](../docs/simulation/UAV_OBSTACLE_COURSE.md)。
-在启动终端按 `Ctrl+C` 退出，等待 Gazebo 结束后再启动另一场景。原终端已关闭或仍有残留进程时，按 [停止正在运行的进程](../docs/simulation/EGO_NVBLOX_GAZEBO.md#停止正在运行的进程) 查找 PID 并逐级退出。
+## 开发工具
 
-## Isaac Sim UI
-
-统一入口：`./scripts/sim.sh run isaac`，需已有对应安装。
-参见 [Isaac 内容说明](../docs/development/ISAAC_ROS_COMPONENTS.md)。
-
-## 全链路仿真开发
-
-按 [开发计划](../docs/development/SIMULATION_DEVELOPMENT_PLAN.md) 推进，当前在本机进行仿真开发，Jetson 联调延期。算法与独立 PX4 飞行链路分别使用自己的构建、场景和进程管理；当前实测边界见 [项目首页](../README.md#当前验证范围)，各阶段记录见 [验证目录](../docs/README.md#验证记录)。
-
-`scripts/sim.sh doctor` 是离线依赖审计；主机回归运行器用法见 [验收工具说明](acceptance/README.md)，2026-10-07 的历史基线见 [S0 报告](../docs/validation/simulation/2026-10-07-s0/REPORT.md)。这些检查不能替代在线 topic、TF、clock 与任务验收。
-
-S1 的只读 AircraftState、独立构建与故障验证入口见 [状态聚合器说明](../src/uav_mission/README.md)，实测边界见 [S1 首批报告](../docs/validation/simulation/2026-10-07-s1-aircraft-state/REPORT.md)。
-
-S1 最小任务 Action、暂停/恢复和 FlightSession mock 见 [协议说明](../src/uav_mission/PROTOCOL.md)，普通 Action 客户端及故障验证见 [协议报告](../docs/validation/simulation/2026-10-07-s1-mission-protocol/REPORT.md)。mock 使用独立 domain 79，不连接飞控。
-
-W0 的真实 PX4 起飞、定点导航、悬停、返航、降落及暂停/取消入口：`./scripts/sim.sh px4-flight`。使用 [本机飞行说明](px4/README.md#w0-真实飞行任务) 中的独立构建与配置；真值与动力学结果见 [飞行报告](../docs/validation/simulation/2026-10-07-px4-flight/REPORT.md)。
+专项传感器检查、自动飞行回归和历史算法验证保留在 [scripts/simulation/](../scripts/simulation/README.md) 中供开发诊断，不再注册为公共仿真程序。仿真资源、硬件定位和实机飞行按各自范围解释；验证条件见[全链路开发计划](../docs/development/SIMULATION_DEVELOPMENT_PLAN.md)，结果见[验证目录](../docs/README.md#验证记录)。

@@ -72,7 +72,7 @@ export GZ_PARTITION=uav_ego_lab
 ```bash
 export ROS_DOMAIN_ID=68
 export GZ_PARTITION=uav_ego_lab
-./scripts/with_venv.sh python scripts/survey_gazebo_map.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/survey_gazebo_map.py \
   --layout expanded --output .cache/maps/uav_ego_expanded
 ```
 
@@ -112,7 +112,7 @@ export GZ_PARTITION=uav_ego_lab
 # 与 launch 保持相同 ROS_DOMAIN_ID；小场景使用 --layout lab
 export ROS_DOMAIN_ID=68
 export GZ_PARTITION=uav_ego_lab
-./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout expanded --local-only
+./scripts/with_venv.sh python scripts/simulation/algorithm/survey_gazebo_map.py --layout expanded --local-only
 ```
 
 局部初始化在起点四周 0.8 m 的位置、1.2/1.7 m 两个高度朝向起点采集深度，然后返回起点并检查 0.3 m 查询半径内的完整观测体积。它只适用于仓库中的两个固定 Gazebo 场景，使用 `set_pose` 放置相机，**不属于自主飞行验收**。不传 `--output` 时不保存地图、不结束在线建图。需要归档时可另加新的 `--output` 目录。
@@ -153,11 +153,11 @@ export GZ_PARTITION=uav_ego_lab
 仅适用于默认 `uav_ego_lab` 的真实障碍几何，先完成 `--layout lab --local-only` 初始化：
 
 ```bash
-./scripts/with_venv.sh python scripts/check_gazebo_exploration.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_exploration.py \
   --goal 3 0 1.2 --expect REACHED --min-segments 2 \
   --output /tmp/uav_exploration_reached.json
 # 不可达目标位于中央实体柱内；会实际发送新目标
-./scripts/with_venv.sh python scripts/check_gazebo_exploration.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_exploration.py \
   --goal 0 0 1.2 --expect BLOCKED --min-segments 0 \
   --output /tmp/uav_exploration_blocked.json
 ```
@@ -374,7 +374,7 @@ kill -KILL -- "$SIM_PID"
 # 终端 A：建图
 ./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py mode:=mapping gui:=true
 # 终端 B：默认 lab 扫描布局
-./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout lab --output .cache/maps/room_a
+./scripts/with_venv.sh python scripts/simulation/algorithm/survey_gazebo_map.py --layout lab --output .cache/maps/room_a
 ```
 
 扫描覆盖 8 个水平观察点、2 个高度和4 个航向，完成后回到 `(-3,0,1.2)`。
@@ -385,14 +385,14 @@ kill -KILL -- "$SIM_PID"
 ./scripts/with_venv.sh ros2 launch uav_bringup uav_ego_nvblox.launch.py mode:=localization gui:=true
 # 终端 B：加载后进行往返验证；每条检查都会发送目标并等待结果
 ./scripts/with_venv.sh ros2 run uav_nav_sim map_bundle load .cache/maps/room_a
-./scripts/with_venv.sh python scripts/check_gazebo_goal.py --goal 3 0 1.2 --output /tmp/ego_forward.json
-./scripts/with_venv.sh python scripts/check_gazebo_goal.py --goal -3 0 1.2 --output /tmp/ego_return.json
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_goal.py --goal 3 0 1.2 --output /tmp/ego_forward.json
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_goal.py --goal -3 0 1.2 --output /tmp/ego_return.json
 ```
 
 扩展场景使用专用验证脚本。在已加载扩展地图、模型位于初始位置且定高选点节点高度为 1.2 m 时运行：
 
 ```bash
-./scripts/with_venv.sh python scripts/check_gazebo_expanded_goal.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_expanded_goal.py \
   --goal 7.99 4.25 --timeout 240 --output /tmp/expanded_navigation.json
 ```
 

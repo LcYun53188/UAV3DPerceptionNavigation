@@ -1,5 +1,7 @@
 # MTF-01 直连飞控：不依赖 Jetson 的纯光流模式
 
+> 日常仿真使用 `./scripts/sim.sh run manual`：完全无 VIO、光流／测距纯手动，默认实体 HID；模拟输入显式添加 `--input-source virtual`。不会自动起飞，自动任务意图被拒绝。下文自动测试属于内部开发回归，已从公共总入口移除；完整项目使用 `./scripts/sim.sh run full`。参见[启动与控制](../simulation/LAUNCHERS.md)。
+
 [文档总目录](../README.md) · [脚本目录](../../scripts/README.md)
 
 `FLOW_LOCAL` 使用飞控 IMU、独立磁罗盘、MTF-01 光流／测距和气压计。MTF-01 通过 UART 直接连接飞控，由 PX4 完成融合和手动 Position 控制；实机这条控制链无需 Jetson、ROS、OAK-D、VIO 状态或 Offboard 心跳。遥控器通过无线接收机接入飞控；Pocket USB 接电脑属于仿真输入。
@@ -34,11 +36,11 @@ MTF-01 供电 5 V、UART 信号为 3.3 V，TX／RX 交叉接入一个空闲 TELE
 ```bash
 ./scripts/build/build_px4_flight.sh --packages-select uav_nav_interfaces uav_mission uav_bt
 # 显式执行已知区域低空起飞、8 秒悬停和 PX4 原生降落；不需要 Pocket。
-./scripts/sim.sh px4-flow-local --duration 35 --ui
+./scripts/simulation/environment.sh mission python scripts/simulation/flow/run_px4_mtf01.py --flight --duration 35 --ui
 # 原生 Position＋模拟接收机：全程没有 Offboard／轨迹／VIO 发布者。
-./scripts/sim.sh px4-flow-local --duration 35 --native-manual --ui
+./scripts/simulation/environment.sh mission python scripts/simulation/flow/run_px4_mtf01.py --flight --duration 35 --native-manual --ui
 # 保留原来的未解锁光流／测距与停源审计。
-./scripts/sim.sh px4-mtf01 --duration 45 --stop-sensors
+./scripts/simulation/environment.sh px4 python scripts/simulation/flow/run_px4_mtf01.py --duration 45 --stop-sensors
 ```
 
 新入口先完成连续地面融合审计，只有通过才启动飞行观察器。观察器要求新鲜唯一的原始传感器、原生成功融合样本、IMU／磁航向对齐、本地状态和时钟；不订阅 VIO 或 EV aid。当前 Mission Gateway 只接纳起飞／局部悬停／降落；地图导航、返航和原任务恢复均拒绝。飞控以测距为高度参考时，`dist_bottom_valid` 表示地形状态的可观测性，独立模式以原始下视距离及实际测距高度融合确认高度，不将地形状态冒充距离观测。
@@ -50,19 +52,19 @@ PX4 的 `heading_good_for_control` 表示最终空中磁航向对齐；地面可
 ## Pocket 持续操作会话
 
 ```bash
-./scripts/sim.sh px4-flow-pocket --duration 35 --session-duration 3600 \
+./scripts/sim.sh run manual --session-duration 3600 \
   --device /dev/input/js0 \
-  --qgc-config-from .cache/simulation/sitl/<原会话 UUID>/qgc-config/QGroundControl/QGroundControl.ini
+  --qgc-config .cache/simulation/sitl/<原会话 UUID>/qgc-config/QGroundControl/QGroundControl.ini
 ```
 
-`--duration` 是地面融合审计窗口；通过后持续运行 `--session-duration` 秒。
+公共手动程序使用运行器默认的地面融合审计窗口；`--session-duration` 是通过后的操作时长，到期后仍等待落地上锁再关闭。内部回归运行器的 `--duration` 单独控制地面审计窗口。
 该入口与自动飞行 `--flight`、`--native-manual` 互斥，启动不解锁、不起飞。
 关闭 GNSS／EV 融合，使用原生 IMU、磁航向、渲染光流与下视测距。
 生成 14×14×6 m 纹理仓库，包含 14 个墙体、隔断、门洞、立柱、货架和箱体障碍，
 不修改上游 Gazebo 场景。当前未接入自主避障，复杂场景不等于避障通过。
 
-保留 Pocket 虚拟面板，在 QGC 选择并启用 `Pocket Virtual UAV AETR`。
-可通过 `--qgc-config-from` 继承本项目会话的校准；实体默认配置不作为虚拟输入校准。
+默认使用实体 Pocket；模拟面板需添加 `--input-source virtual`，在 QGC 选择并启用 `Pocket Virtual UAV AETR`。
+可通过 `--qgc-config` 继承校准；实体校准不能作为虚拟输入校准。
 QGC 必须离开 Joystick 配置页回到 Fly 页面，才发送操纵数据。
 手动光流操作使用 **SB 手动（−1）、SC 光流（0）**，PX4 原生 Position。
 按原定义，SB 定点档与 SC VIO 档要求 VIO；本轮纯光流会话没有 VIO，会明确拒绝。
@@ -92,7 +94,7 @@ QGC 必须离开 Joystick 配置页回到 Fly 页面，才发送操纵数据。
 地面切换回归使用固定独立 EV 测试源、实际渲染光流／测距及原生 EKF，始终不解锁；它不验证相机 VIO 精度。普通 `select_localization.py` 会拒绝这种 mock 会话。复现：
 
 ```bash
-./scripts/with_px4_sim.sh bash -e -c 'source .deps/mission-install/local_setup.bash; python scripts/run_fusion_switch_sitl.py --duration 90'
+./scripts/with_px4_sim.sh bash -e -c 'source .deps/mission-install/local_setup.bash; python scripts/simulation/flow/run_fusion_switch_sitl.py --duration 90'
 ```
 
 原生 Acro／Altitude／Position 模式可在 PX4 接受该模式且估计健康时空中切换；这与修改定位融合配置不同。光流丢失时由 PX4 原生位置失效逻辑降级，不能依靠缺席的 Jetson 接管；需要按整机遥控、位置失效和电池配置完成实机验收。[PX4 Position 模式](https://docs.px4.io/v1.16/en/flight_modes_mc/position)

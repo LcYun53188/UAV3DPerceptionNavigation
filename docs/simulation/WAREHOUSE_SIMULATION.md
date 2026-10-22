@@ -46,7 +46,7 @@
   --sdk-image-depth 1 --headless-rendering --duration 120
 
 # 只读验收；传入脚本输出的缓存目录
-python3 scripts/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
+python3 scripts/simulation/vio/analysis/assess_vio_warehouse.py .cache/simulation/vio-sensors/<run-id> \
   --output /tmp/warehouse-assessment.json
 ```
 
@@ -79,7 +79,7 @@ IMU参考，不是 OAK-D Pro W 实机标定。传感器检查始终要求未解�
 
 显式 `--sdk-debug-dump` 将 SDK 实际消费的图像／IMU及外参写入缓存 `sdk-input`，
 只供诊断，退出码为 1、整体验收标记恒为 false。输入摘要可用
-`python3 scripts/audit_vio_sdk_dump.py <run>/sdk-input --output /tmp/sdk-input-receipt.json` 生成；
+`python3 scripts/simulation/vio/analysis/audit_vio_sdk_dump.py <run>/sdk-input --output /tmp/sdk-input-receipt.json` 生成；
 记录负载不代表正常运行性能，尚未实现原生 SDK 的同输入回放对照。
 
 同低负载配置 WH-V02 已完成 120 s 运动验收，RMSE 2.60 cm、最大 3.78 cm，

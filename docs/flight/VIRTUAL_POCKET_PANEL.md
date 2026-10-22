@@ -11,13 +11,14 @@
 在工作区运行：
 
 ```bash
-./scripts/sim.sh pocket-panel
+./scripts/sim.sh run full --input-source virtual
 ```
 
-默认是本地通道预览；窗口显示当前模式请求和控件产生的意图。
-点击“连接虚拟摇杆”，或启动时加入 `--uinput`，创建 Linux 设备
-`Pocket Virtual UAV AETR`。连接要求 SA 上锁、SD 弹起、油门最低。
-Python 标准库与系统 Tk 即可运行，无需额外 Python 包。
+完整项目自动复用或打开模拟面板，并创建供 QGC 使用的 `Pocket Virtual UAV AETR` HID。若只需光流纯手动飞行，使用 `./scripts/sim.sh run manual --input-source virtual`。默认启动两个程序均使用实体 HID，模拟面板须显式选择。
+
+连接要求 SA 上锁、SD 弹起、油门最低；创建设备需要 `/dev/uinput` 权限。Python 标准库与系统 Tk 即可运行。QGC 首次需校准并启用该摇杆，在 Fly 页面发送操纵。
+
+开发时只预览面板可直接运行 `python3 scripts/simulation/pocket/pocket_panel.py`，它不再作为独立仿真启动类型。
 
 ## 最新控件定义
 
@@ -107,7 +108,7 @@ QGC 的 SDL 排序与校准必须在通道监视器中实际核对。
 创建独立 GNSS/PX4/Gazebo/QGC 手动会话：
 
 ```bash
-./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py \
+./scripts/with_px4_sim.sh python scripts/simulation/px4/run_px4_sitl_smoke.py \
   --usb-joystick --ui --duration 600
 ```
 
@@ -118,7 +119,7 @@ QGC 的 SDL 排序与校准必须在通道监视器中实际核对。
 先用窗口显示的设备路径观察新配置的意图：
 
 ```bash
-python3 scripts/pocket_operator_session.py \
+python3 scripts/simulation/pocket/pocket_operator_session.py \
   --device /dev/input/jsN --input-profile uav-aetr-v1
 ```
 
@@ -126,7 +127,7 @@ python3 scripts/pocket_operator_session.py \
 
 ```bash
 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; exec python scripts/pocket_operator_session.py \
+  'source .deps/mission-install/local_setup.bash; exec python scripts/simulation/pocket/pocket_operator_session.py \
    --device /dev/input/jsN --input-profile uav-aetr-v1 \
    --session .cache/simulation/sitl/<本轮 UUID> --enable-sitl-control'
 ```
@@ -141,7 +142,7 @@ QGC 负责设置／显示返航点，控制器只读取飞控确认的 `HomePosi
 自动避障返航的目标转换、Home 变更与地图条件见 [VIO 返航规则](VIO_POCKET_AVOIDANCE.md#返航基准和条件)。
 控制准入 ACK 不代表实际起飞、模式切换或成功着陆；须查看 PX4 状态与根任务结果。
 
-无 GNSS 纯光流仓库可以改用 `./scripts/sim.sh px4-flow-pocket --duration 35`，
+无 GNSS 纯光流仓库可以改用 `./scripts/sim.sh run manual --input-source virtual`，
 入口先进行地面融合审计，通过后接入 Pocket 控制器，不自动解锁／起飞。
 操作与证据边界见 [Pocket 光流会话](MTF01_STANDALONE_FLIGHT.md#pocket-持续操作会话)。
 
@@ -152,7 +153,7 @@ QGC 负责设置／显示返航点，控制器只读取飞控确认的 `HomePosi
 启动传感器或执行定位源切换；不能把通道输出当成 VIO／光流已接入。
 现有联合定位选择器只允许地面解除武装且无任务时切换，光流水平档仍保留 VIO
 高度／航向；独立纯光流须使用另一个启动配置。VIO／光流／测距联合定位及深度／EGO
-操作入口为 `px4-vio-pocket`，启动前检查、实验范围与验证证据见 [VIO 文档](VIO_POCKET_AVOIDANCE.md)。
+操作入口为 `./scripts/sim.sh run full`，启动前检查、实验范围与验证证据见 [VIO 文档](VIO_POCKET_AVOIDANCE.md)。
 
 `/dev/uinput` 必须可写，生成的摇杆必须可读；udev 建立读取权限可能略晚于创建设备。
 面板会显示等待状态。此机器已具备相关权限，不需要将整个面板作为 root 运行。
@@ -162,7 +163,7 @@ QGC 负责设置／显示返航点，控制器只读取飞控确认的 `HomePosi
 
 ```bash
 UAV_RUN_UINPUT_TEST=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 SKIP_WS_SETUP=true \
-  ./scripts/with_venv.sh python -m pytest -q scripts/test_pocket_panel.py
+  ./scripts/with_venv.sh python -m pytest -q scripts/tests/local/test_pocket_panel.py
 ```
 
 覆盖 SE 阈值与脉冲、SB/SC 上下文、SD 自锁与模式分流、初始位置不发命令、

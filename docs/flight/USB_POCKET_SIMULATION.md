@@ -10,14 +10,13 @@ SC 上下文三档、SD 手动／悬停时降落及任务时返航。自动选�
 Buttons 0／1 仍未绑定。完整入口示例：
 
 ```bash
-./scripts/sim.sh run vio-pocket --input-profile pocket-rc-v2 \
+./scripts/sim.sh run full \
   --device /dev/input/by-id/usb-OpenTX_Radiomaster_Pocket_Joystick_00000000001B-joystick
 ```
 
 当前 VIO 会话不具备跨源空中自动降级，SC 纯光流／无 VIO 定高会拒绝；不得把档位请求视为定位源已切换。
-使用纯光流会话时改为 `run flow-pocket --input-profile pocket-rc-v2`，须先落地上锁并关闭旧会话。
-本文下方 SA/SB/SD 映射属于旧实体 `legacy-usb` 配置；实体新配置使用
-`--input-profile pocket-rc-v2`，虚拟面板使用 `uav-aetr-v1`，不能混用设备身份或未验证的按钮用途。
+使用纯光流会话时改为 `run manual`，须先落地上锁并关闭旧会话。
+本文下方 SA/SB/SD 映射属于旧实体 `legacy-usb` 配置；两个公共程序自动为实体选择 `pocket-rc-v2`，为模拟面板选择 `uav-aetr-v1`，不能混用设备身份或未验证的按钮用途。
 
 RadioMaster Pocket 使用 EdgeTX，可通过 USB Joystick 模式作为电脑 HID 输入。
 连接数据 USB 口，充电 USB 口不传送摇杆数据。使用支持数据的 USB 线，遥控器开机后
@@ -77,11 +76,11 @@ SA 只允许在飞控已确认的手动模式中解锁。落地后残留的 AUTO
 
 ```bash
 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; python scripts/pocket_operator_session.py \
+  'source .deps/mission-install/local_setup.bash; python scripts/simulation/pocket/pocket_operator_session.py \
    --session .cache/simulation/sitl/<本轮 UUID> --enable-sitl-control'
 ```
 
-不带启用参数的 `python3 scripts/pocket_operator_session.py` 只观察并打印开关意图。
+不带启用参数的 `python3 scripts/simulation/pocket/pocket_operator_session.py` 只观察并打印开关意图。
 启用版本核对本轮实例 PID/rootfs、固定场景、domain/partition 和 Offboard-loss 参数，
 独占会话锁；继承唯一 FlightServer 发送所有自动命令，不创建第二个 FMU 控制发布者。
 默认 recipe 为 W0 起飞/两航点/悬停/返航/降落，导航执行后端为 DIRECT；SB 的“导航”
@@ -136,12 +135,12 @@ NAVIGATE 从当前位姿重新规划；被打断的 HOVER 先用新轨迹回到�
 `RETURN_LANDED_AND_DISARMED`；明确提前结束的收尾为 `MISSION_ENDED_LANDED_AND_DISARMED`。
 提前结束的收尾成功不代表原普通步骤全部完成。
 
-Pocket 未接入时可以先用假飞机测试和独立 SITL。下面两个入口不依赖 USB 输入，
-建立自己的 GNSS/DIRECT x500 会话并自动注入临时返航、暂停、恢复原任务：
+Pocket 未接入时可以先用假飞机测试。下面保留历史 GNSS/DIRECT x500 的回归参数，
+不依赖 USB 输入；当前全局无 GNSS 策略会拒绝启动，尚不能用于本轮 SITL 验收：
 
 ```bash
-./scripts/run_px4_flight.sh --bt --flight-scenario return-resume-mission
-./scripts/run_px4_flight.sh --bt --flight-scenario return-hover-resume
+./scripts/simulation/environment.sh mission python scripts/simulation/px4/run_px4_sitl_smoke.py --duration 20 --flight --bt --flight-scenario return-resume-mission
+./scripts/simulation/environment.sh mission python scripts/simulation/px4/run_px4_sitl_smoke.py --duration 20 --flight --bt --flight-scenario return-hover-resume
 ```
 
 两个场景须逐个运行，共用独立实例 7/domain 78 的端口。审计保存真实位姿、暂停漂移、
@@ -152,7 +151,7 @@ Pocket 未接入时可以先用假飞机测试和独立 SITL。下面两个入�
 
 ```bash
 ROS_DOMAIN_ID=78 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; python scripts/bt_operator_intent.py \
+  'source .deps/mission-install/local_setup.bash; python scripts/simulation/pocket/bt_operator_intent.py \
    RESUME_MISSION --enable-sitl-commands'
 ```
 
@@ -175,8 +174,8 @@ ROS_DOMAIN_ID=78 ./scripts/with_px4_sim.sh bash -e -c \
 ## 连接检查
 
 ```bash
-python3 scripts/usb_joystick.py
-python3 scripts/usb_joystick.py --device /dev/input/js0 --duration 30
+python3 scripts/simulation/pocket/usb_joystick.py
+python3 scripts/simulation/pocket/usb_joystick.py --device /dev/input/js0 --duration 30
 ```
 
 第一条列出设备、名称及当前用户的读取权限；无设备时退出 2。第二条只读取事件，输出
@@ -214,7 +213,7 @@ USB 摇杆输出取自模型的输出通道；设备有 8 轴、24 按钮不代�
 `legacy-usb` 操作器尚不使用它。自回弹按键另需确认其实际 USB 按钮事件，不能套用此表推断。
 
 ```bash
-./scripts/with_px4_sim.sh python scripts/run_px4_sitl_smoke.py \
+./scripts/with_px4_sim.sh python scripts/simulation/px4/run_px4_sitl_smoke.py \
   --usb-joystick --ui --duration 600
 ```
 
@@ -236,7 +235,7 @@ USB 摇杆输出取自模型的输出通道；设备有 8 轴、24 按钮不代�
 ./scripts/sim.sh px4-flight --bt --ui --usb-joystick --operator-start
 # 在同一个工作区另开终端，使用实际核验的 mapping.json：
 ROS_DOMAIN_ID=78 ./scripts/with_px4_sim.sh bash -e -c \
-  'source .deps/mission-install/local_setup.bash; python scripts/usb_bt_operator.py \
+  'source .deps/mission-install/local_setup.bash; python scripts/simulation/pocket/usb_bt_operator.py \
    --device /dev/input/js0 --mapping /absolute/path/mapping.json --enable-sitl-commands'
 ```
 

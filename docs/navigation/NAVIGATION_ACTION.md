@@ -52,7 +52,7 @@ Action 占用期间，RViz `/uav/goal`、自主探索启停和旧 `/uav/cancel` 
 ```bash
 ./scripts/build/build_navigation_actions.sh
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh \
-  python -m pytest -q src/uav_nav_sim/test scripts/test_sim_control.py scripts/test_sim_validation.py
+  python -m pytest -q src/uav_nav_sim/test scripts/tests/local/test_sim_control.py scripts/tests/local/test_sim_validation.py
 ```
 
 普通客户端的两航点/取消回归只支持受管 `lab/mapping` 场景，核对会话、域、分区和固定场景 hash，并用操作锁拒绝与初始化/扫描并发。
@@ -62,9 +62,9 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./scripts/with_venv.sh \
 ./scripts/sim.sh start --layout lab --view none --background
 ./scripts/sim.sh init
 ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
-  python scripts/check_gazebo_navigation_action.py --output .cache/sim/action-two-waypoints
+  python scripts/simulation/algorithm/check_gazebo_navigation_action.py --output .cache/sim/action-two-waypoints
 ROS_DOMAIN_ID=68 GZ_PARTITION=uav_ego_lab ./scripts/with_venv.sh \
-  python scripts/check_gazebo_navigation_action.py --cancel \
+  python scripts/simulation/algorithm/check_gazebo_navigation_action.py --cancel \
   --waypoint -2.2 0.6 1.2 --output .cache/sim/action-cancel
 ```
 

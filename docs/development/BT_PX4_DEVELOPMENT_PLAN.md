@@ -543,7 +543,7 @@ P0 记录基线，P4 按机型冻结数值。首版软件不变量直接判定�
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=180 \
   ./scripts/with_venv.sh python -m pytest -q \
-  scripts/test_sim_control.py src/uav_nav_sim/test
+  scripts/tests/local/test_sim_control.py src/uav_nav_sim/test
 
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src/px4_comm_bridge \
   ./scripts/with_venv.sh python -m pytest -q src/px4_comm_bridge/test
@@ -573,7 +573,7 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src/px4_comm_bridge \
 8. SITL 启动、故障注入及验收记录。
 9. 实机定位与受控验证。
 
-每个提交通过相应检查再推进。供应商补丁遵循 `scripts/vendor_patches.py`，不要将应用补丁后的脏子模块误提交；新增项目逻辑优先放自有包。配置和执行逻辑变化后重启相应运行进程验证，不能将静态测试当作运行中已生效。
+每个提交通过相应检查再推进。供应商补丁遵循 `scripts/setup/vendor_patches.py`，不要将应用补丁后的脏子模块误提交；新增项目逻辑优先放自有包。配置和执行逻辑变化后重启相应运行进程验证，不能将静态测试当作运行中已生效。
 
 ## 13. 开始实施时的第一批任务
 

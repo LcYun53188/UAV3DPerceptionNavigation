@@ -59,7 +59,7 @@ EGO 新参数 `coordinate_frame:=map` 要求 map/base_link 里程计，并输出
 ./scripts/with_venv.sh colcon build --build-base build_uav --install-base install_uav \
   --symlink-install --base-paths src/uav_nav_interfaces src/uav_nav_sim src/uav_ego_adapter \
   --packages-select uav_nav_interfaces uav_nav_sim uav_ego_adapter --parallel-workers 1
-./scripts/with_venv.sh python scripts/run_planning_context_smoke.py
+./scripts/with_venv.sh python scripts/simulation/validation/run_planning_context_smoke.py
 ```
 
 回归脚本使用隔离 ROS domain 91、系统时间、合成 ESDF 与显式对齐，启动实际 C++ EGO

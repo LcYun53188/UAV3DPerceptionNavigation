@@ -7,7 +7,7 @@
 ```bash
 uv pip install --python .venv/bin/python -r requirements/simulation-validation.txt
 ./scripts/sim.sh doctor
-./scripts/with_venv.sh python scripts/run_sim_scenario.py simulation/scenarios/S0_regression.yaml
+./scripts/with_venv.sh python scripts/simulation/validation/run_sim_scenario.py simulation/scenarios/S0_regression.yaml
 ```
 
 `doctor` 对比版本锁中的 OS/架构、ROS 软件包、vendor commit、配置/patch hash，并调用已有 vendor patch 检查。其 PASS **仅表示离线依赖一致**。打印的后续控制/本机组件样例 pending 不被隐藏，也不代表整个 S0 通过；topic、TF、发布者、clock、飞行状态检查尚待后续阶段接入。

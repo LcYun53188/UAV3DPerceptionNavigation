@@ -81,7 +81,7 @@ StartFlight → FlightStep[0..6] → AwaitFlightResult。根 Action 只提交一
 （含调度余量，不改变控制器期限）。原生降落不被取消或 Runner 消失中断。
 
 契约回归覆盖拒绝、重复请求、跳步、旧身份/世代、halt、提前根成功与终态消费。
-四轮实飞使用相同实现和 recipe；`scripts/assess_px4_bt_suite.py` 独立检查根/树终态、
+四轮实飞使用相同实现和 recipe；`scripts/simulation/px4/assess_px4_bt_suite.py` 独立检查根/树终态、
 步骤、物理停止证据及实现 hash。仅有 QGC 连接、topic 或 XML 不算通过。
 结果见 [本轮 BT 验证](../validation/simulation/2026-10-08-bt-stage1/REPORT.md)。
 

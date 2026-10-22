@@ -196,7 +196,7 @@ export GZ_PARTITION=uav_ego_lab
 export ROS_DOMAIN_ID=68
 export GZ_PARTITION=uav_ego_lab
 # 扫描输出目录必须尚不存在
-./scripts/with_venv.sh python scripts/survey_gazebo_map.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/survey_gazebo_map.py \
   --layout expanded --output .cache/maps/uav_ego_expanded
 ```
 
@@ -224,7 +224,7 @@ export GZ_PARTITION=uav_ego_lab
 **终端 A：** 使用第 5.1 节的 `mode:=mapping` 启动命令。**终端 B：** 在项目根目录设置第 3 节的环境变量，执行：
 
 ```bash
-./scripts/with_venv.sh python scripts/survey_gazebo_map.py --layout expanded --local-only
+./scripts/with_venv.sh python scripts/simulation/algorithm/survey_gazebo_map.py --layout expanded --local-only
 ```
 
 默认小场景使用 `--layout lab`，同时终端 A 省略扩展场景 `world` 参数并使用 `map_extent:=5.0`。局部初始化通过 Gazebo 放置相机补足起点近距盲区，不是自主起飞；不需要地图包，未传 `--output` 时也不保存地图。看到 `Local launch area observed` 后，再在 RViz 使用 **2D Goal Pose** 发送目标。
@@ -337,7 +337,7 @@ export GZ_PARTITION=uav_ego_lab
 在定位模式运行、加载扩展地图且初始点位于 `(-7.5, -7.5, 1.2)` 时运行：
 
 ```bash
-./scripts/with_venv.sh python scripts/check_gazebo_expanded_goal.py \
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_expanded_goal.py \
   --goal 7.99 4.25 --timeout 240 --output /tmp/expanded_navigation.json
 ```
 **校验内容**：
@@ -350,16 +350,16 @@ export GZ_PARTITION=uav_ego_lab
 
 ```bash
 # 前向航行测试 (-> [3.0, 0.0, 1.2])
-./scripts/with_venv.sh python scripts/check_gazebo_goal.py --goal 3 0 1.2 --output /tmp/ego_forward.json
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_goal.py --goal 3 0 1.2 --output /tmp/ego_forward.json
 
 # 反向返航测试 (-> [-3.0, 0.0, 1.2])
-./scripts/with_venv.sh python scripts/check_gazebo_goal.py --goal -3 0 1.2 --output /tmp/ego_return.json
+./scripts/with_venv.sh python scripts/simulation/algorithm/check_gazebo_goal.py --goal -3 0 1.2 --output /tmp/ego_return.json
 ```
 
 ### 8.3 异常注入与容错边界测试
 - **目标与模式测试**：加载模式中的未知目标不得触发探索；建图模式中的未知目标应分段探索，已知障碍目标应进入 `BLOCKED:KNOWN_GOAL_OCCUPIED`。任何模式都不得发布穿越未知、障碍或地图边界的轨迹。整体结果查看 `/uav/navigation/state`，单段失败查看 `/uav/planner/state`。
-- **在线探索验收**：默认小场景局部初始化后运行 `scripts/check_gazebo_exploration.py`；完整命令与已记录结果见 [探索验收](EGO_NVBLOX_GAZEBO.md#小场景探索验收)。
-- **地图丢失测试**：运行 `scripts/check_gazebo_map_loss.py`，验证当 ESDF 停止更新或超时时，执行器能立即在 2.0s 内触发 `STALE_MAP_OR_ODOMETRY` 并悬停。
+- **在线探索验收**：默认小场景局部初始化后运行 `scripts/simulation/algorithm/check_gazebo_exploration.py`；完整命令与已记录结果见 [探索验收](EGO_NVBLOX_GAZEBO.md#小场景探索验收)。
+- **地图丢失测试**：运行 `scripts/simulation/algorithm/check_gazebo_map_loss.py`，验证当 ESDF 停止更新或超时时，执行器能立即在 2.0s 内触发 `STALE_MAP_OR_ODOMETRY` 并悬停。
 
 ---
 

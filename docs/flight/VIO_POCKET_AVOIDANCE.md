@@ -6,40 +6,30 @@
 
 全局仿真关闭 GNSS 融合及 Gazebo NavSat 数据源，参见[统一策略](../simulation/LAUNCHERS.md#全局无-gnss-策略)。
 
-总菜单的“纯手动飞行”使用 `./scripts/sim.sh run manual`，在相同仓库／VIO／建图链路中额外启用 `--manual-only`：拒绝自动任务意图，不预热 BT Runner，FlightServer 的自动导航许可始终关闭。下文的 `vio-pocket` 入口继续支持由操作员发起自动任务，两种会话用途不同。手动入口自动优先实体 Pocket（8 轴／24 按钮），没有实体则复用或创建虚拟设备（9 轴／3 按钮）；实体连接失败会明确报错，不自动更换操纵来源。QGC 校准及新鲜操纵输入仍是解锁条件。手动会话结果不等同于飞行验收。
+当前只提供两个公共仿真程序：`./scripts/sim.sh run manual` 是完全无 VIO 的光流／测距纯手动飞行；`./scripts/sim.sh run full` 是本页描述的 VIO、建图、导航和行为树完整项目。两者默认实体 HID，只有显式选择 `--input-source virtual` 才使用模拟面板；新终端地图及关闭操作见[控制手册](../simulation/SIMULATION_CONTROL.md)。
 
 ## 启动
 
-先启动虚拟面板，并确认打印出的实际设备路径：
+先按[构建准备](../simulation/LAUNCHERS.md#构建准备)完成 PX4 遥测、感知建图和 Schur64 SDK 构建。若提示 `VIO build inputs changed`，显式重建：
 
 ```bash
-./scripts/sim.sh pocket-panel --uinput
+./scripts/build/build_px4_vio.sh --jobs 4
+./scripts/build/build_px4_vio.sh --check
 ```
 
-构建隔离的数值修正 SDK（只需首次或源码变化后执行，不替换默认库）：
+默认使用实体 RadioMaster Pocket HID，启动完整项目：
 
 ```bash
-./scripts/with_venv.sh python scripts/build/build_vio_sdk16_schur64.py --jobs 3
+./scripts/sim.sh run full
+# 显式使用电脑面板；程序自动复用或创建虚拟 HID
+./scripts/sim.sh run full --input-source virtual
+# 可继承已有的 QGC 校准
+./scripts/sim.sh run full --qgc-config /绝对路径/QGroundControl.ini
 ```
 
-再显式选择该 SDK 和 VIO 主定位配置，启动完整可视化链路：
+实体设备为 EdgeTX／OpenTX Pocket（8 轴／24 按钮），模拟设备为 `Pocket Virtual UAV AETR`（9 轴／3 按钮）；程序自动应用对应映射。QGC 必须校准、启用摇杆并在 Fly 页面发送操纵。`--device /dev/input/...` 可用于多设备时明确选择；物理输入不会自动回退到模拟设备。
 
-```bash
-./scripts/sim.sh px4-vio-pocket --sdk-schur64 --vio-primary \
-  --device /dev/input/js0 --session-duration 3600
-```
-
-设备必须是 `Pocket Virtual UAV AETR`、9 轴／3 按钮。已有 QGC 校准可通过 `--qgc-config-from /绝对路径/QGroundControl.ini` 导入。QGC 必须启用该摇杆且处于 Fly 页面；摇杆配置页面仅显示原始输入，不发送飞控控制。首次校准请按[虚拟 Pocket 文档](VIRTUAL_POCKET_PANEL.md)操作。
-
-实体 EdgeTX／OpenTX Pocket 的完整会话使用 `pocket-rc-v2` 配置；保留实体 8 轴／24 按钮的识别和校准检查，不需要虚拟面板：
-
-```bash
-./scripts/sim.sh run vio-pocket --input-profile pocket-rc-v2 \
-  --device /dev/input/by-id/usb-OpenTX_Radiomaster_Pocket_Joystick_00000000001B-joystick \
-  --qgc-config /绝对路径/QGroundControl.ini --session-duration 14400
-```
-
-实体配置与虚拟 AETR 共用 SB 手动／悬停／任务、SC 上下文三档和 SD 降落／返航；SA 仍为解锁／地面上锁，实体 Classic USB 的 SE 短按／长按分别读取已核验的 button 1／2，S1 不控制任务速度。旧二态操作须显式选择 `legacy-usb`。完整矩阵与定位能力限制见[控件定义](VIRTUAL_POCKET_PANEL.md#最新控件定义)。启动时保持原始开关档位，不自动发起动作；任务仍要求新的开关边沿、有效摇杆输入和完整定位／地图准入。纯手动入口继续禁止自动任务。Pocket 会话在 PX4 生成机体前等待 SDK 参数核验及双目／IMU 订阅就绪，使真实出生／落地过程能够被 VIO 观察；该顺序检查不代表定位或飞行已经就绪。
+实体与模拟输入共用 SB／SC／SD 控件。任务要求新的开关边沿、有效输入以及完整定位／地图准入，启动保持未解锁，不会自动发起任务。纯光流手动程序禁止自动任务。VIO 会话在 PX4 生成机体前等待 SDK 参数核验及双目／IMU 订阅就绪；该检查不等于定位或飞行已经就绪。
 
 Pocket 入口使用 480×300 双目及重新生成的标定，前向深度保持 320×240；光流 OpenCV 与 BLAS／OMP 使用单线程预算，静止面板仅在状态变化时重绘。启动预热和源稳定性检查需要数分钟；收到 `POCKET_SESSION <目录>` 后才完成启动前检查。证据位于 `.cache/simulation/vio-sensors/<UUID>/`，包括 `manifest.json`、`sensor-preflight.json`、`flight-admission.json`、`live-heartbeat.json` 和各进程日志。校准、资产、会话、控制实例均绑定；启动检查未完成时 ARM/PREPARE/RUN 请求会被拒绝。Pocket 源预热阶段若检查失败，会保留可视化诊断现场，记录 `POCKET_PREFLIGHT_BLOCKED`，并保持未生成飞行准入文件；不会自动重置失效源或起飞。
 
@@ -50,6 +40,10 @@ PX4 Home 新策略已完成一轮完整无 GNSS 自动任务，独立几何／Ho
 SDK 原单精度 Schur 边缘化存在已复现的数值失效：正定输入可能输出不定先验。`--sdk-schur64` 使用双精度 SVD／求逆／Schur 运算，保留原 1e-6 奇异值截止和 float 状态存储，没有协方差裁剪或方差下限。EGO 跟踪使用同一条已校验 B 样条的解析速度／加速度前馈，保留原时钟、碰撞包络和 0.3 米误差限制。自动验收与 Pocket 均使用 `MPC_LAND_SPEED=0.3`、`MPC_LAND_CRWL=0.2` 米／秒；原始位置连续性保护及健康门限保留。
 
 `--vio-primary` 明确要求该隔离 SDK 和实验绕障场景。地面准入仍要求 VIO、光流、测距成功联合融合；飞行中 VIO 位置／高度／航向始终必需，光流和测距允许因地形或纹理暂时不参与融合。原始传感器连接、新鲜度、有限值、安装方向与唯一发布者检查仍必需，融合变化如实记录为 `AUXILIARY_UNAVAILABLE`。该策略在启动时固定，拒绝跨源热切换；不会放宽 PX4 创新量检查。
+
+## 新终端地图与关闭操作
+
+完整项目保持运行时，在另一终端使用 `./scripts/sim.sh status`、`logs`、`save <地图目录>`、`export-mesh <文件.ply>` 和 `stop`。地图操作要求飞机落地上锁；命令自动绑定本轮通信域，不调用旧算法仿真。操作会话正常关闭与任务结果、飞行资格分别记录，主动停止 VIO 以清理进程不代表完成自动飞行验收。详细步骤见[控制手册](../simulation/SIMULATION_CONTROL.md)。
 
 ## 操作
 
@@ -101,7 +95,7 @@ PX4 发布的 `HomePosition` 是实际返航基准。QGC 设置的 Home 只有�
 自动验收入口与 Pocket 操作会话互斥。关闭操作会话后运行：
 
 ```bash
-./scripts/run_px4_vio_sensors.sh \
+./scripts/simulation/environment.sh vio python scripts/simulation/vio/runtime/run_px4_vio_sensors.py \
   --experimental-chain --flight sequence --normalize --mtf01 \
   --scene warehouse --warehouse-variant avoidance --warehouse-floor-texture \
   --quality-policy bounded_gap --real-time-factor 0.8 \
@@ -110,7 +104,7 @@ PX4 发布的 `HomePosition` 是实际返航基准。QGC 设置的 Home 只有�
   --sdk-schur64 --vio-primary
 ```
 
-完成后在 Python 环境中运行 `./scripts/with_venv.sh python scripts/assess_vio_static_avoidance.py <运行目录>` 独立检查：直线确被实物障碍阻断、深度地图确有障碍占据体素、接纳的轨迹与 Gazebo 真值均保持包络间距、目标和返航完成、最终落地且未解锁。未完成任务不能判定绕障通过。
+完成后在 Python 环境中运行 `./scripts/with_venv.sh python scripts/simulation/vio/analysis/assess_vio_static_avoidance.py <运行目录>` 独立检查：直线确被实物障碍阻断、深度地图确有障碍占据体素、接纳的轨迹与 Gazebo 真值均保持包络间距、目标和返航完成、最终落地且未解锁。未完成任务不能判定绕障通过。
 
 上述命令默认 `--flight-case full`。分别增加以下参数可验收其他动作：
 

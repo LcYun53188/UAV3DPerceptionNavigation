@@ -29,7 +29,7 @@
 | --- | --- |
 | [docs/simulation/EGO_NVBLOX_GAZEBO.md](simulation/EGO_NVBLOX_GAZEBO.md) | EGO + nvblox 仿真运行指引 |
 | [docs/simulation/GAZEBO_HARMONIC_SIMULATION.md](simulation/GAZEBO_HARMONIC_SIMULATION.md) | Gazebo Harmonic 无人机场景 |
-| [docs/simulation/LAUNCHERS.md](simulation/LAUNCHERS.md) | 仿真启动入口与目录规划 |
+| [docs/simulation/LAUNCHERS.md](simulation/LAUNCHERS.md) | 仿真启动规划 |
 | [docs/simulation/SIMULATION_CONTROL.md](simulation/SIMULATION_CONTROL.md) | 仿真启动与控制脚本 |
 | [docs/simulation/SIMULATION_MANUAL.md](simulation/SIMULATION_MANUAL.md) | 无人机导航仿真使用手册 (UAV Simulation User Manual) |
 | [docs/simulation/UAV_OBSTACLE_COURSE.md](simulation/UAV_OBSTACLE_COURSE.md) | UAV 障碍穿越场地 |
@@ -128,7 +128,7 @@
 
 ## 验证记录
 
-`docs/validation/` 与 `scripts/test_*` 不纳入 Git，本地记录链接在新克隆中可能不可用。报告中的“当前”“尚未”按该轮日期理解；仿真、静态检查、台架与实机证据分别解释。使用范围见 [项目首页](../README.md#当前验证范围)，阶段结果见 [开发日志](history/DEVELOPMENT_LOG.md)。
+`docs/validation/` 与 `scripts/tests/local/test_*` 不纳入 Git，本地记录链接在新克隆中可能不可用。报告中的“当前”“尚未”按该轮日期理解；仿真、静态检查、台架与实机证据分别解释。使用范围见 [项目首页](../README.md#当前验证范围)，阶段结果见 [开发日志](history/DEVELOPMENT_LOG.md)。
 
 | 日期／主题 | 记录与适用范围 |
 | --- | --- |
