@@ -67,6 +67,9 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '-r','camera_0/depth/image:=/uav/mapping/depth','-r','camera_0/depth/camera_info:=/uav/mapping/camera_info'])
     start('map_session',['ros2','run','uav_nav_sim','map_session','--ros-args','-p','use_sim_time:=true',
         '-p','resolution:=0.2',
+        '-p','operation_guard:=px4_ground',
+        '-p','localization_source:=px4_vio_local_enu',
+        '-p',f'localization_session:={run_id}','-p','alignment_id:=depth-map-is-ekf-odom-v1',
         '-p',f'preflight_admission_path:={out/"map-admission.json"}',
         '-p',f'scene_id:={file_hash(out/"assets/default.sdf")}',
         '-p','aabb_min:='+json.dumps(list(map(float,config.get('map_aabb_min',[-5.0,-5.0,0.0])))),

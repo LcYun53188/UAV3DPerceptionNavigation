@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SERVER_CONFIG = ROOT / 'simulation/px4/server_control.config'
 DISABLED_BACKENDS = frozenset(('flight', 'observe', 'depth-map', 'depth-plan'))
 DISABLED_REASON = ('全局无 GNSS：此旧入口依赖 GNSS 定位，尚未接入无 GNSS 定位源。'
-                   '请使用 manual（VIO 手动）、vio-pocket（VIO／建图）或 flow-local（纯光流测试）')
+                   '请使用 sim.sh run manual（光流纯手动）或 sim.sh run full（完整项目）')
 
 
 def require_backend(key):

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""统一仿真 CLI：配置启动、交互菜单、算法控制和高级运行器入口。"""
+"""两个完整仿真程序及当前会话操作。"""
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import shlex
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -68,39 +67,25 @@ def run_profile(arguments):
     return 0
 
 
-def advanced(arguments):
-    parser = argparse.ArgumentParser(prog=PROG + ' advanced', allow_abbrev=False, description='直接向运行器传参；查看专项手册中的适用条件。')
-    parser.add_argument('backend', choices=backends.BACKENDS)
-    parser.add_argument('--dry-run', action='store_true', help='仅预览底层启动命令')
-    args, forwarded = parser.parse_known_args(arguments)
-    if forwarded[:1] == ['--']:
-        forwarded = forwarded[1:]
-    command = backends.command(args.backend, forwarded)
-    if args.dry_run:
-        print(shlex.join(command))
-    else:
-        backends.execute(command)
-    return 0
-
-
 def help_parser():
     return argparse.ArgumentParser(
         prog=PROG,
         description='无人机仿真统一入口；无参数打开交互菜单。',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''常用命令：
-  menu [--dry-run]              交互选择与配置
-  list                         查看全部仿真类型
-  run <profile> [配置选项]      按配置启动，支持 --dry-run / --config / --save
-  algorithm <动作> [参数]      算法会话：start / init / status / cancel / save / load / stop
-  advanced <backend> [参数]    直接向底层运行器传参
+        epilog='''程序：
+  ./scripts/sim.sh run manual                光流／测距纯手动，无 VIO
+  ./scripts/sim.sh run full                  VIO＋建图＋导航完整项目
+  ./scripts/sim.sh run full --input-source virtual   使用模拟遥控器
 
-示例：
-  ./scripts/sim.sh run algorithm --layout lab --view rviz --dry-run
-  ./scripts/sim.sh run vio-pocket --device /dev/input/js0
-  ./scripts/sim.sh algorithm status
+新终端操作当前会话：
+  ./scripts/sim.sh status
+  ./scripts/sim.sh save .cache/maps/run1      保存地图包（落地上锁后）
+  ./scripts/sim.sh export-mesh .cache/maps/run1.ply
+  ./scripts/sim.sh logs [--follow]
+  ./scripts/sim.sh stop                      请求落地上锁后关闭
+  ./scripts/sim.sh cleanup [--apply]         预览／清理监督器退出后的残留进程
 
-原有 start、px4-flight 等子命令与历史脚本继续兼容。
+run 支持 --dry-run、--config、--save；list 只列出两个程序。
 完整说明：docs/simulation/LAUNCHERS.md''')
 
 
@@ -121,23 +106,18 @@ def main(argv=None):
         return 0
     if action == 'run':
         return run_profile(rest)
-    if action == 'advanced':
-        return advanced(rest)
-    if action == 'algorithm':
-        backends.execute(backends.command('algorithm', rest))
-        return 0
-    if action == 'compat':
-        if not rest or rest[0] not in backends.LEGACY_SCRIPTS:
-            raise ValueError('未知历史脚本入口')
-        key, prefix = backends.LEGACY_SCRIPTS[rest[0]]
-        backends.execute(backends.command(key, [*prefix, *rest[1:]]))
-        return 0
-    if action in backends.LEGACY_COMMANDS:
-        backends.execute(backends.command(backends.LEGACY_COMMANDS[action], rest))
-        return 0
-    if action in backends.ALGORITHM_COMMANDS:
-        backends.execute(backends.command('algorithm', args))
-        return 0
+    if action == 'cleanup':
+        from simulation.cleanup import main as cleanup
+        return cleanup(rest)
+    if action in ('status', 'save', 'export-mesh', 'logs', 'stop'):
+        from simulation.control import main as control
+        return control(args)
+    if action in ('manual', 'full'):
+        return run_profile(args)
+    if (action in ('advanced', 'algorithm', 'compat') or action in backends.LEGACY_COMMANDS
+            or action in backends.ALGORITHM_COMMANDS):
+        raise ValueError('旧仿真入口已移除；请选择 sim.sh run manual 或 sim.sh run full。'
+                         '当前会话使用 status / save / export-mesh / logs / stop。')
     help_parser().error('未知子命令：' + action)
 
 
@@ -149,6 +129,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('\n已退出。')
         sys.exit(130)
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, RuntimeError) as exc:
         print(f'配置或启动失败：{exc}', file=sys.stderr)
         sys.exit(1)

@@ -42,6 +42,7 @@ def main():
     parser.add_argument('--flight', action='store_true', help='Explicit isolated FLOW_LOCAL takeoff/hover/native LAND, after successful disarmed audit; no EV/VIO source')
     parser.add_argument('--native-manual', action='store_true', help='With --flight: native Position and simulated RC sticks, no mission gateway or Offboard heartbeat')
     parser.add_argument('--usb-joystick', action='store_true', help='Persistent FLOW_LOCAL warehouse/Pocket session; no automatic arm or flight')
+    parser.add_argument('--manual-only', action='store_true', help='Reject automatic task intents in the operator session')
     parser.add_argument('--session-duration', type=float, default=3600, help='Operator session seconds after successful ground audit')
     parser.add_argument('--device', default='/dev/input/js0', help='Explicit Pocket joystick for the operator session')
     parser.add_argument('--input-profile', choices=('uav-aetr-v1','pocket-rc-v2','legacy-usb'), default='uav-aetr-v1')
@@ -52,11 +53,12 @@ def main():
         parser.error('--native-manual requires --flight')
     if args.usb_joystick and (not args.ui or args.flight or args.native_manual or args.no_floor_texture or args.stop_sensors):
         parser.error('--usb-joystick requires --ui, textured continuous sensors and no automatic flight flags')
-    if not 20 <= args.session_duration <= 3600:
-        parser.error('session-duration must be within [20,3600] seconds')
-    if args.qgc_config_from and (not args.usb_joystick or not args.qgc_config_from.is_file() or
-            not any(args.qgc_config_from.resolve().is_relative_to(ROOT/'.cache/simulation'/name) for name in ('sitl','mtf01'))):
-        parser.error('--qgc-config-from requires an owned QGC config and --usb-joystick')
+    if args.manual_only and not args.usb_joystick:
+        parser.error('--manual-only requires --usb-joystick')
+    if not 20 <= args.session_duration <= 14400:
+        parser.error('session-duration must be within [20,14400] seconds')
+    if args.qgc_config_from and (not args.usb_joystick or not args.qgc_config_from.is_file()):
+        parser.error('--qgc-config-from requires an existing QGC config and --usb-joystick')
     if args.flight and (args.no_floor_texture or args.stop_sensors):
         parser.error('Flight requires the reviewed textured floor and continuous sensor inputs')
     def interrupted(signum,frame):
@@ -162,6 +164,7 @@ def execute(args, lock, input_identity=None):
         stop_sensors=args.stop_sensors, runtime=runtime, versions=lock,
         flight=args.flight,native_manual=args.native_manual,vio_build=build_receipt,
         usb_joystick=args.usb_joystick,model=profile['model']+'_7',namespace='/px4_7',
+        manual_only=getattr(args, 'manual_only', False), automatic_flight=False if args.usb_joystick else args.flight,
         input_profile=args.input_profile if args.usb_joystick else None,input_device=input_identity,
         localization_profile='FLOW_LOCAL' if local_control else None,
         px4_parameter_overrides={k:v for k,v in env.items() if k.startswith('PX4_PARAM_')},
@@ -169,6 +172,9 @@ def execute(args, lock, input_identity=None):
             'UAV_FLIGHT_REGION_PROFILE','UAV_FLIGHT_ASSET_RECEIPT','UAV_FLIGHT_ASSET_SHA256',
             'UAV_FLIGHT_EVIDENCE','UAV_FLIGHT_MODEL','UAV_ENABLE_EGO_NAV','UAV_NAVIGATION_BACKEND') if k in env},
         input_sha256={**launcher_hashes, **{str(p.relative_to(ROOT)):file_hash(p) for p in inputs}}, processes={})
+    write_json(out/'manifest.json', manifest)
+    from simulation.session import register_runtime
+    register_runtime(out, manifest)
     processes, logs, receipts = [], [], []
     result = dict(passed=False)
     def launch(name, command, launch_env=env):
@@ -219,6 +225,9 @@ def execute(args, lock, input_identity=None):
                 with (config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
             else:
                 (config/'QGroundControl.ini').write_text('[AutoConnect]\nautoConnectUDP=true\nautoConnectPixhawk=false\nautoConnectSiKRadio=false\nautoConnectRTKGPS=false\nautoConnectLibrePilot=false\n')
+            if args.usb_joystick:
+                from pocket_input import configure_qgc_input
+                configure_qgc_input(config/'QGroundControl.ini', input_identity)
             from usb_joystick import qgc_environment
             launch('qgc',[lock['artifacts']['qgc']['path'],'--allow-multiple','--log-output'],
                 qgc_environment(dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
@@ -267,15 +276,19 @@ def execute(args, lock, input_identity=None):
         if args.usb_joystick and result['passed']:
             write_json(out/'ground-audit.json', result)
             owner=launch('pocket_operator',[sys.executable,ROOT/'scripts/simulation/pocket/pocket_operator_session.py',
-                '--device',args.device,'--input-profile',args.input_profile,'--session',str(out),'--enable-sitl-control'])
+                '--device',args.device,'--input-profile',args.input_profile,'--session',str(out),'--enable-sitl-control',
+                *(['--manual-only'] if getattr(args, 'manual_only', False) else [])])
             live=dict(session=str(out),profile='FLOW_LOCAL',scene='warehouse',scope='operator session; no automatic arm/takeoff',
-                      ground_audit_passed=True,operator_pid=owner.pid)
+                      ground_audit_passed=True,operator_pid=owner.pid,manual_only=getattr(args, 'manual_only', False))
             write_json(out/'live-session.json',live)
             print('FLOW_LOCAL Pocket ready:',out,flush=True)
             until=time.monotonic()+args.session_duration
-            while time.monotonic()<until:
+            from simulation.session import operator_grounded
+            while True:
                 if any(p.poll() is not None for p in processes):
                     raise RuntimeError('Owned FLOW_LOCAL operator/sensor process exited')
+                if (time.monotonic() >= until or (out/'close-ui').exists()) and operator_grounded(out):
+                    break
                 time.sleep(.1)
             final=snapshot('final-')
             write_json(out/'final-state.json',final)

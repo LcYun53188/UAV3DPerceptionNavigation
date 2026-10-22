@@ -416,6 +416,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     safety_held=getattr(switches,'safety_held',False),
                     operator_input_ready=node.operator_input_ready(),auto_prepared=auto_prepared,
                     owner=node.owner,phase=node.phase,arming=getattr(status,'arming_state',None),
+                    ground_state_fresh=node.fresh('vehicle_status', .75) and node.fresh('vehicle_land_detected', 1.2),
                     canceled_manual_state=getattr(node,'cancel_manual_state',None),
                     nav_state=getattr(status,'nav_state',None),landed=getattr(land,'landed',None))
                 state['input_evidence'] = input_evidence(now)

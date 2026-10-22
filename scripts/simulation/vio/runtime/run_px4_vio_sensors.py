@@ -552,6 +552,9 @@ def main():
     manifest['map_visualization']=dict(enabled=bool(chain_depth and args.ui),
         topic='/nvblox_node/mesh',publish_rate_hz=.5 if chain_depth and args.ui else 0.)
     manifest['covariance_kind']=candidate.get('covariance','legacy SDK15 right tangent') if candidate else 'legacy SDK15 right tangent'
+    write_json(out/'manifest.json', manifest)
+    from simulation.session import register_runtime
+    register_runtime(out, manifest)
     if args.experimental_chain:
         import shutil
         for name,digest in manifest['input_sha256'].items():
@@ -690,6 +693,9 @@ def main():
             for key in ('autoConnectPixhawk','autoConnectSiKRadio','autoConnectRTKGPS','autoConnectLibrePilot'):saved['AutoConnect'][key]='false'
             saved['AutoConnect']['autoConnectUDP']='true'
             with (qgc_config/'QGroundControl.ini').open('w') as stream:saved.write(stream,space_around_delimiters=False)
+        if args.pocket_session:
+            from pocket_input import configure_qgc_input
+            configure_qgc_input(qgc_config/'QGroundControl.ini', input_identity)
         qgc_env = dict(env,XDG_CONFIG_HOME=str(out/'qgc-config'),XDG_CACHE_HOME=str(out/'qgc-cache'),
                        QT_QPA_PLATFORM='xcb' if args.ui else 'offscreen')
         if args.flight_case in INPUT_CASES:
@@ -845,6 +851,9 @@ def main():
                 pose_audit.request_reset()
         if args.pocket_session:
             result=dict(passed=not fusion_audit.stream.fault,scope='Pocket live diagnostic; mission outcomes separate; no automatic flight')
+            result.update(operator_session_closed=True, operator_preflight_admitted=not bool(preflight_blocked),
+                operator_final_grounded=grounded_for_viewers(audit.last,audit.receive,time.monotonic()),
+                operator_final_source_ready=fusion_audit.gate.reason=='READY' and not fusion_audit.stream.fault and not fusion_audit.gate.fault)
             if args.manual_only:
                 result.update(manual_session_closed=True, manual_preflight_admitted=not bool(preflight_blocked),
                     manual_final_grounded=grounded_for_viewers(audit.last,audit.receive,time.monotonic()),
@@ -1122,9 +1131,14 @@ def main():
         if args.manual_only:
             from vio_ui_lifecycle import manual_session_result
             result=manual_session_result(result)
+        elif args.pocket_session:
+            from vio_ui_lifecycle import operator_session_result
+            result=operator_session_result(result)
         write_json(out/'result.json',result)
     if args.manual_only:
         print('Pocket 手动会话：', '正常结束' if result.get('manual_session_passed') else 'FAIL', out, flush=True)
+    elif args.pocket_session:
+        print('完整项目操作会话：', '正常结束' if result.get('operator_session_passed') else 'FAIL', out, flush=True)
     elif args.sdk_candidate:
         print(('No-GNSS local landing case:' if args.flight_case.startswith('local-land-') else
             ('OpenVINS' if openvins else 'SDK16')+(' experimental simulation flight:' if args.experimental_chain else ' disarmed diagnostic:')), 'PASS' if result.get('no_gnss_landing_case_passed',result.get('experimental_mission_passed',result.get('estimator_candidate_checks_passed',result.get('sdk16_candidate_checks_passed')))) else 'FAIL',

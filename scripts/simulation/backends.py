@@ -30,7 +30,8 @@ VIO_POCKET = (
     '--image-resolution', '480x300', '--ui', '--diagnostic-ui', '--duration', '120',
 )
 BACKENDS = {
-    'manual': Backend('自动选择实体／虚拟 Pocket 的纯手动会话', 'host', 'scripts/simulation/manual.py'),
+    'manual': Backend('光流／测距纯手动飞行', 'host', 'scripts/simulation/manual.py', ('--program', 'manual')),
+    'full': Backend('VIO／建图／导航完整项目', 'host', 'scripts/simulation/manual.py', ('--program', 'full')),
     'algorithm': Backend('算法会话控制', 'host', 'scripts/simulation/algorithm/sim_control.py'),
     'scene': Backend('Gazebo 场景与传感器桥', 'shell', 'scripts/simulation/launch_scene.sh'),
     'isaac': Backend('Isaac Sim 4.5 UI', 'shell', 'scripts/simulation/launch_isaac.sh'),

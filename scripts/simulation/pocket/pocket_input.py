@@ -10,6 +10,7 @@ from support.paths import enable_imports as _enable_imports
 _enable_imports()
 
 from pathlib import Path
+import configparser
 
 from pocket_virtual_joystick import NAME as VIRTUAL_NAME
 from usb_joystick import Joystick, devices
@@ -20,10 +21,22 @@ PHYSICAL_DEVICE = '/dev/input/by-id/usb-EdgeTX_Radiomaster_Pocket_Joystick_00000
 INPUT_PROFILES = {'physical': 'pocket-rc-v2', 'virtual': 'uav-aetr-v1'}
 
 
+def configure_qgc_input(path, identity):
+    """Bind QGC to the selected HID without changing calibration or enabling it."""
+    config = configparser.ConfigParser(interpolation=None, strict=False)
+    config.optionxform = str
+    config.read(path)
+    if not config.has_section('JoystickManager'):
+        config.add_section('JoystickManager')
+    config['JoystickManager']['activeJoystickName'] = identity['name']
+    with Path(path).open('w') as stream:
+        config.write(stream, space_around_delimiters=False)
+
+
 def validate_identity(name, axes, buttons, profile):
     if profile == 'uav-aetr-v1':
         expected_name, expected_shape = VIRTUAL_NAME, (9, 3)
-        remedy = '先运行 ./scripts/sim.sh run panel，并使用面板输出的设备路径；实体 Pocket 请选“实体 Pocket”'
+        remedy = '选择 --input-source virtual 自动打开模拟面板；实体 Pocket 请选 --input-source physical'
     elif profile in ('legacy-usb', 'pocket-rc-v2'):
         expected_name, expected_shape = ' / '.join(PHYSICAL_NAMES), (8, 24)
         remedy = '请选择实体 RadioMaster Pocket 的 USB Joystick 设备；虚拟面板请选“电脑虚拟 Pocket”'

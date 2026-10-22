@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pure manual session: choose a physical Pocket or own a virtual panel fallback."""
+"""Shared HID/panel ownership for the manual flow and full project programs."""
 from __future__ import annotations
 
 import argparse
@@ -20,12 +20,15 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None):
-    args = ['--sdk-schur64', '--vio-primary', '--manual-only', '--device', identity['device'],
+def runtime_command(identity, duration, qgc_config=None, program='manual'):
+    if program not in ('manual', 'full'):
+        raise ValueError('Unknown simulation program: ' + program)
+    args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
+    args += ['--device', identity['device'],
             '--input-profile', identity['input_profile'], '--session-duration', str(duration)]
     if qgc_config:
         args += ['--qgc-config-from', str(qgc_config)]
-    return backend_command('vio-pocket', args)
+    return backend_command('flow-pocket' if program == 'manual' else 'vio-pocket', args)
 
 
 def stop_panel(panel):
@@ -79,8 +82,8 @@ def input_device(source, device, folder):
             logfile.close()
 
 
-def supervise(arguments):
-    process = subprocess.Popen(arguments, cwd=ROOT, start_new_session=True)
+def supervise(arguments, environment=None):
+    process = subprocess.Popen(arguments, cwd=ROOT, start_new_session=True, env=environment)
     previous = {}
 
     def request_stop(_signum, _frame):
@@ -102,7 +105,8 @@ def supervise(arguments):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--input-source', choices=('auto', 'physical', 'virtual'), default='auto')
+    parser.add_argument('--program', choices=('manual', 'full'), default='manual')
+    parser.add_argument('--input-source', choices=('physical', 'virtual'), default='physical')
     parser.add_argument('--device', default='auto')
     parser.add_argument('--session-duration', type=int, default=3600)
     parser.add_argument('--qgc-config-from', type=Path)
@@ -112,10 +116,11 @@ def main(argv=None):
     if args.qgc_config_from and not args.qgc_config_from.is_file():
         parser.error('QGC calibration config does not exist')
     folder = ROOT / '.cache/simulation/operator' / str(uuid.uuid4())
-    with input_device(args.input_source, args.device, folder) as identity:
+    from simulation.session import own_session
+    with own_session(args.program) as environment, input_device(args.input_source, args.device, folder) as identity:
         print(f'手动输入已选择：{identity["name"]}，{identity["axes"]}轴／{identity["buttons"]}按钮\n'
               f'设备：{identity["device"]}\n请在 QGC 校准并启用此摇杆；启动过程不自动解锁或起飞。', flush=True)
-        return supervise(runtime_command(identity, args.session_duration, args.qgc_config_from))
+        return supervise(runtime_command(identity, args.session_duration, args.qgc_config_from, args.program), environment)
 
 
 if __name__ == '__main__':
@@ -123,6 +128,6 @@ if __name__ == '__main__':
         raise SystemExit(main())
     except KeyboardInterrupt:
         raise SystemExit(130)
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, RuntimeError) as exc:
         print(f'手动会话启动失败：{exc}', file=sys.stderr)
         raise SystemExit(1)
