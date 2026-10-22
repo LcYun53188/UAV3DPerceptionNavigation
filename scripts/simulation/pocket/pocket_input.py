@@ -22,13 +22,18 @@ INPUT_PROFILES = {'physical': 'pocket-rc-v2', 'virtual': 'uav-aetr-v1'}
 
 
 def configure_qgc_input(path, identity):
-    """Bind QGC to the selected HID without changing calibration or enabling it."""
+    """Bind the selected HID and preserve completed, correctly ranged calibration."""
     config = configparser.ConfigParser(interpolation=None, strict=False)
     config.optionxform = str
     config.read(path)
     if not config.has_section('JoystickManager'):
         config.add_section('JoystickManager')
     config['JoystickManager']['activeJoystickName'] = identity['name']
+    from qgc_calibration import normalize_throttle
+    correction = normalize_throttle(config, identity)
+    if correction:
+        print(f'已修正 QGC 实体油门轴 {correction["axis"]} 中心：'
+              f'{correction["previous_center"]} → 0，保留校准端点与解锁保护。', flush=True)
     with Path(path).open('w') as stream:
         config.write(stream, space_around_delimiters=False)
 

@@ -283,12 +283,16 @@ def execute(args, lock, input_identity=None):
             write_json(out/'live-session.json',live)
             print('FLOW_LOCAL Pocket ready:',out,flush=True)
             until=time.monotonic()+args.session_duration
-            from simulation.session import operator_grounded
+            from simulation.session import operator_grounded, report_rejected_arm
+            last_arm_notice, next_notice = None, 0.
             while True:
                 if any(p.poll() is not None for p in processes):
                     raise RuntimeError('Owned FLOW_LOCAL operator/sensor process exited')
                 if (time.monotonic() >= until or (out/'close-ui').exists()) and operator_grounded(out):
                     break
+                if time.monotonic() >= next_notice:
+                    last_arm_notice = report_rejected_arm(out, last_arm_notice)
+                    next_notice = time.monotonic()+1.
                 time.sleep(.1)
             final=snapshot('final-')
             write_json(out/'final-state.json',final)

@@ -420,6 +420,9 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     canceled_manual_state=getattr(node,'cancel_manual_state',None),
                     nav_state=getattr(status,'nav_state',None),landed=getattr(land,'landed',None))
                 state['input_evidence'] = input_evidence(now)
+                manual = node.samples.get('manual_control_setpoint')
+                state['manual_control'] = ({key:getattr(manual,key) for key in
+                    ('roll','pitch','yaw','throttle','valid','data_source')} if manual is not None else None)
                 state['last_operator_request'] = requests[-1] if requests else None
                 state['last_task_admission'] = last_task_admission
                 (session/'pocket-live.pending.json').write_text(json.dumps(state)+'\n')
@@ -528,6 +531,10 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                 else:
                     accepted, reason = False, 'SA_OR_SB_NOT_ENABLED'
                 row = dict(mono=now, command=command, accepted=accepted, reason=reason)
+                if command == 'ARM':
+                    manual = node.samples.get('manual_control_setpoint')
+                    row['manual_control'] = ({key:getattr(manual,key) for key in
+                        ('roll','pitch','yaw','throttle')} if manual is not None else None)
                 requests.append(row); print(json.dumps(row), flush=True)
             if switches.navigation != previous_navigation:
                 if not switches.navigation:

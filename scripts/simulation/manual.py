@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import configparser
 from contextlib import contextmanager
 import json
 import os
@@ -118,9 +119,26 @@ def main(argv=None):
     folder = ROOT / '.cache/simulation/operator' / str(uuid.uuid4())
     from simulation.session import own_session
     with own_session(args.program) as environment, input_device(args.input_source, args.device, folder) as identity:
+        from qgc_calibration import cached, remember
+        calibration = args.qgc_config_from or cached(identity)
+        if calibration:
+            print(f'使用已保存的 QGC 校准：{calibration}', flush=True)
         print(f'手动输入已选择：{identity["name"]}，{identity["axes"]}轴／{identity["buttons"]}按钮\n'
-              f'设备：{identity["device"]}\n请在 QGC 校准并启用此摇杆；启动过程不自动解锁或起飞。', flush=True)
-        return supervise(runtime_command(identity, args.session_duration, args.qgc_config_from, args.program), environment)
+              f'设备：{identity["device"]}\n请确认 QGC 启用此摇杆并使用 Fly 页面；'
+              '校准仅需首次完成，启动过程不自动解锁或起飞。', flush=True)
+        try:
+            return supervise(runtime_command(identity, args.session_duration, calibration, args.program), environment)
+        finally:
+            from simulation.session import read
+            state = read(False)
+            if state and state.get('id') == environment['UAV_SIM_OPERATOR_ID'] and state.get('runtime'):
+                path = Path(state['runtime'])/'qgc-config/QGroundControl/QGroundControl.ini'
+                try:
+                    saved = remember(path, identity)
+                    if saved:
+                        print(f'已保存 QGC 校准，后续同设备会话自动复用：{saved}', flush=True)
+                except (OSError, ValueError, configparser.Error) as exc:
+                    print(f'QGC 校准保存失败：{exc}', file=sys.stderr)
 
 
 if __name__ == '__main__':

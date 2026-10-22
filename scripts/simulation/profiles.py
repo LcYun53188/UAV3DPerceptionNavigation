@@ -47,7 +47,7 @@ INPUT = Option('input_source', '遥控器输入', 'physical',
                (('physical', '实体 HID 遥控器'), ('virtual', '模拟遥控器（电脑面板）')))
 COMMON_OPTIONS = (
     INPUT, Option('device', 'HID 设备路径（auto 自动识别）', 'auto'),
-    Option('qgc_config', '继承 QGC 校准文件（留空则重新校准）', ''),
+    Option('qgc_config', '继承 QGC 校准文件（留空则自动复用该设备校准）', ''),
     Option('session_duration', '会话时长（秒）', 3600, limits=(60, 14400)),
 )
 PROFILES = (

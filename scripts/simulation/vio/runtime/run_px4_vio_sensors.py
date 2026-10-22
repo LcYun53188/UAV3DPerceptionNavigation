@@ -811,6 +811,7 @@ def main():
             print(('POCKET_DIAGNOSTIC_BLOCKED '+preflight_blocked+' ' if preflight_blocked else 'POCKET_SESSION ')+str(out),flush=True)
         until = time.monotonic()+(args.session_duration if args.pocket_session else config.get('flight_observation_limit_s',280.) if args.flight else args.duration)
         heartbeat=0.
+        last_arm_notice=None
         before_reset = None
         while time.monotonic()<until or (args.pocket_session and not grounded_for_viewers(audit.last,audit.receive,time.monotonic())):
             if args.sdk_candidate and candidate_loaded is None and runtime_receipt.result()['passed']:
@@ -835,6 +836,8 @@ def main():
                 if (out/'close-ui').exists() and grounded_for_viewers(audit.last,audit.receive,time.monotonic()):break
                 now=time.monotonic()
                 if now-heartbeat>=5.:
+                    from simulation.session import report_rejected_arm
+                    last_arm_notice=report_rejected_arm(out,last_arm_notice)
                     write_json(out/'live-heartbeat.json',dict(system_ns=time.time_ns(),gate=fusion_audit.gate.reason,source_fault=fusion_audit.stream.fault,landed=getattr(audit.last.get('land'),'landed',None),arming=getattr(audit.last.get('vehicle'),'arming_state',None)))
                     for records,limit in ((fusion_audit.history,50000),(fusion_audit.outputs,12000),(fusion_audit.echoes,12000)):
                         if len(records)>limit:del records[:-limit]

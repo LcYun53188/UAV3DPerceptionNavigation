@@ -65,7 +65,7 @@ def preview(config):
     print('\n工作目录：' + str(ROOT))
     print('定位约束：全局无 GNSS（关闭卫星数据源与 GNSS 融合）。')
     print('启动命令：\n' + shlex.join(command(config)), flush=True)
-    print('默认使用实体 HID；模拟遥控器须显式选择。请在 QGC 校准、启用摇杆并使用 Fly 页面。')
+    print('默认使用实体 HID；模拟遥控器须显式选择。已保存校准自动复用；请确认 QGC 启用摇杆并使用 Fly 页面。')
     print('启动保持未解锁，由操作员操纵；落地上锁后用另一终端 sim.sh stop 正常关闭。')
     if config['profile'] == 'full':
         print('另一终端：./scripts/sim.sh status；./scripts/sim.sh save .cache/maps/run1')

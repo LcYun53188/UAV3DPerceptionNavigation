@@ -105,3 +105,19 @@ def operator_grounded(folder, now_ns=None):
                 and live.get('landed') is True and live.get('arming') == 1)
     except (OSError, ValueError, KeyError):
         return False
+
+
+def report_rejected_arm(folder, last_seen):
+    """Surface a real switch rejection once; this function never sends commands."""
+    try:
+        live = json.loads((Path(folder)/'pocket-live.json').read_text())
+        request = live.get('last_operator_request') or {}
+        if request.get('command') != 'ARM' or request.get('mono') == last_seen:
+            return last_seen
+        if request.get('accepted') is False:
+            throttle = (request.get('manual_control') or {}).get('throttle')
+            print(f'SA 解锁被拒绝：{request.get("reason")}；PX4 油门={throttle} '
+                  '（解锁要求 ≤ -0.8，最低油门应接近 -1）。', flush=True)
+        return request.get('mono')
+    except (OSError, ValueError):
+        return last_seen
