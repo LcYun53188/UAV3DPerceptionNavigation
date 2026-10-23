@@ -11,6 +11,7 @@ find_package(nav_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME} "msg/StateDimension.msg" "msg/AircraftState.msg" "msg/MapSnapshot.msg" "msg/TimedTrajectory.msg" "msg/PlannerStatus.msg" "msg/TrajectoryRequest.msg"
 
   "msg/VioStatus.msg" "msg/LocalizedOdometry.msg" "msg/LocalizationAlignment.msg" "msg/PlanningContext.msg" "msg/ContextTrajectory.msg"
+  "msg/PersonObservation.msg" "msg/PersonObservationArray.msg"
   "msg/ControlSession.msg" "msg/ControlStatus.msg" "msg/TaskStatus.msg" "msg/MissionProgress.msg" "msg/LocalizationSelection.msg"
   "action/ExecuteMission.action" "action/NavigateToPose3D.action"
   "srv/PauseMission.srv" "srv/ResumeMission.srv" "srv/ManageControlSession.srv" "srv/AdvanceFlightStep.srv" "srv/SetMissionIntent.srv" "srv/RequestReturn.srv" "srv/ResumeOriginalMission.srv" "srv/SelectLocalization.srv"
