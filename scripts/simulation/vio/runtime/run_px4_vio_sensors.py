@@ -96,7 +96,16 @@ def main():
     parser.add_argument('--session-duration',type=float,default=3600.)
     parser.add_argument('--people',action='store_true',help='Optional RGB person observations and map markers; no flight-control output')
     parser.add_argument('--person-model',type=Path,default=ROOT/'.cache/models/person/yolox_tiny.onnx')
+    parser.add_argument('--color-map',action='store_true',help='Optional RGB fusion for stored map vertex colors')
+    parser.add_argument('--export-colored-map',type=Path,help='Automated sequence: export a new PLY after landed/disarmed; implies --color-map')
     args = parser.parse_args()
+    if args.export_colored_map:
+        args.color_map=True
+        args.export_colored_map=args.export_colored_map.expanduser().resolve()
+        if (args.pocket_session or args.export_colored_map.suffix!='.ply' or args.export_colored_map.exists()):
+            parser.error('--export-colored-map requires an automated sequence and a new .ply path')
+    if args.color_map and not (args.experimental_chain and args.flight=='sequence'):
+        parser.error('--color-map requires the experimental VIO/depth mapping sequence')
     if args.people:
         if not (args.experimental_chain and args.flight == 'sequence'):
             parser.error('--people requires the experimental VIO/depth mapping chain')
@@ -559,6 +568,8 @@ def main():
     manifest['person_perception']=dict(enabled=args.people,
         model_sha256=file_hash(args.person_model) if args.people else None,
         point_semantics='visible_torso_surface',control_output=False)
+    manifest['color_mapping']=dict(enabled=args.color_map,integrate_rate_hz=5. if args.color_map else 0.,
+        export_path=str(args.export_colored_map) if args.export_colored_map else None)
     manifest['map_visualization']=dict(enabled=bool(chain_depth and args.ui),
         topic='/nvblox_node/mesh',publish_rate_hz=.5 if chain_depth and args.ui else 0.)
     manifest['covariance_kind']=candidate.get('covariance','legacy SDK15 right tangent') if candidate else 'legacy SDK15 right tangent'
@@ -758,7 +769,7 @@ def main():
                 from vio_map_startup import MapStartupStability
                 map_stability=MapStartupStability()
                 map_stability.subscribe(node)
-                launch_mapping(launch,env,out,run_id,graph_only=True,visualize=args.ui)
+                launch_mapping(launch,env,out,run_id,graph_only=True,visualize=args.ui,color_map=args.color_map)
                 launch_mapping(launch,env,out,run_id,binding_only=True)
                 write_json(out/'mapping-startup.json',dict(planning_source_process_prewarmed=True,
                     depth_integration_enabled=False,
@@ -771,7 +782,7 @@ def main():
                 empty_map=out/'prewarm-empty.nvblx'
                 native_map_file(node,'save',empty_map)
                 launch_mapping(launch,env,out,run_id,depth_only=True,
-                               person_model=args.person_model if args.people else None)
+                               person_model=args.person_model if args.people else None,color_map=args.color_map)
             preflight_blocked=''
             joint_startup_recorded=False
             map_status_written=0.
@@ -935,6 +946,18 @@ def main():
         result['qgc_connected'] = bool(re.search(r'Adding new vehicle.*\"UDP Link \(AutoConnect\)\" 8 1 12 2',
                                                      (out/'qgc.log').read_text(errors='replace')))
         result['passed'] &= result['qgc_connected'] and all(p.poll() is None for p in processes if p is not flight_process)
+        if args.export_colored_map:
+            terminal=result.get('flight',{})
+            ground_deadline=time.monotonic()+5.
+            while not grounded_for_viewers(audit.last,audit.receive,time.monotonic()) and time.monotonic()<ground_deadline:
+                rclpy.spin_once(node,timeout_sec=.02)
+            if (not terminal.get('final_land') or terminal.get('final_arming')!=1
+                    or not grounded_for_viewers(audit.last,audit.receive,time.monotonic())):
+                raise RuntimeError('Color export requires confirmed fresh landed/disarmed telemetry')
+            from vio_chain_mapping import export_grounded_color_map
+            result['colored_map_export']=export_grounded_color_map(node,args.export_colored_map)
+            write_json(out/'colored-map-export.json',result['colored_map_export'])
+            print('COLORED_MAP_EXPORTED '+str(args.export_colored_map),flush=True)
         if args.keep_running:
             terminal=result['flight']
             # The independent gateway may publish its terminal receipt before
@@ -1176,6 +1199,9 @@ def main():
         elif args.pocket_session:
             from vio_ui_lifecycle import operator_session_result
             result=operator_session_result(result)
+        if args.export_colored_map:
+            result['color_export_passed']=bool(result.get('colored_map_export'))
+            result['passed'] &= result['color_export_passed']
         write_json(out/'result.json',result)
     if args.manual_only:
         print('Pocket 手动会话：', '正常结束' if result.get('manual_session_passed') else 'FAIL', out, flush=True)

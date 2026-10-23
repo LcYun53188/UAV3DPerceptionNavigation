@@ -59,6 +59,8 @@ PROFILES = (
                 Option('people', '启用人员识别与地图标注（需先构建感知模块）', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
                 Option('person_model', '人员检测模型路径', '.cache/models/person/yolox_tiny.onnx', interactive=False),
+                Option('color_map', '融合 RGB 并保存地图颜色', False,
+                       ((False, '关闭'), (True, '开启')), interactive=False),
             )),
 )
 BY_KEY = {profile.key: profile for profile in PROFILES}
@@ -94,6 +96,8 @@ def command(config):
         args += ['--qgc-config-from', path_arg(o['qgc_config'])]
     if key == 'full' and o['people']:
         args += ['--people', '--person-model', path_arg(o['person_model'])]
+    if key == 'full' and o['color_map']:
+        args += ['--color-map']
     return backend_command(key, args)
 
 

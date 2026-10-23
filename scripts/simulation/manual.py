@@ -21,7 +21,7 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None):
+def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False):
     if program not in ('manual', 'full'):
         raise ValueError('Unknown simulation program: ' + program)
     args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
@@ -33,6 +33,10 @@ def runtime_command(identity, duration, qgc_config=None, program='manual', perso
         if program != 'full':
             raise ValueError('Person mapping requires the full VIO/map program')
         args += ['--people', '--person-model', str(person_model)]
+    if color_map:
+        if program != 'full':
+            raise ValueError('Color mapping requires the full VIO/map program')
+        args += ['--color-map']
     return backend_command('flow-pocket' if program == 'manual' else 'vio-pocket', args)
 
 
@@ -117,11 +121,14 @@ def main(argv=None):
     parser.add_argument('--qgc-config-from', type=Path)
     parser.add_argument('--people', action='store_true')
     parser.add_argument('--person-model', type=Path, default=ROOT/'.cache/models/person/yolox_tiny.onnx')
+    parser.add_argument('--color-map', action='store_true')
     args = parser.parse_args(argv)
     if not 60 <= args.session_duration <= 14400:
         parser.error('session-duration must be within [60,14400] seconds')
     if args.qgc_config_from and not args.qgc_config_from.is_file():
         parser.error('QGC calibration config does not exist')
+    if args.color_map and args.program != 'full':
+        parser.error('--color-map requires the full program')
     if args.people:
         if args.program != 'full':
             parser.error('--people requires the full program')
@@ -143,7 +150,7 @@ def main(argv=None):
               '校准仅需首次完成，启动过程不自动解锁或起飞。', flush=True)
         try:
             return supervise(runtime_command(identity, args.session_duration, calibration, args.program,
-                             args.person_model.expanduser().resolve() if args.people else None), environment)
+                             args.person_model.expanduser().resolve() if args.people else None,args.color_map), environment)
         finally:
             from simulation.session import read
             state = read(False)
