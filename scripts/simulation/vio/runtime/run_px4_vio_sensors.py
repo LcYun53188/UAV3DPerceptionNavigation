@@ -94,7 +94,14 @@ def main():
                         help='Virtual AETR or physical SB/SC/SD matrix; legacy-usb retains the old two-state mapping')
     parser.add_argument('--qgc-config-from',type=Path)
     parser.add_argument('--session-duration',type=float,default=3600.)
+    parser.add_argument('--people',action='store_true',help='Optional RGB person observations and map markers; no flight-control output')
+    parser.add_argument('--person-model',type=Path,default=ROOT/'.cache/models/person/yolox_tiny.onnx')
     args = parser.parse_args()
+    if args.people:
+        if not (args.experimental_chain and args.flight == 'sequence'):
+            parser.error('--people requires the experimental VIO/depth mapping chain')
+        from uav_target_perception.detector import verify_model
+        verify_model(args.person_model)
     if args.pocket_task=='intervention' and not (args.pocket_session and args.experimental_chain
             and args.flight=='sequence' and args.warehouse_variant=='avoidance' and not args.manual_only):
         parser.error('Pocket intervention task requires the complete experimental avoidance Pocket session')
@@ -250,7 +257,7 @@ def main():
     chain_depth=None
     if args.experimental_chain and args.flight=="sequence":
         from vio_chain_mapping import attach_depth
-        chain_depth=attach_depth(out/"assets",profile,frames)
+        chain_depth=attach_depth(out/"assets",profile,frames,independent_rgbd=args.people)
     fixture_profile=None
     if args.same_aircraft_motion:
         fixture_plugin=ROOT/'.deps/vio-same-aircraft-build/libvio_same_aircraft_fixture.so'
@@ -549,6 +556,9 @@ def main():
     if args.pocket_session:
         manifest.update(usb_joystick=True,automatic_flight=False,joystick_device=args.device,localization_profile='VIO_FLOW',operator_environment={k:v for k,v in env.items() if k.startswith('UAV_') and k not in ('UAV_SITL_AUTHORIZATION','UAV_WORKSPACE')})
     manifest['chain_depth']=chain_depth
+    manifest['person_perception']=dict(enabled=args.people,
+        model_sha256=file_hash(args.person_model) if args.people else None,
+        point_semantics='visible_torso_surface',control_output=False)
     manifest['map_visualization']=dict(enabled=bool(chain_depth and args.ui),
         topic='/nvblox_node/mesh',publish_rate_hz=.5 if chain_depth and args.ui else 0.)
     manifest['covariance_kind']=candidate.get('covariance','legacy SDK15 right tangent') if candidate else 'legacy SDK15 right tangent'
@@ -760,7 +770,8 @@ def main():
             if chain_depth:
                 empty_map=out/'prewarm-empty.nvblx'
                 native_map_file(node,'save',empty_map)
-                launch_mapping(launch,env,out,run_id,depth_only=True)
+                launch_mapping(launch,env,out,run_id,depth_only=True,
+                               person_model=args.person_model if args.people else None)
             preflight_blocked=''
             joint_startup_recorded=False
             map_status_written=0.

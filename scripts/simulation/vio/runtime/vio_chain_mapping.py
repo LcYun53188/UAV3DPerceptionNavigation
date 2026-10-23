@@ -15,11 +15,27 @@ import xml.etree.ElementTree as ET
 from sim_validation import ROOT, read, file_hash
 
 
-def attach_depth(directory, profile, frames):
+def attach_depth(directory, profile, frames, *, independent_rgbd=False):
     path=directory/profile['model']/'model.sdf'
-    tree=ET.parse(path);rig=tree.getroot().find("model/link[@name='vio_rig_link']")
+    tree=ET.parse(path)
+    model=tree.getroot().find('model')
+    rig=model.find("link[@name='vio_rig_link']")
+    sensor_parent=rig
+    if independent_rgbd:
+        # Gazebo pairs CameraSensor subclasses on the same parent link and
+        # overwrites P[3] with a stereo baseline. Keep this RGB-D camera out of
+        # the VIO stereo group, with its original pose and unchanged VIO rig.
+        sensor_parent=ET.SubElement(model,'link',name='chain_rgbd_link')
+        ET.SubElement(sensor_parent,'pose',relative_to='vio_rig_link').text='0 0 0 0 0 0'
+        inertial=ET.SubElement(sensor_parent,'inertial')
+        ET.SubElement(inertial,'mass').text='0.000001'
+        inertia=ET.SubElement(inertial,'inertia')
+        for axis in ('ixx','iyy','izz'):ET.SubElement(inertia,axis).text='0.000000001'
+        joint=ET.SubElement(model,'joint',name='chain_rgbd_joint',type='fixed')
+        ET.SubElement(joint,'parent').text='vio_rig_link'
+        ET.SubElement(joint,'child').text='chain_rgbd_link'
     frame='oakd_camera_optical_frame'
-    sensor=ET.SubElement(rig,'sensor',name='chain_rgbd',type='rgbd_camera')
+    sensor=ET.SubElement(sensor_parent,'sensor',name='chain_rgbd',type='rgbd_camera')
     for key,value in [('pose',f'0 0 0 0 {math.radians(5)} 0'),('always_on','true'),
                       ('update_rate','10'),('topic','/px4_reference/rgbd'),('gz_frame_id',frame)]:
         ET.SubElement(sensor,key).text=value
@@ -33,17 +49,27 @@ def attach_depth(directory, profile, frames):
     ET.indent(tree);tree.write(path,encoding='utf-8',xml_declaration=True)
     frames[frame]=dict(position=profile['rig_position_flu_m'],rpy=[-math.pi/2-math.radians(5),0.,-math.pi/2])
     (directory/'frames.json').write_text(json.dumps(frames,indent=2)+'\n')
-    return dict(width=320,height=240,horizontal_fov_rad=profile['horizontal_fov_rad'],near_m=profile['near_m'],far_m=profile['far_m'],image_rate_hz=10,scope='same-aircraft ideal depth; not hardware OAK-D depth')
+    return dict(width=320,height=240,horizontal_fov_rad=profile['horizontal_fov_rad'],near_m=profile['near_m'],far_m=profile['far_m'],image_rate_hz=10,
+        independent_rgbd_link=independent_rgbd,auxiliary_link_mass_kg=1e-6 if independent_rgbd else 0.,
+        scope='same-aircraft ideal depth; not hardware OAK-D depth')
 
 
-def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False, visualize=False):
+def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False, visualize=False, person_model=None):
     if sum((graph_only,depth_only,binding_only))>1:raise ValueError('Conflicting mapping startup stages')
     transport=dict(env,FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
                    FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
     config=read(ROOT/('simulation/safe_regions/'+env.get('UAV_FLIGHT_REGION_PROFILE','vio_chain')+'.json'))
     def start(name, command):
-        return launch(name,['env','-u','AMENT_PREFIX_PATH','-u','COLCON_PREFIX_PATH','-u','CMAKE_PREFIX_PATH','-u','PYTHONPATH',
-            'bash','-e','-c','source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; shift; exec "$@"',
+        setup_shell='source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; '
+        extra_unsets=[]
+        if name == 'person_mapper':
+            # This process has no mission/PX4 dependency. Isolate its new messages
+            # and type-support libraries from the older mission install entirely.
+            setup_shell='source "$1/install_uav/setup.bash"; '
+            extra_unsets=['-u','LD_LIBRARY_PATH']
+        setup_shell += 'shift; exec "$@"'
+        return launch(name,['env','-u','AMENT_PREFIX_PATH','-u','COLCON_PREFIX_PATH','-u','CMAKE_PREFIX_PATH','-u','PYTHONPATH',*extra_unsets,
+            'bash','-e','-c',setup_shell,
             'mapping',str(ROOT),*map(str,command)],transport)
     if binding_only:
         start('planning_sources',['ros2','run','uav_nav_sim','planning_sources','--ros-args','-p','use_sim_time:=true',
@@ -55,6 +81,21 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '/px4_reference/rgbd/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         '--ros-args','-r','/px4_reference/rgbd/depth_image:=/px4_depth/image',
         '-r','/px4_reference/rgbd/camera_info:=/px4_depth/camera_info'])
+    if person_model is not None and not graph_only:
+        if graph_only or binding_only:
+            raise ValueError('Start RGB together with the depth input stage')
+        # One RGB bridge is shared by optional detection and color fusion.
+        start('person_rgb_bridge',['ros2','run','ros_gz_image','image_bridge','/px4_reference/rgbd/image',
+            '--ros-args','-p','use_sim_time:=true','-r','/px4_reference/rgbd/image:=/px4_rgb/image'])
+    if person_model is not None:
+        if graph_only or binding_only:
+            raise ValueError('Start person perception together with the depth input stage')
+        start('person_mapper',['ros2','run','uav_target_perception','person_mapper','--ros-args',
+            '-p','use_sim_time:=true','-p',f'model_path:={person_model}',
+            '-p','rgb_topic:=/px4_rgb/image','-p','depth_topic:=/px4_depth/image',
+            '-p','camera_info_topic:=/px4_depth/camera_info',
+            '-p','context_source:=planning_context','-p','context_topic:=/planning/context',
+            '-p',f'snapshot_path:={out/"person-observations.json"}'])
     if depth_only:return
     # Mesh generation is subscriber driven. Keep headless acceptance unchanged;
     # UI sessions stream actual reconstructed geometry at a bounded rate.

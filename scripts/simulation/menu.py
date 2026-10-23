@@ -42,6 +42,9 @@ def configure(profile, previous=None):
     options = {}
     for item in profile.options:
         default = (previous or {}).get(item.key, item.default)
+        if not item.interactive:
+            options[item.key] = item.validate(default)
+            continue
         if item.choices:
             options[item.key] = choose(item.label, item.choices, default)
             continue

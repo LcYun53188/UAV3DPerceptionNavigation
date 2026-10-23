@@ -143,6 +143,18 @@ Visualization Manager:
       Value: false
     Enabled: true
     Name: Visual SLAM
+  - Class: rviz_default_plugins/MarkerArray
+    Enabled: true
+    Name: People in Map
+    Topic:
+      Value: /uav/people/markers
+      Reliability Policy: Reliable
+  - Class: rviz_default_plugins/Image
+    Enabled: true
+    Name: Person Detections
+    Topic:
+      Value: /uav/people/image
+      Reliability Policy: Best Effort
   - Class: rviz_default_plugins/Image
     Enabled: true
     Max Value: 1

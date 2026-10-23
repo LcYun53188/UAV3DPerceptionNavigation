@@ -18,6 +18,7 @@ class Option:
     default: object
     choices: tuple = ()
     limits: tuple = ()
+    interactive: bool = True
 
     def validate(self, value):
         if self.choices:
@@ -54,7 +55,11 @@ PROFILES = (
     Profile('manual', '纯手动飞行：光流／测距，无 VIO',
             'Gazebo＋PX4＋QGC，使用原生光流／测距定位；不启动 VIO、建图或自动任务。', COMMON_OPTIONS),
     Profile('full', '完整项目：VIO／建图／导航／行为树',
-            'Gazebo＋PX4＋QGC＋RViz，运行 VIO、光流／测距、nvblox、EGO 和遥控器任务控制。', COMMON_OPTIONS),
+            'Gazebo＋PX4＋QGC＋RViz，运行 VIO、光流／测距、nvblox、EGO 和遥控器任务控制。', COMMON_OPTIONS + (
+                Option('people', '启用人员识别与地图标注（需先构建感知模块）', False,
+                       ((False, '关闭'), (True, '开启')), interactive=False),
+                Option('person_model', '人员检测模型路径', '.cache/models/person/yolox_tiny.onnx', interactive=False),
+            )),
 )
 BY_KEY = {profile.key: profile for profile in PROFILES}
 
@@ -87,6 +92,8 @@ def command(config):
             '--session-duration', str(o['session_duration'])]
     if o['qgc_config']:
         args += ['--qgc-config-from', path_arg(o['qgc_config'])]
+    if key == 'full' and o['people']:
+        args += ['--people', '--person-model', path_arg(o['person_model'])]
     return backend_command(key, args)
 
 

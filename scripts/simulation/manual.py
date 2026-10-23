@@ -21,7 +21,7 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None, program='manual'):
+def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None):
     if program not in ('manual', 'full'):
         raise ValueError('Unknown simulation program: ' + program)
     args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
@@ -29,6 +29,10 @@ def runtime_command(identity, duration, qgc_config=None, program='manual'):
             '--input-profile', identity['input_profile'], '--session-duration', str(duration)]
     if qgc_config:
         args += ['--qgc-config-from', str(qgc_config)]
+    if person_model is not None:
+        if program != 'full':
+            raise ValueError('Person mapping requires the full VIO/map program')
+        args += ['--people', '--person-model', str(person_model)]
     return backend_command('flow-pocket' if program == 'manual' else 'vio-pocket', args)
 
 
@@ -111,11 +115,22 @@ def main(argv=None):
     parser.add_argument('--device', default='auto')
     parser.add_argument('--session-duration', type=int, default=3600)
     parser.add_argument('--qgc-config-from', type=Path)
+    parser.add_argument('--people', action='store_true')
+    parser.add_argument('--person-model', type=Path, default=ROOT/'.cache/models/person/yolox_tiny.onnx')
     args = parser.parse_args(argv)
     if not 60 <= args.session_duration <= 14400:
         parser.error('session-duration must be within [60,14400] seconds')
     if args.qgc_config_from and not args.qgc_config_from.is_file():
         parser.error('QGC calibration config does not exist')
+    if args.people:
+        if args.program != 'full':
+            parser.error('--people requires the full program')
+        # Fail before opening the panel or touching the running simulation.
+        subprocess.run(['env', '-u', 'PYTHONPATH', '-u', 'AMENT_PREFIX_PATH', '-u', 'COLCON_PREFIX_PATH',
+                        '-u', 'CMAKE_PREFIX_PATH', '-u', 'LD_LIBRARY_PATH',
+                        str(ROOT/'scripts/with_venv.sh'), 'python', '-c',
+                        'from uav_target_perception.node import PersonMapper; from uav_target_perception.detector import PersonDetector; import sys; PersonDetector(sys.argv[1])',
+                        str(args.person_model.expanduser().resolve())], check=True)
     folder = ROOT / '.cache/simulation/operator' / str(uuid.uuid4())
     from simulation.session import own_session
     with own_session(args.program) as environment, input_device(args.input_source, args.device, folder) as identity:
@@ -127,7 +142,8 @@ def main(argv=None):
               f'设备：{identity["device"]}\n请确认 QGC 启用此摇杆并使用 Fly 页面；'
               '校准仅需首次完成，启动过程不自动解锁或起飞。', flush=True)
         try:
-            return supervise(runtime_command(identity, args.session_duration, calibration, args.program), environment)
+            return supervise(runtime_command(identity, args.session_duration, calibration, args.program,
+                             args.person_model.expanduser().resolve() if args.people else None), environment)
         finally:
             from simulation.session import read
             state = read(False)
