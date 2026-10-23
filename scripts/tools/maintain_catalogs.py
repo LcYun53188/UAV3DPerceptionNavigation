@@ -27,6 +27,7 @@ PACKAGES = (
     'uav_bringup', 'uav_nav_sim', 'uav_ego_adapter', 'ego_planner_vendor',
     'uav_mission', 'uav_bt', 'uav_nav_interfaces', 'nav_guard', 'nav_safety',
     'nav_mapping', 'nav_px4_bridge', 'imu_fusion', 'oakd_perception', 'px4_comm_bridge',
+    'uav_target_perception',
 )
 DOC_GROUPS = {
     'setup': '安装与构建', 'simulation': '仿真运行与场景',

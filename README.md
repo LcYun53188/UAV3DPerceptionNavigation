@@ -56,6 +56,8 @@
 
 `--device /dev/input/...` 可指定设备；校准完成并退出后自动保存，下次同设备无需重复校准。`--qgc-config <文件>` 可显式导入，`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
 
+完整项目可用 `--people` 显式启用 RGB 人员检测、深度定位与地图标注，默认关闭；先按[人员感知模块说明](src/uav_target_perception/README.md)构建并准备模型。
+
 ## 快速运行导航仿真
 
 完成[构建准备](docs/simulation/LAUNCHERS.md#构建准备)后，在两个终端运行：

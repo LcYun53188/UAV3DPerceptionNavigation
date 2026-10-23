@@ -113,6 +113,7 @@
 | [src/oakd_perception/scripts/README.md](../src/oakd_perception/scripts/README.md) | 脚本目录说明（已整合） |
 | [src/px4_comm_bridge/README.md](../src/px4_comm_bridge/README.md) | px4_comm_bridge |
 | [src/px4_comm_bridge/docs/QGC_SETUP_GUIDE.md](../src/px4_comm_bridge/docs/QGC_SETUP_GUIDE.md) | QGroundControl 地面站配置指南 |
+| [src/uav_target_perception/README.md](../src/uav_target_perception/README.md) | RGB 人员检测与地图定位 |
 
 ## 仿真与依赖资源
 

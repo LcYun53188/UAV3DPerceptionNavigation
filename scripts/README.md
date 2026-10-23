@@ -255,6 +255,7 @@
 | [scripts/simulation/validation/__init__.py](simulation/validation/__init__.py) | Simulation tools grouped by responsibility. |
 | [scripts/simulation/validation/check_sim_environment.py](simulation/validation/check_sim_environment.py) | Read-only S0 dependency audit. Runtime topic/TF/clock readiness is not asserted. |
 | [scripts/simulation/validation/run_mission_protocol_smoke.py](simulation/validation/run_mission_protocol_smoke.py) | Owned ROS Action/service protocol smoke. Synthetic data; no vehicle I/O. |
+| [scripts/simulation/validation/run_person_localization.py](simulation/validation/run_person_localization.py) | Owned Gazebo RGB-D person test with known static camera pose; no PX4 or flight. |
 | [scripts/simulation/validation/run_planning_context_smoke.py](simulation/validation/run_planning_context_smoke.py) | Real EGO + context bridge DDS regression on a synthetic ESDF, no flight outputs. |
 | [scripts/simulation/validation/run_sim_scenario.py](simulation/validation/run_sim_scenario.py) | S0 host regression runner with immutable configuration and bounded subprocesses. |
 | [scripts/simulation/validation/sim_validation.py](simulation/validation/sim_validation.py) | Shared S0 artifact contracts. No ROS imports or simulation side effects. |

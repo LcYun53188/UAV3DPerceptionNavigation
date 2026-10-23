@@ -63,6 +63,12 @@ DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地�
 
 两个程序共用 `--device`、`--qgc-config`、`--session-duration`（60–14400 秒）。到期后仍需确认落地上锁才正常关闭。
 
+full 可显式增加 `--people`，运行 RGB 人员检测、配准深度定位和地图标注；默认关闭，不增加菜单程序或操作步骤。先构建可选模块并准备固定模型，见[人员地图定位](../../src/uav_target_perception/README.md)。`--person-model` 可指定模型路径；纯光流 manual 不提供该功能。
+
+准备固定版本的 CC0 人体资产后，用 `run full --people --person-scene standing` 加入一个静态站立人体；默认场景不含该模型。资产准备和独立 RGB-D 几何测试见[人体仿真模型](../../src/uav_target_perception/README.md#人体仿真模型与定位测试)。
+
+着色地图使用 `./scripts/sim.sh run full --color-map`，可与 `--people` 同时开启。RGB 与深度共享地图准入/输入门控，并以有界频率融合。扫描结束并落地上锁后，用 `sim.sh export-mesh 新文件.ply` 保存实际顶点 RGB；此选项不增加菜单步骤，也不改变默认的深度建图配置。
+
 ## 配置保存与覆盖
 
 ```bash

@@ -1,5 +1,11 @@
 # Algorithm simulation contracts
 
+`PersonObservationArray` binds optional person map observations to map ID/epoch,
+localization session and alignment/context identity. `header` is publication time;
+each observation retains its capture time in `last_observed`. Points represent
+visible torso surfaces. Temporary track IDs are not person identities, and depth
+spread is not total localization covariance. See [person perception](../uav_target_perception/README.md).
+
 `SetMissionIntent` is the PX4 BT operator admission service. Commands bind coordinator,
 root UUID and request UUID; START alone uses a nil root before ground dispatch.
 Acceptance records a decision, not a physical state or terminal result.
