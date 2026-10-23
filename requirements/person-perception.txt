@@ -1,0 +1,3 @@
+# Optional CPU detector. Preserve the ROS Jazzy NumPy 1.x ABI.
+numpy==1.26.4
+opencv-python-headless==4.11.0.86
