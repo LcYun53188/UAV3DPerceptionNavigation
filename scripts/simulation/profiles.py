@@ -59,6 +59,8 @@ PROFILES = (
                 Option('people', '启用人员识别与地图标注（需先构建感知模块）', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
                 Option('person_model', '人员检测模型路径', '.cache/models/person/yolox_tiny.onnx', interactive=False),
+                Option('person_scene', '可选人体仿真场景（需先准备资产）', 'none',
+                       (('none', '原场景'), ('standing', '静态站立人体')), interactive=False),
                 Option('color_map', '融合 RGB 并保存地图颜色', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
             )),
@@ -79,6 +81,8 @@ def validate_config(config):
     if not isinstance(options, dict) or set(options) - {item.key for item in profile.options}:
         raise ValueError('options 包含未知配置项')
     options = {item.key: item.validate(options.get(item.key, item.default)) for item in profile.options}
+    if key == 'full' and options['person_scene'] != 'none' and not options['people']:
+        raise ValueError('人体场景需要显式开启 --people')
     return dict(schema=1, profile=key, options=options)
 
 
@@ -98,6 +102,8 @@ def command(config):
         args += ['--people', '--person-model', path_arg(o['person_model'])]
     if key == 'full' and o['color_map']:
         args += ['--color-map']
+    if key == 'full' and o['person_scene'] != 'none':
+        args += ['--person-scene', o['person_scene']]
     return backend_command(key, args)
 
 

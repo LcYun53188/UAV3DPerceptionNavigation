@@ -96,9 +96,15 @@ def main():
     parser.add_argument('--session-duration',type=float,default=3600.)
     parser.add_argument('--people',action='store_true',help='Optional RGB person observations and map markers; no flight-control output')
     parser.add_argument('--person-model',type=Path,default=ROOT/'.cache/models/person/yolox_tiny.onnx')
+    parser.add_argument('--person-scene',choices=['none','standing'],default='none',help='Opt-in pinned static person in warehouse avoidance scene')
     parser.add_argument('--color-map',action='store_true',help='Optional RGB fusion for stored map vertex colors')
     parser.add_argument('--export-colored-map',type=Path,help='Automated sequence: export a new PLY after landed/disarmed; implies --color-map')
     args = parser.parse_args()
+    if args.person_scene!='none':
+        if not (args.people and args.scene=='warehouse' and args.warehouse_variant=='avoidance'):
+            parser.error('--person-scene standing requires --people and the warehouse avoidance scene')
+        from uav_target_perception.gazebo import verify_asset
+        verify_asset(ROOT/'.cache/models/gazebo/standing_person/v3')
     if args.export_colored_map:
         args.color_map=True
         args.export_colored_map=args.export_colored_map.expanduser().resolve()
@@ -267,6 +273,13 @@ def main():
     if args.experimental_chain and args.flight=="sequence":
         from vio_chain_mapping import attach_depth
         chain_depth=attach_depth(out/"assets",profile,frames,independent_rgbd=args.people)
+    person_scene=None
+    if args.person_scene=='standing':
+        from uav_target_perception.gazebo import add_person
+        from vio_warehouse_scene import box_clearance,layout_path
+        protected=box_clearance(read(layout_path(args.warehouse_variant)))
+        person_scene=add_person(out/'assets/default.sdf',ROOT/'.cache/models/gazebo/standing_person/v3',
+            (protected['expanded_min'],protected['expanded_max']))
     fixture_profile=None
     if args.same_aircraft_motion:
         fixture_plugin=ROOT/'.deps/vio-same-aircraft-build/libvio_same_aircraft_fixture.so'
@@ -568,6 +581,7 @@ def main():
     manifest['person_perception']=dict(enabled=args.people,
         model_sha256=file_hash(args.person_model) if args.people else None,
         point_semantics='visible_torso_surface',control_output=False)
+    manifest['person_scene']=person_scene
     manifest['color_mapping']=dict(enabled=args.color_map,integrate_rate_hz=5. if args.color_map else 0.,
         export_path=str(args.export_colored_map) if args.export_colored_map else None)
     manifest['map_visualization']=dict(enabled=bool(chain_depth and args.ui),
