@@ -32,6 +32,8 @@
 ./scripts/sim.sh run full    # VIO／建图／导航完整项目
 ```
 
+绕柱、矩形框、圆环和树木四区赛道使用 `./scripts/sim.sh run full --course all`；单区选择、地图准备、尺寸和通过判据见[四区赛道说明](../docs/simulation/OBSTACLE_COURSE.md)。
+
 两者默认实体 HID；显式添加 `--input-source virtual` 使用电脑模拟遥控器。启动保持未解锁，不自动起飞。光流程序没有 VIO、地图或自动任务；完整项目运行 PX4 动力学、VIO、nvblox、EGO 和遥控器任务控制。
 
 ## 在另一终端操作

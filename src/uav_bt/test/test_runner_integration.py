@@ -46,8 +46,11 @@ class Backend(Node):
                                    handle_accepted_callback=self.accept, callback_group=ReentrantCallbackGroup())
         self.create_timer(.02, self.tick)
 
-    def goal(self, _):
+    def goal(self, request):
         self.goals += 1
+        self.requested_timeout = request.timeout_s
+        if self.step_mode:
+            self.last_step = len(json.loads(request.parameters_json)['steps'])-1
         if self.case == 'halt-before-accept':
             time.sleep(.8)
         return GoalResponse.REJECT if self.case == 'reject' else GoalResponse.ACCEPT
@@ -102,7 +105,7 @@ class Backend(Node):
         if not self.active_goal or self.pending.done():
             return
         if self.step_mode and self.advances and time.monotonic()-self.step_started >= .3:
-            self.step_phase = 'AWAIT_STEP' if self.step_index < 4 else 'LANDING'
+            self.step_phase = 'AWAIT_STEP' if self.step_index < self.last_step else 'LANDING'
         status = TaskStatus(mission_uuid=self.active_goal.goal_id, coordinator_instance='test-instance',
                             phase=self.step_phase if self.step_mode else 'LANDING' if self.case == 'landing' else 'NAVIGATE',
                             plan_revision=getattr(self,'plan_revision',0))
@@ -113,7 +116,7 @@ class Backend(Node):
             if now-self.cancel_at >= .7:
                 self.pending.set_result(True)
         elif self.step_mode:
-            if self.case == 'step-early-success' or (self.step_index == 4 and now-self.step_started >= .5):
+            if self.case == 'step-early-success' or (self.step_index == self.last_step and now-self.step_started >= .5):
                 self.pending.set_result(True)
         elif (self.case not in ('halt', 'halt-before-accept') and now-self.start >= 1.2
               and (self.case != 'success' or len(self.progress) >= 5)):
@@ -123,11 +126,11 @@ class Backend(Node):
 @pytest.mark.parametrize('case,expected', [
     ('success',0), ('abort',1), ('reject',1), ('mock',1), ('unconfirmed',1),
     ('contradictory',1), ('halt',130), ('halt-before-accept',130), ('landing',0),
-    ('step-success',0), ('step-reject',1), ('step-halt',130), ('step-early-success',1)])
+    ('step-success',0), ('step-reject',1), ('step-halt',130), ('step-early-success',1), ('step-course',0)])
 def test_ros_bt_dispatch_result_and_halt_cleanup(tmp_path, case, expected):
     assert BINARY.exists(), 'Build scripts/build/build_px4_flight.sh before integration tests'
     context = Context()
-    domain=80+['success','abort','reject','mock','unconfirmed','contradictory','halt','halt-before-accept','landing',
+    domain=78 if case == 'step-course' else 80+['success','abort','reject','mock','unconfirmed','contradictory','halt','halt-before-accept','landing',
                'step-success','step-reject','step-halt','step-early-success'].index(case)
     rclpy.init(context=context, domain_id=domain)
     node = Backend(context, case)
@@ -136,14 +139,20 @@ def test_ros_bt_dispatch_result_and_halt_cleanup(tmp_path, case, expected):
     thread = threading.Thread(target=executor.spin, daemon=True)
     thread.start()
     params = tmp_path/'parameters.json'
+    steps = (json.loads((ROOT/'simulation/missions/course_all.json').read_text())['steps'] if case == 'step-course'
+             else [{'type': t} for t in ['TAKEOFF','NAVIGATE','HOVER','RETURN','LAND']])
     params.write_text(json.dumps(dict(runner_progress_required=True, coordinator_instance='test-instance',
-        step_controlled=node.step_mode, steps=[{'type': t} for t in ['TAKEOFF','NAVIGATE','HOVER','RETURN','LAND']])))
+        step_controlled=node.step_mode, steps=steps)))
     env = dict(os.environ, ROS_DOMAIN_ID=str(domain))
+    extra = []
+    if case == 'step-course':
+        env.update(UAV_FLIGHT_REGION_PROFILE='obstacle_course', UAV_EXPERIMENTAL_VIO_CHAIN='1')
+        extra = ['-p', 'timeout_s:=1800.0']
     log_path = tmp_path/'runner.log'
     try:
         with log_path.open('w') as log:
             process = subprocess.Popen([str(BINARY), '--ros-args', '-p', f'parameters_file:={params}',
-                                        '-p', 'coordinator_instance:=test-instance'],
+                                        '-p', 'coordinator_instance:=test-instance', *extra],
                                        env=env, stdout=log, stderr=subprocess.STDOUT)
             try:
                 if case in ('halt','landing','step-halt'):
@@ -166,9 +175,10 @@ def test_ros_bt_dispatch_result_and_halt_cleanup(tmp_path, case, expected):
                     assert time.monotonic()-node.cancel_at >= .7
                 elif case == 'landing':
                     assert node.cancel_at is None
-                elif case == 'step-success':
-                    assert node.advances == list(range(5))
-                    assert text.count('BT_STEP_ACCEPTED') == 5 and text.count('BT_STEP_COMPLETE') == 5
+                elif case in ('step-success', 'step-course'):
+                    assert node.advances == list(range(len(steps)))
+                    assert text.count('BT_STEP_ACCEPTED') == len(steps) and text.count('BT_STEP_COMPLETE') == len(steps)
+                    if case == 'step-course': assert node.requested_timeout == 1800.0
                 before = len(node.progress)
                 time.sleep(.25)
                 assert len(node.progress) == before

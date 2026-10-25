@@ -195,6 +195,8 @@ def task_parameters(node, manifest):
             if node.localization_profile=='FLOW_LOCAL' else 'W0_flight_sequence.json'))
     recipe=deepcopy(json.loads(recipe_file.read_text())['steps'])
     home=node.position()
+    if manifest.get('obstacle_course', 'none') != 'none' and (home[0]**2+home[1]**2)**.5 > .3:
+        raise ValueError('COURSE_REQUIRES_CENTRAL_LAUNCH')
     for step in recipe:
         if 'offset_enu' in step:
             offset=step.pop('offset_enu')
@@ -260,8 +262,14 @@ def operator_environment(session, manifest):
     if manifest.get('localization_profile')=='VIO_FLOW':
         recorded=manifest.get('operator_environment',{})
         region=recorded.get('UAV_FLIGHT_REGION_PROFILE')
-        if region not in ('vio_chain','vio_avoidance'):raise ValueError('Unreviewed VIO Pocket region')
+        if region not in ('vio_chain','vio_avoidance','obstacle_course'):raise ValueError('Unreviewed VIO Pocket region')
         mission='vio_static_avoidance.json' if region=='vio_avoidance' else 'depth_observation.json'
+        course = manifest.get('obstacle_course', 'none')
+        if region == 'obstacle_course':
+            from simulation.vio.runtime.obstacle_course import mission_path
+            mission = mission_path(course).name
+        elif course != 'none':
+            raise ValueError('Course task/region mismatch')
         task=manifest.get('pocket_task','avoidance')
         if task not in ('avoidance','intervention'):raise ValueError('Unreviewed Pocket task')
         if task=='intervention':
@@ -270,7 +278,7 @@ def operator_environment(session, manifest):
                 raise ValueError('Pocket intervention requires its frozen native speed limits')
             mission='pocket_intervention.json'
         primary=manifest.get('vio_primary') is True
-        if primary and (region!='vio_avoidance' or manifest.get('sdk_schur64') is not True):
+        if primary and (region not in ('vio_avoidance','obstacle_course') or manifest.get('sdk_schur64') is not True):
             raise ValueError('VIO primary Pocket requires the owned SDK64 avoidance profile')
         expected=dict(UAV_REQUIRE_VIO='1',UAV_LOCALIZATION_PROFILE='DEFAULT',UAV_VIO_FUSION_PROFILE='aligned_pose_mtf_primary_sim_v1' if primary else 'aligned_pose_mtf_sim_v1',
             UAV_VIO_CALIBRATION_ID=manifest['calibration_id'],UAV_ENABLE_FUSION_SWITCH='0',
@@ -421,7 +429,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
     def warm_next_runner():
         nonlocal warming
         if manual_only:return
-        if os.environ.get('UAV_FLIGHT_REGION_PROFILE')!='vio_avoidance':return
+        if os.environ.get('UAV_FLIGHT_REGION_PROFILE') not in ('vio_avoidance','obstacle_course'):return
         from bt_flight_client import prewarm_runner
         number=len(outcomes)+1
         warming=prewarm_runner(node,session,ROOT,parameters,
@@ -463,7 +471,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                 node.samples['vehicle_status'].arming_state != 2 or node.speed() > .1):
             return False, 'GROUND_ARMED_STILL_REQUIRED'
         if not source_admitted(session,manifest):return False,'SOURCE_PREFLIGHT_PENDING'
-        if os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='vio_avoidance' and (warming is None or warming[0].poll() is not None):
+        if os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('vio_avoidance','obstacle_course') and (warming is None or warming[0].poll() is not None):
             return False,'PREWARM_RUNNER_UNAVAILABLE_RESTART_SESSION'
         request=task_parameters(node,manifest)
         staging=session/'pocket-bt.pending.private.json'
@@ -558,6 +566,10 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     intervention_requested=accepted
                     print(f'Intervention handoff: {accepted} {reason}',flush=True)
             if runner is not None and runner.poll() is not None:
+                if manifest.get('obstacle_course', 'none') != 'none':
+                    from simulation.vio.analysis.assess_obstacle_course import save_pocket_result
+                    course_result = save_pocket_result(session, node, manifest, runner.returncode)
+                    print(f'Course geometry assessment: {course_result["passed"]}', flush=True)
                 outcomes.append(dict(exit_code=runner.returncode, result=node.result))
                 print(f'Root terminal: exit={runner.returncode} result={node.result}', flush=True)
                 runner = None
@@ -586,7 +598,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     accepted, reason = (arm_from_switch(node, switches,task_prepared=auto_prepared) if command == 'ARM'
                                         else node.operator_command(command))
                 elif command == 'PREPARE':
-                    runner_ready=(os.environ.get('UAV_FLIGHT_REGION_PROFILE')!='vio_avoidance'
+                    runner_ready=(os.environ.get('UAV_FLIGHT_REGION_PROFILE') not in ('vio_avoidance','obstacle_course')
                         or (warming is not None and warming[0].poll() is None))
                     accepted,reason=prepare_task(node,switches,manifest,runner_ready=runner_ready)
                     auto_prepared=accepted

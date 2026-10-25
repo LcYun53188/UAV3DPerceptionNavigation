@@ -1,5 +1,7 @@
 # S1 AircraftState observer
 
+当前模块还包含唯一 PX4 FlightServer、任务检查点和临时返航恢复。任务档 SD 的按下／释放、扫描锚点回接、不可撤销的降落及验证边界见[Pocket VIO 操作说明](../../docs/flight/VIO_POCKET_AVOIDANCE.md)；四区赛道的独立配置与构建见[赛道说明](../../docs/simulation/OBSTACLE_COURSE.md)。下文保留最初 S1 只读观察器的接口与证据范围。
+
 First S1 increment: read-only PX4 1.16 facts. This read-only observer does not implement
 MissionServer, FlightSession, a control lease, navigation authorization or flight
 Actions. This observer publishes no PX4 input, TF or localization messages.

@@ -67,7 +67,8 @@ public:
       const char* value=std::getenv(key);return value && std::string(value)==expected;
     };
     if (!std::isfinite(wait_seconds) || wait_seconds<0.0 || wait_seconds>14400.0 ||
-        (wait_seconds>0.0 && !(owned_env("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") &&
+        (wait_seconds>0.0 && !((owned_env("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") ||
+          owned_env("UAV_FLIGHT_REGION_PROFILE","obstacle_course")) &&
           owned_env("UAV_EXPERIMENTAL_VIO_CHAIN","1") && owned_env("ROS_DOMAIN_ID","78")))) {
       throw std::runtime_error("Invalid owned runner prewarm wait");
     }
@@ -110,8 +111,9 @@ public:
     };
     // Longer observed-map route only in the owned simulation profile. The
     // flight gateway independently validates this same frozen profile limit.
-    const double maximum=env_is("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") &&
-      env_is("UAV_EXPERIMENTAL_VIO_CHAIN","1") && env_is("ROS_DOMAIN_ID","78") ? 420.0 : 240.0;
+    const bool owned_experiment=env_is("UAV_EXPERIMENTAL_VIO_CHAIN","1") && env_is("ROS_DOMAIN_ID","78");
+    const double maximum=owned_experiment && env_is("UAV_FLIGHT_REGION_PROFILE","obstacle_course") ? 1800.0 :
+      owned_experiment && env_is("UAV_FLIGHT_REGION_PROFILE","vio_avoidance") ? 420.0 : 240.0;
     if (!std::isfinite(budget_) || budget_ < 20.0 || budget_ > maximum) {
       throw std::runtime_error("timeout_s outside the bounded flight profile");
     }

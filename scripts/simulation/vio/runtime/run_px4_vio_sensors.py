@@ -64,6 +64,8 @@ def main():
     parser.add_argument('--warehouse-floor-texture',action='store_true',help='Explicit near-field floor texture comparison, warehouse only')
     parser.add_argument('--warehouse-texture-style',choices=('corners','unique'),default='corners',help='Explicit independent floor atlas comparison; unique is not flight-qualified')
     parser.add_argument('--warehouse-variant',choices=('baseline','complex','avoidance'),default='baseline',help='Complex geometry and multiscale texture experiment; disarmed only')
+    from simulation.vio.runtime.obstacle_course import TASKS
+    parser.add_argument('--course', choices=TASKS, default='none', help='Opt-in four-zone course and task recipe')
     parser.add_argument('--motion',action='store_true',help='Independent force-driven sensor carrier; PX4 remains disarmed')
     parser.add_argument('--same-aircraft-motion',action='store_true',help='Test-only wrench on actual disarmed x500 after ground fusion READY; never motor flight')
     parser.add_argument('--fixture-attitude-amplitude',type=float,choices=(0.,.12),default=0.,help='Actual roll/pitch excitation on the disarmed SDK16 fixture')
@@ -114,6 +116,8 @@ def main():
     if args.map_color != 'height' and not (args.experimental_chain and args.flight == 'sequence' and args.ui):
         parser.error('--map-color requires the VIO/depth mapping sequence and --ui')
     if args.person_scene!='none':
+        if args.course != 'none':
+            parser.error('--person-scene cannot be combined with --course')
         if not (args.people and args.scene=='warehouse' and args.warehouse_variant=='avoidance'):
             parser.error('--person-scene requires --people and the warehouse avoidance scene')
         from uav_target_perception.gazebo import scene_assets
@@ -147,6 +151,11 @@ def main():
     if args.warehouse_variant=='avoidance' and (not args.experimental_chain or args.flight!='sequence'):
         parser.error('Avoidance scene requires experimental depth/EGO sequence')
     region_name='vio_avoidance' if args.warehouse_variant=='avoidance' else 'vio_chain' if args.experimental_chain else 'warehouse'
+    if args.course != 'none':
+        if not (args.experimental_chain and args.flight == 'sequence' and args.warehouse_variant == 'avoidance'
+                and args.vio_primary and not args.manual_only and args.pocket_task == 'avoidance' and args.flight_case == 'full'):
+            parser.error('--course requires the VIO-primary avoidance sequence without intervention/fault cases')
+        region_name = 'obstacle_course'
     if args.experimental_chain and (not args.flight or args.sdk_candidate!="sdk16" or not args.mtf01 or args.scene!="warehouse" or args.camera_pitch_deg!=5 or args.reset_source or args.same_aircraft_motion or args.motion):
         parser.error("Experimental chain requires default SDK16, MTF, warehouse, fixed 5 degrees and a motor-flight task")
     selected_sdk=args.sdk_candidate
@@ -277,7 +286,7 @@ def main():
             if file_hash(ROOT/name) != digest:
                 raise RuntimeError('Motion fixture build drift: '+name)
     noise_path=ROOT/'simulation/px4/vio/openvins/imu_noise.json'
-    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg,warehouse_texture_style=args.warehouse_texture_style,stereo_encoding=args.stereo_encoding,warehouse_variant=args.warehouse_variant,imu_noise_profile=read(noise_path) if args.imu_noise_model=='declared' else None)
+    profile,frames = assets(out/'assets',upstream_world,motion_plugin=motion_plugin,scene=args.scene,real_time_factor=args.real_time_factor,resolution=tuple(map(int,args.image_resolution.split('x'))),warehouse_floor_texture=args.warehouse_floor_texture,camera_pitch_deg=args.camera_pitch_deg,warehouse_texture_style=args.warehouse_texture_style,stereo_encoding=args.stereo_encoding,warehouse_variant=args.warehouse_variant,imu_noise_profile=read(noise_path) if args.imu_noise_model=='declared' else None,course=args.course)
     mtf_profile=None
     if args.mtf01:
         from prepare_mtf01_assets import attach_to_vio_assets
@@ -414,8 +423,15 @@ def main():
                        ROOT/'scripts/simulation/vio/runtime/px4_vio_motion_audit.py',ROOT/'scripts/simulation/vio/runtime/vio_covariance_consistency.py',
                        ROOT/'scripts/simulation/vio/runtime/vio_gc_pause_audit.py',ROOT/'scripts/simulation/vio/analysis/audit_vio_truth_topics.py',out/'fixture-profile.json'])
     if args.scene=='warehouse':
-        from vio_warehouse_scene import layout_path
-        inputs += [layout_path(args.warehouse_variant),ROOT/'scripts/simulation/vio/runtime/vio_warehouse_scene.py',out/'assets/warehouse-layout.json']
+        if args.course != 'none':
+            from simulation.vio.runtime.obstacle_course import LAYOUT, WORLD
+            inputs += [LAYOUT, WORLD, ROOT/'scripts/simulation/vio/runtime/obstacle_course.py',
+                       ROOT/'scripts/simulation/vio/runtime/record_obstacle_course_truth.py',
+                       ROOT/'scripts/simulation/vio/analysis/assess_obstacle_course.py']
+        else:
+            from vio_warehouse_scene import layout_path
+            inputs += [layout_path(args.warehouse_variant)]
+        inputs += [ROOT/'scripts/simulation/vio/runtime/vio_warehouse_scene.py',out/'assets/warehouse-layout.json']
         inputs += sorted((out/'assets/warehouse_textures').rglob('*.png'))
     if args.motion:
         inputs += [motion_plugin,ROOT/'simulation/px4/vio/plugins/motion/MotionCarrier.cc',
@@ -471,10 +487,17 @@ def main():
     if args.flight:
         from vio_warehouse_scene import box_clearance
         layout=read(out/'assets/warehouse-layout.json')
-        box_clearance(layout['layout'])
+        if args.course != 'none':
+            from simulation.vio.runtime.obstacle_course import static_check
+            static_check(layout['layout'])
+        else:
+            box_clearance(layout['layout'])
         region=ROOT/('simulation/safe_regions/'+region_name+'.json')
         config=read(region);margin=sum(config[k] for k in ('body_radius_m','tracking_margin_m','braking_margin_m'))
-        if any(not math.isclose(config.get('known_clearance_bounds_min',config['bounds_min'])[i]+margin,layout['layout']['flight_box_min'][i],abs_tol=1e-9) or
+        if args.course != 'none':
+            from simulation.vio.runtime.obstacle_course import validate_region
+            validate_region(layout['layout'], config)
+        if args.course == 'none' and any(not math.isclose(config.get('known_clearance_bounds_min',config['bounds_min'])[i]+margin,layout['layout']['flight_box_min'][i],abs_tol=1e-9) or
                not math.isclose(config.get('known_clearance_bounds_max',config['bounds_max'])[i]-margin,layout['layout']['flight_box_max'][i],abs_tol=1e-9) for i in (0,1)):
             raise RuntimeError('Warehouse profile/clearance bounds mismatch')
         if args.experimental_chain:
@@ -520,6 +543,9 @@ def main():
             if args.flight=='sequence':
                 env.update(UAV_FLIGHT_MISSION_FILE=str(ROOT/('simulation/missions/vio_static_avoidance.json' if args.warehouse_variant=='avoidance' else 'simulation/missions/depth_observation.json')),
                     UAV_EXPECT_OBSERVATION='1',UAV_ENABLE_EGO_NAV='1',UAV_NAVIGATION_BACKEND='EGO')
+            if args.course != 'none':
+                from simulation.vio.runtime.obstacle_course import mission_path
+                env['UAV_FLIGHT_MISSION_FILE'] = str(mission_path(args.course))
             if args.pocket_task=='intervention':
                 env['UAV_FLIGHT_MISSION_FILE']=str(ROOT/'simulation/missions/pocket_intervention.json')
                 # PX4 constrains its manual velocity parameter by this native
@@ -575,6 +601,7 @@ def main():
     manifest['sdk_schur64']=args.sdk_schur64
     manifest['vio_primary']=args.vio_primary
     manifest['pocket_task']=args.pocket_task
+    manifest['obstacle_course']=args.course
     manifest['flight_fusion_policy']=dict(primary='EV position/height/yaw',
         auxiliary_fusion='opportunistic' if args.vio_primary else 'mandatory',
         auxiliary_raw_integrity_required=args.vio_primary,joint_ground_preflight_required=args.experimental_chain)
@@ -625,6 +652,8 @@ def main():
         return process
     def require_processes(phase):
         for name, process in zip(manifest['processes'], processes):
+            if name == 'course_truth':
+                continue  # Passive evidence loss fails the course audit, never the controller.
             code = process.poll()
             if code is not None:
                 raise RuntimeError(f'{phase} process exited: {name} (exit={code}); log: {out / (name + ".log")}')
@@ -663,6 +692,9 @@ def main():
         launch('agent',[ROOT/'.deps/microxrce-install/bin/MicroXRCEAgent','udp4','-p','8898'])
         gazebo_env=render_environment(env,args.render_device)
         launch('gazebo',['gz','sim','-r','-s']+(['--headless-rendering'] if args.headless_rendering else [])+[out/'assets/default.sdf'],gazebo_env)
+        if args.course != 'none' and args.pocket_session:
+            launch('course_truth', [sys.executable, ROOT/'scripts/simulation/vio/runtime/record_obstacle_course_truth.py',
+                                   str(out), '--model', profile['model']+'_7'])
         if args.ui:
             # A viewer-only alias establishes the SDK odom reference in RViz.
             # It defines no aircraft pose, map alignment, or control transform.
@@ -1230,6 +1262,11 @@ def main():
         elif args.pocket_session:
             from vio_ui_lifecycle import operator_session_result
             result=operator_session_result(result)
+        elif args.course != 'none':
+            from simulation.vio.analysis.assess_obstacle_course import save_automated_result
+            result['obstacle_course'] = save_automated_result(out, manifest)
+            result['passed'] &= result['obstacle_course']['passed']
+            result['experimental_mission_passed'] &= result['obstacle_course']['passed']
         if args.export_colored_map:
             result['color_export_passed']=bool(result.get('colored_map_export'))
             result['passed'] &= result['color_export_passed']

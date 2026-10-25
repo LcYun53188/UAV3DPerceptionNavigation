@@ -19,7 +19,10 @@ ROOT = Path(__file__).resolve().parents[4]
 PROFILE = ROOT/'simulation/px4/vio/profiles/sensors.json'
 
 
-def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=None, warehouse_texture_style="corners", stereo_encoding='rgb8', warehouse_variant='baseline', imu_noise_profile=None):
+def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', real_time_factor=None, resolution=None, warehouse_floor_texture=False, camera_pitch_deg=None, warehouse_texture_style="corners", stereo_encoding='rgb8', warehouse_variant='baseline', imu_noise_profile=None, course='none'):
+    from simulation.vio.runtime.obstacle_course import TASKS
+    if course not in TASKS or (course != 'none' and (scene != 'warehouse' or warehouse_variant != 'avoidance' or not warehouse_floor_texture or warehouse_texture_style != 'corners' or motion_plugin is not None)):
+        raise ValueError('Obstacle course requires the textured avoidance sensor rig')
     if stereo_encoding not in ('rgb8','mono8'):
         raise ValueError('Unsupported stereo encoding')
     if scene not in ('planar','layered','warehouse'):
@@ -136,8 +139,13 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
         physics.find('real_time_factor').text=str(real_time_factor)
         physics.find('real_time_update_rate').text=str(real_time_factor/step)
     if scene=='warehouse':
-        from vio_warehouse_scene import add_warehouse
-        add_warehouse(root,directory,floor_texture=warehouse_floor_texture,texture_style=warehouse_texture_style,variant=warehouse_variant)
+        if course != 'none':
+            from simulation.vio.runtime.obstacle_course import add_course
+            add_course(root, directory)
+            p['obstacle_course'] = course
+        else:
+            from vio_warehouse_scene import add_warehouse
+            add_warehouse(root,directory,floor_texture=warehouse_floor_texture,texture_style=warehouse_texture_style,variant=warehouse_variant)
         p['warehouse_floor_texture']=warehouse_floor_texture
         if warehouse_variant!='baseline':p['warehouse_variant']=warehouse_variant
         if warehouse_texture_style!='corners':p['warehouse_texture_style']=warehouse_texture_style

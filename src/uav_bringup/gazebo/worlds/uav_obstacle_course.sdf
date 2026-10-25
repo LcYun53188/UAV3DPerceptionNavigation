@@ -1,269 +1,1621 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='utf-8'?>
 <sdf version="1.9">
   <world name="uav_obstacle_course">
     <physics name="fast_step" type="ignored">
-      <max_step_size>0.002</max_step_size>
+      <max_step_size>.002</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
-
-    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
-    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
-    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
     <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
-    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
-
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
     <scene>
-      <ambient>0.42 0.44 0.46 1</ambient>
-      <background>0.66 0.71 0.76 1</background>
-      <shadows>true</shadows>
+      <ambient>.6 .6 .6 1</ambient>
     </scene>
-
     <light type="directional" name="sun">
-      <pose>0 0 12 0 0 0</pose>
-      <cast_shadows>true</cast_shadows>
-      <diffuse>0.95 0.95 0.92 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <direction>-0.35 0.25 -0.9</direction>
+      <direction>-.3 .2 -.9</direction>
+      <diffuse>.9 .9 .9 1</diffuse>
     </light>
-
-    <!-- Large flat ground plane. -->
     <model name="ground_plane">
       <static>true</static>
-      <link name="link">
+      <link name="ground">
         <collision name="collision">
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>26 26</size>
+              <size>36.0 36.0</size>
             </plane>
           </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>20</mu>
-                <mu2>20</mu2>
-              </ode>
-            </friction>
-          </surface>
         </collision>
         <visual name="visual">
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>26 26</size>
+              <size>36.0 36.0</size>
             </plane>
           </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_0_-1">
+      <static>true</static>
+      <pose>-17.0 0.0 3.0 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.2 34.2 6.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.2 34.2 6.0</size>
+            </box>
+          </geometry>
           <material>
-            <ambient>0.50 0.52 0.54 1</ambient>
-            <diffuse>0.52 0.54 0.56 1</diffuse>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
           </material>
         </visual>
       </link>
     </model>
-
-    <!-- Surrounding perimeter walls. The central route stays inside. -->
-    <model name="wall_north">
+    <model name="wall_0_1">
       <static>true</static>
-      <pose>0 10 0.75 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>20.4 0.20 1.5</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>20.4 0.20 1.5</size></box></geometry><material><ambient>0.48 0.28 0.52 1</ambient><diffuse>0.66 0.34 0.74 1</diffuse></material></visual>
+      <pose>17.0 0.0 3.0 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.2 34.2 6.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.2 34.2 6.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-    <model name="wall_south">
+    <model name="wall_1_-1">
       <static>true</static>
-      <pose>0 -10 0.75 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>20.4 0.20 1.5</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>20.4 0.20 1.5</size></box></geometry><material><ambient>0.22 0.42 0.55 1</ambient><diffuse>0.22 0.56 0.72 1</diffuse></material></visual>
+      <pose>0.0 -17.0 3.0 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>34.2 0.2 6.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>34.2 0.2 6.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-    <model name="wall_east">
+    <model name="wall_1_1">
       <static>true</static>
-      <pose>10 0 0.75 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>0.20 20.4 1.5</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.20 20.4 1.5</size></box></geometry><material><ambient>0.48 0.28 0.52 1</ambient><diffuse>0.66 0.34 0.74 1</diffuse></material></visual>
+      <pose>0.0 17.0 3.0 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>34.2 0.2 6.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>34.2 0.2 6.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-    <model name="wall_west">
+    <model name="ceiling">
       <static>true</static>
-      <pose>-10 0 0.75 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>0.20 20.4 1.5</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.20 20.4 1.5</size></box></geometry><material><ambient>0.45 0.36 0.16 1</ambient><diffuse>0.60 0.47 0.20 1</diffuse></material></visual>
+      <pose>0 0 6.1 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>34.0 34.0 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>34.0 34.0 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <!-- Columns on both sides of the south-to-north route. -->
     <model name="column_00">
       <static>true</static>
-      <pose>-4 -5 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.26 0.44 0.52 1</ambient><diffuse>0.30 0.60 0.72 1</diffuse></material></visual></link>
+      <pose>-8.0 -8.0 2.75 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.4 0.15 1</ambient>
+            <diffuse>0.8 0.4 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
     <model name="column_01">
       <static>true</static>
-      <pose>4 -5 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.44 0.34 0.20 1</ambient><diffuse>0.68 0.52 0.28 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_02">
-      <static>true</static>
-      <pose>-5 -2 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.50 0.24 0.46 1</ambient><diffuse>0.74 0.34 0.66 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_03">
-      <static>true</static>
-      <pose>5 -2 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.28 0.30 0.62 1</ambient><diffuse>0.42 0.44 0.82 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_04">
-      <static>true</static>
-      <pose>-3 0 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.36 0.52 0.20 1</ambient><diffuse>0.54 0.72 0.34 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_05">
-      <static>true</static>
-      <pose>3 1 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.22 0.48 0.56 1</ambient><diffuse>0.30 0.66 0.78 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_06">
-      <static>true</static>
-      <pose>-4 4 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.50 0.40 0.16 1</ambient><diffuse>0.70 0.58 0.24 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_07">
-      <static>true</static>
-      <pose>4 4 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.42 0.22 0.56 1</ambient><diffuse>0.62 0.30 0.76 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_08">
-      <static>true</static>
-      <pose>-7 0 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.26 0.44 0.52 1</ambient><diffuse>0.30 0.60 0.72 1</diffuse></material></visual></link>
-    </model>
-    <model name="column_09">
-      <static>true</static>
-      <pose>7 0 1.0 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.14</radius><length>2.0</length></cylinder></geometry><material><ambient>0.44 0.34 0.20 1</ambient><diffuse>0.68 0.52 0.28 1</diffuse></material></visual></link>
-    </model>
-
-    <!-- Initial model placement for sensor and scene validation. -->
-    <model name="gate_south">
-      <static>true</static>
-      <pose>0 -3 0 0 0 0</pose>
-      <link name="link">
-        <collision name="left_post_collision"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="left_post_visual"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.20 0.45 0.50 1</ambient><diffuse>0.25 0.65 0.72 1</diffuse></material></visual>
-        <collision name="right_post_collision"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="right_post_visual"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.20 0.45 0.50 1</ambient><diffuse>0.25 0.65 0.72 1</diffuse></material></visual>
-        <collision name="bottom_rail_collision"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="bottom_rail_visual"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.20 0.45 0.50 1</ambient><diffuse>0.25 0.65 0.72 1</diffuse></material></visual>
-        <collision name="top_rail_collision"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="top_rail_visual"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.20 0.45 0.50 1</ambient><diffuse>0.25 0.65 0.72 1</diffuse></material></visual>
+      <pose>-14.0 -14.0 2.75 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.4 0.15 1</ambient>
+            <diffuse>0.8 0.4 0.15 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <model name="gate_middle">
+    <model name="gate_post_-1">
       <static>true</static>
-      <pose>0 0.5 0 0 0 1.57079632679</pose>
-      <link name="link">
-        <collision name="left_post_collision"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="left_post_visual"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.55 0.28 0.12 1</ambient><diffuse>0.80 0.42 0.18 1</diffuse></material></visual>
-        <collision name="right_post_collision"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="right_post_visual"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.55 0.28 0.12 1</ambient><diffuse>0.80 0.42 0.18 1</diffuse></material></visual>
-        <collision name="bottom_rail_collision"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="bottom_rail_visual"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.55 0.28 0.12 1</ambient><diffuse>0.80 0.42 0.18 1</diffuse></material></visual>
-        <collision name="top_rail_collision"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="top_rail_visual"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.55 0.28 0.12 1</ambient><diffuse>0.80 0.42 0.18 1</diffuse></material></visual>
+      <pose>8.0 -10.620000000000001 2.5 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.24 0.24 3.48</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.24 0.24 3.48</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.65 0.85 1</ambient>
+            <diffuse>0.2 0.65 0.85 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <model name="gate_north">
+    <model name="gate_rail_-1">
       <static>true</static>
-      <pose>0 4 0 0 0 0</pose>
-      <link name="link">
-        <collision name="left_post_collision"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="left_post_visual"><pose>-1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.50 0.25 0.50 1</ambient><diffuse>0.74 0.36 0.74 1</diffuse></material></visual>
-        <collision name="right_post_collision"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry></collision>
-        <visual name="right_post_visual"><pose>1.1 0 0.9 0 0 0</pose><geometry><box><size>0.18 0.18 1.8</size></box></geometry><material><ambient>0.50 0.25 0.50 1</ambient><diffuse>0.74 0.36 0.74 1</diffuse></material></visual>
-        <collision name="bottom_rail_collision"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="bottom_rail_visual"><pose>0 0 0.6 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.50 0.25 0.50 1</ambient><diffuse>0.74 0.36 0.74 1</diffuse></material></visual>
-        <collision name="top_rail_collision"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry></collision>
-        <visual name="top_rail_visual"><pose>0 0 1.8 0 0 0</pose><geometry><box><size>2.38 0.18 0.18</size></box></geometry><material><ambient>0.50 0.25 0.50 1</ambient><diffuse>0.74 0.36 0.74 1</diffuse></material></visual>
+      <pose>8.0 -8.0 0.8799999999999999 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.24 5.48 0.24</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.24 5.48 0.24</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.65 0.85 1</ambient>
+            <diffuse>0.2 0.65 0.85 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <!-- Large object-stacking platform on the east side. -->
-    <model name="object_platform">
+    <model name="gate_post_1">
       <static>true</static>
-      <pose>6 1 0.025 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>5.5 3.5 0.05</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>5.5 3.5 0.05</size></box></geometry><material><ambient>0.30 0.30 0.32 1</ambient><diffuse>0.40 0.40 0.42 1</diffuse></material></visual>
+      <pose>8.0 -5.38 2.5 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.24 0.24 3.48</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.24 0.24 3.48</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.65 0.85 1</ambient>
+            <diffuse>0.2 0.65 0.85 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <model name="object_crate_large">
+    <model name="gate_rail_1">
       <static>true</static>
-      <pose>4.2 0.5 0.45 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><box><size>0.8 0.8 0.8</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.8 0.8 0.8</size></box></geometry><material><ambient>0.56 0.36 0.14 1</ambient><diffuse>0.80 0.54 0.20 1</diffuse></material></visual></link>
+      <pose>8.0 -8.0 4.12 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.24 5.48 0.24</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.24 5.48 0.24</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.65 0.85 1</ambient>
+            <diffuse>0.2 0.65 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_crate_medium">
+    <model name="ring_segment_00">
       <static>true</static>
-      <pose>5.8 1.8 0.35 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.6 0.6 0.6</size></box></geometry><material><ambient>0.24 0.42 0.48 1</ambient><diffuse>0.34 0.60 0.70 1</diffuse></material></visual></link>
+      <pose>10.75 8.0 2.5 0 -1.5707963267948966 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_crate_small">
+    <model name="ring_segment_01">
       <static>true</static>
-      <pose>7.4 0.6 0.25 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.5 0.5 0.5</size></box></geometry><material><ambient>0.55 0.20 0.22 1</ambient><diffuse>0.82 0.30 0.34 1</diffuse></material></visual></link>
+      <pose>10.697159521108883 8.0 3.036498385544353 0 -1.7671458676442586 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_barrel_1">
+    <model name="ring_segment_02">
       <static>true</static>
-      <pose>6.5 0.1 0.4 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.28</radius><length>0.8</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.28</radius><length>0.8</length></cylinder></geometry><material><ambient>0.25 0.25 0.30 1</ambient><diffuse>0.32 0.32 0.40 1</diffuse></material></visual></link>
+      <pose>10.540668714406038 8.0 3.552379439003997 0 -1.9634954084936207 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_barrel_2">
+    <model name="ring_segment_03">
       <static>true</static>
-      <pose>6.0 2.4 0.4 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.28</radius><length>0.8</length></cylinder></geometry></collision><visual name="visual"><geometry><cylinder><radius>0.28</radius><length>0.8</length></cylinder></geometry><material><ambient>0.25 0.25 0.30 1</ambient><diffuse>0.32 0.32 0.40 1</diffuse></material></visual></link>
+      <pose>10.286541433832 8.0 4.027818140803906 0 -2.1598449493429825 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_stack_base">
+    <model name="ring_segment_04">
       <static>true</static>
-      <pose>5.2 1.2 0.35 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.6 0.6 0.6</size></box></geometry><material><ambient>0.42 0.52 0.20 1</ambient><diffuse>0.62 0.74 0.30 1</diffuse></material></visual></link>
+      <pose>9.944543648263005 8.0 4.444543648263005 0 -2.356194490192345 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-    <model name="object_stack_top">
+    <model name="ring_segment_05">
       <static>true</static>
-      <pose>5.2 1.2 0.75 0 0 0</pose>
-      <link name="link"><collision name="collision"><geometry><box><size>0.4 0.4 0.4</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.4 0.4 0.4</size></box></geometry><material><ambient>0.42 0.52 0.20 1</ambient><diffuse>0.62 0.74 0.30 1</diffuse></material></visual></link>
+      <pose>9.527818140803905 8.0 4.786541433831999 0 -2.552544031041707 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
     </model>
-
-    <!-- Start and goal pads. -->
+    <model name="ring_segment_06">
+      <static>true</static>
+      <pose>9.052379439003998 8.0 5.0406687144060385 0 -2.748893571891069 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_07">
+      <static>true</static>
+      <pose>8.536498385544354 8.0 5.197159521108883 0 -2.945243112740431 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_08">
+      <static>true</static>
+      <pose>8.0 8.0 5.25 0 -3.141592653589793 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_09">
+      <static>true</static>
+      <pose>7.463501614455647 8.0 5.197159521108883 0 -3.3379421944391554 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_10">
+      <static>true</static>
+      <pose>6.947620560996003 8.0 5.0406687144060385 0 -3.5342917352885173 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_11">
+      <static>true</static>
+      <pose>6.472181859196095 8.0 4.786541433831999 0 -3.730641276137879 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_12">
+      <static>true</static>
+      <pose>6.055456351736995 8.0 4.444543648263005 0 -3.9269908169872414 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_13">
+      <static>true</static>
+      <pose>5.713458566168001 8.0 4.027818140803906 0 -4.123340357836604 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_14">
+      <static>true</static>
+      <pose>5.4593312855939615 8.0 3.552379439003997 0 -4.319689898685965 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_15">
+      <static>true</static>
+      <pose>5.302840478891117 8.0 3.0364983855443537 0 -4.516039439535327 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_16">
+      <static>true</static>
+      <pose>5.25 8.0 2.5000000000000004 0 -4.71238898038469 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_17">
+      <static>true</static>
+      <pose>5.302840478891117 8.0 1.963501614455647 0 -4.908738521234052 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_18">
+      <static>true</static>
+      <pose>5.4593312855939615 8.0 1.4476205609960033 0 -5.105088062083414 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_19">
+      <static>true</static>
+      <pose>5.713458566168001 8.0 0.9721818591960947 0 -5.301437602932776 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_20">
+      <static>true</static>
+      <pose>6.055456351736994 8.0 0.5554563517369946 0 -5.497787143782138 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_21">
+      <static>true</static>
+      <pose>6.472181859196094 8.0 0.21345856616800063 0 -5.6941366846315 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_22">
+      <static>true</static>
+      <pose>6.947620560996001 8.0 -0.04066871440603803 0 -5.890486225480862 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_23">
+      <static>true</static>
+      <pose>7.463501614455646 8.0 -0.19715952110888324 0 -6.086835766330224 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_24">
+      <static>true</static>
+      <pose>7.999999999999999 8.0 -0.25 0 -6.283185307179586 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_25">
+      <static>true</static>
+      <pose>8.536498385544352 8.0 -0.19715952110888368 0 -6.4795348480289485 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_26">
+      <static>true</static>
+      <pose>9.052379439003998 8.0 -0.04066871440603803 0 -6.675884388878311 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_27">
+      <static>true</static>
+      <pose>9.527818140803905 8.0 0.21345856616800019 0 -6.872233929727672 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_28">
+      <static>true</static>
+      <pose>9.944543648263005 8.0 0.5554563517369939 0 -7.0685834705770345 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_29">
+      <static>true</static>
+      <pose>10.286541433832 8.0 0.972181859196094 0 -7.264933011426397 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_30">
+      <static>true</static>
+      <pose>10.540668714406038 8.0 1.4476205609960013 0 -7.461282552275758 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_segment_31">
+      <static>true</static>
+      <pose>10.697159521108883 8.0 1.9635016144556459 0 -7.6576320931251205 0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5617027184644033 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.85 0.3 0.2 1</ambient>
+            <diffuse>0.85 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_support_-1">
+      <static>true</static>
+      <pose>4.95 8.0 1.25 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.18 0.18 2.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.18 0.18 2.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="ring_support_1">
+      <static>true</static>
+      <pose>11.05 8.0 1.25 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.18 0.18 2.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.18 0.18 2.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.35 0.5 0.65 1</ambient>
+            <diffuse>0.35 0.5 0.65 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_trunk">
+      <static>true</static>
+      <pose>-8.0 8.0 2.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_branch_0">
+      <static>true</static>
+      <pose>-7.570098579893477 8.132984092997603 4.0 0 1.5707963267948966 0.3</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_branch_1">
+      <static>true</static>
+      <pose>-8.187266076446214 8.409183842071556 4.0 0 1.5707963267948966 2.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_branch_2">
+      <static>true</static>
+      <pose>-8.220617369603314 7.6077909024138854 4.0 0 1.5707963267948966 4.2</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_crown_0">
+      <static>true</static>
+      <pose>-8.0 8.0 4.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_0_crown_1">
+      <static>true</static>
+      <pose>-8.0 8.0 5.25 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_trunk">
+      <static>true</static>
+      <pose>-14.0 14.0 2.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_branch_0">
+      <static>true</static>
+      <pose>-13.570098579893477 14.132984092997603 4.0 0 1.5707963267948966 0.3</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_branch_1">
+      <static>true</static>
+      <pose>-14.187266076446214 14.409183842071556 4.0 0 1.5707963267948966 2.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_branch_2">
+      <static>true</static>
+      <pose>-14.220617369603314 13.607790902413885 4.0 0 1.5707963267948966 4.2</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_crown_0">
+      <static>true</static>
+      <pose>-14.0 14.0 4.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_1_crown_1">
+      <static>true</static>
+      <pose>-14.0 14.0 5.25 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_trunk">
+      <static>true</static>
+      <pose>-14.5 1.0 2.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>5.4</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_branch_0">
+      <static>true</static>
+      <pose>-14.070098579893477 1.1329840929976027 4.0 0 1.5707963267948966 0.3</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_branch_1">
+      <static>true</static>
+      <pose>-14.687266076446214 1.4091838420715568 4.0 0 1.5707963267948966 2.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_branch_2">
+      <static>true</static>
+      <pose>-14.720617369603314 0.6077909024138852 4.0 0 1.5707963267948966 4.2</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.38 0.22 0.1 1</ambient>
+            <diffuse>0.38 0.22 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_crown_0">
+      <static>true</static>
+      <pose>-14.5 1.0 4.7 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.85</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tree_2_crown_1">
+      <static>true</static>
+      <pose>-14.5 1.0 5.25 0.0 0.0 0.0</pose>
+      <link name="structure">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.65</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.16 0.44 0.18 1</ambient>
+            <diffuse>0.16 0.44 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
     <model name="start_pad">
       <static>true</static>
-      <pose>0 -7 0.01 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>1.4 1.4 0.02</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>1.4 1.4 0.02</size></box></geometry><material><ambient>0.10 0.55 0.15 1</ambient><diffuse>0.15 0.78 0.22 1</diffuse></material></visual>
+      <pose>0 0 0.01 0 0 0</pose>
+      <link name="paint">
+        <visual name="paint">
+          <geometry>
+            <box>
+              <size>1.4 1.4 .002</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.1 .7 .2 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
     <model name="goal_pad">
       <static>true</static>
-      <pose>0 7 0.01 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>1.4 1.4 0.02</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>1.4 1.4 0.02</size></box></geometry><material><ambient>0.65 0.10 0.08 1</ambient><diffuse>0.90 0.16 0.12 1</diffuse></material></visual>
+      <pose>0 0 0.015 0 0 0</pose>
+      <link name="paint">
+        <visual name="paint">
+          <geometry>
+            <box>
+              <size>1.4 1.4 .002</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>.1 .7 .2 1</diffuse>
+          </material>
+        </visual>
       </link>
     </model>
-
-    <!-- UAV starts on the green pad, facing north along the central corridor. -->
     <include>
       <uri>model://uav_quad_mid360</uri>
       <name>uav_quad</name>
-      <pose>0 -7 0.11 0 0 1.57079632679</pose>
+      <pose>0 0 .11 0 0 0</pose>
     </include>
   </world>
 </sdf>

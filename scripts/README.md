@@ -76,6 +76,7 @@
 | [scripts/simulation/launch_isaac.sh](simulation/launch_isaac.sh) | Isaac Sim 4.5 UI 启动实现，复用已有安装与环境变量。 |
 | [scripts/simulation/launch_scene.sh](simulation/launch_scene.sh) | Gazebo 场景与传感器桥启动实现，保持原单实例锁。 |
 | [scripts/simulation/manual.py](simulation/manual.py) | Shared HID/panel ownership for the manual flow and full project programs. |
+| [scripts/simulation/map_visualization.py](simulation/map_visualization.py) | Startup-only map display choices shared by the CLI and VIO runner. |
 | [scripts/simulation/menu.py](simulation/menu.py) | 交互仿真菜单；配置与启动策略由 profiles 和 backends 统一维护。 |
 | [scripts/simulation/policy.py](simulation/policy.py) | Workspace simulation policy: no satellite measurements or GNSS aiding. |
 | [scripts/simulation/profiles.py](simulation/profiles.py) | 仿真配置注册表：菜单、命令行和 JSON 配置共用的选项与参数规则。 |
@@ -158,12 +159,14 @@
 | 文件 | 用途 |
 | --- | --- |
 | [scripts/simulation/vio/runtime/__init__.py](simulation/vio/runtime/__init__.py) | Simulation tools grouped by responsibility. |
+| [scripts/simulation/vio/runtime/obstacle_course.py](simulation/vio/runtime/obstacle_course.py) | Deterministic four-zone course, shared geometry and bounded PX4 recipes. |
 | [scripts/simulation/vio/runtime/prepare_vio_sensor_assets.py](simulation/vio/runtime/prepare_vio_sensor_assets.py) | Generate an explicit stereo/IMU reference rig and textured SITL test world. |
 | [scripts/simulation/vio/runtime/px4_vio_flight_session.py](simulation/vio/runtime/px4_vio_flight_session.py) | Continuous EV writer for owned warehouse SITL; no command/setpoint publishers. |
 | [scripts/simulation/vio/runtime/px4_vio_motion_audit.py](simulation/vio/runtime/px4_vio_motion_audit.py) | Independent timestamp-matched VIO error audit; truth is never fed to VIO. |
 | [scripts/simulation/vio/runtime/px4_vio_pose_audit.py](simulation/vio/runtime/px4_vio_pose_audit.py) | Observe normalized SDK poses and the reset retirement boundary, without FMU writes. |
 | [scripts/simulation/vio/runtime/px4_vio_real_fusion.py](simulation/vio/runtime/px4_vio_real_fusion.py) | Owned, disarmed same-aircraft cuVSLAM -> PX4 EV audit. No synthetic inputs. |
 | [scripts/simulation/vio/runtime/px4_vio_sensor_audit.py](simulation/vio/runtime/px4_vio_sensor_audit.py) | Observe physical simulated stereo/IMU and actual cuVSLAM outputs, never inject pose. |
+| [scripts/simulation/vio/runtime/record_obstacle_course_truth.py](simulation/vio/runtime/record_obstacle_course_truth.py) | Passive Gazebo truth recorder for course audits; publishes no control/TF data. |
 | [scripts/simulation/vio/runtime/record_vio_motion_build.py](simulation/vio/runtime/record_vio_motion_build.py) | Bind a successfully built fixture to its source and binary, not an old cache. |
 | [scripts/simulation/vio/runtime/record_vio_same_aircraft_build.py](simulation/vio/runtime/record_vio_same_aircraft_build.py) | 记录同机运动插件源码与二进制回执。 |
 | [scripts/simulation/vio/runtime/run_cuvslam_pose_transport.py](simulation/vio/runtime/run_cuvslam_pose_transport.py) | Synthetic DDS tests of pose warmup and reset retirement, never real VIO/flight. |
@@ -226,6 +229,7 @@
 | [scripts/simulation/vio/analysis/analyze_vio_flight_images.py](simulation/vio/analysis/analyze_vio_flight_images.py) | Offline image structure diagnostics. Candidate corners are NOT cuVSLAM inliers. |
 | [scripts/simulation/vio/analysis/analyze_vio_physical_replay.py](simulation/vio/analysis/analyze_vio_physical_replay.py) | Recompute physical-reference replay diagnostics, never flight acceptance. |
 | [scripts/simulation/vio/analysis/analyze_vio_sdk16_marginal.py](simulation/vio/analysis/analyze_vio_sdk16_marginal.py) | Validate repaired SDK exports and same-trajectory covariance counterfactuals. |
+| [scripts/simulation/vio/analysis/assess_obstacle_course.py](simulation/vio/analysis/assess_obstacle_course.py) | Check ordered waypoints, directed apertures and swept native Gazebo truth. |
 | [scripts/simulation/vio/analysis/assess_px4_real_vio_fusion.py](simulation/vio/analysis/assess_px4_real_vio_fusion.py) | Independently inspect saved source/output/EKF chronology, without ROS or VIO code. |
 | [scripts/simulation/vio/analysis/assess_vio_motion_evidence.py](simulation/vio/analysis/assess_vio_motion_evidence.py) | Replay archived reference-motion error independently, without ROS or live graph. |
 | [scripts/simulation/vio/analysis/assess_vio_navigation.py](simulation/vio/analysis/assess_vio_navigation.py) | Accept a completed simulated mission against an explicit positioning limit. |

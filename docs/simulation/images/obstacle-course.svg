@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 760">
+<rect width="720" height="760" fill="#f5f7fa"/>
+<g font-family="sans-serif" font-size="15" fill="#182638">
+<text x="40" y="32">Four-zone UAV course · 34 × 34 × 6 m · ENU</text>
+<rect x="54" y="54" width="612" height="612" fill="white" stroke="#182638"/>
+<rect x="288" y="288" width="144" height="144" fill="#e9f4ec" stroke="#5a9c71"/>
+<text x="305" y="354">Launch / survey</text>
+<rect x="72.0" y="396.0" width="252.0" height="252.0" fill="none" stroke="#c1cbd7" stroke-dasharray="5 5"/>
+<text x="78.0" y="416.0">pillars</text>
+<circle cx="216.0" cy="504.0" r="6" fill="#c47d36"/>
+<circle cx="108.0" cy="612.0" r="6" fill="#c47d36"/>
+<rect x="432.0" y="414.0" width="162.0" height="180.0" fill="none" stroke="#c1cbd7" stroke-dasharray="5 5"/>
+<text x="438.0" y="434.0">rectangle</text>
+<path d="M 504.0 549.0 V 459.0" stroke="#287fa7" stroke-width="6" stroke-dasharray="4 3"/>
+<rect x="432.0" y="108.0" width="162.0" height="198.0" fill="none" stroke="#c1cbd7" stroke-dasharray="5 5"/>
+<text x="438.0" y="128.0">ring</text>
+<path d="M 457.2 216.0 H 550.8" stroke="#d46445" stroke-width="6" stroke-dasharray="4 3"/>
+<rect x="72.0" y="72.0" width="252.0" height="288.0" fill="none" stroke="#c1cbd7" stroke-dasharray="5 5"/>
+<text x="78.0" y="92.0">trees</text>
+<circle cx="216.0" cy="216.0" r="15" fill="#56854d"/>
+<circle cx="108.0" cy="108.0" r="15" fill="#56854d"/>
+<circle cx="99.0" cy="342.0" r="15" fill="#56854d"/>
+<polyline points="360.0,360.0 324.0,504.0 216.0,396.0 108.0,504.0 216.0,612.0 324.0,504.0 450.0,504.0 504.0,504.0 558.0,504.0 558.0,360.0 504.0,270.0 504.0,216.0 504.0,162.0 360.0,162.0 324.0,216.0 216.0,108.0 99.0,270.0 360.0,360.0" fill="none" stroke="#4c71ba" stroke-width="2"/>
+<circle cx="324.0" cy="504.0" r="4" fill="#264f9c"/><text x="330.0" y="498.0" font-size="12">1</text>
+<circle cx="216.0" cy="396.0" r="4" fill="#264f9c"/><text x="222.0" y="390.0" font-size="12">2</text>
+<circle cx="108.0" cy="504.0" r="4" fill="#264f9c"/><text x="114.0" y="498.0" font-size="12">3</text>
+<circle cx="216.0" cy="612.0" r="4" fill="#264f9c"/><text x="222.0" y="606.0" font-size="12">4</text>
+<circle cx="324.0" cy="504.0" r="4" fill="#264f9c"/><text x="330.0" y="498.0" font-size="12">5</text>
+<circle cx="450.0" cy="504.0" r="4" fill="#264f9c"/><text x="456.0" y="498.0" font-size="12">6</text>
+<circle cx="504.0" cy="504.0" r="4" fill="#264f9c"/><text x="510.0" y="498.0" font-size="12">7</text>
+<circle cx="558.0" cy="504.0" r="4" fill="#264f9c"/><text x="564.0" y="498.0" font-size="12">8</text>
+<circle cx="558.0" cy="360.0" r="4" fill="#264f9c"/><text x="564.0" y="354.0" font-size="12">9</text>
+<circle cx="504.0" cy="270.0" r="4" fill="#264f9c"/><text x="510.0" y="264.0" font-size="12">10</text>
+<circle cx="504.0" cy="216.0" r="4" fill="#264f9c"/><text x="510.0" y="210.0" font-size="12">11</text>
+<circle cx="504.0" cy="162.0" r="4" fill="#264f9c"/><text x="510.0" y="156.0" font-size="12">12</text>
+<circle cx="360.0" cy="162.0" r="4" fill="#264f9c"/><text x="366.0" y="156.0" font-size="12">13</text>
+<circle cx="324.0" cy="216.0" r="4" fill="#264f9c"/><text x="330.0" y="210.0" font-size="12">14</text>
+<circle cx="216.0" cy="108.0" r="4" fill="#264f9c"/><text x="222.0" y="102.0" font-size="12">15</text>
+<circle cx="99.0" cy="270.0" r="4" fill="#264f9c"/><text x="105.0" y="264.0" font-size="12">16</text>
+<text x="40" y="706">Reference route only; live EGO paths can differ. Gate crossings are audited.</text>
+<text x="40" y="734">Rectangle opening 5 × 3 m · Ring inner diameter 5.2 m · Flight height 2.5 m</text>
+</g></svg>

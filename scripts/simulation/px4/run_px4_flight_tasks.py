@@ -79,7 +79,7 @@ def main():
     rclpy.init(args=['--ros-args','-p','use_sim_time:=true'])
     node=FlightServer()
     prewarmed=None
-    if use_bt and os.environ.get('UAV_FLIGHT_REGION_PROFILE')=='vio_avoidance':
+    if use_bt and os.environ.get('UAV_FLIGHT_REGION_PROFILE') in ('vio_avoidance','obstacle_course'):
         from bt_flight_client import prewarm_runner
         prewarmed=prewarm_runner(node,out,ROOT)
     map_diagnostics=[]

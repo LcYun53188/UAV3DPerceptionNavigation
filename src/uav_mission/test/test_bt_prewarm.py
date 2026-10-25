@@ -19,8 +19,9 @@ def launch(tmp_path,**overrides):
         stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 
 
-def test_actual_prewarmed_runner_cannot_dispatch_without_private_parameters(tmp_path):
-    process=launch(tmp_path);lines=[]
+@pytest.mark.parametrize('profile', ['vio_avoidance', 'obstacle_course'])
+def test_actual_prewarmed_runner_cannot_dispatch_without_private_parameters(tmp_path, profile):
+    process=launch(tmp_path,UAV_FLIGHT_REGION_PROFILE=profile);lines=[]
     try:
         with selectors.DefaultSelector() as selector:
             selector.register(process.stdout,selectors.EVENT_READ)

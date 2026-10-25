@@ -14,7 +14,7 @@ def load_region(root,env):
         raise RuntimeError('Requires owned local SITL supervisor, domain 78 and nonce')
     partition=env.get('GZ_PARTITION','')
     profile=env.get('UAV_FLIGHT_REGION_PROFILE','W0')
-    if profile not in ('W0','warehouse','depth_reference','vio_chain','vio_avoidance','flow_local') or not partition.startswith(
+    if profile not in ('W0','warehouse','depth_reference','vio_chain','vio_avoidance','obstacle_course','flow_local') or not partition.startswith(
             'uav_mtf01_' if profile=='flow_local' else
             'uav_px4_s0_' if profile in ('W0','depth_reference') else 'uav_warehouse_flight_'):
         raise RuntimeError('Flight scene/partition mismatch')
@@ -57,13 +57,13 @@ def load_region(root,env):
             path=(receipt.parent/name).resolve()
             if not path.is_relative_to(receipt.parent) or digest(path)!=expected:
                 raise RuntimeError('Depth asset drift: '+name)
-    if profile in ('warehouse','vio_chain','vio_avoidance'):
+    if profile in ('warehouse','vio_chain','vio_avoidance','obstacle_course'):
         fusion_profiles = ('aligned_pose_v1',) if profile=='warehouse' else ('aligned_pose_mtf_sim_v1',)
-        if profile=='vio_avoidance':
+        if profile in ('vio_avoidance','obstacle_course'):
             fusion_profiles += ('aligned_pose_mtf_primary_sim_v1',)
         if env.get('UAV_REQUIRE_VIO')!='1' or env.get('UAV_VIO_FUSION_PROFILE') not in fusion_profiles:
             raise RuntimeError('Warehouse requires actual aligned pose VIO fusion')
-        if profile in ('vio_chain','vio_avoidance') and env.get('UAV_EXPERIMENTAL_VIO_CHAIN')!='1':
+        if profile in ('vio_chain','vio_avoidance','obstacle_course') and env.get('UAV_EXPERIMENTAL_VIO_CHAIN')!='1':
             raise RuntimeError('Explicit simulation-only covariance deferral required')
         receipt=Path(env.get('UAV_FLIGHT_ASSET_RECEIPT','')).resolve()
         if not receipt.is_relative_to(root/'.cache/simulation/vio-sensors'):

@@ -21,10 +21,15 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none', map_options=None, person_rotations=False):
+def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none', map_options=None, person_rotations=False, course='none'):
     if program not in ('manual', 'full'):
         raise ValueError('Unknown simulation program: ' + program)
     args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
+    if course != 'none':
+        from simulation.vio.runtime.obstacle_course import TASKS
+        if program != 'full' or course not in TASKS or person_scene != 'none':
+            raise ValueError('Obstacle course requires full without warehouse person scenes')
+        args += ['--course', course]
     args += ['--device', identity['device'],
             '--input-profile', identity['input_profile'], '--session-duration', str(duration)]
     if qgc_config:
@@ -137,9 +142,13 @@ def main(argv=None):
     parser.add_argument('--person-rotations', action='store_true')
     parser.add_argument('--person-scene', choices=['none', 'standing', 'sitting', 'lying', 'postures'], default='none')
     parser.add_argument('--color-map', action='store_true')
+    from simulation.vio.runtime.obstacle_course import TASKS
+    parser.add_argument('--course', choices=TASKS, default='none')
     from simulation import map_visualization
     map_visualization.add_arguments(parser)
     args = parser.parse_args(argv)
+    if args.course != 'none' and (args.program != 'full' or args.person_scene != 'none'):
+        parser.error('--course requires full without --person-scene')
     try:
         map_options = map_visualization.options_from(args)
     except ValueError as exc:
@@ -186,7 +195,7 @@ def main(argv=None):
         try:
             return supervise(runtime_command(identity, args.session_duration, calibration, args.program,
                              args.person_model.expanduser().resolve() if args.people else None,args.color_map,args.person_scene,
-                             map_options if args.program == 'full' else None,args.person_rotations), environment)
+                             map_options if args.program == 'full' else None,args.person_rotations,args.course), environment)
         finally:
             from simulation.session import read
             state = read(False)

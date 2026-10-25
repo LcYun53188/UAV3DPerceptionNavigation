@@ -57,6 +57,9 @@ PROFILES = (
             'Gazebo＋PX4＋QGC，使用原生光流／测距定位；不启动 VIO、建图或自动任务。', COMMON_OPTIONS),
     Profile('full', '完整项目：VIO／建图／导航／行为树',
             'Gazebo＋PX4＋QGC＋RViz，运行 VIO、光流／测距、nvblox、EGO 和遥控器任务控制。', COMMON_OPTIONS + (
+                Option('course', '障碍赛道任务', 'none',
+                       (('none', '原仓库'), ('pillars', '绕柱'), ('rectangle', '穿矩形框'),
+                        ('ring', '穿圆环'), ('trees', '绕树'), ('all', '四区串联'))),
                 Option('people', '启用人员识别与地图标注（需先构建感知模块）', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
                 Option('person_model', '人员检测模型路径', '.cache/models/person/yolox_tiny.onnx', interactive=False),
@@ -97,6 +100,8 @@ def validate_config(config):
             options['people'] = True
     if key == 'full' and options['person_scene'] != 'none' and not options['people']:
         raise ValueError('人体场景需要显式开启 --people')
+    if key == 'full' and options['course'] != 'none' and options['person_scene'] != 'none':
+        raise ValueError('障碍赛道不能叠加仓库人体场景')
     if key == 'full' and options['person_rotations'] and not options['people']:
         raise ValueError('人员旋转检测需要显式开启 --people')
     return dict(schema=1, profile=key, options=options)
@@ -120,6 +125,8 @@ def command(config):
         args += ['--color-map']
     if key == 'full':
         args += map_visualization.arguments(o)
+        if o['course'] != 'none':
+            args += ['--course', o['course']]
     if key == 'full' and o['person_scene'] != 'none':
         args += ['--person-scene', o['person_scene']]
     if key == 'full' and o['person_rotations']:

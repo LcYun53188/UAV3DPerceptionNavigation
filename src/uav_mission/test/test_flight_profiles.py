@@ -178,7 +178,7 @@ def test_experimental_joint_profile_needs_explicit_deferral_and_ownership(owned)
     with pytest.raises(RuntimeError):load_region(root,env)
 
 
-@pytest.mark.parametrize('profile',['warehouse','vio_chain','vio_avoidance'])
+@pytest.mark.parametrize('profile',['warehouse','vio_chain','vio_avoidance','obstacle_course'])
 def test_vio_primary_is_admitted_only_in_owned_avoidance_scene(owned,profile):
     root,env,out,data,write=owned
     region=root/f'simulation/safe_regions/{profile}.json'
@@ -188,7 +188,7 @@ def test_vio_primary_is_admitted_only_in_owned_avoidance_scene(owned,profile):
                UAV_VIO_FUSION_PROFILE='aligned_pose_mtf_primary_sim_v1',
                UAV_EXPERIMENTAL_VIO_CHAIN='1')
     data['region_sha256']=digest(region);write()
-    if profile=='vio_avoidance':
+    if profile in ('vio_avoidance','obstacle_course'):
         assert load_region(root,env)
         env['UAV_EXPERIMENTAL_VIO_CHAIN']='0'
         with pytest.raises(RuntimeError,match='deferral'):load_region(root,env)
