@@ -62,6 +62,33 @@ def test_person_scene_is_explicit_and_cannot_enable_people_silently():
     assert '--person-scene' in command
 
 
+def test_posture_choices_and_rotation_inference_are_forwarded():
+    from simulation import profiles
+    from simulation.manual import runtime_command
+    identity = dict(device='/dev/input/js0', input_profile='pocket-rc-v2')
+    for scene in ['sitting', 'lying', 'postures']:
+        command = profiles.command(dict(schema=1, profile='full', options={
+            'people': True, 'person_scene': scene, 'person_rotations': True}))
+        assert command[command.index('--person-scene')+1] == scene
+        assert '--person-rotations' in command
+        assert '--person-rotations' in runtime_command(identity, 3600, program='full',
+            person_model=Path('model.onnx'), person_scene=scene, person_rotations=True)
+    with pytest.raises(ValueError):
+        profiles.command(dict(schema=1, profile='full', options={'person_rotations': True}))
+
+
+def test_sitting_model_has_no_external_sensor_dependencies(tmp_path, monkeypatch):
+    (tmp_path/'meshes').mkdir()
+    (tmp_path/'meshes/sitting.dae').write_text('mesh')
+    sdf = '<sdf><model><static>true</static><include><uri>https://example.invalid/sensor</uri></include><link><visual><geometry><mesh><uri>meshes/sitting.dae</uri></mesh></geometry><plugin name="thermal"/></visual></link></model></sdf>'
+    (tmp_path/'model.sdf').write_text(sdf)
+    monkeypatch.setattr(gazebo, 'verify_asset', lambda *_: tmp_path)
+    model = gazebo.person_element(tmp_path, [0, 0, 0, 0, 0, 0], 'sitting')
+    assert not model.findall('.//plugin') and not model.findall('.//include')
+    assert len(model.findall('static')) == 1
+    assert (tmp_path/'model.sdf').read_text() == sdf
+
+
 def test_scene_rejects_person_inside_protected_volume_without_writing(tmp_path, monkeypatch):
     path = tmp_path/'world.sdf'
     path.write_text('<sdf><world name="fixture"/></sdf>')
@@ -76,7 +103,7 @@ def test_scene_rejects_person_inside_protected_volume_without_writing(tmp_path, 
 
 def test_mesh_truth_applies_visual_and_world_poses(tmp_path, monkeypatch):
     (tmp_path/'meshes').mkdir()
-    (tmp_path/'model.sdf').write_text('<sdf><model><link><visual><pose>0 0 .02 0 0 0</pose></visual></link></model></sdf>')
+    (tmp_path/'model.sdf').write_text('<sdf><model><link><visual><pose>0 0 .02 0 0 0</pose><geometry><mesh><uri>meshes/standing.dae</uri></mesh></geometry></visual></link></model></sdf>')
     (tmp_path/'meshes/standing.dae').write_text('''
     <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema">
       <asset><unit meter="1"/><up_axis>Z_UP</up_axis></asset>

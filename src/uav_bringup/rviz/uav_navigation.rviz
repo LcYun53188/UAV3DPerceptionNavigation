@@ -41,6 +41,14 @@ Visualization Manager:
     Topic:
       Value: /uav/people/markers
       Reliability Policy: Reliable
+  - Class: rviz_default_plugins/MarkerArray
+    Enabled: true
+    Name: Last Observed People
+    Topic:
+      Value: /uav/people/history_markers
+      Reliability Policy: Reliable
+      Durability Policy: Transient Local
+      Depth: 1
   - Class: rviz_default_plugins/Image
     Enabled: true
     Name: Person Detections

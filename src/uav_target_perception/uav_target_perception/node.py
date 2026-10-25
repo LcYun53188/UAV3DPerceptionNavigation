@@ -29,6 +29,7 @@ from uav_nav_interfaces.msg import (MapSnapshot, PlanningContext, PersonObservat
 
 from .core import ContextGate, PersonTracker, SurfacePoint, fresh, locate_surface, transform_point
 from .detector import MODEL_SHA256, PersonDetector
+from .history import PersonHistory
 
 
 def stamp_seconds(stamp):
@@ -78,7 +79,8 @@ class PersonMapper(Node):
                         sync_slop=.03, max_image_age=.5, context_timeout=2.,
                         near_m=.3, far_m=8., depth_spread_m=.35,
                         association_radius_m=.8, track_ttl=1.5, confirmation_frames=3,
-                        snapshot_path='', publish_image=True)
+                        snapshot_path='', publish_image=True, retain_history=True,
+                        history_radius_m=.6, history_max_records=200, rotation_augmentation=False)
         self.options = {key: self.declare_parameter(key, value).value for key, value in defaults.items()}
         o = self.options
         positive = ('inference_hz', 'sync_slop', 'max_image_age', 'context_timeout',
@@ -90,10 +92,13 @@ class PersonMapper(Node):
         if o['context_source'] not in ('map_snapshot', 'planning_context'):
             raise ValueError('context_source must be map_snapshot or planning_context')
         self.detector = detector if detector is not None else PersonDetector(
-            o['model_path'], o['score_threshold'], o['cpu_threads'])
+            o['model_path'], o['score_threshold'], o['cpu_threads'], o['rotation_augmentation'])
         self.bridge = CvBridge()
         self.gate = ContextGate(o['context_timeout'])
         self.tracker = PersonTracker(o['association_radius_m'], o['track_ttl'], o['confirmation_frames'])
+        self.history = PersonHistory(o['history_radius_m'], o['history_max_records'])
+        self.last_history_clock = None
+        self.history_barrier = 0.
         self.pending = self.info = self.info_key = self.map_context = None
         self.last_processed = None
         self.reason = 'WAITING_CONTEXT'
@@ -102,6 +107,8 @@ class PersonMapper(Node):
         self.detections_pub = self.create_publisher(Detection2DArray, '/uav/people/detections', 1)
         self.observations_pub = self.create_publisher(PersonObservationArray, '/uav/people/observations', 1)
         self.markers_pub = self.create_publisher(MarkerArray, '/uav/people/markers', 1)
+        self.history_pub = self.create_publisher(MarkerArray, '/uav/people/history_markers',
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.image_pub = self.create_publisher(Image, '/uav/people/image', qos_profile_sensor_data)
         self.diagnostics_pub = self.create_publisher(String, '/uav/people/diagnostics', 1)
         self.create_subscription(CameraInfo, o['camera_info_topic'], self.info_cb, qos_profile_sensor_data)
@@ -113,7 +120,8 @@ class PersonMapper(Node):
         self.sync = message_filters.ApproximateTimeSynchronizer([self.rgb_sub, self.depth_sub], 4, o['sync_slop'])
         self.sync.registerCallback(self.images_cb)
         self.create_service(Trigger, '/uav/people/save_snapshot', self.save_snapshot)
-        self.create_timer(1/o['inference_hz'], self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
+        self.create_service(Trigger, '/uav/people/clear_history', self.clear_history)
+        self.inference_timer = self.create_timer(1/o['inference_hz'], self.tick, clock=Clock(clock_type=ClockType.STEADY_TIME))
         self.get_logger().info('Person map observations enabled; temporary visible torso surfaces, no control output')
 
     def now_s(self):
@@ -139,10 +147,17 @@ class PersonMapper(Node):
                 return
         stamp = stamp_seconds(message.header.stamp)
         valid = message.valid and bool(message.map_id) and message.header.frame_id == 'map'
+        previous_key = self.gate.key
         changed = self.gate.update(key, valid, stamp, time.monotonic())
         if self.gate.key != key or self.gate.stamp != stamp:
             return
         self.map_context = message
+        # context_id is an admission token; temporary invalidation can change it
+        # without changing map coordinates. Preserve history across that loss.
+        previous_coordinates = previous_key[:5]+previous_key[6:] if previous_key else None
+        if previous_coordinates != key[:5]+key[6:] and hasattr(self, 'history'):
+            self.history.clear()
+            self.history_barrier = 0.
         if changed:
             self.pending = None
             self.tracker.clear()
@@ -224,6 +239,11 @@ class PersonMapper(Node):
             self.image_pub.publish(overlay)
 
     def tick(self):
+        now = self.now_s()
+        if self.last_history_clock is not None and now < self.last_history_clock:
+            self.history.clear()
+            self.history_barrier = 0.
+        self.last_history_clock = now
         valid_context = self.gate.ready(self.now_s(), time.monotonic())
         if len(self.get_publishers_info_by_topic(self.options['context_topic'])) != 1:
             valid_context = False
@@ -278,9 +298,36 @@ class PersonMapper(Node):
                 marker.text = f'person {observation.track_id} {observation.detection_confidence:.2f}' if label else ''
                 markers.markers.append(marker)
         self.markers_pub.publish(markers)
+        if self.options['retain_history']:
+            self.history.update((o.track_id, (o.position.x, o.position.y, o.position.z),
+                                 stamp_seconds(o.last_observed), o.detection_confidence)
+                                for o in message.observations
+                                if stamp_seconds(o.last_observed) > getattr(self, 'history_barrier', 0.))
+        historical = MarkerArray(markers=[Marker(action=Marker.DELETEALL)])
+        for record in self.history.records.values():
+            for label in (False, True):
+                marker = Marker(header=message.header, ns='person_history', id=2*record.id+int(label),
+                    action=Marker.ADD, type=Marker.TEXT_VIEW_FACING if label else Marker.SPHERE)
+                marker.pose.position.x, marker.pose.position.y, marker.pose.position.z = map(float, record.position)
+                marker.pose.position.z += .45 if label else 0.
+                marker.pose.orientation.w = 1.
+                marker.scale.x = marker.scale.y = marker.scale.z = .20
+                marker.color.r, marker.color.g, marker.color.a = 1., .55, .85
+                # Zero lifetime keeps last-observed evidence visible after TTL,
+                # clock pauses and RViz reconnects. Never a live observation.
+                marker.text = f'history H{record.id} last={record.stamp:.1f}s' if label else ''
+                historical.markers.append(marker)
+        self.history_pub.publish(historical)
         self.diagnostics_pub.publish(String(data=json.dumps(dict(reason=self.reason,
             valid=bool(valid), confirmed=len(message.observations), tracks=len(self.tracker.tracks),
-            pending=self.pending is not None))))
+            pending=self.pending is not None, historical_places=len(self.history.records)))))
+
+    def clear_history(self, request, response):
+        self.history.clear()
+        self.history_barrier = self.now_s()
+        self.history_pub.publish(MarkerArray(markers=[Marker(action=Marker.DELETEALL)]))
+        response.success, response.message = True, 'Cleared last-observed person places'
+        return response
 
     def save_snapshot(self, request, response):
         self.tracker.expire(self.now_s(), time.monotonic())
@@ -299,6 +346,10 @@ class PersonMapper(Node):
                     localization_session=message.localization_session, alignment_id=message.alignment_id,
                     alignment_generation=message.alignment_generation, context_id=message.context_id,
                     point_semantics=message.point_semantics,
+                    history_kind='last_observed_places_not_live_people',
+                    history=[dict(history_id=o.id, source_track_id=o.source_track_id,
+                                  position=o.position.tolist(), capture_time=o.stamp,
+                                  detection_confidence=o.confidence) for o in self.history.records.values()],
                     observations=[dict(track_id=o.track_id, position=[o.position.x, o.position.y, o.position.z],
                                        capture_time=stamp_seconds(o.last_observed),
                                        detection_confidence=o.detection_confidence,

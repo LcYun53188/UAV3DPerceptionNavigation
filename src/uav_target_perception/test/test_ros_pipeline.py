@@ -45,10 +45,12 @@ def test_actual_rgb_inference_to_map_marker_and_context_reset(tmp_path):
         info_pub = peer.create_publisher(CameraInfo, '/rgbd_camera/camera_info', qos_profile_sensor_data)
         context_pub = peer.create_publisher(MapSnapshot, '/uav/map/snapshot',
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
-        results, detections, markers = [], [], []
+        results, detections, markers, history_markers = [], [], [], []
         peer.create_subscription(PersonObservationArray, '/uav/people/observations', results.append, 10)
         peer.create_subscription(Detection2DArray, '/uav/people/detections', detections.append, 10)
         peer.create_subscription(MarkerArray, '/uav/people/markers', markers.append, 10)
+        peer.create_subscription(MarkerArray, '/uav/people/history_markers', history_markers.append,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         broadcaster = StaticTransformBroadcaster(peer)
         transform = TransformStamped()
         transform.header.frame_id, transform.child_frame_id = 'map', 'fixture_optical'
@@ -113,11 +115,29 @@ def test_actual_rgb_inference_to_map_marker_and_context_reset(tmp_path):
         assert json.loads((tmp_path/'people.json').read_text())['kind'] == 'historical_person_observations'
         assert not mapper.save_snapshot(Trigger.Request(), Trigger.Response()).success
 
+        # Stop images but keep the same coordinate context. Live people expire;
+        # confirmed historical places must remain, without pretending to be live.
+        until(lambda: not results[-1].observations and history_markers and
+              sum(m.action == m.ADD for m in history_markers[-1].markers) == 2*len(expected),
+              lambda: send(images=False))
+        assert all(m.lifetime.sec == m.lifetime.nanosec == 0
+                   for m in history_markers[-1].markers if m.action == m.ADD)
+        mapper.inference_timer.cancel()
+        late_history = []
+        late_subscription = peer.create_subscription(MarkerArray, '/uav/people/history_markers', late_history.append,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
+        until(lambda: bool(late_history), lambda: send(images=False))
+        assert sum(m.action == m.ADD for m in late_history[-1].markers) == 2*len(expected)
+        peer.destroy_subscription(late_subscription)
+        mapper.inference_timer.reset()
+
         # A new context immediately removes the old people and blocks old images.
         until(lambda: results[-1].map_epoch == 2 and not results[-1].observations
               and all(m.action == m.DELETEALL for m in markers[-1].markers),
               lambda: send(epoch=2, images=False))
         assert all(marker.action == marker.DELETEALL for marker in markers[-1].markers)
+        until(lambda: history_markers and all(m.action == m.DELETEALL for m in history_markers[-1].markers),
+              lambda: send(epoch=2, images=False))
 
         # A new optical frame without TF still yields 2D, never a map position.
         count = len(detections)
@@ -134,6 +154,8 @@ def test_actual_rgb_inference_to_map_marker_and_context_reset(tmp_path):
                 synthetic_depth_m=3., synthetic_translation_m=[1., 2., 3.], synthetic_yaw_deg=90,
                 analytical_projection_tolerance_m=.02, map_change_clears_tracks=True,
                 missing_tf_allows_only_2d=True, snapshot_overwrite_rejected=True,
+                history_survives_live_ttl=True, history_transient_local_late_join=True,
+                map_change_clears_history=True,
                 observations=snapshot['observations'])
             (folder/'ros-result.json').write_text(json.dumps(evidence, indent=2)+'\n')
     finally:

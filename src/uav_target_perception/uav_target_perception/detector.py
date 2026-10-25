@@ -96,8 +96,44 @@ def decode_people(output, image_shape, threshold=0.5, nms_threshold=0.45):
     return detections
 
 
+def merge_rotated_detections(groups, image_shape, nms_threshold=.45):
+    """Map right-angle detections to the original pixel grid before cross-view NMS."""
+    height, width = image_shape[:2]
+    merged = []
+    for angle, detections in groups:
+        for box, score in detections:
+            x1, y1, x2, y2 = map(float, box)
+            if angle == 90:
+                box = [y1, height-x2, y2, height-x1]
+            elif angle == 270:
+                box = [width-y2, x1, width-y1, x2]
+            elif angle == 0:
+                box = [x1, y1, x2, y2]
+            else:
+                raise ValueError('Unsupported detection rotation')
+            box = np.asarray(box)
+            box[[0, 2]] = box[[0, 2]].clip(0, width)
+            box[[1, 3]] = box[[1, 3]].clip(0, height)
+            merged.append((box, score))
+    selected = []
+    for box, score in sorted(merged, key=lambda item: item[1], reverse=True):
+        duplicate = False
+        for previous, _ in selected:
+            intersection = np.maximum(0, np.minimum(box[2:], previous[2:])-np.maximum(box[:2], previous[:2])).prod()
+            union = (box[2:]-box[:2]).prod()+(previous[2:]-previous[:2]).prod()-intersection
+            if intersection/max(union, 1e-9) > nms_threshold:
+                duplicate = True
+                break
+        if duplicate:
+            continue
+        selected.append((box, score))
+        if len(selected) >= 50:
+            break
+    return selected
+
+
 class PersonDetector:
-    def __init__(self, model_path, threshold=0.5, threads=2):
+    def __init__(self, model_path, threshold=0.5, threads=2, rotation_augmentation=False):
         import cv2
         if not 0 < threshold <= 1 or not 1 <= threads <= 8:
             raise ValueError('Invalid detector threshold or CPU thread count')
@@ -107,8 +143,18 @@ class PersonDetector:
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
         self.threshold = threshold
+        self.rotation_augmentation = rotation_augmentation
 
     def detect(self, bgr):
+        normal = self._detect_upright(bgr)
+        if not self.rotation_augmentation:
+            return normal
+        import cv2
+        groups = [(0, normal), (90, self._detect_upright(cv2.rotate(bgr, cv2.ROTATE_90_CLOCKWISE))),
+                  (270, self._detect_upright(cv2.rotate(bgr, cv2.ROTATE_90_COUNTERCLOCKWISE)))]
+        return merge_rotated_detections(groups, bgr.shape)
+
+    def _detect_upright(self, bgr):
         import cv2
         if bgr.ndim != 3 or bgr.shape[2] != 3 or bgr.dtype != np.uint8 or not bgr.size:
             raise ValueError('Expected a nonempty uint8 BGR image')

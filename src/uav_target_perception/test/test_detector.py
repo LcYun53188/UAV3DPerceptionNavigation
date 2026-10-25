@@ -6,6 +6,15 @@ import pytest
 from uav_target_perception import detector
 
 
+def test_rotated_boxes_return_to_original_grid_and_cross_view_duplicates_are_removed():
+    expected = np.array([10., 20., 40., 60.])
+    groups = [(0, [(expected, .8)]), (90, [(np.array([20., 10., 60., 40.]), .9)]),
+              (270, [(np.array([20., 80., 60., 110.]), .7)])]
+    found = detector.merge_rotated_detections(groups, (80, 120, 3))
+    assert len(found) == 1 and np.allclose(found[0][0], expected)
+    assert found[0][1] == .9
+
+
 def raw_output():
     data = np.zeros((1, 3549, 85), dtype=np.float32)
     # Anchor (10,10) at stride 8: centre (80,80), width/height 32.
