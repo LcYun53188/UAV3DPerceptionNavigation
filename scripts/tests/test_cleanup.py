@@ -52,9 +52,10 @@ def test_ide_command_strings_do_not_count_as_executed_simulation_scripts(tmp_pat
     assert not selected
 
 
-def test_installed_python_ros_node_and_isolated_qgc_are_selected(tmp_path):
+@pytest.mark.parametrize('executable', ['map_session', 'map_visualizer'])
+def test_installed_python_ros_node_and_isolated_qgc_are_selected(tmp_path, executable):
     node = process(tmp_path, exe='python3', args=[sys.executable,
-        str(tmp_path/'.deps/mission-install/uav_nav_sim/lib/uav_nav_sim/map_session')])
+        str(tmp_path/'.deps/mission-install/uav_nav_sim/lib/uav_nav_sim'/executable)])
     qgc = process(tmp_path, 101, exe='QGroundControl')
     qgc.env['XDG_CONFIG_HOME'] = str(tmp_path/'.cache/simulation/vio-sensors/owned/qgc-config')
     selected, _ = cleanup.select({100:node,101:qgc}, tmp_path, self_pid=999)

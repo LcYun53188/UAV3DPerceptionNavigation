@@ -188,3 +188,9 @@ ROS_DOMAIN_ID=193 ROS_LOCALHOST_ONLY=1 \
 ```
 
 离线几何、真实图片推理、ROS 合成几何链路与实际 Gazebo 人物几何分别解释。无人物仓库场景的联合扫描、导航和着色导出已运行，失败及产物见[联合仿真记录（本地）](../../docs/validation/simulation/2026-10-23-full-people-color/REPORT.md)。单人静态人物测试范围见上节；动态/多人物、OAK-D RGB-D 配准与运动误差尚需独立验收，既有导航验收结论保持原适用范围。
+
+## RViz 地图颜色选择
+
+统一启动入口支持 `./scripts/sim.sh run full --map-color semantic`，会同时开启人员检测，将可见躯干表面点附近网格标为紫色，其余区域保持灰色未分类。该显示是空间关联，不是逐像素语义分割；关联半径用 `--map-semantic-radius 0.4`（m）调整，过期人员不会永久染色。
+
+高度、RGB、法线、ESDF、融合权重、更新年龄及可通行性等八种选择和参数见[启动脚本的 RViz 地图着色说明](../../docs/simulation/LAUNCHERS.md#rviz-地图着色)。

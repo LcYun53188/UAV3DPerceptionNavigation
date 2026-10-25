@@ -21,7 +21,7 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none'):
+def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none', map_options=None, person_rotations=False):
     if program not in ('manual', 'full'):
         raise ValueError('Unknown simulation program: ' + program)
     args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
@@ -37,10 +37,19 @@ def runtime_command(identity, duration, qgc_config=None, program='manual', perso
         if program != 'full':
             raise ValueError('Color mapping requires the full VIO/map program')
         args += ['--color-map']
+    if map_options is not None:
+        if program != 'full':
+            raise ValueError('Map visualization requires the full program')
+        from simulation.map_visualization import arguments
+        args += arguments(map_options)
     if person_scene != 'none':
-        if program != 'full' or person_model is None or person_scene != 'standing':
-            raise ValueError('Standing-person scene requires full person perception')
+        if program != 'full' or person_model is None or person_scene not in ('standing', 'sitting', 'lying', 'postures'):
+            raise ValueError('Person scene requires full person perception')
         args += ['--person-scene', person_scene]
+    if person_rotations:
+        if program != 'full' or person_model is None:
+            raise ValueError('Person rotation detection requires full person perception')
+        args += ['--person-rotations']
     return backend_command('flow-pocket' if program == 'manual' else 'vio-pocket', args)
 
 
@@ -125,16 +134,30 @@ def main(argv=None):
     parser.add_argument('--qgc-config-from', type=Path)
     parser.add_argument('--people', action='store_true')
     parser.add_argument('--person-model', type=Path, default=ROOT/'.cache/models/person/yolox_tiny.onnx')
-    parser.add_argument('--person-scene', choices=['none', 'standing'], default='none')
+    parser.add_argument('--person-rotations', action='store_true')
+    parser.add_argument('--person-scene', choices=['none', 'standing', 'sitting', 'lying', 'postures'], default='none')
     parser.add_argument('--color-map', action='store_true')
+    from simulation import map_visualization
+    map_visualization.add_arguments(parser)
     args = parser.parse_args(argv)
+    try:
+        map_options = map_visualization.options_from(args)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if args.map_color != 'height' and args.program != 'full':
+        parser.error('--map-color requires the full program')
+    args.color_map = args.color_map or args.map_color == 'rgb'
+    args.people = args.people or args.map_color == 'semantic'
+    if args.person_rotations and not (args.people and args.program == 'full'):
+        parser.error('--person-rotations requires full and --people')
     if args.person_scene != 'none' and not (args.people and args.program == 'full'):
         parser.error('--person-scene requires the full program and --people')
     if args.person_scene != 'none':
         subprocess.run(['env', '-u', 'PYTHONPATH', '-u', 'AMENT_PREFIX_PATH', '-u', 'COLCON_PREFIX_PATH',
                         '-u', 'CMAKE_PREFIX_PATH', '-u', 'LD_LIBRARY_PATH',
-                        str(ROOT/'scripts/with_venv.sh'), 'python', '-m', 'uav_target_perception.gazebo',
-                        'check', str(ROOT/'.cache/models/gazebo/standing_person/v3')], check=True)
+                        str(ROOT/'scripts/with_venv.sh'), 'python', '-c',
+                        'from uav_target_perception.gazebo import scene_assets; import sys; scene_assets(sys.argv[1], sys.argv[2])',
+                        str(ROOT/'.cache/models/gazebo'), args.person_scene], check=True)
     if not 60 <= args.session_duration <= 14400:
         parser.error('session-duration must be within [60,14400] seconds')
     if args.qgc_config_from and not args.qgc_config_from.is_file():
@@ -162,7 +185,8 @@ def main(argv=None):
               '校准仅需首次完成，启动过程不自动解锁或起飞。', flush=True)
         try:
             return supervise(runtime_command(identity, args.session_duration, calibration, args.program,
-                             args.person_model.expanduser().resolve() if args.people else None,args.color_map,args.person_scene), environment)
+                             args.person_model.expanduser().resolve() if args.people else None,args.color_map,args.person_scene,
+                             map_options if args.program == 'full' else None,args.person_rotations), environment)
         finally:
             from simulation.session import read
             state = read(False)

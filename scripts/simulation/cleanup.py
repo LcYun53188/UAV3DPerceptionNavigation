@@ -25,7 +25,7 @@ WORKERS = {'run_cuvslam_pose_transport.py', 'run_flow_manual_tasks.py', 'run_px4
            'vio_sim_clock.py', 'vio_sdk_target.py'}
 NODES = {'px4', 'MicroXRCEAgent', 'rviz2', 'component_container', 'component_container_mt',
          'nvblox_node', 'ego_nvblox_planner', 'parameter_bridge', 'static_transform_publisher',
-         'mission_runner', 'map_session', 'planning_sources', 'planning_context'}
+         'mission_runner', 'map_session', 'map_visualizer', 'planning_sources', 'planning_context'}
 ENV_KEYS = {'GZ_PARTITION', 'UAV_WORKSPACE', 'UAV_FLIGHT_EVIDENCE', 'XDG_CONFIG_HOME'}
 
 

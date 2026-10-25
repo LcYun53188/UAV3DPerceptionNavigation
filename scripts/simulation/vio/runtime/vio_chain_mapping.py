@@ -54,7 +54,7 @@ def attach_depth(directory, profile, frames, *, independent_rgbd=False):
         scope='same-aircraft ideal depth; not hardware OAK-D depth')
 
 
-def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False, visualize=False, person_model=None, color_map=False):
+def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=False, binding_only=False, visualize=False, person_model=None, color_map=False, map_options=None, person_rotations=False):
     if sum((graph_only,depth_only,binding_only))>1:raise ValueError('Conflicting mapping startup stages')
     transport=dict(env,FASTRTPS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'),
                    FASTDDS_DEFAULT_PROFILES_FILE=str(ROOT/'src/uav_bringup/config/fastdds_map_service.xml'))
@@ -62,7 +62,7 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
     def start(name, command):
         setup_shell='source "$1/install_uav/setup.bash"; source "$1/.deps/px4-msgs-install/setup.bash"; source "$1/.deps/mission-install/local_setup.bash"; '
         extra_unsets=[]
-        if name == 'person_mapper':
+        if name in ('person_mapper', 'map_visualizer'):
             # This process has no mission/PX4 dependency. Isolate its new messages
             # and type-support libraries from the older mission install entirely.
             setup_shell='source "$1/install_uav/setup.bash"; '
@@ -95,6 +95,7 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
             '-p','rgb_topic:=/px4_rgb/image','-p','depth_topic:=/px4_depth/image',
             '-p','camera_info_topic:=/px4_depth/camera_info',
             '-p','context_source:=planning_context','-p','context_topic:=/planning/context',
+            '-p',f'rotation_augmentation:={str(person_rotations).lower()}',
             '-p',f'snapshot_path:={out/"person-observations.json"}'])
     if depth_only:return
     # Mesh generation is subscriber driven. Keep headless acceptance unchanged;
@@ -120,6 +121,12 @@ def launch_mapping(launch, env, out, run_id, *, graph_only=False, depth_only=Fal
         '-p','aabb_size:='+json.dumps(list(map(float,config.get('map_aabb_size',[10.0,10.0,4.0])))),
         '-r','/rgbd_camera/depth_image:=/px4_depth/image','-r','/rgbd_camera/camera_info:=/px4_depth/camera_info',
         *(['-r','/rgbd_camera/image:=/px4_rgb/image'] if color_map else [])])
+    if visualize and map_options:
+        from simulation.map_visualization import node_parameters
+        parameters=node_parameters(map_options)
+        if parameters:
+            start('map_visualizer',['ros2','run','uav_nav_sim','map_visualizer','--ros-args',
+                                    '-p','use_sim_time:=true',*parameters])
     limits=config['ego_limits']
     if not graph_only:launch_mapping(launch,env,out,run_id,binding_only=True,visualize=visualize)
     common=['--ros-args','-p','use_sim_time:=true','-p','body_radius:=0.8',
