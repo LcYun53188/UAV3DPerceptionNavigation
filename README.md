@@ -14,6 +14,7 @@
 | 定位与输入健康监测 | cuVSLAM、VINS-Fusion、FAST-LIO、三维 EKF、`nav_guard`、`nav_safety` |
 | 三维地图、地图包与轨迹规划 | nvblox、`uav_nav_sim`、`uav_ego_adapter`、EGO Planner |
 | 任务编排与飞控执行 | `uav_mission`、`uav_bt`、`px4_comm_bridge` |
+| RGB 人员检测、深度定位与最后观测位置 | `uav_target_perception`（可选） |
 | 场景、启动与显示 | `uav_bringup`、Gazebo Harmonic、RViz、QGroundControl |
 
 模块接口和包级说明见 [模块文档](docs/README.md#模块文档)。
@@ -58,6 +59,16 @@
 
 完整项目可用 `--people` 显式启用 RGB 人员检测、深度定位与地图标注，默认关闭；先按[人员感知模块说明](src/uav_target_perception/README.md)构建并准备模型。
 
+完整项目的可选功能仍通过 `run full` 选择：
+
+| 需求 | 选项与说明 |
+| --- | --- |
+| 人员历史与多姿态测试 | `--people --person-scene postures --person-rotations`；先准备固定人体资产。绿色实时点按有效期清除，橙色历史点保留最后观测位置，坐标会话变化时清空，不能作为实时避障依据 |
+| 地图显示 | `--map-color height/rgb/normals/esdf/semantic/weight/age/traversability`（八选一）；`rgb` 自动启用彩色融合，`semantic` 自动启用人员检测。参数、构建和数据语义见[地图着色说明](docs/simulation/LAUNCHERS.md#rviz-地图着色) |
+| 四区赛道 | `--course pillars/rectangle/ring/trees/all`（五选一）；绕柱、穿框、穿环和绕树。先按[赛道说明](docs/simulation/OBSTACLE_COURSE.md)构建、观察建图并回中央起点准备；全程自动任务尚待验收 |
+
+任务档 SD 可发起临时避障返航；途中释放须先停稳并通过原任务检查点校验，才恢复未完成步骤。原生降落提交后不能撤销。开关条件及当前验证范围见[Pocket 操作说明](docs/flight/VIO_POCKET_AVOIDANCE.md)。
+
 ## 快速运行导航仿真
 
 完成[构建准备](docs/simulation/LAUNCHERS.md#构建准备)后，在两个终端运行：
@@ -90,6 +101,7 @@
 | [脚本总目录](scripts/README.md) | 工具用途、环境与调用方式 |
 | [开发日志](docs/history/DEVELOPMENT_LOG.md) | 按日期记录开发进展、实验指标与遗留问题 |
 | [全链路开发计划](docs/development/SIMULATION_DEVELOPMENT_PLAN.md) | 阶段任务、依赖与验收标准 |
+| [“破晓先锋”项目书](docs/development/PROJECT_PROPOSAL.md) | 受限空间搜寻方向、现有基础、研发目标与分层验收 |
 | [第三方依赖维护](patches/vendor/README.md) | 子模块补丁、版本约束与 Git LFS |
 | [文档维护约定](docs/MAINTENANCE.md) | 目录归属、引用规则与迁移映射 |
 
