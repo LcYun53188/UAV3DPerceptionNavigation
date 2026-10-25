@@ -7,6 +7,7 @@
 接口、命令与当前边界见 [Pocket USB 仿真](../../docs/flight/USB_POCKET_SIMULATION.md)。
 临时返航新增原任务检查点和 `RESUME_MISSION`，暂停返航后可恢复未完成步骤，保留
 根/home/总期限，不重复起飞；`RESUME` 仍只恢复返航，`END_MISSION` 撤销恢复能力。
+当前 Pocket 任务档 SD 按下使用临时 `RETURN`，释放后先暂停返航、确认停稳，再恢复原任务；扫描恢复回接原锚点并重做未完成的扫描步骤。起飞或地图尚未就绪时的原地 LAND 与已提交降落不可撤销。新增 SD 释放恢复仅完成代码和 ROS 假后端验证，尚未进行 Gazebo／实体遥控飞行验收。
 可通过无 USB 的 `return-resume-mission` / `return-hover-resume` SITL 场景验证。
 
 使用 BehaviorTree.CPP 4.9 与 rclcpp_action，调用真实 PX4 ExecuteMission 后端。

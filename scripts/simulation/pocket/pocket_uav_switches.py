@@ -21,6 +21,7 @@ class PocketUavSwitches:
     def __init__(self, *, task_buttons=True, task_button_map=None):
         self.raw, self.levels = {}, {}
         self.prepared_edge = False
+        self.sd_task_edge = False
         self.task_buttons = task_buttons
         self.task_button_map = {0: 'pause', 1: 'cancel'} if task_button_map is None else dict(task_button_map)
 
@@ -58,10 +59,17 @@ class PocketUavSwitches:
         # Safety beats mode changes, ARM and task pulses in the same sample.
         if 7 in changed and self.safety_held:
             self.prepared_edge = False
-            return ['END_MISSION' if self.navigation else 'LAND']
+            self.sd_task_edge = self.navigation
+            return ['SD_RETURN' if self.navigation else 'LAND']
         if self.safety_held:
             self.prepared_edge = False
             return ['BLOCKED_SAFETY_HELD'] if changed else []
+        if 7 in changed:
+            resume = self.sd_task_edge and self.navigation
+            self.sd_task_edge = False
+            if 257 in changed and self.levels[257]:
+                return ['CANCEL']
+            return ['SD_RELEASE'] if resume else []
         if self.main_mode != 1 and (5 in changed or 6 in changed):
             return [self.requested_mode]
         if 257 in changed and self.levels[257]:

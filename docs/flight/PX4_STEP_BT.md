@@ -6,7 +6,7 @@
 及暂停/恢复/取消请求；临时 RETURN 保存原任务检查点，新增 `RESUME_MISSION` 从返航
 PAUSED 恢复未完成步骤。`END_MISSION` 撤销检查点并收尾，`RESUME` 仍继续暂停的操作。
 恢复不重复起飞、不重置根/home/总期限，步骤请求 ID 包含 plan revision。
-接口与 Pocket USB 独立 GNSS 仿真配置见
+接口与当前 Pocket USB 无 GNSS 仿真配置见
 [USB 任务决策](USB_POCKET_SIMULATION.md)。本页下方为初始步骤接口和历史验证范围。
 
 `./scripts/sim.sh px4-flight --bt --ui` 显示本轮拥有的 PX4 Gazebo 与 QGC 窗口，

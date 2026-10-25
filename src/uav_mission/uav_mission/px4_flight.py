@@ -102,6 +102,8 @@ class FlightServer(PilotIntervention, Node):
         self.home_frame_epoch_us = 0
         self.plan_revision = 0
         self.restored_hover = None
+        self.restored_observation = None
+        self.join_observation_anchor = None
         self.join_hover_remaining = None
         self.runner_last_tick = 0.
         self.runner_sequence = 0
@@ -369,7 +371,8 @@ class FlightServer(PilotIntervention, Node):
                     control_session=list(map(int,self.session.uuid)),generation=self.generation,
                     owner=self.owner,child_uuid=list(map(int,self.child.uuid)),step_index=self.step_index,
                     admitted_ros=self.get_clock().now().nanoseconds/1e9)))
-                self.change('NAVIGATE' if getattr(self,'join_hover_remaining',None) is not None
+                self.change('NAVIGATE' if (getattr(self,'join_hover_remaining',None) is not None or
+                            getattr(self,'join_observation_anchor',None) is not None)
                             else self.steps[self.step_index]['type'])
             except ValueError as error:
                 self.diagnostics.append(dict(planning_rejected=str(error)))
@@ -665,6 +668,7 @@ class FlightServer(PilotIntervention, Node):
             self.last_terminal_goal_id = None
             self.plan_revision = 0
             self.restored_hover = self.join_hover_remaining = None
+            self.restored_observation = self.join_observation_anchor = None
             self.landing_result = ('SUCCEEDED','LANDED_AND_DISARMED',True)
             self.runner_last_tick = time.monotonic()
             self.runner_sequence = 0
@@ -950,10 +954,15 @@ class FlightServer(PilotIntervention, Node):
                 if remaining is None:
                     remaining = max(0., self.hover_until-now)
                 anchor = tuple(self.target)
+        observation_anchor = None
+        if self.steps[index]['type']=='OBSERVE':
+            restored = getattr(self,'restored_observation',None)
+            observation_anchor = (restored[1] if restored is not None and restored[0]==index
+                                  else tuple(self.reference if self.phase=='AWAIT_STEP' else self.target))
         return ReturnCheckpoint(tuple(deepcopy(self.steps)), index, remaining, anchor,
             bytes(self.active_goal.goal_id.uuid), self.instance, bytes(self.session.uuid),
             tuple(self.home), self.deadline, tuple(self.resets()), self.checkpoint_alignment(),
-            self.checkpoint_map_context())
+            self.checkpoint_map_context(), observation_anchor)
 
     def restore_original_mission(self, now):
         checkpoint = getattr(self,'return_checkpoint',None)
@@ -996,6 +1005,9 @@ class FlightServer(PilotIntervention, Node):
         self.step_grant = None
         self.restored_hover = ((checkpoint.next_index, checkpoint.hover_target, checkpoint.hover_remaining)
                                if checkpoint.hover_remaining is not None else None)
+        self.restored_observation = ((checkpoint.next_index, checkpoint.observation_anchor)
+                                    if checkpoint.observation_anchor is not None else None)
+        self.join_observation_anchor = None
         self.join_hover_remaining = None
         self.return_override = self.return_after_brake = False
         self.return_checkpoint = None
@@ -1113,7 +1125,15 @@ class FlightServer(PilotIntervention, Node):
                 response.accepted=False;response.reason='FLOW_LOCAL_RETURN_REQUIRES_VIO';response.phase=self.phase
                 self.requests[key]=(verb,(False,response.reason,self.phase))
                 return response
-            if verb == 'pause' and self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER'):
+            if (verb == 'pause' and self.return_override and self.return_after_brake and
+                    self.phase in ('RETURN_BRAKE','HOLD_HANDOFF')):
+                # SD may be released before the initial return brake finishes.
+                # Complete that same brake/hold boundary without departing Homeward.
+                self.return_after_brake = False
+                self.saved_step = self.step_index+1
+                self.saved_hover = self.saved_hover_join = None
+                accepted=True;reason='RETURN_PAUSE_AFTER_BRAKE'
+            elif verb == 'pause' and self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER'):
                 self.saved_step=self.step_index
                 self.saved_hover=max(0.,self.hover_until-now) if self.phase=='HOVER' else None
                 self.saved_hover_join = ((self.step_index, tuple(self.target), self.join_hover_remaining)
@@ -1138,7 +1158,8 @@ class FlightServer(PilotIntervention, Node):
                 accepted=True;reason='RETURN_FINALIZED'
             elif (verb in ('return','finish') and not self.land_committed and not self.canceling and
                     self.result is None and not getattr(self,'return_override',False) and self.healthy() and
-                    self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER','PAUSED','AWAIT_STEP') and
+                    (self.phase in ('PLAN_REQUEST','NAVIGATE','RETURN','HOVER','PAUSED','AWAIT_STEP') or
+                     (verb=='return' and self.phase=='OBSERVE' and self.navigation_backend=='EGO')) and
                     (not self.runner_required or (not self.runner_lost and self.runner_sequence > 0 and
                         now-self.runner_last_tick <= self.config['runner_progress_max_age_s']))):
                 # Retain root/home/deadline; retire the old child before changing plan.
@@ -1277,6 +1298,18 @@ class FlightServer(PilotIntervention, Node):
         self.segment=None
         self.join_hover_remaining = None
         join_target = None
+        observation = getattr(self,'restored_observation',None)
+        if resuming and getattr(self,'join_observation_anchor',None) is not None:
+            observation = (self.step_index, self.join_observation_anchor)
+        self.join_observation_anchor = None
+        if kind=='OBSERVE' and observation is not None and observation[0]==self.step_index:
+            self.restored_observation = None
+            anchor = observation[1]
+            if distance(self.position(),anchor)>self.config['position_tolerance_m']:
+                join_target = self.join_observation_anchor = anchor
+                kind = 'NAVIGATE'
+            else:
+                self.reference = anchor
         restored = getattr(self,'restored_hover',None)
         if kind == 'HOVER' and restored is not None and restored[0] == self.step_index:
             self.restored_hover = None
@@ -1340,6 +1373,13 @@ class FlightServer(PilotIntervention, Node):
         self.change(kind)
 
     def complete_motion(self, now):
+        anchor = getattr(self,'join_observation_anchor',None)
+        if anchor is not None:
+            self.join_observation_anchor = None
+            self.reference = anchor
+            self.step_index -= 1
+            self.next_step(resuming=True)
+            return
         remaining = getattr(self,'join_hover_remaining',None)
         if remaining is None:
             self.next_step()
@@ -1594,7 +1634,8 @@ class FlightServer(PilotIntervention, Node):
                     self.planning_ready()
                     reference,finished=self.planned.sample(self.planning_authorization(),ros,now)
                     if phase=='PLAN_REQUEST' and getattr(self.planned,'arrival_only',False):
-                        self.change('NAVIGATE' if getattr(self,'join_hover_remaining',None) is not None
+                        self.change('NAVIGATE' if (getattr(self,'join_hover_remaining',None) is not None or
+                                    getattr(self,'join_observation_anchor',None) is not None)
                                     else self.steps[self.step_index]['type'],'NO_MOTION_AT_GOAL_CHECKED')
                     if reference is not None:
                         self.reference=reference

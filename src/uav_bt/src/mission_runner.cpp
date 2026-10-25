@@ -313,7 +313,7 @@ private:
       send_command(return_, request); response.accepted = true; response.reason = "ACCEPTED";
     }
     else if (request.command == "RETURN" && !return_flow() && !step_request_pending_ &&
-        (phase_ == "PLAN_REQUEST" || phase_ == "NAVIGATE" || phase_ == "RETURN" || phase_ == "HOVER" || phase_ == "PAUSED" || phase_ == "AWAIT_STEP") && return_->service_is_ready()) {
+        (phase_ == "PLAN_REQUEST" || phase_ == "NAVIGATE" || phase_ == "RETURN" || phase_ == "HOVER" || phase_ == "OBSERVE" || phase_ == "PAUSED" || phase_ == "AWAIT_STEP") && return_->service_is_ready()) {
       send_command(return_, request); response.accepted = true; response.reason = "ACCEPTED";
     }
     else if (request.command == "RESUME_MISSION" && controlled_ && return_flow() &&
@@ -321,7 +321,8 @@ private:
       send_command(restore_, request); response.accepted = true; response.reason = "ACCEPTED";
     }
     else if (request.command == "PAUSE" &&
-        (phase_ == "PLAN_REQUEST" || phase_ == "NAVIGATE" || phase_ == "RETURN" || phase_ == "HOVER") && pause_->service_is_ready()) {
+        (phase_ == "PLAN_REQUEST" || phase_ == "NAVIGATE" || phase_ == "RETURN" || phase_ == "HOVER" ||
+         (return_flow() && (phase_ == "RETURN_BRAKE" || phase_ == "HOLD_HANDOFF"))) && pause_->service_is_ready()) {
       send_command(pause_, request); response.accepted = true; response.reason = "ACCEPTED";
     } else if (request.command == "RESUME" && phase_ == "PAUSED" && resume_->service_is_ready()) {
       send_command(resume_, request); response.accepted = true; response.reason = "ACCEPTED";

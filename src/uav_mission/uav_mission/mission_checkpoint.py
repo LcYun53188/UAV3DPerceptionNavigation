@@ -17,6 +17,7 @@ class ReturnCheckpoint:
     resets: tuple
     alignment: tuple
     map_context: tuple | None
+    observation_anchor: tuple | None = None
 
     def restore_steps(self):
         # Each revision gets new data, never an old Segment/child/planned curve.

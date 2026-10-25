@@ -115,9 +115,15 @@ def report_rejected_arm(folder, last_seen):
         if request.get('command') != 'ARM' or request.get('mono') == last_seen:
             return last_seen
         if request.get('accepted') is False:
+            reason = request.get('reason')
             throttle = (request.get('manual_control') or {}).get('throttle')
-            print(f'SA 解锁被拒绝：{request.get("reason")}；PX4 油门={throttle} '
-                  '（解锁要求 ≤ -0.8，最低油门应接近 -1）。', flush=True)
+            hint = {
+                'ARM_THROTTLE_NOT_LOW': '解锁要求 ≤ -0.8，最低油门应接近 -1',
+                'TASK_PREPARATION_REQUIRED': '任务尚未准备通过；SB 任务档下重新切入 SC 起飞准备档，确认 TASK_PREPARED 后再操作 SA',
+                'SOURCE_PREFLIGHT_PENDING': '定位源预检尚未通过；等待准入后重新操作准备档与 SA',
+            }.get(reason)
+            detail = f'（{hint}）' if hint else ''
+            print(f'SA 解锁被拒绝：{reason}；PX4 油门={throttle}{detail}。', flush=True)
         return request.get('mono')
     except (OSError, ValueError):
         return last_seen

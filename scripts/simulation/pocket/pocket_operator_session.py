@@ -87,6 +87,105 @@ def end_mission_intent(node, profile, dispatch):
     return dispatch('END_MISSION')
 
 
+class SdReturn:
+    """Bind one reversible SD return/release cycle to its original flight root."""
+    def __init__(self):
+        self.clear()
+
+    def clear(self):
+        self.identity = None
+        self.released = False
+        self.pausing = False
+        self.until = 0.
+        self.retry_after = 0.
+        self.continue_return = False
+
+    @staticmethod
+    def root(node):
+        if node.active_goal is None:
+            return None
+        return (bytes(node.active_goal.goal_id.uuid), node.instance, bytes(node.session.uuid))
+
+    def press(self, node, profile, dispatch, now):
+        self.clear()
+        if node.active_goal is None:
+            return end_mission_intent(node, profile, dispatch)
+        if profile in ('uav-aetr-v1','pocket-rc-v2') and os.environ.get('UAV_NAVIGATION_BACKEND')!='EGO':
+            return False, 'RETURN_REQUIRES_AVOIDANCE_NAVIGATION'
+        if node.return_override and node.return_checkpoint is not None and not node.land_committed:
+            self.identity = self.root(node)
+            self.continue_return = True
+            return True, 'SD_RETURN_CONTINUE_REQUESTED'
+        if node.phase=='OBSERVE':
+            try:
+                node.planning_ready()
+            except ValueError:
+                return end_mission_intent(node, profile, dispatch)
+        elif node.phase in ('PRESTREAM','OFFBOARD_REQUEST','ARM_REQUEST','TAKEOFF',
+                            'PAUSING','HOLD_HANDOFF') or node.pilot_control:
+            return end_mission_intent(node, profile, dispatch)
+        accepted, reason = dispatch('RETURN')
+        if accepted:
+            self.identity = self.root(node)
+            self.until = now+16.
+        return accepted, reason
+
+    def release(self, now=None):
+        if self.identity is None:
+            return False, 'NO_SD_RETURN_TO_RESUME'
+        self.released = True
+        self.until = (time.monotonic() if now is None else now)+16.
+        return True, 'SD_RESUME_REQUESTED'
+
+    def admission(self, verb, accepted, reason='', now=None):
+        if verb in ('RETURN','PAUSE','RESUME','RESUME_MISSION') and not accepted:
+            if verb=='PAUSE' and reason in ('COMMAND_PENDING','STALE_FEEDBACK'):
+                self.pausing = False
+                self.retry_after = (time.monotonic() if now is None else now)+.2
+            else:
+                self.clear()
+
+    def tick(self, node, switches, dispatch, now, *, pending=False):
+        if self.identity is None:
+            return None
+        reason = None
+        if self.root(node)!=self.identity or node.result is not None or node.canceling:
+            reason = 'SD_RETURN_ROOT_RETIRED'
+        elif node.land_committed:
+            reason = 'LANDING_COMMITTED'
+        elif not switches.arm or not switches.navigation or switches.aux_mode!=0:
+            reason = 'SD_RESUME_REQUIRES_TASK_EXECUTE'
+        elif now>=self.until and self.released:
+            reason = 'SD_RESUME_TIMEOUT'
+        if reason:
+            self.clear()
+            return 'SD_RESUME', False, reason
+        if self.continue_return and switches.safety_held and not pending and node.phase=='PAUSED':
+            accepted, reason = dispatch('RESUME')
+            self.continue_return = False
+            if not accepted:
+                self.clear()
+            return 'RESUME', accepted, reason
+        if not self.released or switches.safety_held or pending or now<self.retry_after:
+            return None
+        if not node.return_override:
+            return None  # Wait for the identity-bound RETURN service and feedback.
+        if node.return_checkpoint is None:
+            self.clear()
+            return 'SD_RESUME', False, 'NO_RESUMABLE_CHECKPOINT'
+        if node.phase=='PAUSED':
+            accepted, reason = dispatch('RESUME_MISSION')
+            self.clear()  # A rejection stays paused; never retry or start another root.
+            return 'RESUME_MISSION', accepted, reason
+        if not self.pausing and node.phase in ('RETURN_BRAKE','HOLD_HANDOFF','PLAN_REQUEST','RETURN'):
+            accepted, reason = dispatch('PAUSE')
+            self.pausing = accepted
+            if not accepted:
+                self.clear()
+            return 'PAUSE', accepted, reason
+        return None
+
+
 def task_parameters(node, manifest):
     """Build the same current-origin recipe for PREPARE and actual dispatch."""
     from copy import deepcopy
@@ -307,6 +406,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
     auto_prepared = False
     intervention_requested = False
     resume_when_paused = False
+    sd_return = SdReturn()
     previous_navigation = switches.navigation
     heartbeat=0.
     hid_events = 0
@@ -442,6 +542,7 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                 print(f'Task admission: {response.accepted} {response.reason}', flush=True)
                 if not response.accepted:
                     intervention_requested=resume_when_paused=False
+                sd_return.admission(pending_verb, response.accepted, response.reason, now)
                 if pending_verb=='CANCEL':
                     cancel_manual_admitted=response.accepted
                     if not response.accepted:cancel_manual_root=None
@@ -472,6 +573,8 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
             for command in switches.tick(now):
                 node.operator_arm_enabled = switches.arm
                 node.operator_navigation_enabled = switches.navigation and not manual_only
+                if command not in ('SD_RETURN','SD_RELEASE','BLOCKED_SAFETY_HELD'):
+                    sd_return.clear()
                 if manual_only and not manual_command_allowed(command):
                     accepted,reason=False,'MANUAL_ONLY_SESSION'
                 elif not admitted and command in ('ARM','PREPARE','RUN','INTERVENE','MANUAL','ACRO','VIO_POSITION','ASSISTED_POSITION','FLOW_POSITION','RTL'):
@@ -515,6 +618,14 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     cancel_manual_root=None
                     cancel_manual_admitted=False
                     accepted,reason=end_mission_intent(node,profile,task_intent)
+                elif command == 'SD_RETURN':
+                    auto_prepared = False
+                    intervention_requested = resume_when_paused = False
+                    cancel_manual_root=None
+                    cancel_manual_admitted=False
+                    accepted,reason=sd_return.press(node,profile,task_intent,now)
+                elif command == 'SD_RELEASE':
+                    accepted,reason=sd_return.release(now)
                 elif command == 'TOGGLE_PAUSE':
                     if intervention_requested or node.pilot_control:
                         accepted,reason=False,'INTERVENTION_USE_SC_EXECUTE_TO_RESUME'
@@ -536,6 +647,11 @@ def control(session, device, return_button=None, profile='legacy-usb', manual_on
                     row['manual_control'] = ({key:getattr(manual,key) for key in
                         ('roll','pitch','yaw','throttle')} if manual is not None else None)
                 requests.append(row); print(json.dumps(row), flush=True)
+            recovery = sd_return.tick(node,switches,task_intent,now,pending=pending is not None)
+            if recovery is not None:
+                verb,accepted,reason=recovery
+                row=dict(mono=now,command=verb,accepted=accepted,reason=reason,source='SD_RELEASE')
+                requests.append(row); print(json.dumps(row),flush=True)
             if switches.navigation != previous_navigation:
                 if not switches.navigation:
                     auto_prepared = False

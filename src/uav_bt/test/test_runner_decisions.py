@@ -149,7 +149,7 @@ class DecisionBackend(Backend):
 
 CASES = ['pause-resume', 'cancel-pausing', 'unconfirmed', 'reject', 'stale', 'start', 'identity',
          'return', 'return-pause', 'return-early', 'restore', 'restore-reject', 'restore-unconfirmed', 'restore-early', 'finish',
-         'restore-twice','restore-old-feedback']
+         'restore-twice','restore-old-feedback','restore-brake','restore-observe']
 
 
 @pytest.mark.parametrize('case', CASES)
@@ -165,7 +165,7 @@ def test_priority_decisions_keep_root_and_wait_for_physical_feedback(tmp_path, c
     parameters = tmp_path/'params.json'
     parameters.write_text(json.dumps(dict(step_controlled=True, runner_progress_required=True,
         coordinator_instance='test-instance', operator_start_required=case == 'start',
-        steps=[dict(type=t) for t in ('TAKEOFF', 'NAVIGATE', 'HOVER', 'RETURN', 'LAND')])))
+        steps=[dict(type=t) for t in ('TAKEOFF', 'OBSERVE' if case=='restore-observe' else 'NAVIGATE', 'HOVER', 'RETURN', 'LAND')])))
     process = None
     try:
         with (tmp_path/'runner.log').open('w') as log:
@@ -185,7 +185,7 @@ def test_priority_decisions_keep_root_and_wait_for_physical_feedback(tmp_path, c
                 assert node.command('START', root=UUID(), request_id=request_id).accepted
             wait_for(lambda: node.step_index == 1)
             if case != 'stale':
-                wait_for(lambda: node.status.phase == 'NAVIGATE')
+                wait_for(lambda: node.status.phase == ('OBSERVE' if case=='restore-observe' else 'NAVIGATE'))
             if case == 'identity':
                 assert not node.command('PAUSE', instance='old-instance').accepted
                 request_id = uuid.uuid4().bytes
@@ -213,7 +213,7 @@ def test_priority_decisions_keep_root_and_wait_for_physical_feedback(tmp_path, c
                 assert not node.command('RESUME_MISSION').accepted
                 assert node.command('END_MISSION' if case=='finish' else 'RETURN').accepted
                 if case == 'return-pause' or case.startswith('restore') or case == 'finish':
-                    wait_for(lambda: node.status.phase == 'RETURN')
+                    wait_for(lambda: node.status.phase == ('RETURN_BRAKE' if case=='restore-brake' else 'RETURN'))
                     assert node.command('PAUSE').accepted
                     wait_for(lambda: node.status.phase == 'PAUSED')
                     before = len(node.progress)
@@ -245,7 +245,7 @@ def test_priority_decisions_keep_root_and_wait_for_physical_feedback(tmp_path, c
         expected = 1 if case in ('unconfirmed', 'stale', 'return-early','restore-unconfirmed','restore-early') else 130 if case == 'cancel-pausing' else 0
         assert process.returncode == expected, text
         assert node.goals == 1 and text.count('BT_RESULT') == 1
-        if case in ('restore','restore-twice','restore-old-feedback'):
+        if case in ('restore','restore-twice','restore-old-feedback','restore-brake','restore-observe'):
             assert node.advances == ([0,1,1,1,2,3,4] if case=='restore-twice' else [0,1,1,2,3,4])
             assert node.cancel_at is None
             assert node.advance_ids[1] != node.advance_ids[2]
