@@ -229,6 +229,7 @@
 | [scripts/simulation/vio/analysis/analyze_vio_flight_images.py](simulation/vio/analysis/analyze_vio_flight_images.py) | Offline image structure diagnostics. Candidate corners are NOT cuVSLAM inliers. |
 | [scripts/simulation/vio/analysis/analyze_vio_physical_replay.py](simulation/vio/analysis/analyze_vio_physical_replay.py) | Recompute physical-reference replay diagnostics, never flight acceptance. |
 | [scripts/simulation/vio/analysis/analyze_vio_sdk16_marginal.py](simulation/vio/analysis/analyze_vio_sdk16_marginal.py) | Validate repaired SDK exports and same-trajectory covariance counterfactuals. |
+| [scripts/simulation/vio/analysis/analyze_vio_startup.py](simulation/vio/analysis/analyze_vio_startup.py) | Read-only stationary startup comparison; never grants flight qualification. |
 | [scripts/simulation/vio/analysis/assess_obstacle_course.py](simulation/vio/analysis/assess_obstacle_course.py) | Check ordered waypoints, directed apertures and swept native Gazebo truth. |
 | [scripts/simulation/vio/analysis/assess_px4_real_vio_fusion.py](simulation/vio/analysis/assess_px4_real_vio_fusion.py) | Independently inspect saved source/output/EKF chronology, without ROS or VIO code. |
 | [scripts/simulation/vio/analysis/assess_vio_motion_evidence.py](simulation/vio/analysis/assess_vio_motion_evidence.py) | Replay archived reference-motion error independently, without ROS or live graph. |

@@ -98,6 +98,10 @@ def test_vio_assets_replace_geometry_without_changing_sensor_rig(tmp_path):
     for name in ('x500_vio_ref/model.sdf','frames.json'):
         assert (tmp_path/'none'/name).read_bytes() == (tmp_path/'all'/name).read_bytes()
     root = ET.parse(tmp_path/'all/default.sdf')
+    assert root.findtext('.//world/gravity') == '0 0 -9.81'
+    floor = root.find('.//model[@name="course_textured_floor"]/link/visual')
+    assert floor.findtext('material/ambient') == '1 1 1 1'
+    assert floor.findtext('material/diffuse') == '1 1 1 1'
     assert root.find('.//model[@name="avoidance_crate"]') is None
     assert root.find('.//model[@name="ring_segment_00"]/link/collision') is not None
     receipt = json.loads((tmp_path/'all/warehouse-layout.json').read_text())

@@ -8,12 +8,47 @@ import math
 import time
 
 
+def initialized_window(states, covariance_stamps, ros, writer_valid, window_s=30.):
+    """Recent matched SDK evidence for ground startup, not SDK qualification.
+
+    The separate candidate audit still requires 120 s. This window is used
+    only together with equally long original VIO/PX4 position stability.
+    """
+    states = states[-2000:]
+    covariance_stamps = covariance_stamps[-2000:]
+    checks = dict(writer=bool(writer_valid), present=bool(states and covariance_stamps))
+    if not checks['present']:
+        return dict(passed=False, window_s=window_s, checks=checks)
+    if not all(row and math.isfinite(row[0]) for row in states):
+        return dict(passed=False, window_s=window_s, checks=dict(checks, finite_time=False))
+    end = min(states[-1][0], covariance_stamps[-1])
+    begin = end-window_s*1e9
+    rows = [row for row in states if begin <= row[0] <= end]
+    stamps = [s for s in covariance_stamps if begin <= s <= end]
+    checks['fresh'] = all(-.05 <= ros-t/1e9 <= .2 for t in (states[-1][0], covariance_stamps[-1]))
+    checks['initialized'] = bool(rows) and all(
+        len(row) == 14 and row[1] == 1 and all(math.isfinite(v) for v in row)
+        and 8. <= math.sqrt(sum(v*v for v in row[2:5])) <= 11. for row in rows)
+    times = [row[0] for row in rows]
+    for name, values in (('state', times), ('covariance', stamps)):
+        checks[name+'_continuous'] = bool(len(values) > 1
+            and (values[-1]-values[0])/1e9 >= window_s-.1
+            and all(0 < b-a <= .2e9 for a, b in zip(values, values[1:])))
+    state_times = {round(t) for t in times}
+    checks['matched'] = bool(stamps) and all(round(s) in state_times for s in stamps)
+    return dict(passed=all(checks.values()), window_s=window_s, checks=checks,
+                state_samples=len(rows), covariance_samples=len(stamps))
+
+
 class MapStartupStability:
     window_s = 10.
     max_position_span_m = .03
     max_angle_rad = math.radians(1.)
 
-    def __init__(self):
+    def __init__(self, window_s=10.):
+        if not math.isfinite(window_s) or not 10. <= window_s <= 30.:
+            raise ValueError('Startup stability window must be within [10,30] seconds')
+        self.window_s = window_s
         self.samples = {key: deque(maxlen=4000) for key in ('vio', 'px4')}
         self.local_resets = None
 

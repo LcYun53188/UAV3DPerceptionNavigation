@@ -245,7 +245,12 @@ def add_course(world, directory):
     ET.SubElement(visual, 'pose').text = '0 0 .001 0 0 0'
     side = 2*layout['half_extent_m']
     ET.SubElement(ET.SubElement(ET.SubElement(visual, 'geometry'), 'box'), 'size').text = f'{side} {side} .002'
-    material = ET.SubElement(visual, 'material'); metal = ET.SubElement(ET.SubElement(material, 'pbr'), 'metal')
+    material = ET.SubElement(visual, 'material')
+    # Ogre multiplies the albedo texture by the material colour. An implicit
+    # black material hides the near-field texture from both stereo cameras.
+    for tag in ('ambient', 'diffuse'):
+        ET.SubElement(material, tag).text = '1 1 1 1'
+    metal = ET.SubElement(ET.SubElement(material, 'pbr'), 'metal')
     ET.SubElement(metal, 'albedo_map').text = 'model://warehouse_textures/materials/textures/floor.png'
     ET.SubElement(metal, 'metalness').text = '0'; ET.SubElement(metal, 'roughness').text = '1'
     receipt = dict(schema=1, layout=layout, layout_sha256=hashlib.sha256(LAYOUT.read_bytes()).hexdigest(),

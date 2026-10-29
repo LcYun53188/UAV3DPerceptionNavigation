@@ -13,6 +13,7 @@
   ],
   "image_rate_hz": 25,
   "imu_rate_hz": 250,
+  "gravity_m_s2": 9.81,
   "near_m": 0.1,
   "far_m": 20.0,
   "camera_pitch_deg": 5

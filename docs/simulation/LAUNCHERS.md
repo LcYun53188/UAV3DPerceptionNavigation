@@ -19,7 +19,9 @@
 
 DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地面融合检查，完整项目仍需 VIO、传感器和地图准入。完整项目保留 SDK Schur64 实验配置及其协方差资格边界，详见 [VIO 操作](../flight/VIO_POCKET_AVOIDANCE.md)。
 
-完整项目启动期间关闭深度融合，RViz 地图应保持为空。既有 SDK 预热及源检查通过，并且未解锁着地状态下 VIO、PX4 连续 10 秒位置跨度均不超过 3 cm，VIO 姿态与 PX4 航向变化不超过 1°，才清空原生地图并开放建图；消息队列里的启动旧帧也会丢弃。终端显示“定位稳定，已清空原生地图并开放深度建图”后开始生成地图。启动检查失败时不会保留漂移阶段的重建。
+完整项目启动期间关闭深度融合，RViz 地图应保持为空。操作会话要求未解锁着地，VIO、PX4 连续 **30 秒**位置跨度均不超过 **3 cm**，VIO 姿态与 PX4 航向变化不超过 **1°**；同一窗口的 SDK 初始化状态须有效、时间连续且与协方差输出配对，数据和发布者检查仍必需。满足后才清空原生地图并开放建图，丢弃启动旧帧，再观察 10 秒并复核稳定性才生成飞行准入文件。操作启动不再机械等待 120 秒；独立 SDK 候选资格审计仍保留 120 秒要求，操作准入不代表全局协方差或飞行验收。
+
+终端显示“定位稳定，已清空原生地图并开放深度建图”后开始生成地图，`POCKET_SESSION` 表示启动预检完成。`startup-progress.jsonl` 每 5 秒记录源状态、SDK 窗口与 VIO/PX4 跨度，`map-admission.json` 和 `flight-admission.json` 保存准入时间。若任一窗口持续超限，仍会阻止准入；不会通过缩短倒计时放行漂移。
 
 ## 构建准备
 
@@ -63,9 +65,9 @@ DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地�
 
 两个程序共用 `--device`、`--qgc-config`、`--session-duration`（60–14400 秒）。到期后仍需确认落地上锁才正常关闭。
 
-full 可显式增加 `--people`，运行 RGB 人员检测、配准深度定位和地图标注；默认关闭，不增加菜单程序或操作步骤。先构建可选模块并准备固定模型，见[人员地图定位](../../src/uav_target_perception/README.md)。`--person-model` 可指定模型路径；纯光流 manual 不提供该功能。
+full 默认使用复杂避障仓库（14×14×6 m、79 个障碍实体），加入一个静态站立人体并开启 RGB 人员检测、配准深度定位和地图标注。该布局为复杂仓库的导航适配版本，内部名 `avoidance`；保留原有保护区与任务路线。先构建感知模块并准备固定模型及人体资产，见[人员地图定位](../../src/uav_target_perception/README.md)。`--person-model` 可指定模型路径；纯光流 manual 不提供该功能。
 
-准备固定版本的 CC0 人体资产后，用 `run full --people --person-scene standing` 加入一个静态站立人体；默认场景不含该模型。资产准备和独立 RGB-D 几何测试见[人体仿真模型](../../src/uav_target_perception/README.md#人体仿真模型与定位测试)。
+`person_scene` 默认 `auto`：仓库且人员检测开启时解析为 `standing`；选择赛道或关闭检测时解析为 `none`，保存的 JSON 记录解析后的场景。`run full --no-people` 关闭默认人体与检测，`--person-scene none` 仅移除人体。旧 JSON 的显式 `people: false`、`person_scene: none` 保持原选择。站立资产为固定版本 CC0 模型；资产准备和独立 RGB-D 几何测试见[人体仿真模型](../../src/uav_target_perception/README.md#人体仿真模型与定位测试)。
 
 `--person-scene postures --person-rotations` 可组合站立、坐姿和仰卧模型，并启用额外方向推理（增加 CPU 开销）；需先准备坐姿资产。确认过的人员位置默认保留在 RViz 的橙色 Last Observed People 图层，绿色实时点仍按有效期更新，地图/定位坐标变化会清空历史。详见[持续标记说明](../../src/uav_target_perception/README.md#rviz-持续显示最后观测位置)。
 

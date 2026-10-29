@@ -827,8 +827,11 @@ def main():
                 # Keep depth integration closed throughout startup, including
                 # the visible mesh. Only stable localization may open the map.
                 from vio_chain_mapping import launch_mapping, native_map_file
-                from vio_map_startup import MapStartupStability
-                map_stability=MapStartupStability()
+                from vio_map_startup import MapStartupStability, initialized_window
+                # Operator startup uses sustained measured stability instead
+                # of the diagnostic candidate's fixed observation duration.
+                # Candidate qualification remains a separate 120 s audit.
+                map_stability=MapStartupStability(window_s=30. if args.pocket_session else 10.)
                 map_stability.subscribe(node)
                 launch_mapping(launch,env,out,run_id,graph_only=True,visualize=args.ui,color_map=args.color_map,
                                map_options=map_options)
@@ -837,7 +840,7 @@ def main():
                     depth_integration_enabled=False,
                     activation_requires='map-admission.json and first valid promoted map',
                     scope='DDS startup only; no startup depth fusion or mesh'))
-                print('建图等待定位稳定：启动期间不融合深度；VIO/PX4 连续 10 秒位置跨度 ≤3 cm、姿态变化 ≤1° 后开放。',flush=True)
+                print(f'建图等待定位稳定：启动期间不融合深度；VIO/PX4 连续 {map_stability.window_s:g} 秒位置跨度 ≤3 cm、姿态变化 ≤1° 后开放。',flush=True)
             command=([sys.executable,ROOT/'scripts/simulation/pocket/pocket_operator_session.py','--device',args.device,'--input-profile',args.input_profile,'--session',out,'--enable-sitl-control', *(['--manual-only'] if args.manual_only else [])] if args.pocket_session else [sys.executable,ROOT/'scripts/simulation/px4/run_px4_flight_tasks.py'])
             flight_process=launch('flight_gateway',command)
             if chain_depth:
@@ -849,28 +852,47 @@ def main():
             preflight_blocked=''
             joint_startup_recorded=False
             map_status_written=0.
+            preflight_started=time.monotonic()
+            preflight_evaluated=0.
+            measured_startup=bool(args.pocket_session and chain_depth and args.experimental_chain)
             ready_until=time.monotonic()+(300. if chain_depth else 190. if args.experimental_chain else 40.)
             while time.monotonic()<ready_until:
                 rclpy.spin_once(node,timeout_sec=.02)
+                if (args.pocket_session and (out/'close-ui').exists()
+                        and grounded_for_viewers(audit.last,audit.receive,time.monotonic())):
+                    preflight_blocked='Operator requested close before preflight admission'
+                    break
                 if args.experimental_chain and not joint_startup_recorded and len(fusion_audit.outputs)>=50:
                     joint_startup_recorded=True
                     write_json(out/'joint-startup.json',dict(vio_outputs_before_mtf=len(fusion_audit.outputs),ros=fusion_audit.ros(),flow_process_prewarmed=True,scope='Flow output waits for 50 fresh EV samples; process loads before source binding'))
                 require_processes('Owned preflight')
-                if chain_depth and time.monotonic()-map_status_written>=5.:
-                    map_status_written=time.monotonic()
-                    write_json(out/'map-startup-stability.json',dict(
-                        map_stability.result(fusion_audit.ros(),map_status_written,fusion_audit.ground()),
-                        system_ns=time.time_ns(),source_reason=fusion_audit.gate.reason))
                 preflight_fault=fusion_audit.stream.fault or fusion_audit.gate.fault
                 if preflight_fault:
                     if not args.pocket_session:raise RuntimeError('VIO preflight fault: '+preflight_fault)
                     preflight_blocked='VIO preflight fault: '+preflight_fault
                     break
+                now=time.monotonic()
+                # Scanning a 30 s history on every DDS callback starves the
+                # same executor that delivers the original sensor samples.
+                if now-preflight_evaluated<.25:continue
+                preflight_evaluated=now
+                stability=map_stability.result(fusion_audit.ros(),now,fusion_audit.ground()) if chain_depth else None
+                sdk_startup=(initialized_window(candidate_audit.states,candidate_audit.covariance_stamps,
+                    fusion_audit.ros(),candidate_audit.writer_valid) if measured_startup else None)
+                if chain_depth and now-map_status_written>=5.:
+                    map_status_written=now
+                    progress=dict(stability,system_ns=time.time_ns(),ros=fusion_audit.ros(),
+                        elapsed_s=now-preflight_started,source_reason=fusion_audit.gate.reason,
+                        sdk_startup=sdk_startup)
+                    write_json(out/'map-startup-stability.json',progress)
+                    with (out/'startup-progress.jsonl').open('a') as progress_file:
+                        progress_file.write(json.dumps(progress)+'\n')
                 if (fusion_audit.gate.reason=='READY' and runtime_receipt.result()['passed']
-                        and (not args.experimental_chain or (candidate_audit.states and candidate_audit.covariance_stamps
+                        and (sdk_startup['passed'] if measured_startup else
+                            (not args.experimental_chain or (candidate_audit.states and candidate_audit.covariance_stamps
                             and candidate_audit.writer_valid
-                            and (candidate_audit.states[-1][0]-candidate_audit.covariance_stamps[0])/1e9>=120.))
-                        and (not chain_depth or map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground())['passed'])):break
+                            and (candidate_audit.states[-1][0]-candidate_audit.covariance_stamps[0])/1e9>=120.)))
+                        and (not chain_depth or stability['passed'])):break
             else:
                 preflight_blocked='VIO preflight fusion unavailable: '+fusion_audit.gate.reason
                 if chain_depth and not map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground())['passed']:
@@ -894,11 +916,16 @@ def main():
                     from vio_chain_mapping import launch_mapping
                     native_map_file(node,'load',empty_map)
                     stability=map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground())
-                    if not stability['passed'] or fusion_audit.gate.reason!='READY' or fusion_audit.stream.fault:
+                    if measured_startup:
+                        sdk_startup=initialized_window(candidate_audit.states,candidate_audit.covariance_stamps,
+                            fusion_audit.ros(),candidate_audit.writer_valid)
+                    if (not stability['passed'] or fusion_audit.gate.reason!='READY' or fusion_audit.stream.fault
+                            or (measured_startup and not sdk_startup['passed'])):
                         raise RuntimeError('Localization changed during map startup; depth integration remains closed')
                     write_json(out/'map-admission.json',dict(schema=1,native_map_cleared=True,
                         source_ready=True,empty_map_sha256=file_hash(empty_map),
-                        stability=stability,
+                        stability=stability,system_ns=time.time_ns(),ros=fusion_audit.ros(),
+                        sdk_startup=sdk_startup,qualification_observation_s=120.,
                         scope='Depth fusion opens after stable ground localization; startup frames discarded'))
                     print('定位稳定，已清空原生地图并开放深度建图。',flush=True)
                     settle_until=time.monotonic()+10.
@@ -907,12 +934,17 @@ def main():
                         if fusion_audit.stream.fault:raise RuntimeError('VIO map startup fault: '+fusion_audit.stream.fault)
                     if fusion_audit.gate.reason!='READY':
                         raise RuntimeError('VIO map startup not ready: '+fusion_audit.gate.reason)
+                    if measured_startup and (not map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground())['passed']
+                            or not initialized_window(candidate_audit.states,candidate_audit.covariance_stamps,
+                                fusion_audit.ros(),candidate_audit.writer_valid)['passed']):
+                        raise RuntimeError('VIO stability changed before operator admission')
                 preflight=audit.result()
                 write_json(out/'sensor-preflight.json',preflight)
                 sensor_failures=[k for k,v in preflight['checks'].items() if not v and k!='only_pose_fmu_input']
                 if sensor_failures:raise RuntimeError('Sensor preflight failed: '+str(sensor_failures))
                 write_json(out/'flight-admission.pending.json',dict(calibration_id=calibration,sensor_checks_passed=True,
-                    fusion_profile=env['UAV_VIO_FUSION_PROFILE'],joint_ground_preflight=args.experimental_chain))
+                    fusion_profile=env['UAV_VIO_FUSION_PROFILE'],joint_ground_preflight=args.experimental_chain,
+                    system_ns=time.time_ns(),ros=fusion_audit.ros()))
                 os.replace(out/'flight-admission.pending.json',out/'flight-admission.json')
             if chain_depth:
                 write_json(out/'map-startup-stability.json',map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground()))

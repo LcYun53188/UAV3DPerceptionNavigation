@@ -127,6 +127,14 @@ def assets(directory, upstream_world, *, motion_plugin=None, scene='planar', rea
     (model_dir/'model.config').write_text('<model><name>'+p['model']+'</name><version>1</version><sdf version="1.9">model.sdf</sdf></model>')
     world = ET.parse(upstream_world)
     root = world.getroot().find('world')
+    # cuVSLAM's inertial model fixes gravity at 9.81 m/s^2. The upstream
+    # Gazebo world uses 9.8; that deterministic mismatch otherwise has to be
+    # absorbed into estimated acceleration bias during stationary startup.
+    # Set the physical world, never rewrite measured IMU samples or poses.
+    gravity = root.find('gravity')
+    if gravity is None:
+        gravity = ET.SubElement(root, 'gravity')
+    gravity.text = f"0 0 -{p['gravity_m_s2']}"
     if motion_plugin is not None:
         carrier = ET.SubElement(root,'include')
         ET.SubElement(carrier,'uri').text = 'model://'+p['model']
