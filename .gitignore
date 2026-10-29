@@ -29,3 +29,8 @@ htmlcov/
 /docs/validation/
 /scripts/test_*
 /scripts/tests/local/
+
+# Competition materials and generated submission packages stay local.
+/docs/development/SAFETY_COMPETITION_PLAN_2026.md
+/docs/development/safety-competition-2026/
+/docs/development/破晓先锋_*.zip
