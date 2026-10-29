@@ -103,7 +103,6 @@
 | [脚本总目录](scripts/README.md) | 工具用途、环境与调用方式 |
 | [开发日志](docs/history/DEVELOPMENT_LOG.md) | 按日期记录开发进展、实验指标与遗留问题 |
 | [全链路开发计划](docs/development/SIMULATION_DEVELOPMENT_PLAN.md) | 阶段任务、依赖与验收标准 |
-| [“破晓先锋”项目书](docs/development/PROJECT_PROPOSAL.md) | 受限空间搜寻方向、现有基础、研发目标与分层验收 |
 | [第三方依赖维护](patches/vendor/README.md) | 子模块补丁、版本约束与 Git LFS |
 | [文档维护约定](docs/MAINTENANCE.md) | 目录归属、引用规则与迁移映射 |
 
