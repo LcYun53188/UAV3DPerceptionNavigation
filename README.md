@@ -46,7 +46,7 @@
 | 程序 | 命令 | 内容 |
 | --- | --- | --- |
 | 纯手动飞行 | `./scripts/sim.sh run manual` | Gazebo、PX4、QGC，光流／测距定位，无 VIO、建图和自动任务 |
-| 完整项目 | `./scripts/sim.sh run full` | Gazebo、PX4、QGC、RViz，VIO、光流／测距、nvblox、EGO 与遥控器任务控制 |
+| 完整项目 | `./scripts/sim.sh run full` | 复杂避障仓库（79 个障碍实体）与站立人体；Gazebo、PX4、QGC、RViz，VIO、建图、EGO、人员检测与遥控器任务控制 |
 
 使用模拟遥控器时，程序自动复用或打开电脑面板，无需另开面板命令：
 
@@ -57,7 +57,9 @@
 
 `--device /dev/input/...` 可指定设备；校准完成并退出后自动保存，下次同设备无需重复校准。`--qgc-config <文件>` 可显式导入，`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
 
-完整项目可用 `--people` 显式启用 RGB 人员检测、深度定位与地图标注，默认关闭；先按[人员感知模块说明](src/uav_target_perception/README.md)构建并准备模型。
+完整项目默认使用 **14×14×6 m 复杂避障仓库**，包含开放货架、管柱、台阶、箱堆、顶梁和绕障箱体，共 79 个障碍实体；在世界 ENU `(3, 3.5, 0) m` 加入一个静态站立人体，并开启 RGB 人员检测、深度定位与地图标注。先按[人员感知模块说明](src/uav_target_perception/README.md)构建并准备检测模型及站立人体资产。`--no-people` 同时关闭默认人体与检测；`--person-scene none` 仅移除人体，保留检测。
+
+该场景是 `complex` 仓库的导航适配版本（内部名 `avoidance`），保留复杂结构并增加两处障碍；起降／观察保护区、地图准入及原任务路线继续生效。启动配置变更不代表新增飞行验收通过。
 
 完整项目的可选功能仍通过 `run full` 选择：
 

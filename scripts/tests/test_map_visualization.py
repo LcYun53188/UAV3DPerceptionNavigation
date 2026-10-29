@@ -11,7 +11,7 @@ from simulation.manual import runtime_command
 @pytest.mark.parametrize('mode', dict(view.MODES))
 def test_public_cli_saved_configuration_to_runtime_and_rviz(mode, tmp_path):
     config_path = tmp_path/'profile.json'
-    assert cli.main(['run', 'full', '--map-color', mode, '--map-slice-height', '1.4',
+    assert cli.main(['run', 'full', '--no-people', '--map-color', mode, '--map-slice-height', '1.4',
                      '--map-height-min', '-1', '--map-height-max', '5',
                      '--save', str(config_path), '--dry-run']) == 0
     config = profiles.read_config(config_path)

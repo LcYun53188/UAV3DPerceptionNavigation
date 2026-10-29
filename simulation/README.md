@@ -29,12 +29,14 @@
 
 ```bash
 ./scripts/sim.sh run manual  # 光流／测距纯手动，无 VIO
-./scripts/sim.sh run full    # VIO／建图／导航完整项目
+./scripts/sim.sh run full    # 复杂避障仓库＋站立人体；VIO／建图／导航／人员检测
 ```
 
 绕柱、矩形框、圆环和树木四区赛道使用 `./scripts/sim.sh run full --course all`；单区选择、地图准备、尺寸和通过判据见[四区赛道说明](../docs/simulation/OBSTACLE_COURSE.md)。
 
 两者默认实体 HID；显式添加 `--input-source virtual` 使用电脑模拟遥控器。启动保持未解锁，不自动起飞。光流程序没有 VIO、地图或自动任务；完整项目运行 PX4 动力学、VIO、nvblox、EGO 和遥控器任务控制。
+
+完整项目默认使用 `vio_warehouse_avoidance.json`：14×14×6 m，79 个障碍实体，包含复杂仓库结构和导航绕障布局，并加入一个站立人体及人员检测。需提前准备检测模型与人体资产，见[人员模块](../src/uav_target_perception/README.md)。`--no-people` 关闭默认人体和检测，`--person-scene none` 仅移除人体。选择 `--course` 时不加入默认仓库人体。
 
 ## 在另一终端操作
 

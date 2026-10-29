@@ -56,17 +56,17 @@ PROFILES = (
     Profile('manual', '纯手动飞行：光流／测距，无 VIO',
             'Gazebo＋PX4＋QGC，使用原生光流／测距定位；不启动 VIO、建图或自动任务。', COMMON_OPTIONS),
     Profile('full', '完整项目：VIO／建图／导航／行为树',
-            'Gazebo＋PX4＋QGC＋RViz，运行 VIO、光流／测距、nvblox、EGO 和遥控器任务控制。', COMMON_OPTIONS + (
+            'Gazebo＋PX4＋QGC＋RViz，默认复杂避障仓库（79 个障碍实体）＋站立人体，运行 VIO、建图、EGO 和人员检测。', COMMON_OPTIONS + (
                 Option('course', '障碍赛道任务', 'none',
-                       (('none', '原仓库'), ('pillars', '绕柱'), ('rectangle', '穿矩形框'),
+                       (('none', '复杂避障仓库'), ('pillars', '绕柱'), ('rectangle', '穿矩形框'),
                         ('ring', '穿圆环'), ('trees', '绕树'), ('all', '四区串联'))),
-                Option('people', '启用人员识别与地图标注（需先构建感知模块）', False,
+                Option('people', '启用人员识别与地图标注（需先构建感知模块）', True,
                        ((False, '关闭'), (True, '开启')), interactive=False),
                 Option('person_model', '人员检测模型路径', '.cache/models/person/yolox_tiny.onnx', interactive=False),
                 Option('person_rotations', '人员检测增加正负 90 度方向（增加 CPU 负载）', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
-                Option('person_scene', '可选人体仿真场景（需先准备资产）', 'none',
-                       (('none', '原场景'), ('standing', '静态站立人体'), ('sitting', '坐姿人体'),
+                Option('person_scene', '人体仿真场景（需先准备资产）', 'auto',
+                       (('auto', '仓库默认站立人体；赛道不加人体'), ('none', '不加入人体'), ('standing', '静态站立人体'), ('sitting', '坐姿人体'),
                         ('lying', '仰卧人体'), ('postures', '站立、坐姿与仰卧')), interactive=False),
                 Option('color_map', '融合 RGB 并保存地图颜色', False,
                        ((False, '关闭'), (True, '开启')), interactive=False),
@@ -98,6 +98,8 @@ def validate_config(config):
             options['color_map'] = True
         if options['map_color'] == 'semantic':
             options['people'] = True
+        if options['person_scene'] == 'auto':
+            options['person_scene'] = ('standing' if options['people'] and options['course'] == 'none' else 'none')
     if key == 'full' and options['person_scene'] != 'none' and not options['people']:
         raise ValueError('人体场景需要显式开启 --people')
     if key == 'full' and options['course'] != 'none' and options['person_scene'] != 'none':

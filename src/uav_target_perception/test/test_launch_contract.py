@@ -15,9 +15,10 @@ from simulation.manual import runtime_command
 from vio_chain_mapping import export_grounded_color_map, launch_mapping
 
 
-def test_full_defaults_keep_person_perception_disabled():
+def test_full_defaults_include_person_and_perception():
     command = profiles.command(dict(schema=1, profile='full'))
-    assert '--people' not in command and '--person-model' not in command
+    assert '--people' in command and '--person-model' in command
+    assert command[command.index('--person-scene')+1] == 'standing'
 
 
 def test_cli_explicit_people_flag_is_forwarded_without_adding_a_third_program(monkeypatch):
@@ -82,7 +83,7 @@ def test_color_mapping_is_explicit_and_uses_gated_rgb_with_one_shared_bridge(tmp
 
 
 def test_color_cli_does_not_enable_people_or_add_a_program():
-    command = profiles.command(dict(schema=1, profile='full', options=dict(color_map=True)))
+    command = profiles.command(dict(schema=1, profile='full', options=dict(color_map=True, people=False)))
     assert '--color-map' in command and '--people' not in command
     identity = dict(device='/dev/input/js0', input_profile='pocket-rc-v2')
     assert '--color-map' in runtime_command(identity, 3600, program='full', color_map=True)

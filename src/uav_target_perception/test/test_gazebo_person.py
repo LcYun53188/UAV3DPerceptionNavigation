@@ -46,13 +46,13 @@ def test_asset_preparation_rejects_archive_path_escape(tmp_path, monkeypatch):
     assert not (tmp_path/'cache/escaped.txt').exists()
 
 
-def test_person_scene_is_explicit_and_cannot_enable_people_silently():
+def test_default_person_scene_and_explicit_detection_rejection():
     from simulation import profiles
     from simulation.manual import runtime_command
     command = profiles.command(dict(schema=1, profile='full'))
-    assert '--person-scene' not in command
+    assert command[command.index('--person-scene')+1] == 'standing'
     with pytest.raises(ValueError):
-        profiles.command(dict(schema=1, profile='full', options={'person_scene': 'standing'}))
+        profiles.command(dict(schema=1, profile='full', options={'people': False, 'person_scene': 'standing'}))
     command = profiles.command(dict(schema=1, profile='full', options={'people': True, 'person_scene': 'standing'}))
     assert command[command.index('--person-scene')+1] == 'standing'
     identity = dict(device='/dev/input/js0', input_profile='pocket-rc-v2')
@@ -74,7 +74,7 @@ def test_posture_choices_and_rotation_inference_are_forwarded():
         assert '--person-rotations' in runtime_command(identity, 3600, program='full',
             person_model=Path('model.onnx'), person_scene=scene, person_rotations=True)
     with pytest.raises(ValueError):
-        profiles.command(dict(schema=1, profile='full', options={'person_rotations': True}))
+        profiles.command(dict(schema=1, profile='full', options={'people': False, 'person_rotations': True}))
 
 
 def test_sitting_model_has_no_external_sensor_dependencies(tmp_path, monkeypatch):

@@ -22,6 +22,18 @@ def test_only_two_programs_default_to_physical_hid(capsys):
         assert '--input-source physical' in ' '.join(profiles.command(config))
 
 
+def test_full_default_people_can_be_disabled_and_course_has_no_warehouse_person():
+    default = profiles.validate_config(dict(schema=1, profile='full'))
+    assert default['options']['people'] and default['options']['person_scene'] == 'standing'
+    disabled = profiles.validate_config(dict(schema=1, profile='full', options=dict(people=False)))
+    assert disabled['options']['person_scene'] == 'none'
+    assert '--people' not in profiles.command(disabled)
+    course = profiles.validate_config(dict(schema=1, profile='full', options=dict(course='all')))
+    assert course['options']['person_scene'] == 'none'
+    assert '--person-scene' not in profiles.command(course)
+    assert profiles.validate_config(default) == default
+
+
 def test_menu_configuration_error_returns_to_menu(monkeypatch, capsys):
     answers = iter(['l', '/missing/config.json', '0'])
     monkeypatch.setattr('builtins.input', lambda _: next(answers))
