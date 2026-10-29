@@ -160,10 +160,15 @@ class FlightServer(PilotIntervention, Node):
             if not re.fullmatch('[0-9a-f]{64}', calibration):
                 raise RuntimeError('VIO mission requires reviewed calibration/config SHA256')
             self.vio_gate = VioGate(calibration,fusion_profile=os.environ.get('UAV_VIO_FUSION_PROFILE','full_odometry'))
-            if self.vio_gate.primary_mtf and (self.config.get('profile')!='experimental_sdk16_static_avoidance'
+            primary_profiles = {
+                'vio_avoidance': 'experimental_sdk16_static_avoidance',
+                'obstacle_course': 'experimental_four_zone_course',
+            }
+            if self.vio_gate.primary_mtf and (self.config.get('profile') != primary_profiles.get(
+                    os.environ.get('UAV_FLIGHT_REGION_PROFILE'), 'UNSUPPORTED')
                     or os.environ.get('UAV_EXPERIMENTAL_VIO_CHAIN')!='1'
                     or os.environ.get('UAV_ENABLE_FUSION_SWITCH')=='1'):
-                raise RuntimeError('VIO primary MTF requires the fixed owned avoidance experiment')
+                raise RuntimeError('VIO primary MTF requires an owned avoidance or obstacle-course experiment')
             inputs = [('source', '/uav/vio/status', VioStatus),
                       ('flags', '/px4_7/fmu/out/estimator_status_flags', EstimatorStatusFlags),
                       ('selector', '/px4_7/fmu/out/estimator_selector_status', EstimatorSelectorStatus),
