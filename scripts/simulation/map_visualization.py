@@ -63,7 +63,7 @@ def display_spec(mode):
     return 'nvblox_rviz_plugin/NvbloxMesh', '/nvblox_node/mesh', dict(height='Height', rgb='RGB', normals='Normals')[mode]
 
 
-def write_rviz(source, destination, options, *, openvins=False):
+def write_rviz(source, destination, options, *, openvins=False, people_motion=False):
     """Write a session-owned config, preserving the repository template."""
     import yaml
     validate(options)
@@ -89,6 +89,12 @@ def write_rviz(source, destination, options, *, openvins=False):
     if mode in ('esdf', 'semantic', 'weight', 'age', 'traversability'):
         displays.append({'Class': 'rviz_default_plugins/MarkerArray', 'Name': 'Map Color Legend',
                          'Enabled': True, 'Value': True, 'Topic': dict(mesh['Topic'], Value='/uav/map/color_legend')})
+    if people_motion:
+        displays.append({'Class':'rviz_default_plugins/MarkerArray','Name':'Person Motion Trajectories',
+                         'Enabled':True,'Value':True,'Namespaces':{},
+                         'Topic':{'Value':'/uav/people/motion_trajectories','Depth':1,
+                                  'Durability Policy':'Transient Local','History Policy':'Keep Last',
+                                  'Reliability Policy':'Reliable'}})
     Path(destination).write_text(yaml.safe_dump(config, allow_unicode=True, sort_keys=False))
     return Path(destination)
 

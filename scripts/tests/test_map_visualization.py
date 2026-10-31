@@ -71,3 +71,16 @@ def test_mapping_graph_starts_only_selected_derived_view(tmp_path):
         if 'map_visualizer' in calls:
             assert f'mode:={mode}' in calls['map_visualizer']
         assert 'person_mapper' not in calls  # detection belongs to the later depth stage
+
+
+def test_person_motion_display_is_session_owned_and_latched(tmp_path):
+    source=profiles.ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz'
+    original=source.read_bytes()
+    options=dict(map_color='height',**{key:default for key,_,default,_ in view.SCALES})
+    destination=view.write_rviz(source,tmp_path/'people.rviz',options,people_motion=True)
+    displays=yaml.safe_load(destination.read_text())['Visualization Manager']['Displays']
+    selected=next(item for item in displays if item['Name']=='Person Motion Trajectories')
+    assert selected['Topic']['Value']=='/uav/people/motion_trajectories'
+    assert selected['Topic']['Durability Policy']=='Transient Local'
+    assert selected['Topic']['Reliability Policy']=='Reliable'
+    assert source.read_bytes()==original

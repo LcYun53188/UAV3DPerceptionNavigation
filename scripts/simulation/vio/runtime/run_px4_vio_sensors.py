@@ -398,6 +398,9 @@ def main():
             generate(dict(parameters=params,frames=frames,profile=profile),[intrinsic,intrinsic],out/'openvins-config',imu_axes='flu')
     bounded_gc_observation = args.experimental_chain or not args.flight and (args.same_aircraft_motion or (args.sdk_candidate and args.fuse_pose))
     inputs = [Path(__file__),ROOT/'scripts/simulation/vio/runtime/vio_evidence.py',ROOT/'scripts/simulation/vio/sdk/vio_sdk_selection.py',ROOT/'scripts/simulation/vio/runtime/vio_stereo_ui.py',ROOT/'scripts/simulation/vio/runtime/vio_ui_lifecycle.py',ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz',ROOT/'scripts/simulation/vio/runtime/px4_vio_sensor_audit.py',ROOT/'scripts/simulation/vio/runtime/vio_sensor_transforms.py',ROOT/'scripts/simulation/vio/runtime/prepare_vio_sensor_assets.py',
+              ROOT/'scripts/simulation/vio/runtime/vision_monitor.py',ROOT/'scripts/simulation/vio/runtime/vision_overlay.py',
+              ROOT/'scripts/simulation/vio/runtime/person_follow_core.py',ROOT/'scripts/simulation/vio/runtime/person_follow_backend.py',ROOT/'scripts/simulation/vio/runtime/person_follow_client.py',
+              ROOT/'scripts/simulation/vio/runtime/mission_person_observation.py',ROOT/'scripts/simulation/vio/runtime/mission_person_observer.py',
               ROOT/'scripts/simulation/vio/runtime/vio_sensor_quality.py',ROOT/'scripts/simulation/compat.sh',ROOT/'scripts/simulation/vio/runtime/vio_render_device.py',ROOT/'scripts/simulation/vio/sdk/vio_sdk_parameters.py',ROOT/'scripts/simulation/vio/sdk/vio_sdk_runtime.py',ROOT/'scripts/simulation/vio/runtime/vio_pose_window.py',ROOT/'scripts/simulation/vio/runtime/px4_vio_pose_audit.py',ROOT/'scripts/simulation/vio/runtime/vio_observer_gc.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',
@@ -703,9 +706,12 @@ def main():
                 '--ros-args','-p','use_sim_time:=true'])
             launch('gazebo_gui',['gz','sim','-g'],gazebo_env)
             rviz_config=ROOT/'src/uav_bringup/rviz/px4_vio_sim.rviz'
-            rviz_config=map_visualization.write_rviz(rviz_config,out/'map-view.rviz',map_options,openvins=openvins)
+            rviz_config=map_visualization.write_rviz(rviz_config,out/'map-view.rviz',map_options,openvins=openvins,people_motion=args.people)
             launch('rviz',['ros2','run','rviz2','rviz2','-d',rviz_config,'--ros-args','-p','use_sim_time:=true'])
             launch('stereo_monitor',[sys.executable,ROOT/'scripts/simulation/vio/runtime/vio_stereo_ui.py',str(out)])
+            if args.people:
+                launch('person_follow_preview',[sys.executable,ROOT/'scripts/simulation/vio/runtime/person_follow_backend.py',
+                                               '--trajectory-log',str(out/'person-motion-trajectories.json')])
         if args.experimental_chain:
             launch('simulation_clock',[sys.executable,ROOT/'scripts/simulation/vio/runtime/vio_sim_clock.py'])
             write_json(out/'clock-source.json',dict(source='Gazebo IMU unchanged physics header stamp',
