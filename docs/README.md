@@ -34,6 +34,7 @@
 | [docs/simulation/SIMULATION_CONTROL.md](simulation/SIMULATION_CONTROL.md) | 仿真启动与控制脚本 |
 | [docs/simulation/SIMULATION_MANUAL.md](simulation/SIMULATION_MANUAL.md) | 无人机导航仿真使用手册 (UAV Simulation User Manual) |
 | [docs/simulation/UAV_OBSTACLE_COURSE.md](simulation/UAV_OBSTACLE_COURSE.md) | UAV 障碍穿越场地 |
+| [docs/simulation/VISION_MONITOR.md](simulation/VISION_MONITOR.md) | RGB、检测与 AR 路线监控界面 |
 | [docs/simulation/WAREHOUSE_SIMULATION.md](simulation/WAREHOUSE_SIMULATION.md) | 仓库场景与分阶段 VIO 验证 |
 
 ## 导航与任务契约
@@ -73,6 +74,8 @@
 | --- | --- |
 | [docs/development/BT_PX4_DEVELOPMENT_PLAN.md](development/BT_PX4_DEVELOPMENT_PLAN.md) | BehaviorTree 与 PX4 协同开发计划 |
 | [docs/development/ISAAC_ROS_COMPONENTS.md](development/ISAAC_ROS_COMPONENTS.md) | Isaac 系列保留范围 |
+| [docs/development/MISSION_PERSON_FOLLOWING.md](development/MISSION_PERSON_FOLLOWING.md) | 任务内临时人物跟随与轨迹记录 |
+| [docs/development/PERSON_FOLLOWING_PLAN.md](development/PERSON_FOLLOWING_PLAN.md) | 移动人体主动跟踪实现方案 |
 | [docs/development/PX4_INTEGRATION_ROADMAP.md](development/PX4_INTEGRATION_ROADMAP.md) | PX4 官方链路三阶段集成 |
 | [docs/development/PX4_NAVIGATION_STRATEGY.md](development/PX4_NAVIGATION_STRATEGY.md) | PX4 三维导航策略 |
 | [docs/development/PX4_STATE_MACHINE_DESIGN.md](development/PX4_STATE_MACHINE_DESIGN.md) | W2-D8-D9: PX4 自动武装状态机设计 |

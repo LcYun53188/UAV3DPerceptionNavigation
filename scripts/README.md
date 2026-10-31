@@ -159,7 +159,12 @@
 | 文件 | 用途 |
 | --- | --- |
 | [scripts/simulation/vio/runtime/__init__.py](simulation/vio/runtime/__init__.py) | Simulation tools grouped by responsibility. |
+| [scripts/simulation/vio/runtime/mission_person_observation.py](simulation/vio/runtime/mission_person_observation.py) | Task-scoped automatic person episodes and bounded map-frame trajectory history. |
+| [scripts/simulation/vio/runtime/mission_person_observer.py](simulation/vio/runtime/mission_person_observer.py) | ROS task observer and map trajectory display for automatic follow shadow episodes. |
 | [scripts/simulation/vio/runtime/obstacle_course.py](simulation/vio/runtime/obstacle_course.py) | Deterministic four-zone course, shared geometry and bounded PX4 recipes. |
+| [scripts/simulation/vio/runtime/person_follow_backend.py](simulation/vio/runtime/person_follow_backend.py) | Identity-bound RGB target selection and 3-D follow preview; no motion commands. |
+| [scripts/simulation/vio/runtime/person_follow_client.py](simulation/vio/runtime/person_follow_client.py) | Nonblocking UI client for selection/preview; execution readiness comes from backend. |
+| [scripts/simulation/vio/runtime/person_follow_core.py](simulation/vio/runtime/person_follow_core.py) | Selected-person preview lifecycle. No flight authority or navigation output. |
 | [scripts/simulation/vio/runtime/prepare_vio_sensor_assets.py](simulation/vio/runtime/prepare_vio_sensor_assets.py) | Generate an explicit stereo/IMU reference rig and textured SITL test world. |
 | [scripts/simulation/vio/runtime/px4_vio_flight_session.py](simulation/vio/runtime/px4_vio_flight_session.py) | Continuous EV writer for owned warehouse SITL; no command/setpoint publishers. |
 | [scripts/simulation/vio/runtime/px4_vio_motion_audit.py](simulation/vio/runtime/px4_vio_motion_audit.py) | Independent timestamp-matched VIO error audit; truth is never fed to VIO. |
@@ -189,9 +194,11 @@
 | [scripts/simulation/vio/runtime/vio_sensor_quality.py](simulation/vio/runtime/vio_sensor_quality.py) | Numerical acceptance of observed sensor timestamps; independent of ROS callbacks. |
 | [scripts/simulation/vio/runtime/vio_sensor_transforms.py](simulation/vio/runtime/vio_sensor_transforms.py) | Sensor mount rotations shared by generated geometry and runtime TF. |
 | [scripts/simulation/vio/runtime/vio_sim_clock.py](simulation/vio/runtime/vio_sim_clock.py) | Simulation-only clock from unchanged Gazebo IMU physics timestamps. |
-| [scripts/simulation/vio/runtime/vio_stereo_ui.py](simulation/vio/runtime/vio_stereo_ui.py) | Read-only stereo/SDK/PX4 viewer; bounded timestamped images, no control publishers. |
+| [scripts/simulation/vio/runtime/vio_stereo_ui.py](simulation/vio/runtime/vio_stereo_ui.py) | Camera monitor: RGB detections, AR planned route, stereo and diagnostics. |
 | [scripts/simulation/vio/runtime/vio_ui_lifecycle.py](simulation/vio/runtime/vio_ui_lifecycle.py) | Viewer retention requires current independent PX4 ground telemetry. |
 | [scripts/simulation/vio/runtime/vio_warehouse_scene.py](simulation/vio/runtime/vio_warehouse_scene.py) | Deterministic warehouse geometry and independent free-volume checks. |
+| [scripts/simulation/vio/runtime/vision_monitor.py](simulation/vio/runtime/vision_monitor.py) | RGB detection / AR planning display with stereo previews; no flight publishers. |
+| [scripts/simulation/vio/runtime/vision_overlay.py](simulation/vio/runtime/vision_overlay.py) | Pure geometry and freshness checks for the camera operator display. |
 
 ## VIO SDK 与原生辅助源码
 
