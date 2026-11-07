@@ -76,6 +76,7 @@
 | [docs/development/ISAAC_ROS_COMPONENTS.md](development/ISAAC_ROS_COMPONENTS.md) | Isaac 系列保留范围 |
 | [docs/development/MISSION_PERSON_FOLLOWING.md](development/MISSION_PERSON_FOLLOWING.md) | 任务内临时人物跟随与轨迹记录 |
 | [docs/development/PERSON_FOLLOWING_PLAN.md](development/PERSON_FOLLOWING_PLAN.md) | 移动人体主动跟踪实现方案 |
+| [docs/development/PERSON_FOLLOW_INTERVENTION_PROTOCOL.md](development/PERSON_FOLLOW_INTERVENTION_PROTOCOL.md) | 人物跟随任务中断协调协议 |
 | [docs/development/PX4_INTEGRATION_ROADMAP.md](development/PX4_INTEGRATION_ROADMAP.md) | PX4 官方链路三阶段集成 |
 | [docs/development/PX4_NAVIGATION_STRATEGY.md](development/PX4_NAVIGATION_STRATEGY.md) | PX4 三维导航策略 |
 | [docs/development/PX4_STATE_MACHINE_DESIGN.md](development/PX4_STATE_MACHINE_DESIGN.md) | W2-D8-D9: PX4 自动武装状态机设计 |

@@ -159,12 +159,14 @@
 | 文件 | 用途 |
 | --- | --- |
 | [scripts/simulation/vio/runtime/__init__.py](simulation/vio/runtime/__init__.py) | Simulation tools grouped by responsibility. |
-| [scripts/simulation/vio/runtime/mission_person_observation.py](simulation/vio/runtime/mission_person_observation.py) | Task-scoped automatic person episodes and bounded map-frame trajectory history. |
+| [scripts/simulation/vio/runtime/mission_person_intervention.py](simulation/vio/runtime/mission_person_intervention.py) | Pure same-root mission interlude protocol; contains no ROS or flight output. |
+| [scripts/simulation/vio/runtime/mission_person_observation.py](simulation/vio/runtime/mission_person_observation.py) | Task-scoped follow/observe/reacquire shadow episodes; never interrupts real flight. |
 | [scripts/simulation/vio/runtime/mission_person_observer.py](simulation/vio/runtime/mission_person_observer.py) | ROS task observer and map trajectory display for automatic follow shadow episodes. |
 | [scripts/simulation/vio/runtime/obstacle_course.py](simulation/vio/runtime/obstacle_course.py) | Deterministic four-zone course, shared geometry and bounded PX4 recipes. |
 | [scripts/simulation/vio/runtime/person_follow_backend.py](simulation/vio/runtime/person_follow_backend.py) | Identity-bound RGB target selection and 3-D follow preview; no motion commands. |
 | [scripts/simulation/vio/runtime/person_follow_client.py](simulation/vio/runtime/person_follow_client.py) | Nonblocking UI client for selection/preview; execution readiness comes from backend. |
 | [scripts/simulation/vio/runtime/person_follow_core.py](simulation/vio/runtime/person_follow_core.py) | Selected-person preview lifecycle. No flight authority or navigation output. |
+| [scripts/simulation/vio/runtime/person_follow_exit_rules.py](simulation/vio/runtime/person_follow_exit_rules.py) | Shared follow-exit timers. Capture replay, pauses and reacquisition never add moving time. |
 | [scripts/simulation/vio/runtime/prepare_vio_sensor_assets.py](simulation/vio/runtime/prepare_vio_sensor_assets.py) | Generate an explicit stereo/IMU reference rig and textured SITL test world. |
 | [scripts/simulation/vio/runtime/px4_vio_flight_session.py](simulation/vio/runtime/px4_vio_flight_session.py) | Continuous EV writer for owned warehouse SITL; no command/setpoint publishers. |
 | [scripts/simulation/vio/runtime/px4_vio_motion_audit.py](simulation/vio/runtime/px4_vio_motion_audit.py) | Independent timestamp-matched VIO error audit; truth is never fed to VIO. |
