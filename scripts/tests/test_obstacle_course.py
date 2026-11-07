@@ -106,6 +106,9 @@ def test_vio_assets_replace_geometry_without_changing_sensor_rig(tmp_path):
     assert root.find('.//model[@name="ring_segment_00"]/link/collision') is not None
     receipt = json.loads((tmp_path/'all/warehouse-layout.json').read_text())
     assert receipt['layout_sha256'] == hashlib.sha256(LAYOUT.read_bytes()).hexdigest()
+    assert receipt['floor_texture']['side_m'] == 34.
+    assert receipt['floor_texture']['spacing_m'] <= .25
+    assert receipt['floor_texture']['pixels'] == receipt['floor_texture']['cells']*16
     for name,digest in receipt['texture_sha256'].items():
         assert hashlib.sha256((tmp_path/'all'/name).read_bytes()).hexdigest() == digest
 

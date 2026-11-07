@@ -113,6 +113,41 @@ def unique_floor_texture(path, rng):
                     chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
 
 
+def dense_floor_texture(path, rng, side_m, spacing_m=.25):
+    """Nonrepeating floor marks at a declared physical scale, rendered by Gazebo.
+
+    A fixed small atlas stretched over a large course hides nearby corners.
+    Keep centimetre-scale junctions visible without modifying any sensor data.
+    """
+    cells=math.ceil(side_m/spacing_m)
+    cell=16
+    width=cells*cell
+    pixels=bytearray([195]*(width*width*3))
+    def rect(x,y,w,h,value):
+        row=bytes([value]*3)*w
+        for yy in range(y,y+h):
+            start=(yy*width+x)*3;pixels[start:start+len(row)]=row
+    for row in range(cells):
+        for col in range(cells):
+            x,y=col*cell,row*cell
+            background=rng.choice((125,155,185,215))
+            rect(x,y,cell,cell,background)
+            # Unique offsets, orientation and arm lengths avoid a repeated
+            # checkerboard while providing several resolvable edge junctions.
+            for _ in range(2):
+                cx,cy=x+rng.randint(2,8),y+rng.randint(2,8)
+                length=rng.randint(4,6)
+                value=rng.choice((15,35,235,250))
+                rect(cx,cy,length,2,value)
+                rect(cx,cy,2,length,value)
+    raw=b''.join(b'\x00'+pixels[y*width*3:(y+1)*width*3] for y in range(width))
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',width,width,8,2,0,0,0))+
+                    chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
+    return dict(side_m=side_m,spacing_m=side_m/cells,pixels=width,cells=cells,pattern='seeded_nonperiodic_corners')
+
+
 def multiscale_texture(path, rng, width=1024):
     """Nonperiodic matte atlas with distinct coarse and fine shapes."""
     pixels=bytearray([195]*(width*width*3))

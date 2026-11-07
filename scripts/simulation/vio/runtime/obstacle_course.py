@@ -232,12 +232,12 @@ def add_models(world, layout, *, textured=False):
 
 def add_course(world, directory):
     """Inject only structures into the owned PX4 world; preserve its systems/rig."""
-    from .vio_warehouse_scene import multiscale_texture
+    from .vio_warehouse_scene import multiscale_texture, dense_floor_texture
     layout = read_layout(); check = static_check(layout)
     textures = directory/'warehouse_textures/materials/textures'
     textures.mkdir(parents=True)
-    for name in ('course', 'floor'):
-        multiscale_texture(textures/(name+'.png'), random.Random(layout['seed']+(name=='floor')), width=1024)
+    multiscale_texture(textures/'course.png', random.Random(layout['seed']), width=1024)
+    floor_texture=dense_floor_texture(textures/'floor.png',random.Random(layout['seed']+1),2*layout['half_extent_m'])
     add_models(world, layout, textured=True)
     floor = ET.SubElement(world, 'model', name='course_textured_floor')
     ET.SubElement(floor, 'static').text = 'true'
@@ -253,7 +253,7 @@ def add_course(world, directory):
     metal = ET.SubElement(ET.SubElement(material, 'pbr'), 'metal')
     ET.SubElement(metal, 'albedo_map').text = 'model://warehouse_textures/materials/textures/floor.png'
     ET.SubElement(metal, 'metalness').text = '0'; ET.SubElement(metal, 'roughness').text = '1'
-    receipt = dict(schema=1, layout=layout, layout_sha256=hashlib.sha256(LAYOUT.read_bytes()).hexdigest(),
+    receipt = dict(schema=1, layout=layout, layout_sha256=hashlib.sha256(LAYOUT.read_bytes()).hexdigest(),floor_texture=floor_texture,
                    clearance=check['protected'], reference_routes=check['routes'],
                    texture_sha256={str(p.relative_to(directory)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(textures.glob('*.png'))})
     # Same transport receipt name; scene_id identifies this separate geometry.
