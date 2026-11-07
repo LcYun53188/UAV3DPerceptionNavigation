@@ -80,6 +80,7 @@
 | [scripts/simulation/menu.py](simulation/menu.py) | 交互仿真菜单；配置与启动策略由 profiles 和 backends 统一维护。 |
 | [scripts/simulation/policy.py](simulation/policy.py) | Workspace simulation policy: no satellite measurements or GNSS aiding. |
 | [scripts/simulation/profiles.py](simulation/profiles.py) | 仿真配置注册表：菜单、命令行和 JSON 配置共用的选项与参数规则。 |
+| [scripts/simulation/readiness.py](simulation/readiness.py) | Explain the observed startup gate without granting control or flight admission. |
 | [scripts/simulation/session.py](simulation/session.py) | Bind terminal operations to one owned simulation and its process lifetime. |
 | [scripts/simulation/vio/__init__.py](simulation/vio/__init__.py) | Simulation tools grouped by responsibility. |
 
@@ -150,7 +151,7 @@
 | [scripts/simulation/pocket/pocket_uav_switches.py](simulation/pocket/pocket_uav_switches.py) | SB/SC flight matrix shared by virtual AETR and physical Pocket CH5--8. |
 | [scripts/simulation/pocket/pocket_validation_input.py](simulation/pocket/pocket_validation_input.py) | Owned uinput stimulus for explicit computer-only flight acceptance cases. |
 | [scripts/simulation/pocket/pocket_virtual_joystick.py](simulation/pocket/pocket_virtual_joystick.py) | Linux uinput Pocket transport using only the standard library. |
-| [scripts/simulation/pocket/qgc_calibration.py](simulation/pocket/qgc_calibration.py) | Preserve device-specific QGC calibration and repair signed Pocket throttle ranges. |
+| [scripts/simulation/pocket/qgc_calibration.py](simulation/pocket/qgc_calibration.py) | Preserve QGC calibration, seed fixed virtual controls, and repair Pocket ranges. |
 | [scripts/simulation/pocket/usb_bt_operator.py](simulation/pocket/usb_bt_operator.py) | Explicit USB switch mapping to the bound BT; sticks remain QGC's input. |
 | [scripts/simulation/pocket/usb_joystick.py](simulation/pocket/usb_joystick.py) | Read Linux USB joystick events; inspection is the default, no flight output. |
 
@@ -203,6 +204,7 @@
 | [scripts/simulation/vio/sdk/openvins_ros_node.cpp](simulation/vio/sdk/openvins_ros_node.cpp) | OpenVINS 历史候选 ROS 接口源码；当前路线暂停。 |
 | [scripts/simulation/vio/sdk/prepare_openvins_config.py](simulation/vio/sdk/prepare_openvins_config.py) | Generate OpenVINS calibration from physical mount TF and camera intrinsics. |
 | [scripts/simulation/vio/sdk/prepare_vio_replay_calibration.py](simulation/vio/sdk/prepare_vio_replay_calibration.py) | Resolve SDK15 dump body-reference ambiguity using physical mount calibration. |
+| [scripts/simulation/vio/sdk/vio_low_residual_information_test.cpp](simulation/vio/sdk/vio_low_residual_information_test.cpp) | 随所属模块维护的辅助脚本；使用前查看源码。 |
 | [scripts/simulation/vio/sdk/vio_sdk16_acceptance.py](simulation/vio/sdk/vio_sdk16_acceptance.py) | Fail-closed VIO candidate acceptance receipt; publishes no ROS controls. |
 | [scripts/simulation/vio/sdk/vio_sdk16_conditional_covariance.hpp](simulation/vio/sdk/vio_sdk16_conditional_covariance.hpp) | SDK16 条件位姿协方差导出辅助实现。 |
 | [scripts/simulation/vio/sdk/vio_sdk16_covariance.hpp](simulation/vio/sdk/vio_sdk16_covariance.hpp) | SDK16 协方差导出共用实现。 |
@@ -215,6 +217,8 @@
 | [scripts/simulation/vio/sdk/vio_sdk_runtime.py](simulation/vio/sdk/vio_sdk_runtime.py) | Read-only SDK parameter receipt; never changes estimator parameters. |
 | [scripts/simulation/vio/sdk/vio_sdk_selection.py](simulation/vio/sdk/vio_sdk_selection.py) | One explicit VIO default; missing or drifted SDK16 fails without fallback. |
 | [scripts/simulation/vio/sdk/vio_sdk_target.py](simulation/vio/sdk/vio_sdk_target.py) | Give the profiled SDK its own session so SIGINT cannot cancel Nsight export. |
+| [scripts/simulation/vio/sdk/vio_stationary_initialization.hpp](simulation/vio/sdk/vio_stationary_initialization.hpp) | 随所属模块维护的辅助脚本；使用前查看源码。 |
+| [scripts/simulation/vio/sdk/vio_zero_flow_seed.hpp](simulation/vio/sdk/vio_zero_flow_seed.hpp) | 随所属模块维护的辅助脚本；使用前查看源码。 |
 
 ## VIO 离线分析、诊断与验收
 
@@ -342,6 +346,7 @@
 | [scripts/build/build_vio_sdk16_ros_candidate.py](build/build_vio_sdk16_ros_candidate.py) | Rebuild the disarmed SDK16 ROS candidate without changing installed SDK15. |
 | [scripts/build/build_vio_sdk16_schur64.py](build/build_vio_sdk16_schur64.py) | Isolated double precision Schur candidate; never replaces the default SDK. |
 | [scripts/build/build_vio_sdk16_schur_diagnostic.py](build/build_vio_sdk16_schur_diagnostic.py) | Isolated passive Hessian capture; never changes the default SDK or optimizer. |
+| [scripts/build/build_vio_sdk16_stationary.py](build/build_vio_sdk16_stationary.py) | Isolated stereo/IMU stationary initialization; retains dynamic initialization fallback. |
 | [scripts/build/build_vio_sdk_candidate.py](build/build_vio_sdk_candidate.py) | Build a pinned native SDK candidate in cache, without installing ROS or PX4. |
 
 ## 安装与依赖准备

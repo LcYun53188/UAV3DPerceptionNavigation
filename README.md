@@ -55,7 +55,11 @@
 # 纯手动程序同样支持 --input-source virtual
 ```
 
-`--device /dev/input/...` 可指定设备；校准完成并退出后自动保存，下次同设备无需重复校准。`--qgc-config <文件>` 可显式导入，`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
+完整项目默认使用经静止观测确认的快速初始化，保留 30 秒稳定准入；`--vio-initialization standard` 可回退到常规初始化。首次构建步骤见[启动说明](docs/simulation/LAUNCHERS.md#构建准备)。
+
+完整项目可用 `--real-time-factor 1.0` 按实时速度运行；默认仍为 `0.8`。倍率可通过菜单、JSON 配置和命令行保存，稳定观察仍按原始仿真时间累计。
+
+`--device /dev/input/...` 可指定设备；实体设备校准完成并退出后自动保存，下次同设备无需重复校准。新建虚拟设备配置自动应用固定 AETR 映射并启用 SITL 输入，已有配置不覆盖。`--qgc-config <文件>` 可显式导入，`--dry-run` 只预览。完整说明见[仿真启动规划](docs/simulation/LAUNCHERS.md)。
 
 完整项目默认使用 **14×14×6 m 复杂避障仓库**，包含开放货架、管柱、台阶、箱堆、顶梁和绕障箱体，共 79 个障碍实体；在世界 ENU `(3, 3.5, 0) m` 加入一个静态站立人体，并开启 RGB 人员检测、深度定位与地图标注。先按[人员感知模块说明](src/uav_target_perception/README.md)构建并准备检测模型及站立人体资产。`--no-people` 同时关闭默认人体与检测；`--person-scene none` 仅移除人体，保留检测。
 

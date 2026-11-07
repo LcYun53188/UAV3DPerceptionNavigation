@@ -19,9 +19,15 @@
 
 DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地面融合检查，完整项目仍需 VIO、传感器和地图准入。完整项目保留 SDK Schur64 实验配置及其协方差资格边界，详见 [VIO 操作](../flight/VIO_POCKET_AVOIDANCE.md)。
 
-完整项目启动期间关闭深度融合，RViz 地图应保持为空。操作会话要求未解锁着地，VIO、PX4 连续 **30 秒**位置跨度均不超过 **3 cm**，VIO 姿态与 PX4 航向变化不超过 **1°**；同一窗口的 SDK 初始化状态须有效、时间连续且与协方差输出配对，数据和发布者检查仍必需。满足后才清空原生地图并开放建图，丢弃启动旧帧，再观察 10 秒并复核稳定性才生成飞行准入文件。操作启动不再机械等待 120 秒；独立 SDK 候选资格审计仍保留 120 秒要求，操作准入不代表全局协方差或飞行验收。
+完整项目启动期间关闭深度融合，RViz 地图应保持为空。操作会话要求未解锁着地，VIO、PX4 连续 **30 秒**位置跨度均不超过 **3 cm**，VIO 姿态与 PX4 航向变化不超过 **1°**；同一窗口的 SDK 初始化状态须有效、时间连续且与协方差输出配对，数据和发布者检查仍必需。满足后才清空原生地图并开放建图，丢弃启动旧帧，并检查最近 10 秒的缓慢漂移速率不超过 **0.5 mm/s**（比较前后两个 2 秒均值）。随后复核稳定性：至少观察 2 秒，收到本会话唯一发布者的新鲜有效地图对齐结果，且该结果连续有效 1 秒后可提前完成；否则保留原来的 10 秒等待。任务准备仍单独检查地图覆盖和规划条件。操作启动不再机械等待 120 秒；独立 SDK 候选资格审计仍保留 120 秒要求，操作准入不代表全局协方差或飞行验收。
 
-终端显示“定位稳定，已清空原生地图并开放深度建图”后开始生成地图，`POCKET_SESSION` 表示启动预检完成。`startup-progress.jsonl` 每 5 秒记录源状态、SDK 窗口与 VIO/PX4 跨度，`map-admission.json` 和 `flight-admission.json` 保存准入时间。若任一窗口持续超限，仍会阻止准入；不会通过缩短倒计时放行漂移。
+完整项目默认 `--vio-initialization stationary`：只有最近约 5 秒的双目／IMU 观测确认静止后，才提前初始化；失败时保留原来的 20 关键帧初始化历史。完全一致的图像块使用零位移初值，保留光流质量检查；低残差 PnP 也按真实观测刷新信息矩阵。后续 30 秒稳定窗口和协方差预算仍必需。`--vio-initialization standard` 回退到原 Schur64 候选；纯光流手动程序不使用此选项。该候选只在仿真缓存中构建，保留 SDK15 与原 Schur64。
+
+地图绑定器在准入前只读观察有效里程计的连续性和重置计数，复用稳定历史完成原有 5 秒检查。此时不绑定地图或发布有效对齐；实际地图准入后仍须收到本会话的新鲜有效地图。观测中断、时间回退、无效位姿、来源异常或重置变化会重新累计稳定时间。
+
+完整项目支持 `--real-time-factor 0.8` 至 `1.0`，默认 `0.8`；菜单、保存的 JSON 与直接命令共用此参数。`1.0` 缩短同一仿真时间窗口对应的墙钟耗时，30 秒稳定窗口及新鲜度门限保持原值。纯光流手动程序不接受此选项。
+
+终端显示“定位稳定，已清空原生地图并开放深度建图”后开始生成地图，`POCKET_SESSION` 表示启动预检完成。`startup-progress.jsonl` 每 5 秒记录源状态、SDK 窗口与 VIO/PX4 跨度，`map-admission.json` 和 `flight-admission.json` 保存准入时间，`map-startup-ready.json` 记录地图复核的真实耗时与结束原因。`startup-sdk-poses-raw.npz` 和 `startup-sdk16-inertial-state.json` 冻结启动原始证据，避免长会话的内存环形缓冲淘汰启动数据。若任一窗口持续超限，仍会阻止准入；不会通过缩短倒计时放行漂移。
 
 ## 构建准备
 
@@ -38,6 +44,7 @@ DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地�
 ```bash
 ./scripts/build/build_algorithm_sim.sh
 ./scripts/with_venv.sh python scripts/build/build_vio_sdk16_schur64.py --jobs 3
+./scripts/with_venv.sh python scripts/build/build_vio_sdk16_stationary.py --jobs 3
 ```
 
 已完成的构建无需每次重复。`./scripts/build/build_px4_vio.sh --check` 检查 PX4 遥测构建。若提示 `VIO build inputs changed`，按错误给出的命令显式重建；代码或资源迁移也会导致旧凭据失效，不跳过摘要检查。完整项目构建和 SDK 前置条件见 [VIO 文档](../flight/VIO_POCKET_AVOIDANCE.md#启动)。
@@ -61,7 +68,7 @@ DDS、QGC、时钟和界面正常不等于定位就绪；光流程序仍需地�
 ./scripts/sim.sh run manual --input-source virtual
 ```
 
-程序复用现有 `Pocket Virtual UAV AETR`（9 轴／3 按钮），或自动创建并管理面板。创建需要 `/dev/uinput` 权限。QGC 使用每会话隔离配置，但已完成的校准会按设备名与输入配置保存在 `.cache/simulation/qgc-calibration/`，后续默认自动复用；实体与模拟设备分别保存。首次或更换设备时才需校准，在 Fly 页面发送操纵。校准文件参数不会改写原文件。实体输入与模拟输入分别使用对应映射，启动不改变开关档位。控件见[面板与开关说明](../flight/VIRTUAL_POCKET_PANEL.md#最新控件定义)。
+程序复用现有 `Pocket Virtual UAV AETR`（9 轴／3 按钮），或自动创建并管理面板。创建需要 `/dev/uinput` 权限。QGC 使用每会话隔离配置，但已完成的校准会按设备名与输入配置保存在 `.cache/simulation/qgc-calibration/`，后续默认自动复用；实体与模拟设备分别保存。实体设备首次或更换设备时需校准。新建虚拟设备配置使用程序定义的固定 AETR 映射（9 轴／3 按钮，油门中心为 0、最低输出为 -1），并启用本会话 SITL 的 QGC 输入；已有虚拟设备配置保持原样。请在 Fly 页面发送操纵。校准文件参数不会改写原文件。实体输入与模拟输入分别使用对应映射，启动不改变开关档位。控件见[面板与开关说明](../flight/VIRTUAL_POCKET_PANEL.md#最新控件定义)。
 
 两个程序共用 `--device`、`--qgc-config`、`--session-duration`（60–14400 秒）。到期后仍需确认落地上锁才正常关闭。
 
@@ -142,7 +149,7 @@ ESDF 与可通行性显示所选高度所在体素层的中心平面；高度采
 ./scripts/sim.sh stop
 ```
 
-`.cache/simulation/operator/current.json` 绑定程序、运行器 PID／出生标识、ROS 域、Gazebo 分区和运行目录，防止连接旧会话或复用后的 PID。`status` 显示实际预检、遥控器和最终结果，不能把进程存活当作可飞。地图服务端独立检查新鲜唯一的 PX4 落地上锁状态，随后关闭深度输入、保存并恢复建图；不伪造旧算法执行器的 HOLD 状态，不向飞控发送地图控制命令。
+`.cache/simulation/operator/current.json` 绑定程序、运行器 PID／出生标识、ROS 域、Gazebo 分区和运行目录，防止连接旧会话或复用后的 PID。`status` 的 `readiness` 显示当前等待项：定位稳定窗口、地图复核、QGC 输入缺失或启动预检阻断；已停止会话与过期遥测不会显示为当前就绪。双目诊断窗口显示相同提示。`READY_FOR_OPERATOR` 仍需操作者执行准备与解锁流程，不能把进程存活或源 READY 当作可飞。地图服务端独立检查新鲜唯一的 PX4 落地上锁状态，随后关闭深度输入、保存并恢复建图；不伪造旧算法执行器的 HOLD 状态，不向飞控发送地图控制命令。
 
 `save` 输出含 `manifest.json` 与 `static_map.nvblx` 的地图包；`export-mesh` 输出 PLY。当前完整项目持续在线建图，暂不提供跨会话静态地图加载。保存的地图与本轮场景、分辨率和地图身份绑定。操作超时后先看文件及日志，避免重复请求。
 

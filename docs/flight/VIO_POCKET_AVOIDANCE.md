@@ -31,7 +31,9 @@
 
 实体与模拟输入共用 SB／SC／SD 控件。任务要求新的开关边沿、有效输入以及完整定位／地图准入，启动保持未解锁，不会自动发起任务。纯光流手动程序禁止自动任务。VIO 会话在 PX4 生成机体前等待 SDK 参数核验及双目／IMU 订阅就绪；该检查不等于定位或飞行已经就绪。
 
-Pocket 入口使用 480×300 双目及重新生成的标定，前向深度保持 320×240；光流 OpenCV 与 BLAS／OMP 使用单线程预算，静止面板仅在状态变化时重绘。操作启动按连续 30 秒的 SDK 有效数据及 VIO/PX4 实测稳定准入，位置跨度 ≤3 cm、姿态变化 ≤1°；不再使用固定 120 秒倒计时，独立 SDK 候选资格审计仍要求 120 秒。收到 `POCKET_SESSION <目录>` 后才完成启动前检查。证据位于 `.cache/simulation/vio-sensors/<UUID>/`，包括 `manifest.json`、`startup-progress.jsonl`、`sensor-preflight.json`、`flight-admission.json`、`live-heartbeat.json` 和各进程日志。校准、资产、会话、控制实例均绑定；启动检查未完成时 ARM/PREPARE/RUN 请求会被拒绝。Pocket 源预热阶段若检查失败，会保留可视化诊断现场，记录 `POCKET_PREFLIGHT_BLOCKED`，并保持未生成飞行准入文件；不会自动重置失效源或起飞。
+完整项目默认使用 Schur64 的静止初始化候选：经同步双目／IMU 观测确认后，以静止初速度和测得的平均陀螺偏置初始化；加速度偏置保留标定零先验，静止时不宣称其可观。图像块完全相同时优先选择零位移求解初值，低残差分支仍刷新真实信息矩阵；均不修改输出位姿或原始时间戳。ROS 配对队列在原接收期限内等待尚未更新的仿真时钟，保留 50 ms 未来界限、200 ms 新鲜度与退源锁存保护。证据不足时继续常规 20 关键帧初始化，`--vio-initialization standard` 可回退。
+
+Pocket 入口使用 480×300 双目及重新生成的标定，前向深度保持 320×240；光流 OpenCV 与 BLAS／OMP 使用单线程预算，静止面板仅在状态变化时重绘。操作启动按连续 30 秒的 SDK 有效数据及 VIO/PX4 实测稳定准入，位置跨度 ≤3 cm、姿态变化 ≤1°，最近 10 秒的平移趋势 ≤0.5 mm/s。开放建图后按真实地图对齐就绪状态提前结束复核（至少 2 秒，否则保留 10 秒等待）；不再使用固定 120 秒倒计时，独立 SDK 候选资格审计仍要求 120 秒。收到 `POCKET_SESSION <目录>` 后才完成启动前检查。证据位于 `.cache/simulation/vio-sensors/<UUID>/`，包括 `manifest.json`、`startup-progress.jsonl`、`sensor-preflight.json`、`flight-admission.json`、`live-heartbeat.json` 和各进程日志。校准、资产、会话、控制实例均绑定；启动检查未完成时 ARM/PREPARE/RUN 请求会被拒绝。Pocket 源预热阶段若检查失败，会保留可视化诊断现场，记录 `POCKET_PREFLIGHT_BLOCKED`，并保持未生成飞行准入文件；不会自动重置失效源或起飞。
 
 原先返回任务起点的配置已通过一次实际 Gazebo/PX4 静态绕障、到点悬停、返航、最终悬停、慢速降落及上锁的完整验收。独立检查确认实际地图中有障碍占据体素、直线路线确被阻断、接纳轨迹和飞机真值保持碰撞包络、源持续有效并完成清理。该结果属于自动验收运行；可视化 Pocket 会话另做地面就绪检查。轨迹图、失败诊断与历史证据见[原策略验证报告](../validation/simulation/2026-10-15-vio-fusion-diagnostics/REPORT.md)。改用 PX4 Home 的独立验证结果见[返航点策略报告](../validation/simulation/2026-10-15-px4-home-return/REPORT.md)。
 
