@@ -147,8 +147,13 @@ class CuvslamPose(Node):
             if self.bound and self.tracking_gid != gid:
                 raise ValueError('VIO_PUBLISHER_CHANGED')
             self.tracking_gid = gid
-            self.tracking,self.tracking_receive = message,time.monotonic()
-            self.tracking_samples[stamp_s(message.header.stamp)] = (message,self.tracking_receive)
+            received=time.monotonic()
+            # /clock and sensor data arrive on independent DDS readers. Keep
+            # the last eligible tracking sample until /clock catches up; the
+            # original receive deadline still applies to queued evidence.
+            if not self.waiting_for_clock(message):
+                self.tracking,self.tracking_receive = message,received
+            self.tracking_samples[stamp_s(message.header.stamp)] = (message,received)
             while len(self.tracking_samples)>100: self.tracking_samples.popitem(last=False)
             if message.vo_state != 1:
                 raise ValueError('VIO_TRACKING_INVALID')
@@ -185,15 +190,25 @@ class CuvslamPose(Node):
             if time.monotonic()-received > .2:
                 del self.pending[key]
                 self.reject('VIO_TRACKING_PAIR_STALE')
+            elif self.waiting_for_clock(message):
+                self.trace('clock_wait',key,receive_age_s=time.monotonic()-received)
+                break
             elif key in self.tracking_samples:
                 del self.pending[key]
-                self.accept_pose(message,self.tracking_samples[key])
+                pair=self.tracking_samples[key]
+                if self.tracking is None or stamp_s(pair[0].header.stamp)>stamp_s(self.tracking.header.stamp):
+                    self.tracking,self.tracking_receive=pair
+                self.accept_pose(message,pair,received=received)
             else: break
             if self.fault:
                 self.pending.clear()
                 break
 
-    def accept_pose(self,message,pair):
+    def waiting_for_clock(self,message):
+        stamp=message.header.stamp
+        return stamp.sec*1_000_000_000+stamp.nanosec > self.get_clock().now().nanoseconds+50_000_000
+
+    def accept_pose(self,message,pair,received=None):
         if self.fault: return
         try:
             if self.receive is not None and time.monotonic()-self.receive > .2:
@@ -208,7 +223,7 @@ class CuvslamPose(Node):
             now_ns=self.get_clock().now().nanoseconds
             normalized = normalize_pose(message,now_ns/1e9,now_ns=now_ns,contract=self.contract)
             self.continuity.accept(message,self.publisher(self.pose_topic))
-            self.sample,self.receive = message.header.stamp,time.monotonic()
+            self.sample,self.receive = message.header.stamp,time.monotonic() if received is None else received
             if self.stable_since is None: self.stable_since = self.receive
             if not self.bound and self.receive-self.stable_since < 2.:
                 self.reason = 'VIO_STABILIZING'
