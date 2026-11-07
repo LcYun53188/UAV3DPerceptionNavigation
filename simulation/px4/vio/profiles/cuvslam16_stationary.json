@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "contract": "cuvslam16_conditional_world_base_v4_stationary_disarmed",
+  "source_commit": "05588424d0440ac80af21080fd1650408fd9282a",
+  "sdk_version": "16.0.0+0558842-modified",
+  "scope": "isolated observed-static initialization with dynamic fallback; experimental simulation only",
+  "flight_authorized": false,
+  "odometry_mode": "Inertial",
+  "enable_localization_n_mapping": false,
+  "async_sba": true,
+  "keyframe_max_seconds": 1,
+  "initialization_gate": {
+    "gravity_present": true,
+    "gravity_norm_bounds_m_s2": [
+      8.0,
+      11.0
+    ],
+    "finite_imu_state": [
+      "velocity",
+      "gyro_bias",
+      "acc_bias"
+    ],
+    "matching_original_track_timestamp": true,
+    "before_initialization_covariance_output": false
+  },
+  "input_covariance": "patched native world small rotation / world physical base position; OpenCV axes, row major; local conditional information transformed with lever arm",
+  "output_covariance": "ROS world position, world-fixed infinitesimal rotation; full Jacobian with cross terms",
+  "position_covariance_basis": "constant OpenCV-to-FLU basis, without additional pose rotation",
+  "variance_budget_unchanged": 0.25,
+  "minimum_initialized_observation_s": 120.0,
+  "global_uncertainty_consistency_validated": false,
+  "covariance_kind": "conditional_pose_world_base_unqualified",
+  "optimizer_changed": true,
+  "native_euler_roundtrip": false,
+  "marginalization_precision": "float64 SVD/inverse/Schur; unchanged 1e-6 singular cutoff and float state storage",
+  "eigenvalue_clipping": false,
+  "stationary_initialization": {
+    "minimum_visual_keyframes": 6,
+    "minimum_history_s": 5.0,
+    "maximum_position_span_m": 0.003,
+    "maximum_angle_rad": 0.002,
+    "maximum_accel_rms": 0.03,
+    "maximum_gyro_rms": 0.002,
+    "accelerometer_bias": "zero calibrated prior; not observed at rest",
+    "runtime_zero_velocity_updates": false,
+    "raw_stereo": {
+      "depth_bounds_m": [
+        0.2,
+        3.0
+      ],
+      "minimum_persistent_tracks_per_camera": 30,
+      "median_motion_max_px": 0.1,
+      "p95_motion_max_px": 0.3,
+      "maximum_visual_only_solve_span_m": 0.05
+    },
+    "history": "latest 6 keyframes; original 20-keyframe dynamic initialization retained",
+    "only_when_gravity_uninitialized": true
+  },
+  "identical_patch_flow_seed": {
+    "absolute_photometric_error": 0.0,
+    "quality_checks_unchanged": true,
+    "output_pose_clamping": false,
+    "max_prediction_offset_per_axis_px": 1.0
+  },
+  "low_residual_information": "refresh actual observation and IMU Hessian, with unchanged bias freeze and Schur cutoff"
+}

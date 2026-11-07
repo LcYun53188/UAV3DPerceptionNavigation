@@ -1,0 +1,200 @@
+--- a/libs/pipelines/tracker_state_machine.cpp
++++ b/libs/pipelines/tracker_state_machine.cpp
+@@ -54,6 +54,16 @@
+     return state_;
+   }
+ 
++  // A failed static attempt must not discard the normal 20-keyframe history.
++  if (state_ == Uninitialized && is_keyframe && track_result &&
++      keyframe_timeline_.size() >= 6 &&
++      ts_ns-keyframe_timeline_.front() >= 5000000000LL &&
++      gravity_calculate_callback_(6)) {
++    last_gravity_estimation_time_ns=ts_ns;
++    state_=Ok;
++    return state_;
++  }
++
+   if (keyframe_timeline_.size() >= s_.min_num_kf_for_gravity &&    // we have enough good keyframes in the map
+       ts_ns - *keyframe_timeline_.begin() > s_.min_time_period_ns  // the success timeline is long enough
+   ) {
+--- a/libs/pipelines/track_online_inertial.cpp
++++ b/libs/pipelines/track_online_inertial.cpp
+@@ -35,6 +35,8 @@
+ #include "common/rerun.h"
+ #include "epipolar/camera_selection.h"
+ #include "pipelines/inertial_pnp.h"
++#include "imu/vio_stationary_initialization.hpp"
++#include <cstdio>
+ #include "pipelines/service_sba.h"
+ #include "pipelines/track.h"
+ #include "pipelines/visualizer.h"
+@@ -277,7 +279,7 @@
+     TRACE_EVENT ev = profiler_domain_.trace_event("gravity_estimation_callback");
+     // Fetch all available keyframes (up to map capacity) to maximize data for optimization.
+     // num_kfs is only the minimum threshold — if the map hasn't filled yet, bail out.
+-    auto recent_map = map_.get_recent_submap(map_.capacity());
++    auto recent_map = map_.get_recent_submap(num_kfs<20 ? 6 : map_.capacity());
+ 
+     if (recent_map.consecutive_keyframes.size() < num_kfs) {
+       TraceDebug("Not enough keyframes in map, (%d, %d)", map_.size(), num_kfs);
+@@ -293,6 +295,69 @@
+                                kf.preintegration ? *kf.preintegration : IMUPreintegration()});
+     }
+ 
++    // Use the visual trajectory and every original IMU measurement to test
++    // stillness. A calibrated zero accelerometer-bias prior remains a prior:
++    // gravity tilt and accelerometer bias cannot both be observed at rest.
++    std::vector<uav_vio::StaticVisualSample> static_visual;
++    std::vector<uav_vio::StaticImuSample> static_imu;
++    const auto initial_rotation=gravity_cache.front().w_from_imu.linear().eval();
++    int64_t last_imu_stamp=-1;
++    for (size_t i=0;i<gravity_cache.size();++i) {
++      const auto& pose=gravity_cache[i];
++      const auto p=pose.w_from_imu.translation();
++      const double angle=Eigen::AngleAxisf(initial_rotation.transpose()*pose.w_from_imu.linear()).angle();
++      static_visual.push_back({recent_map.consecutive_keyframes[i].keyframe->time_ns(),{p.x(),p.y(),p.z()},angle});
++      if (i+1==gravity_cache.size()) continue;
++      for (const auto& m:pose.preintegration.measurements()) {
++        if (m.time_ns==last_imu_stamp) continue;
++        const auto acc=pose.w_from_imu.linear()*m.linear_acceleration;
++        static_imu.push_back({m.time_ns,{acc.x(),acc.y(),acc.z()},
++                             {m.angular_velocity.x(),m.angular_velocity.y(),m.angular_velocity.z()}});
++        last_imu_stamp=m.time_ns;
++      }
++    }
++    uav_vio::StaticEstimate static_estimate;
++    // Use original near-field stereo feature coordinates, not only the
++    // potentially drifting visual-only pose solve, as the static evidence.
++    std::map<std::pair<int,TrackId>,uav_vio::StaticFeatureTrack> feature_tracks;
++    const auto first_rig_from_world=calib_.rig_from_imu()*gravity_cache.front().w_from_imu.inverse();
++    for (size_t i=0;i<recent_map.landmark_and_obs.size();++i) {
++      for (const auto& lo:recent_map.landmark_and_obs[i]) {
++        if (!lo.landmark->get_pose()) continue;
++        for (const auto& obs:lo.observations) {
++          if (obs.cam_id<0 || obs.cam_id>1 || obs.cam_id>=rig_.num_cameras) continue;
++          const Vector3T camera_point=rig_.camera_from_rig[obs.cam_id]*first_rig_from_world*(*lo.landmark->get_pose());
++          if (!camera_point.allFinite() || camera_point.z()<.2f || camera_point.z()>3.f) continue;
++          Vector2T uv;
++          if (!rig_.intrinsics[obs.cam_id]->denormalizePoint(obs.xy,uv)) continue;
++          auto& track=feature_tracks[{int(obs.cam_id),obs.id}];
++          track.camera=int(obs.cam_id);
++          if (track.pixels.empty()) track.pixels.resize(gravity_cache.size(),{NAN,NAN});
++          track.pixels[i]={uv.x(),uv.y()};
++        }
++      }
++    }
++    std::vector<uav_vio::StaticFeatureTrack> feature_evidence;
++    for (const auto& entry:feature_tracks) feature_evidence.push_back(entry.second);
++    const auto stereo_static=uav_vio::StationaryFeatures(feature_evidence,gravity_cache.size());
++    const bool stationary_init=!map_.get_gravity() && uav_vio::EstimateStationary(static_visual,static_imu,static_estimate,stereo_static.stationary);
++    std::fprintf(stderr,"UAV_STATIC_FEATURES left=%zu right=%zu median_px=%.6f p95_px=%.6f passed=%d\n",
++                 stereo_static.left,stereo_static.right,stereo_static.median,stereo_static.p95,stereo_static.stationary);
++    if (!static_imu.empty()) {
++      double span=0,angle=0; Vector3T lo=gravity_cache.front().w_from_imu.translation(),hi=lo;
++      for (const auto& v:static_visual) {
++        angle=std::max(angle,std::abs(v.angle));
++        for (int j=0;j<3;++j) {lo[j]=std::min(double(lo[j]),v.position[j]);hi[j]=std::max(double(hi[j]),v.position[j]);}
++      }
++      span=(hi-lo).norm();
++      std::fprintf(stderr,"UAV_STATIC_INIT accepted=%d kfs=%zu imu=%zu span=%.6f angle=%.6f visual_s=%.3f imu_s=%.3f first_ms=%.1f last_ms=%.1f\n",
++          stationary_init,static_visual.size(),static_imu.size(),span,angle,
++          (static_visual.back().stamp-static_visual.front().stamp)*1e-9,
++          (static_imu.back().stamp-static_imu.front().stamp)*1e-9,
++          (static_imu.front().stamp-static_visual.front().stamp)*1e-6,
++          (static_imu.back().stamp-static_visual.back().stamp)*1e-6);
++    }
++    if (!stationary_init && num_kfs<20) return false;
+     bool imu_init_result = false;
+     bool config_use_nec_init = false;
+ 
+@@ -309,7 +374,19 @@
+       observations_per_kf.push_back(std::move(kf_obs));
+     }
+ 
+-    if (config_use_nec_init) {
++    if (stationary_init) {
++      const auto& a=static_estimate.acceleration_world;
++      const auto& b=static_estimate.gyro_bias;
++      const Vector3T gravity=-Vector3T(a[0],a[1],a[2]);
++      Rgravity=Eigen::Quaternionf::FromTwoVectors(optimizer_.get_default_gravity().normalized(),gravity.normalized()).toRotationMatrix();
++      for (auto& pose:gravity_cache) {
++        // Initial zero velocity is a measured-static prior, not output clamping.
++        pose.velocity.setZero();
++        pose.gyro_bias=Vector3T(b[0],b[1],b[2]);
++        pose.acc_bias.setZero();
++      }
++      imu_init_result=true;
++    } else if (config_use_nec_init) {
+       imu_init_result = optimizer_.OptimizeInertialAdaptive(gravity_cache, calib_, Rgravity, 1e-3, observations_per_kf,
+                                                             rig_.camera_from_rig[0]);
+     } else {
+@@ -322,7 +399,7 @@
+       const Vector3T gravity_for_sba = Rgravity * optimizer_.get_default_gravity();
+ 
+       // this step can improve accuracy, but may use some time, by default it is enabled.
+-      if (enable_imu_sba_init_) {
++      if (enable_imu_sba_init_ && !stationary_init) {
+         RunImuSbaInit(recent_map, gravity_for_sba, rig_, calib_, gravity_cache, imu_init_bundler_, observations_per_kf);
+       }
+ 
+--- a/libs/cuda_modules/cuda_kernels/lk_tracker.cu
++++ b/libs/cuda_modules/cuda_kernels/lk_tracker.cu
+@@ -14,6 +14,7 @@
+  * of the software or derivative works thereof, you agree to be bound by this License.
+  */
+ 
++#include "common/vio_zero_flow_seed.hpp"
+ #include <assert.h>
+ #include <stdio.h>
+ 
+@@ -177,6 +178,7 @@
+       float grad_x_sum = 0.f;
+       float grad_y_sum = 0.f;
+       float prev_patch_sum = 0.f;
++      float zero_patch_error = 0.f;
+ 
+ #pragma unroll
+       for (int elem_id = 0; elem_id < ELEMS_PER_THREAD; ++elem_id) {
+@@ -188,6 +190,10 @@
+           grad_x_sum += gx;
+           grad_y_sum += gy;
+           prev_patch_sum += prev_value;
++          // Sample both frames at identical coordinates. For identical patches
++          // the exact zero-flow residual is preferable to walking a tiny
++          // nonzero prediction through texture interpolation quantization.
++          zero_patch_error += fabsf(prev_value-tex2D<float>(curr_image,xmin+ix_val[elem_id],ymin+iy_val[elem_id]));
+ 
+           gradPatchX[elem_id] = gx;
+           gradPatchY[elem_id] = gy;
+@@ -197,6 +203,8 @@
+       grad_x_sum = reduce(grad_x_sum);
+       grad_y_sum = reduce(grad_y_sum);
+       prev_patch_sum = reduce(prev_patch_sum);
++      zero_patch_error = reduce(zero_patch_error);
++      if (uav_vio::PreferZeroFlowSeed(zero_patch_error,offset.x,offset.y)) shifted_curr_xy=shifted_xy;
+ 
+       float gxx = 1.f / 32.f;
+       float gxy = 0.f;
+--- a/libs/imu/soft_inertial_pnp.cpp
++++ b/libs/imu/soft_inertial_pnp.cpp
+@@ -698,6 +698,20 @@
+     // Nothing to minimize. We have a "pendulum" effect on still frames otherwise.
+     prev_pose = original_prev_pose;
+     pose = original_pose;
++    // A small residual does not mean the observations contain no information.
++    // Refresh the true observation/IMU Hessian even when no state update is
++    // necessary; otherwise the default/stale identity prior is exported as
++    // covariance on perfectly still, correctly tracked images.
++    build_hessian(imu_calibration, problem, is_obs_outlier, original_prev_pose,
++                  prev_pose, pose, imu_info_penalty, hessian, negative_gradient);
++    if (problem.freeze_bias) {
++      const int bias_indices[] = {9,10,11,12,13,14,24,25,26,27,28,29};
++      for (int idx:bias_indices) {
++        hessian.row(idx).setZero(); hessian.col(idx).setZero();
++        hessian(idx,idx)=1e10f; negative_gradient(idx)=0.f;
++      }
++    }
++    pose.info=Marginalize(hessian);
+     return true;
+   }
+ 

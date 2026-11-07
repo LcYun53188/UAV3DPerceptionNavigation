@@ -49,7 +49,8 @@ def test_quaternion_sign_and_small_normalization_error():
 @pytest.mark.parametrize('fault',['frame','old','future','zero_stamp','zero_cov','negative_cov',
                                 'large_cov','asymmetric','nonfinite_cov','nonfinite_pose','quaternion'])
 @pytest.mark.parametrize('contract',['cuvslam15_right_tangent_base_link_v1',
-    'cuvslam16_conditional_world_base_v3_schur64_disarmed'])
+    'cuvslam16_conditional_world_base_v3_schur64_disarmed',
+    'cuvslam16_conditional_world_base_v4_stationary_disarmed'])
 def test_unknown_or_invalid_measurement_not_given_confidence(fault,contract):
     m = sample()
     if fault == 'frame': m.header.frame_id = 'map'
@@ -90,7 +91,8 @@ def test_nanosecond_bounds_remain_exact_at_epoch_time(age_ns,expected):
     'cuvslam16_marginal_world_fixed_euler_v1_disarmed',
     'cuvslam16_conditional_world_base_v1_disarmed',
     'cuvslam16_conditional_world_base_v2_disarmed',
-    'cuvslam16_conditional_world_base_v3_schur64_disarmed'])
+    'cuvslam16_conditional_world_base_v3_schur64_disarmed',
+    'cuvslam16_conditional_world_base_v4_stationary_disarmed'])
 def test_sdk16_wrapper_world_covariance_is_not_rotated_again(contract):
     m=sample()
     m.pose.pose.orientation.z=math.sin(.6/2)
