@@ -34,11 +34,45 @@ def test_full_default_people_can_be_disabled_and_course_has_no_warehouse_person(
     assert profiles.validate_config(default) == default
 
 
+def test_stationary_initialization_has_a_canonical_saved_rollback(tmp_path):
+    assert profiles.validate_config(dict(schema=1,profile='full'))['options']['vio_initialization']=='stationary'
+    for mode in ('standard','stationary'):
+        config=profiles.validate_config(dict(schema=1,profile='full',options=dict(vio_initialization=mode)))
+        path=tmp_path/(mode+'.json');profiles.save_config(config,path)
+        assert profiles.read_config(path)==config
+        command=profiles.command(config)
+        assert command[command.index('--vio-initialization')+1]==mode
+        runtime=runtime_command(dict(device='/dev/input/js0',input_profile='uav-aetr-v1'),
+                                60,program='full',vio_initialization=mode)
+        assert ('--sdk-stationary-init' in runtime)==(mode=='stationary')
+    with pytest.raises(ValueError):
+        profiles.validate_config(dict(schema=1,profile='manual',options=dict(vio_initialization='stationary')))
+
+
 def test_menu_configuration_error_returns_to_menu(monkeypatch, capsys):
     answers = iter(['l', '/missing/config.json', '0'])
     monkeypatch.setattr('builtins.input', lambda _: next(answers))
     assert menu.interactive(dry_run=True) == 0
     assert '无法启动' in capsys.readouterr().err
+
+
+def test_full_simulation_speed_is_saved_and_reaches_runtime(tmp_path):
+    identity=dict(device='/dev/input/js0',input_profile='uav-aetr-v1')
+    for factor in (.8,1.):
+        config=profiles.validate_config(dict(schema=1,profile='full',options=dict(real_time_factor=factor)))
+        path=tmp_path/(str(factor)+'.json');profiles.save_config(config,path)
+        command=profiles.command(profiles.read_config(path))
+        assert float(command[command.index('--real-time-factor')+1])==factor
+        runtime=runtime_command(identity,60,program='full',real_time_factor=factor)
+        # Backend presets precede the explicit profile override.
+        indices=[i for i,value in enumerate(runtime) if value=='--real-time-factor']
+        assert float(runtime[indices[-1]+1])==factor
+    for invalid in (.7,1.1,float('nan'),float('inf'),True):
+        with pytest.raises(ValueError):
+            profiles.validate_config(dict(schema=1,profile='full',options=dict(real_time_factor=invalid)))
+    with pytest.raises(ValueError):runtime_command(identity,60,real_time_factor=1.)
+    with pytest.raises(ValueError):
+        profiles.validate_config(dict(schema=1,profile='manual',options=dict(real_time_factor=1.)))
 
 
 @pytest.mark.parametrize('key', ['manual', 'full'])
@@ -111,6 +145,19 @@ def test_stop_requests_grounded_close_without_killing_processes(owned):
     assert control.main(['stop']) == 0
     assert (folder/'close-ui').exists()
     assert session.active(state)
+
+
+def test_status_explains_stopped_session_and_tolerates_partial_snapshot(owned, capsys):
+    folder, state = owned
+    capsys.readouterr()
+    state['closed'] = True
+    session.write(state)
+    (folder/'pocket-live.json').write_text('{')
+    assert control.main(['status']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report['active'] is False
+    assert report['readiness']['phase'] == 'STOPPED'
+    assert report['pocket-live'] == {}
 
 
 def test_map_command_rejects_wrong_program_or_unadmitted_map(owned, tmp_path):

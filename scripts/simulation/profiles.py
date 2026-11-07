@@ -57,6 +57,9 @@ PROFILES = (
             'Gazebo＋PX4＋QGC，使用原生光流／测距定位；不启动 VIO、建图或自动任务。', COMMON_OPTIONS),
     Profile('full', '完整项目：VIO／建图／导航／行为树',
             'Gazebo＋PX4＋QGC＋RViz，默认复杂避障仓库（79 个障碍实体）＋站立人体，运行 VIO、建图、EGO 和人员检测。', COMMON_OPTIONS + (
+                Option('vio_initialization', 'VIO 初始化', 'stationary',
+                       (('standard', '常规初始化'), ('stationary', '静止快速初始化'))),
+                Option('real_time_factor', '仿真速度倍率', .8, limits=(.8, 1.)),
                 Option('course', '障碍赛道任务', 'none',
                        (('none', '复杂避障仓库'), ('pillars', '绕柱'), ('rectangle', '穿矩形框'),
                         ('ring', '穿圆环'), ('trees', '绕树'), ('all', '四区串联'))),
@@ -126,6 +129,8 @@ def command(config):
     if key == 'full' and o['color_map']:
         args += ['--color-map']
     if key == 'full':
+        args += ['--vio-initialization', o['vio_initialization']]
+        args += ['--real-time-factor', str(o['real_time_factor'])]
         args += map_visualization.arguments(o)
         if o['course'] != 'none':
             args += ['--course', o['course']]

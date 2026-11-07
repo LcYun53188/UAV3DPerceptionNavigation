@@ -21,10 +21,18 @@ from simulation.backends import ROOT, command as backend_command
 from pocket_input import preflight_device, select_device
 
 
-def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none', map_options=None, person_rotations=False, course='none'):
+def runtime_command(identity, duration, qgc_config=None, program='manual', person_model=None, color_map=False, person_scene='none', map_options=None, person_rotations=False, course='none', vio_initialization='standard', real_time_factor=None):
     if program not in ('manual', 'full'):
         raise ValueError('Unknown simulation program: ' + program)
     args = (['--manual-only'] if program == 'manual' else ['--sdk-schur64', '--vio-primary'])
+    if vio_initialization not in ('standard', 'stationary') or (program != 'full' and vio_initialization != 'standard'):
+        raise ValueError('Stationary VIO initialization requires full')
+    if vio_initialization == 'stationary':
+        args += ['--sdk-stationary-init']
+    if real_time_factor is not None:
+        if program != 'full' or not .8 <= real_time_factor <= 1.:
+            raise ValueError('VIO simulation speed requires full and a factor in [0.8,1.0]')
+        args += ['--real-time-factor', str(real_time_factor)]
     if course != 'none':
         from simulation.vio.runtime.obstacle_course import TASKS
         if program != 'full' or course not in TASKS or person_scene != 'none':
@@ -136,6 +144,8 @@ def main(argv=None):
     parser.add_argument('--input-source', choices=('physical', 'virtual'), default='physical')
     parser.add_argument('--device', default='auto')
     parser.add_argument('--session-duration', type=int, default=3600)
+    parser.add_argument('--vio-initialization', choices=('standard', 'stationary'), default='standard')
+    parser.add_argument('--real-time-factor', type=float)
     parser.add_argument('--qgc-config-from', type=Path)
     parser.add_argument('--people', action='store_true')
     parser.add_argument('--person-model', type=Path, default=ROOT/'.cache/models/person/yolox_tiny.onnx')
@@ -147,6 +157,8 @@ def main(argv=None):
     from simulation import map_visualization
     map_visualization.add_arguments(parser)
     args = parser.parse_args(argv)
+    if args.real_time_factor is not None and (args.program != 'full' or not .8 <= args.real_time_factor <= 1.):
+        parser.error('--real-time-factor requires full and a factor in [0.8,1.0]')
     if args.course != 'none' and (args.program != 'full' or args.person_scene != 'none'):
         parser.error('--course requires full without --person-scene')
     try:
@@ -191,11 +203,11 @@ def main(argv=None):
             print(f'使用已保存的 QGC 校准：{calibration}', flush=True)
         print(f'手动输入已选择：{identity["name"]}，{identity["axes"]}轴／{identity["buttons"]}按钮\n'
               f'设备：{identity["device"]}\n请确认 QGC 启用此摇杆并使用 Fly 页面；'
-              '校准仅需首次完成，启动过程不自动解锁或起飞。', flush=True)
+              '实体设备首次需校准，空白虚拟设备配置使用固定 AETR 映射；启动过程不自动解锁或起飞。', flush=True)
         try:
             return supervise(runtime_command(identity, args.session_duration, calibration, args.program,
                              args.person_model.expanduser().resolve() if args.people else None,args.color_map,args.person_scene,
-                             map_options if args.program == 'full' else None,args.person_rotations,args.course), environment)
+                             map_options if args.program == 'full' else None,args.person_rotations,args.course,args.vio_initialization,args.real_time_factor), environment)
         finally:
             from simulation.session import read
             state = read(False)

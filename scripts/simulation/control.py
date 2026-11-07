@@ -26,10 +26,12 @@ def main(argv=None):
         report = dict(state or {}, active=session.active(state))
         if state and state.get('runtime'):
             folder = Path(state['runtime'])
+            from simulation.readiness import read_record, startup_status
+            report['readiness'] = startup_status(folder, active=report['active'])
             for name in ('live-session', 'pocket-live', 'live-heartbeat', 'result'):
                 path = folder / (name + '.json')
                 if path.is_file():
-                    report[name] = json.loads(path.read_text())
+                    report[name] = read_record(folder, name)
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
     folder = session.runtime(state)

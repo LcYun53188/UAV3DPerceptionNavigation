@@ -51,6 +51,7 @@ def main():
     parser.add_argument('--sdk-information-log',action='store_true',help='Record native conditional/full information for SDK16 disarmed or experimental-chain diagnostics; extra I/O, not production latency evidence')
     parser.add_argument('--sdk-schur-diagnostic',action='store_true',help='Explicit isolated passive Hessian capture; requires SDK16 information logging')
     parser.add_argument('--sdk-schur64',action='store_true',help='Explicit isolated double precision marginalization candidate; no default SDK replacement')
+    parser.add_argument('--sdk-stationary-init',action='store_true',help='Isolated observed-static initialization with original dynamic fallback')
     parser.add_argument('--vio-primary',action='store_true',help='Fixed SDK64 avoidance profile: mandatory EV fusion and fresh MTF inputs, opportunistic auxiliary fusion; joint ground preflight remains mandatory')
     parser.add_argument('--sdk-profile',action='store_true',help='Explicit Nsight CUDA/NVTX trace; disarmed diagnostic only, never source qualification')
     parser.add_argument('--sdk-executor',choices=('standalone','single_thread'),default='standalone',help='Explicit SDK executor comparison; single_thread matches the navigation component container')
@@ -159,6 +160,8 @@ def main():
     if args.experimental_chain and (not args.flight or args.sdk_candidate!="sdk16" or not args.mtf01 or args.scene!="warehouse" or args.camera_pitch_deg!=5 or args.reset_source or args.same_aircraft_motion or args.motion):
         parser.error("Experimental chain requires default SDK16, MTF, warehouse, fixed 5 degrees and a motor-flight task")
     selected_sdk=args.sdk_candidate
+    if args.sdk_stationary_init and (not args.sdk_schur64 or args.sdk_candidate!='sdk16'):
+        parser.error('--sdk-stationary-init requires the SDK16 Schur64 candidate')
     openvins=args.estimator=='openvins'
     if openvins:
         if args.sdk_candidate or args.sdk_debug_dump or args.sdk_profile or args.reset_source:
@@ -368,6 +371,8 @@ def main():
                 from build_vio_sdk16_schur_diagnostic import PREFIX, FOLDER, CONTRACT
             if args.sdk_schur64:
                 from build_vio_sdk16_schur64 import PREFIX, FOLDER, CONTRACT
+            if args.sdk_stationary_init:
+                from build_vio_sdk16_stationary import PREFIX, FOLDER, CONTRACT
         if args.sdk_candidate=='sdk16-marginal':
             from build_vio_sdk16_marginal_candidate import PREFIX, FOLDER, CONTRACT
         reviewed=FOLDER/'ros-contract.json'
@@ -599,6 +604,7 @@ def main():
     manifest['sdk_information_log']=args.sdk_information_log
     manifest['sdk_schur_diagnostic']=args.sdk_schur_diagnostic
     manifest['sdk_schur64']=args.sdk_schur64
+    manifest['sdk_stationary_init']=args.sdk_stationary_init
     manifest['vio_primary']=args.vio_primary
     manifest['pocket_task']=args.pocket_task
     manifest['obstacle_course']=args.course
@@ -827,12 +833,15 @@ def main():
                 # Keep depth integration closed throughout startup, including
                 # the visible mesh. Only stable localization may open the map.
                 from vio_chain_mapping import launch_mapping, native_map_file
-                from vio_map_startup import MapStartupStability, initialized_window
+                from vio_map_startup import MapStartupStability, MapStartupReady, initialized_window
                 # Operator startup uses sustained measured stability instead
                 # of the diagnostic candidate's fixed observation duration.
                 # Candidate qualification remains a separate 120 s audit.
-                map_stability=MapStartupStability(window_s=30. if args.pocket_session else 10.)
+                map_stability=MapStartupStability(window_s=30. if args.pocket_session else 10.,
+                    max_drift_rate_m_s=.0005 if args.pocket_session else None)
                 map_stability.subscribe(node)
+                map_ready=MapStartupReady(run_id)
+                map_ready.subscribe(node)
                 launch_mapping(launch,env,out,run_id,graph_only=True,visualize=args.ui,color_map=args.color_map,
                                map_options=map_options)
                 launch_mapping(launch,env,out,run_id,binding_only=True)
@@ -928,10 +937,27 @@ def main():
                         sdk_startup=sdk_startup,qualification_observation_s=120.,
                         scope='Depth fusion opens after stable ground localization; startup frames discarded'))
                     print('定位稳定，已清空原生地图并开放深度建图。',flush=True)
-                    settle_until=time.monotonic()+10.
+                    settle_started=time.monotonic()
+                    admitted_ros=fusion_audit.ros()
+                    settle_until=settle_started+10.
+                    map_ready_receipt={}
+                    map_ready_evaluated=settle_started
                     while time.monotonic()<settle_until:
                         rclpy.spin_once(node,timeout_sec=.02)
                         if fusion_audit.stream.fault:raise RuntimeError('VIO map startup fault: '+fusion_audit.stream.fault)
+                        # The source has already passed 30 s of stability.
+                        # Finish when the real mapper has promoted and bound a
+                        # fresh map, rather than always sleeping 10 wall seconds.
+                        # Missing map evidence retains the historical wait;
+                        # task preparation independently checks map coverage.
+                        now=time.monotonic()
+                        if measured_startup and now-settle_started>=2. and now-map_ready_evaluated>=.1:
+                            map_ready_evaluated=now
+                            map_ready_receipt=map_ready.result(fusion_audit.ros(),now,admitted_ros,map_ready.unique(node))
+                            if map_ready_receipt['passed']:break
+                    write_json(out/'map-startup-ready.json',dict(map_ready_receipt,
+                        elapsed_s=time.monotonic()-settle_started,
+                        completion='promoted_map_ready' if map_ready_receipt.get('passed') else 'legacy_wait_complete'))
                     if fusion_audit.gate.reason!='READY':
                         raise RuntimeError('VIO map startup not ready: '+fusion_audit.gate.reason)
                     if measured_startup and (not map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground())['passed']
@@ -949,7 +975,15 @@ def main():
             if chain_depth:
                 write_json(out/'map-startup-stability.json',map_stability.result(fusion_audit.ros(),time.monotonic(),fusion_audit.ground()))
                 map_stability.close(node)
+                map_ready.close(node)
         if args.pocket_session:
+            # Retain original startup evidence before the bounded live buffers
+            # expire it during a long operator session.
+            from vio_evidence import save_raw_sdk, nullable
+            if pose_audit is not None:
+                save_raw_sdk(out/'startup-sdk-poses-raw.npz',pose_audit.raw)
+            if candidate_audit is not None:
+                write_json(out/'startup-sdk16-inertial-state.json',nullable(candidate_audit.states))
             write_json(out/'live-session.json',dict(state='POCKET_PREFLIGHT_BLOCKED' if preflight_blocked else 'POCKET_ADMITTED',reason=preflight_blocked,automatic_flight=False,qualification=False,arm_and_task_admitted=not bool(preflight_blocked) and not args.manual_only,
                 arm_admitted=not bool(preflight_blocked),task_admitted=not bool(preflight_blocked) and not args.manual_only,
                 manual_only=args.manual_only,input_profile=args.input_profile,input_device=input_identity))

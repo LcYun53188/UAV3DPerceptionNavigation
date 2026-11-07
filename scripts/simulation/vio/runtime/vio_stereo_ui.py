@@ -20,6 +20,7 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from px4_msgs.msg import VehicleLocalPosition
+from simulation.readiness import startup_status, status_text
 
 
 def main():
@@ -64,7 +65,7 @@ def main():
             name=f'{count:04d}'
             for side,data in payload.items():(capture/(name+'-'+side+'.ppm')).write_bytes(data)
             (capture/(name+'.json')).write_text(json.dumps(dict(system_ns=time.time_ns(),mono=time.monotonic(),image_stamp=stamps['left'],sdk_pose=cov,px4_local=height),indent=2)+'\n')
-        terminal='Waiting for BT terminal; images recorded at 1 Hz'
+        terminal=status_text(startup_status(out))
         for file in ('flight-observation.json','ui-session.json'):
             try:
                 receipt=json.loads((out/file).read_text())
