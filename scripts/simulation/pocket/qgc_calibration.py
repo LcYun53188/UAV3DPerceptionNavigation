@@ -1,4 +1,4 @@
-"""Preserve device-specific QGC calibration and repair signed Pocket throttle ranges."""
+"""Preserve QGC calibration, seed fixed virtual controls, and repair Pocket ranges."""
 import configparser
 import hashlib
 import os
@@ -21,8 +21,45 @@ def device_prefix(identity):
     return quote(identity['name'], safe='') + '\\'
 
 
+def virtual_defaults(config, identity):
+    """Seed a new software device from its fixed AETR contract, not a HID measurement.
+
+    Only the project's 9-axis/3-button uinput device qualifies. Existing device
+    settings (including incomplete user calibration) remain authoritative.
+    QGC sends the four sticks; the sole project gateway still owns switches.
+    """
+    from pocket_virtual_joystick import NAME
+    if (identity.get('name') != NAME or identity.get('input_profile') != 'uav-aetr-v1'
+            or (identity.get('axes'), identity.get('buttons')) != (9, 3)):
+        return False
+    prefix = device_prefix(identity)
+    section = 'JoystickSettingsV2'
+    if config.has_section(section) and any(key.startswith(prefix) for key in config[section]):
+        return False
+    if not config.has_section(section):
+        config.add_section(section)
+    values = config[section]
+    values.update({prefix+'calibrated': 'true', prefix+'transmitterMode': '2',
+                   prefix+'throttleModeCenterZero': 'false', prefix+'negativeThrust': 'false',
+                   prefix+'throttleSmoothing': 'false', prefix+'exponentialPct': '0',
+                   prefix+'circleCorrection': 'false'})
+    for axis, function in enumerate((0, 1, 3, 2)):
+        base = prefix+f'JoystickAxisSettingsArray\\{axis}\\'
+        values.update({base+'function': str(function), base+'min': '-32768',
+                       base+'max': '32767', base+'center': '0', base+'deadband': '0',
+                       base+'reversed': 'false'})
+    if not config.has_section('JoystickManager'):
+        config.add_section('JoystickManager')
+    manager = config['JoystickManager']
+    vehicles = [value for value in manager.get('joystickEnabledVehiclesIds', '').split(',') if value]
+    if '8' not in vehicles:  # The owned PX4 SITL instance, never a hardware vehicle.
+        vehicles.append('8')
+    manager['joystickEnabledVehiclesIds'] = ','.join(vehicles)
+    return True
+
+
 def ready(config, identity):
-    """A cache never replaces calibration: all four functions must already exist."""
+    """Cached settings must already contain all four complete axis functions."""
     prefix = device_prefix(identity)
     values = config['JoystickSettingsV2'] if config.has_section('JoystickSettingsV2') else {}
     if values.get(prefix+'calibrated', '').lower() != 'true':

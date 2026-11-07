@@ -107,6 +107,37 @@ def test_startup_also_repairs_an_explicit_completed_qgc_config(tmp_path):
     assert config['JoystickManager']['activeJoystickName']==device['name']
 
 
+def test_new_virtual_device_has_safe_full_range_without_physical_calibration(tmp_path):
+    source = tmp_path/'qgc.ini'
+    source.write_text('[AutoConnect]\nautoConnectUDP=true\n')
+    device = identity(True)
+    configure_qgc_input(source, device)
+    config = calibration.read(source)
+    assert calibration.ready(config, device)
+    assert not calibration.ready(config, identity())
+    assert config['JoystickManager']['joystickEnabledVehiclesIds'] == '8'
+    values = config['JoystickSettingsV2']
+    prefix = calibration.device_prefix(device)
+    for axis, function in enumerate((0, 1, 3, 2)):
+        assert values[prefix+f'JoystickAxisSettingsArray\\{axis}\\function'] == str(function)
+    assert values[prefix+'JoystickAxisSettingsArray\\2\\center'] == '0'
+    assert upstream_px4_throttle(-32768, 0) == -1.
+    assert not any('Button' in key for key in values)
+
+
+@pytest.mark.parametrize('case', ['physical', 'wrong_shape', 'wrong_profile', 'existing', 'partial'])
+def test_virtual_defaults_do_not_replace_other_or_user_settings(case):
+    device = identity(case != 'physical')
+    config = calibrated(device) if case == 'existing' else configparser.ConfigParser(interpolation=None)
+    config.optionxform = str
+    if case == 'wrong_shape':device['axes'] = 8
+    if case == 'wrong_profile':device['input_profile'] = 'legacy-usb'
+    if case == 'partial':config['JoystickSettingsV2'] = {calibration.device_prefix(device)+'calibrated': 'false'}
+    before = {section: dict(config[section]) for section in config.sections()}
+    assert not calibration.virtual_defaults(config, device)
+    assert before == {section: dict(config[section]) for section in config.sections()}
+
+
 def test_arm_rejection_is_printed_once_with_the_actual_input(tmp_path,capsys):
     import json
     from simulation.session import report_rejected_arm

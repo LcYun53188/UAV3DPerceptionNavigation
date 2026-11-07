@@ -305,7 +305,7 @@ class PocketPanel:
                 path = self.device.device_path()
                 readable = path is not None and os.access(path, os.R_OK)
                 device_status = path if readable else '等待 joydev / udev 用户读取权限'
-                status_text=f'{NAME} · {device_status}\n在 QGC 选择此设备、校准并启用；任务请求需运行 UAV 配置控制器'
+                status_text=f'{NAME} · {device_status}\nsim.sh 为新建配置应用固定映射；请确认 QGC 输入就绪，任务需通过准备档'
                 if status_text != getattr(self,'last_status_text',None):
                     self.last_status_text=status_text
                     self.status.configure(text=status_text,fg=ACCENT)

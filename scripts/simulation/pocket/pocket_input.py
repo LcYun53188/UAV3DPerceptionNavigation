@@ -29,7 +29,10 @@ def configure_qgc_input(path, identity):
     if not config.has_section('JoystickManager'):
         config.add_section('JoystickManager')
     config['JoystickManager']['activeJoystickName'] = identity['name']
-    from qgc_calibration import normalize_throttle
+    from qgc_calibration import normalize_throttle, virtual_defaults
+    if virtual_defaults(config, identity):
+        print('QGC 已应用模拟面板固定 AETR 映射并启用 SITL 输入；'
+              '实体遥控器仍需实测校准，解锁与任务由原准入链路控制。', flush=True)
     correction = normalize_throttle(config, identity)
     if correction:
         print(f'已修正 QGC 实体油门轴 {correction["axis"]} 中心：'
