@@ -136,12 +136,13 @@ def test_context_waits_for_initial_binding_then_latches_active_clock_fault(monke
 def test_preflight_resets_settle_before_map_binding():
     m,o,a=inputs();m.source_stamp=stamp(10.)
     b=SourceBinding(o.localization_session,'owned',a.map_to_odom,settle_seconds=5.)
-    for mono in range(1,9):
+    for step in range(71):
+        mono=1.+step*.1
         now=10.+mono;m.version+=1;m.header.stamp=m.source_stamp=stamp(now)
         o.header.stamp=stamp(now);o.odometry.header=deepcopy(o.header)
-        if mono==3:o.reset_counters[0]=1
+        if step==20:o.reset_counters[0]=1
         b.update('map',m,float(mono));b.update('odom',o,float(mono))
-        assert b.ready(now,float(mono))==(mono>=8)
+        assert b.ready(now,float(mono))==(step>=70)
     assert b.identity[2][0]==1
 
 
@@ -150,8 +151,10 @@ def test_prewarmed_node_waits_for_clearance_and_first_valid_map(tmp_path):
     from types import SimpleNamespace as NS
     from uav_nav_sim.planning_sources_node import PlanningSources
     marker=tmp_path/'map-admission.json'
-    updates=[];published=[];ticks=[]
+    updates=[];published=[];ticks=[];prewarmed=[]
     binding=NS(inputs={},retired='')
+    binding.prewarm_odometry=lambda message,mono:prewarmed.append(message)
+    binding.discard_prewarm_odometry=lambda:None
     def update(name,message,mono):
         binding.inputs[name]=(message,mono);updates.append((name,message));return True
     binding.update=update
@@ -167,6 +170,7 @@ def test_prewarmed_node_waits_for_clearance_and_first_valid_map(tmp_path):
         PlanningSources.receive(node,'odom',o)
         PlanningSources.tick(node)  # No clock access or publication before admission.
         assert not updates and not published and not node.preflight_admitted
+    assert len(prewarmed)==6
     marker.write_text(json.dumps(dict(schema=1,source_ready=True,native_map_cleared=True)))
     warmup=deepcopy(m);warmup.valid=False
     PlanningSources.receive(node,'map',warmup)
@@ -185,3 +189,48 @@ def test_prewarm_marker_is_optional_for_existing_profiles():
     from types import SimpleNamespace as NS
     from uav_nav_sim.planning_sources_node import PlanningSources
     assert PlanningSources.preflight_ready(NS(preflight_admitted=True))
+
+
+def test_passive_reset_history_never_activates_before_promoted_map():
+    m,o,a=inputs();b=SourceBinding(o.localization_session,'owned',a.map_to_odom,settle_seconds=5.)
+    for i in range(61):
+        o.header.stamp=stamp(10+i*.1);o.odometry.header=deepcopy(o.header)
+        assert b.prewarm_odometry(o,1+i*.1)
+        assert not b.alignment(10+i*.1,1+i*.1,o.header.stamp).valid
+        assert not b.activated and b.identity is None and 'map' not in b.inputs
+    m.header.stamp=m.source_stamp=stamp(16.)
+    assert b.update('map',m,7.) and b.ready(16.,7.)
+    assert b.reset_stable_since==1.
+
+
+@pytest.mark.parametrize('event',['gap','reset','endpoint_loss','foreign_session','invalid_pose'])
+def test_prewarm_fault_restarts_full_settle_period(event):
+    m,o,a=inputs();b=SourceBinding(o.localization_session,'owned',a.map_to_odom,settle_seconds=5.)
+    for i in range(61):
+        o.header.stamp=stamp(10+i*.1);o.odometry.header=deepcopy(o.header)
+        assert b.prewarm_odometry(o,1+i*.1)
+    if event=='endpoint_loss':b.discard_prewarm_odometry()
+    if event=='foreign_session':
+        wrong=deepcopy(o);wrong.localization_session='another';assert not b.prewarm_odometry(wrong,7.1)
+    if event=='invalid_pose':
+        wrong=deepcopy(o);wrong.odometry.pose.pose.orientation.w=float('nan');assert not b.prewarm_odometry(wrong,7.1)
+    now=8. if event=='gap' else 7.2
+    ros=17. if event=='gap' else 16.2
+    o.header.stamp=stamp(ros);o.odometry.header=deepcopy(o.header)
+    if event=='reset':o.reset_counters[0]+=1
+    assert b.prewarm_odometry(o,now)
+    m.header.stamp=m.source_stamp=stamp(ros);b.update('map',m,now)
+    assert not b.ready(ros,now) and b.reason=='LOCALIZATION_SETTLING'
+    assert b.reset_stable_since==now
+
+
+def test_regressed_prewarm_cannot_leave_old_odometry_with_missing_reset_history():
+    m,o,a=inputs();b=SourceBinding(o.localization_session,'owned',a.map_to_odom,settle_seconds=5.)
+    assert b.prewarm_odometry(o,1.)
+    old=deepcopy(o);old.header.stamp=stamp(9.9);old.odometry.header=deepcopy(old.header)
+    assert not b.prewarm_odometry(old,1.1)
+    m.source_stamp=stamp(10.);assert b.update('map',m,1.1)
+    assert not b.ready(10.,1.1) and b.reason=='MISSING_ODOM'
+    o.header.stamp=stamp(10.1);o.odometry.header=deepcopy(o.header)
+    assert b.prewarm_odometry(o,1.2)
+    assert not b.ready(10.1,1.2) and b.reason=='LOCALIZATION_SETTLING'

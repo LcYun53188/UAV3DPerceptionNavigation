@@ -1,7 +1,7 @@
 import math
 import pytest
 
-from vio_map_startup import MapStartupStability, initialized_window
+from vio_map_startup import MapStartupStability, MapStartupReady, initialized_window
 
 
 def fill(gate, start=1., moving=False, rotating=False):
@@ -102,3 +102,69 @@ def test_sdk_initialization_must_retain_full_recent_window_after_restart():
     for row in fresh: row[0] += 31*10**9
     fresh_stamps = [s+31*10**9 for s in fresh_stamps]
     assert initialized_window(states+fresh, stamps+fresh_stamps, 62., True)['passed']
+
+
+def test_slow_creep_inside_position_envelope_does_not_admit_mapping():
+    old = MapStartupStability(window_s=30.)
+    gate = MapStartupStability(window_s=30., max_drift_rate_m_s=.0005)
+    for i in range(751):
+        t = 1+i*.04
+        for source in gate.samples:
+            for observer in (old, gate):
+                observer.observe(source, t, (.0009*t, 0., 0.), (0.,0.,0.,1.), t)
+    assert old.result(31.,31.,True)['passed']
+    result = gate.result(31.,31.,True)
+    assert not result['passed']
+    assert result['sources']['vio']['position_span_m'] < .03
+    assert result['sources']['vio']['drift_rate_m_s'] == pytest.approx(.0009)
+    for i in range(751, 1502):
+        t = 1+i*.04
+        for source in gate.samples:
+            gate.observe(source,t,(.0279+.0001*math.sin(i),0.,0.),(0.,0.,0.,1.),t)
+    assert gate.result(t,t,True)['passed']
+
+
+def alignment(stamp, **overrides):
+    from types import SimpleNamespace as N
+    values = dict(header=N(stamp=N(sec=int(stamp),nanosec=round((stamp-int(stamp))*1e9)),frame_id='map'),
+                  valid=True, localization_session='current', alignment_id='depth-map-is-ekf-odom-v1',
+                  map_id='map-a',map_epoch=1,generation=1,reset_counters=[0]*6)
+    return N(**dict(values,**overrides))
+
+
+def test_actual_promoted_map_is_required_for_early_completion():
+    gate = MapStartupReady('current')
+    for i in range(16):gate.observe(alignment(10+i*.1),20+i*.1)
+    assert gate.result(11.5,21.5,10.,True)['passed']
+    assert not gate.result(11.5,21.5,11.,True)['passed']  # Original pre-admission data cannot fill the window.
+    assert not gate.result(11.5,21.5,10.,False)['passed']
+    assert not gate.result(12.,21.5,10.,True)['passed']
+    assert not gate.result(11.5,22.,10.,True)['passed']
+
+
+@pytest.mark.parametrize('change', [dict(valid=False),dict(localization_session='old'),
+    dict(map_epoch=2),dict(map_id='map-b'),dict(generation=2),dict(reset_counters=[1]*6)])
+def test_invalid_replaced_or_reset_map_cannot_finish_early(change):
+    gate = MapStartupReady('current')
+    for i in range(16):gate.observe(alignment(10+i*.1),20+i*.1)
+    gate.observe(alignment(11.6,**change),21.6)
+    assert not gate.result(11.6,21.6,10.,True)['passed']
+
+
+def test_replayed_or_delayed_alignment_cannot_fake_continuity():
+    gate = MapStartupReady('current')
+    for i in range(16):gate.observe(alignment(10.),20+i*.1)
+    assert not gate.result(10.,21.5,9.,True)['passed']
+    gate = MapStartupReady('current')
+    for i in range(16):gate.observe(alignment(10+i*.1),20+i*.5)
+    assert not gate.result(11.5,27.5,10.,True)['passed']
+
+
+def test_map_binding_publisher_loss_or_replacement_invalidates_early_completion():
+    from types import SimpleNamespace as N
+    for endpoints in ([], [N(endpoint_gid=[1]), N(endpoint_gid=[2])], [N(endpoint_gid=[2])]):
+        gate = MapStartupReady('current')
+        assert gate.unique(N(get_publishers_info_by_topic=lambda _: [N(endpoint_gid=[1])]))
+        for i in range(16):gate.observe(alignment(10+i*.1),20+i*.1)
+        assert not gate.unique(N(get_publishers_info_by_topic=lambda _: endpoints))
+        assert not gate.result(11.5,21.5,10.,True)['passed']

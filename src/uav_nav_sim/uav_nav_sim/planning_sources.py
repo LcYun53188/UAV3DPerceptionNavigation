@@ -32,12 +32,37 @@ class SourceBinding:
     def retire(self, reason):
         self.retired = self.reason = reason
 
+    def discard_prewarm_odometry(self):
+        if self.identity is None:
+            self.inputs.pop('odom', None)
+            self.pending_resets = self.reset_stable_since = None
+
+    def prewarm_odometry(self, message, mono):
+        """Observe reset stability without a map, alignment, or admission."""
+        if self.retired or self.identity is not None:
+            return False
+        try:
+            if (message.localization_session != self.session or message.header != message.odometry.header
+                    or not math.isfinite(mono) or stamp(message.header.stamp) <= 0):
+                raise ValueError('INVALID_PREWARM_ODOMETRY')
+            transform_odometry(message.odometry, self.transform)
+        except ValueError:
+            self.discard_prewarm_odometry()
+            return False
+        return self.update('odom', message, mono)
+
     def update(self, name, message, mono):
         if self.retired:
             return False
         if name not in ('map', 'odom'):
             raise ValueError('UNKNOWN_SOURCE')
         previous = self.inputs.get(name)
+        if name == 'odom' and self.identity is None and previous:
+            # Only continuous original samples may contribute pre-admission
+            # reset stability. A gap must restart the unchanged settle period.
+            if (not 0 <= mono-previous[1] <= .5
+                    or not 0 <= stamp(message.header.stamp)-stamp(previous[0].header.stamp) <= .5):
+                self.discard_prewarm_odometry()
         if previous and stamp(message.header.stamp) <= stamp(previous[0].header.stamp):
             # A repeated sample cannot refresh receive freshness.
             return False

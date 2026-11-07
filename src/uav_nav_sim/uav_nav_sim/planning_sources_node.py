@@ -57,7 +57,11 @@ class PlanningSources(Node):
         return self.preflight_admitted
 
     def receive(self, name, message):
-        if not self.preflight_ready():return
+        if not self.preflight_ready():
+            if name == 'odom':
+                if self.unique():self.binding.prewarm_odometry(message,time.monotonic())
+                else:self.binding.discard_prewarm_odometry()
+            return
         # The warmed mapper publishes invalid startup maps. The first binding
         # must use a valid map from its promoted epoch, never capture the
         # discarded GPU warmup identity and retire when that epoch changes.
@@ -74,8 +78,13 @@ class PlanningSources(Node):
         if not self.preflight_ready():return
         unique = self.unique()
         now = self.get_clock().now()
-        message = self.binding.alignment(now.nanoseconds/1e9, time.monotonic(), now.to_msg())
+        mono=time.monotonic()
+        was_active=self.binding.activated
+        message = self.binding.alignment(now.nanoseconds/1e9, mono, now.to_msg())
         if not unique:message.valid = False
+        if message.valid and not was_active:
+            self.get_logger().info(f'Promoted map binding ready; original odometry resets stable for '
+                f'{mono-self.binding.reset_stable_since:.3f} s (required {self.binding.settle_seconds:.3f} s)')
         self.alignment_pub.publish(message)
 
 
