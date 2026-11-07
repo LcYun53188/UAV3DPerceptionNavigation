@@ -290,6 +290,7 @@ class PersonFollowBackend(Node):
             candidate_goal=self.core.goal,execution_blockers=['DYNAMIC_SAFETY_UNQUALIFIED','PX4_FOLLOW_BT_STEP_UNAVAILABLE'])
         payload['automatic'] = self.automatic.policy.status()
         payload['automatic']['recording_error'] = self.automatic.recording_error
+        payload['automatic']['intervention'] = self.automatic.intervention.status()
         self.status_pub.publish(String(data=json.dumps(payload,allow_nan=False)))
 
     def tick(self):

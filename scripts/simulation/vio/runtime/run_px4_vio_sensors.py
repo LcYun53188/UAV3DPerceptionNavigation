@@ -401,6 +401,8 @@ def main():
               ROOT/'scripts/simulation/vio/runtime/vision_monitor.py',ROOT/'scripts/simulation/vio/runtime/vision_overlay.py',
               ROOT/'scripts/simulation/vio/runtime/person_follow_core.py',ROOT/'scripts/simulation/vio/runtime/person_follow_backend.py',ROOT/'scripts/simulation/vio/runtime/person_follow_client.py',
               ROOT/'scripts/simulation/vio/runtime/mission_person_observation.py',ROOT/'scripts/simulation/vio/runtime/mission_person_observer.py',
+              ROOT/'scripts/simulation/vio/runtime/mission_person_intervention.py',
+              ROOT/'scripts/simulation/vio/runtime/person_follow_exit_rules.py',
               ROOT/'scripts/simulation/vio/runtime/vio_sensor_quality.py',ROOT/'scripts/simulation/compat.sh',ROOT/'scripts/simulation/vio/runtime/vio_render_device.py',ROOT/'scripts/simulation/vio/sdk/vio_sdk_parameters.py',ROOT/'scripts/simulation/vio/sdk/vio_sdk_runtime.py',ROOT/'scripts/simulation/vio/runtime/vio_pose_window.py',ROOT/'scripts/simulation/vio/runtime/px4_vio_pose_audit.py',ROOT/'scripts/simulation/vio/runtime/vio_observer_gc.py',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/message_stream_sequencer.hpp',
               ROOT/'src/isaac_ros_visual_slam/isaac_ros_visual_slam/include/isaac_ros_visual_slam/impl/stopwatch.hpp',

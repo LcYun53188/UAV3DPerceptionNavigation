@@ -88,6 +88,11 @@ def test_selected_rgb_binds_3d_preview_services_and_faults(tmp_path):
         box=Detection2D()
         box.bbox.center.position.x=box.bbox.center.position.y=100.
         box.bbox.size_x=box.bbox.size_y=60.
+        from vision_msgs.msg import ObjectHypothesisWithPose
+        result=ObjectHypothesisWithPose()
+        result.hypothesis.class_id='person'
+        result.hypothesis.score=.9
+        box.results=[result]
         detections.detections=[box]
         task=TaskStatus(phase='NAVIGATE',coordinator_instance='test-coordinator',total_remaining_s=100.)
         task.header=context.header
@@ -159,13 +164,15 @@ def test_selected_rgb_binds_3d_preview_services_and_faults(tmp_path):
 
         # Automatic mode does not need a manually selected RGB box or a START command.
         backend.automatic.policy.config=EpisodeConfig(motion_confirm_s=.05,motion_displacement_m=.001,
-            min_samples=3,stationary_confirm_s=.08,observe_s=.08,follow_s=3.,cooldown_s=1.)
+            min_samples=3,stationary_observe_s=.04,moving_follow_s=3.,cooldown_s=1.)
         assert ui.set_auto(True)[0]
         pump(.12)
         moving=True
         motion_origin=capture
         pump(.65)
         assert backend.automatic.policy.phase=='SHADOW_FOLLOW',backend.automatic.policy.status()
+        assert ui.auto_status()['intervention']['phase']=='BLOCKED'
+        assert ui.auto_status()['intervention']['operation'] is None
         moving=False
         until=time.monotonic()+2.
         while backend.automatic.policy.active is not None and time.monotonic()<until:
@@ -179,9 +186,46 @@ def test_selected_rgb_binds_3d_preview_services_and_faults(tmp_path):
         completed=[json.loads(line) for line in (tmp_path/'person-motion.jsonl').read_text().splitlines()]
         assert completed[-1]['end_reason']=='PERSON_STATIC_OBSERVED'
         assert all(point['position'][2]==2. for point in completed[-1]['points'])
+        task.mission_uuid.uuid=list(uuid.uuid4().bytes)
+        task.control_session.session_id.uuid=list(uuid.uuid4().bytes)
+        until=time.monotonic()+.6
+        while backend.automatic.policy.enabled and time.monotonic()<until:
+            pump(.05)
+        assert not backend.automatic.policy.enabled
+        assert backend.automatic.policy.reason=='MISSION_IDENTITY_CHANGED_REAUTHORIZE_MODE'
         assert ui.set_auto(False)[0]
         pump(.1)
         assert not backend.automatic.policy.enabled
+
+        # Deduplicated boxes must not create a false multi-person episode.
+        from dataclasses import replace
+        backend.automatic.policy.config=replace(backend.automatic.policy.config,
+            multi_confirm_s=.02,multi_observe_s=.3)
+        assert ui.set_auto(True)[0]
+        pump(.1)
+        before=len(backend.automatic.policy.episodes)
+        detections.detections=[box,deepcopy(box)]
+        pump(.15)
+        assert len(backend.automatic.policy.episodes)==before
+        assert backend.automatic.policy.active is None
+        # Multiple new captures confirm the second distinct box, then lock even
+        # when the detector returns to one person. Durations are shortened here.
+        second=deepcopy(box)
+        second.bbox.center.position.x=170.
+        detections.detections=[box,second]
+        until=time.monotonic()+1.5
+        while backend.automatic.policy.phase!='SHADOW_MULTI_OBSERVE' and time.monotonic()<until:
+            pump(.03)
+        assert backend.automatic.policy.phase=='SHADOW_MULTI_OBSERVE'
+        detections.detections=[box]
+        pump(.1)
+        assert backend.automatic.policy.phase=='SHADOW_MULTI_OBSERVE'
+        until=time.monotonic()+.6
+        while backend.automatic.policy.active is not None and time.monotonic()<until:
+            pump(.03)
+        assert backend.automatic.policy.episodes[-1]['end_reason']=='MULTIPLE_PEOPLE_OBSERVED'
+        assert ui.set_auto(False)[0]
+        pump(.1)
 
         # A stale root command cannot pause a replacement selection.
         old_session=backend.session
@@ -213,7 +257,10 @@ def test_selected_rgb_binds_3d_preview_services_and_faults(tmp_path):
         observations.valid=True
         selection.choose([(70,70,130,130)],0,('camera',capture),time.monotonic())
         pump(.25)
-        assert backend.core.state=='READY'
+        until=time.monotonic()+.8
+        while backend.core.state!='READY' and time.monotonic()<until:
+            pump(.03)
+        assert backend.core.state=='READY',backend.core.reason
         # Replayed source stamps and selection heartbeats cannot extend input age.
         frozen=True
         clock.clock.sec=13
@@ -223,3 +270,27 @@ def test_selected_rgb_binds_3d_preview_services_and_faults(tmp_path):
         backend.destroy_node()
         source.destroy_node()
         rclpy.try_shutdown()
+
+
+def test_reliable_people_count_filters_noise_and_deduplicates_boxes():
+    from mission_person_observer import reliable_person_boxes
+    from vision_msgs.msg import ObjectHypothesisWithPose
+    def box(identifier='',confidence=.9,x=100.):
+        detection=Detection2D()
+        detection.id=identifier
+        detection.bbox.center.position.x=x
+        detection.bbox.center.position.y=100.
+        detection.bbox.size_x=detection.bbox.size_y=60.
+        result=ObjectHypothesisWithPose()
+        result.hypothesis.class_id='person'
+        result.hypothesis.score=confidence
+        detection.results=[result]
+        return detection
+    message=Detection2DArray(detections=[box(),box(),box(confidence=.2)])
+    assert len(reliable_person_boxes(message))==1
+    message.detections=[box('a'),box('b')]
+    assert len(reliable_person_boxes(message))==2  # Overlapping distinct IDs are conservative.
+    message.detections=[box('a'),box('a'),box(x=180.)]
+    assert len(reliable_person_boxes(message))==2
+    message.detections=[box(confidence=float('nan'))]
+    assert not reliable_person_boxes(message)

@@ -498,7 +498,15 @@ class VisionMonitor:
         automatic = self.follow_client.auto_status() if self.follow_client else None
         self.auto_button.configure(state='normal' if automatic and not self.follow_client.auto_pending else 'disabled',
             text='关闭人物跟踪模式' if automatic and automatic['enabled'] else '开启人物跟踪模式（预演）')
+        intervention = automatic.get('intervention',{}) if automatic else {}
+        if automatic and automatic['enabled'] and intervention.get('phase')=='BLOCKED':
+            self.follow_hint.configure(text='自动记录与预演已开启；任务接管未就绪。\n缺少：飞行跟随执行器、动态安全资格、任务检查点。')
+        timers = automatic.get('timers',{}) if automatic else {}
+        timer_text = (f"\n移动累计 {timers.get('moving_seconds',0):.1f}/10s；静止 {timers.get('stationary_seconds',0):.1f}/5s"
+                      f"\n丢失等待 {timers.get('lost_seconds',0):.1f}/5s；多人观察 {timers.get('multiple_seconds',0):.1f}/10s")
         self.auto_status_label.configure(text=(f"自动模式：{automatic['phase']}\n{automatic['reason']}\n轨迹记录：{automatic['episode_count']} 段\n原任务继续；当前仅记录和预演"+
+                                              timer_text+
+                                              ('\n任务接管：'+intervention.get('phase','未接入') if intervention else '')+
                                               ('\n记录失败：'+automatic['recording_error'] if automatic.get('recording_error') else '') if automatic else
                                               '自动模式：后端不可用' if not self.demo else '演示模式：未连接自动跟踪后端'))
         terminal = ''
